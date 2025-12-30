@@ -1,3 +1,0 @@
-config,target,horizon,task_type,n_iterations,elapsed_sec,coverage,ic,mse,mae
-returns_1bar,returns,1,regression,3,4.39,0.6666666666666666,-1.0,0.00295284819340025,0.045786470499041255
-returns_12bar,returns,12,regression,3,1.91,1.0,0.5,0.004844815240993801,0.06767447239530487
