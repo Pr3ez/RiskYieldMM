@@ -1,0 +1,72 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Virtual environments and conda
+.venv/
+venv/
+ENV/
+env/
+.env/
+.venv
+.conda/
+conda-meta/
+
+# Data files and large artifacts
+*.parquet
+*.csv
+*.h5
+*.npz
+data/
+datasets/
+precomputed/
+precomputed_tmp/
+backtest_results/
+backtest_results_tmp/
+models/
+models/**
+fetchingByBit/**/sorted-*
+fetchingByBit/**/*.parquet
+fetchingbinance/**/sorted-*
+
+# Logs and temp files
+*.log
+logs/
+tmp/
+*.tmp
+
+# Jupyter
+.ipynb_checkpoints
+
+# IDEs and editors
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Test / coverage
+.pytest_cache/
+.cache/
+.tox/
+.coverage
+htmlcov/
+
+# Docs
+docs/_build/

@@ -1,0 +1,12 @@
+{
+  "config_name": "direction_3bar",
+  "task_type": "binary",
+  "n_iterations": 300,
+  "elapsed_seconds": 569.2952611446381,
+  "metrics": {
+    "accuracy": 0.49333333333333335
+  },
+  "coverage": 0.8,
+  "mean_interval_width": null,
+  "mean_set_size": 1.6066666666666667
+}

@@ -1,0 +1,12 @@
+{
+  "config_name": "vol_regime_12bar",
+  "task_type": "multiclass",
+  "n_iterations": 300,
+  "elapsed_seconds": 618.0157563686371,
+  "metrics": {
+    "accuracy": 0.8133333333333334
+  },
+  "coverage": 0.6366666666666667,
+  "mean_interval_width": null,
+  "mean_set_size": 0.6633333333333333
+}

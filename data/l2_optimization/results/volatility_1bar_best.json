@@ -1,0 +1,29 @@
+{
+  "target": "volatility",
+  "horizon": 1,
+  "task_type": "regression",
+  "metric_name": "IC",
+  "best_score": 0.2904681232907843,
+  "baseline_score": 0.35301183931179503,
+  "improvement_pct": -17.71717235969796,
+  "n_trials": 25,
+  "best_params": {
+    "icir_threshold": 0.5,
+    "n_rolling_windows": 7,
+    "correlation_threshold": 0.95,
+    "l2_window_size": 500,
+    "train_ratio": 0.75,
+    "purge_gap": 6,
+    "cb_iterations": 100,
+    "cb_depth": 4,
+    "cb_learning_rate": 0.05,
+    "cb_l2_leaf_reg": 5.0,
+    "lgb_n_estimators": 200,
+    "lgb_max_depth": 4,
+    "lgb_learning_rate": 0.1,
+    "lgb_reg_lambda": 5.0,
+    "cb_weight": 0.5,
+    "lgb_weight": 0.3
+  },
+  "timestamp": "2025-12-23T17:12:29.588231"
+}

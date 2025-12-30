@@ -1,0 +1,8 @@
+2025-12-18 01:22:21,870 [INFO] ======================================================================
+2025-12-18 01:22:21,870 [INFO] BYBIT MARKET DATA FETCHER - SESSION START
+2025-12-18 01:22:21,870 [INFO] ======================================================================
+2025-12-18 01:22:21,870 [INFO] Base directory: /media/przem/linux_data/RiskYieldMM/fetchingByBit
+2025-12-18 01:22:21,870 [INFO] Symbol: BTCUSDT | Category: linear
+2025-12-18 01:22:21,871 [INFO] Date range: 2021-01-01 → now
+2025-12-18 01:22:21,871 [INFO] Log file: /media/przem/linux_data/RiskYieldMM/fetchingByBit/fetch_log_20251218_012221.log
+2025-12-18 01:22:21,871 [INFO] === Starting fetch: LINEAR BTCUSDT 1m ===
