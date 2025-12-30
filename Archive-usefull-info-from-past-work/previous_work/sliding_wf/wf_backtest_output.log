@@ -1,321 +1,0 @@
-nohup: ignoring input
-Cleared PyTorch GPU cache
-GPU detected successfully (nvidia-smi OK)
-
-================================================================================
-LOADING DATA
-================================================================================
-Loading preprocessed data...
-  Loaded training: 2,021 rows, 952 columns
-  Loaded partial:  6,969 rows (for extended diagnostics context)
-  Combined for diagnostics: 8,990 rows total
-
-  Using manual windows: TRAIN=1000, VAL=200, CAL=150
-
-  Using 946 features (including 94 basic raw)
-
-  ✅ Created lagged_direction_target from lagged_forward_returns
-     Distribution: {1: 1127, 0: 894}
-
-================================================================================
-RSI FEATURE ENGINEERING (TA-Style Rolling Indicator)
-================================================================================
-  ✅ Uses lagged_forward_returns (past realized returns, no future leak)
-  ✅ EWM calculation is causal (only looks backward in time)
-  ✅ Each RSI_t value depends only on data from [t-period, t]
-  Created 19 RSI features:
-  Periods: [2, 3, 5, 7, 9, 10, 12, 14, 16, 20, 21, 25, 30, 50]
-    - rsi_2: mean=58.60, std=31.27
-    - rsi_3: mean=58.51, std=25.40
-    - rsi_5: mean=58.12, std=19.61
-    - rsi_7: mean=57.78, std=16.61
-    - rsi_9: mean=57.50, std=14.72
-    ... and 14 more
-  Total features now: 965 (added 19 RSI features)
-
-================================================================================
-DUAL EMA FEATURES (Validated Direction & Volatility Predictors)
-================================================================================
-  ✅ Uses lagged_forward_returns (past realized returns, no future leak)
-  ✅ Dual EMA: short→long vs long→short captures different patterns
-  ✅ Validated out-of-sample: 0.15-0.21 range (direction), 0.90 corr (volatility)
-  Computing 7 indicator families across 180 periods...
-  Applying dual EMA aggregation...
-  Created 24 dual EMA features:
-    - RSI_ema_short_first: mean=54.6250, std=8.1728
-    - RSI_ema_long_first: mean=55.0792, std=6.0807
-    - RSI_ema_divergence: mean=-0.4542, std=5.7052
-    - Volatility_ema_short_first: mean=0.0089, std=0.0028
-    - Volatility_ema_long_first: mean=0.0099, std=0.0035
-    - Volatility_ema_divergence: mean=-0.0009, std=0.0013
-    ... and 18 more
-  Total features now: 989 (added 24 dual EMA features)
-
-================================================================================
-SIGNAL AGGREGATION (Per-Iteration on TRAIN - No Leakage)
-================================================================================
-  ✅ Aggregator will be fitted on TRAIN window each iteration
-  ✅ Never sees VAL, CAL, or PRED data during fitting
-  ✅ Creates features dynamically to prevent look-ahead bias
-  Found 113 signal candidate columns
-  Aggregation will add ~10 meta-features per iteration
-
-================================================================================
-RISK GUARD FEATURE ENGINEERING
-================================================================================
-  Created 6 risk guard features:
-    - risk_guard_score: mean=0.059, std=0.207
-    - risk_guard_high: mean=0.075, std=0.264
-    - risk_guard_extreme: mean=0.039, std=0.193
-    - bullish_boost_score: mean=0.105, std=0.181
-    - bullish_boost_high: mean=0.144, std=0.351
-    - risk_guard_safe: mean=0.599, std=0.490
-  Total features now: 995 (added 6 risk guards)
-
-  Updated direction features: 971
-  Updated volatility features: 971
-
-================================================================================
-OPTUNA HYPERPARAMETER TUNING (1-minute search)
-================================================================================
-  Tuning window: TRAIN[0:1000] VAL[1150:1350]
-  Train samples: 1000, Val samples: 200
-  Features: 995
-
-======================================================================
-DATA-DRIVEN OPTUNA SEARCH SPACE CALCULATION
-======================================================================
-  Inputs:
-    N_train (sample size):     1,000
-    Gap Size (CAL+VAL):        350
-    Gap Ratio (G/N):           0.350
-    Gap Penalty:               0.741
-    Features:                  995
-    Sparsity:                  19.0%
-    Positive Rate:             57.5%
-----------------------------------------------------------------------
-  Calculated Search Ranges:
-    num_leaves:       [8, 16] step=4
-    max_depth:        [4, 6] step=2
-    learning_rate:    [0.005, 0.01, 0.02, 0.025, 0.05, 0.1]
-    n_estimators:     [300, 400] step=100
-    reg_lambda:       [1.0, 3.0, 5.0, 10.0, 15.0, 20.0, 30.0, 50.0]
-    min_child_samples:[5, 20] step=5
-    subsample:        [0.5, 0.6, 0.7, 0.8, 0.9]
-======================================================================
-
-   0%|          | 00:00/00:20Best trial: 0. Best value: 0.285537:    0%|          | 00:04/00:20Best trial: 0. Best value: 0.285537:   22%|██▏       | 00:04/00:20Best trial: 0. Best value: 0.285537:   22%|██▏       | 00:08/00:20Best trial: 0. Best value: 0.285537:   44%|████▎     | 00:08/00:20Best trial: 2. Best value: 0.356097:   44%|████▎     | 00:10/00:20Best trial: 2. Best value: 0.356097:   55%|█████▍    | 00:10/00:20Best trial: 2. Best value: 0.356097:   55%|█████▍    | 00:13/00:20Best trial: 2. Best value: 0.356097:   66%|██████▋   | 00:13/00:20Best trial: 4. Best value: 0.373717:   66%|██████▋   | 00:14/00:20Best trial: 4. Best value: 0.373717:   74%|███████▍  | 00:14/00:20Best trial: 4. Best value: 0.373717:   74%|███████▍  | 00:17/00:20Best trial: 4. Best value: 0.373717:   89%|████████▊ | 00:17/00:20Best trial: 4. Best value: 0.373717:   89%|████████▊ | 00:19/00:20Best trial: 4. Best value: 0.373717:   99%|█████████▉| 00:19/00:20Best trial: 4. Best value: 0.373717:   99%|█████████▉| 00:24/00:20Best trial: 4. Best value: 0.373717:  100%|██████████| 00:24/00:20Best trial: 4. Best value: 0.373717:  100%|██████████| 00:24/00:20
-    [Optuna] Completed 8 trials this run
-    [Optuna] Saved 8 trial params to /media/przem/w/kaggle/optuna_trials_20251215_155737.csv
-    [Optuna] Stored best params for next run warm-start
-    Best CatBoost score: 0.3737
-    Best LightGBM score: 0.3609
-    ⭐ ENSEMBLE MODE: Using CB + LGB with meta-stacker
-
-  ✅ CatBoost params from Optuna (score: 0.3737)
-  ✅ LightGBM params from Optuna (score: 0.3609, device: GPU)
-
-  🎯 ENSEMBLE: CatBoost + LightGBM → Meta-Stacker
-================================================================================
-
-================================================================================
-WALK-FORWARD TRAINING (Sliding Window - IMPROVED 4-WINDOW ARCHITECTURE)
-================================================================================
-
-  ⭐ IMPROVED LAYOUT: CAL between TRAIN and VAL
-      [TRAIN:1000] → [CAL:150] → [VAL:200] → [PRED:1]
-           ↓              ↓             ↓            ↓
-       Fit CB+LGB     Add to buffers Early stop   Apply
-                       Fit Platt/each
-                       Train LR Meta
-
-  ✅ ENSEMBLE: CatBoost + LightGBM → LogisticRegression Meta-Stacker
-  ✅ Per-model Platt calibration on rolling CAL buffers
-  ✅ VAL closest to PRED - meta trained on most recent patterns
-
-Walk-Forward Configuration:
-  ┌─────────────────────────────────────────────────────────────────────────────┐
-  │  TRAIN: 1000  │  CAL:  150  │  VAL:  200  │  PRED:   1  │  Total: 1351  │
-  └─────────────────────────────────────────────────────────────────────────────┘
-  Calibration: NONE per model (max 10 windows, min 500 samples)
-  Meta Stacker: LogisticRegression (linear combination of 3 calibrated probs)
-  Threshold: QUANTILE_MATCH (computed on ensemble CAL probs)
-  Drift Detection: ENABLED
-
-Dataset Statistics:
-  Total rows:               2,021
-  First prediction at row:  1350 (after TRAIN+CAL+VAL)
-  Last prediction ends at:  2021
-  Expected iterations:      671
-  Mode:                     BACKTEST (full optimization)
-
-  Multi-Config Tracking: 96 configurations
-    [1] sin_non_qua_auc1_reg1_wo
-    [2] sin_non_qua_auc1_reg1_ws
-    [3] sin_non_qua_auc1_reg0_wo
-    [4] sin_non_qua_auc1_reg0_ws
-    [5] sin_non_qua_auc0_reg1_wo
-    ... and 91 more
-  Adaptive Config Scorer initialized
-  Stable Config Ensemble: min_ratio=1.05, n_configs=10, ratio_window=10
-  Hull Competition Scorers: HullB=cumulative(from iter 1), HullF=rolling(180-day window)
-  Position Sizing V3: window=50, ema_alpha=0.1
-
-=========================================================================================================================================================================================
-WALK-FORWARD PROGRESS (ENSEMBLE + ADAPTIVE CONFIG SELECTION)
-=======================================================================================================================================================================================================================
-Iter       TRAIN         CAL          VAL          PRED        CB    LG Config                Prob   Thr  P  A Res   TP   FP  Ratio    Mkt   Sig  HullB  HullF  LtEMA  StEMA LtRSI StRSI  Time    Mkt%    Ret%
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    [WindowValidation] TRAIN=1000, CAL=150, half_life=330
-    [RegimeState] hmm=1.0, stable=1.0, dur=1.0, trans5d=2.0
-    [RegimeTendency] regime_pos_rate=0.485, local_p=0.550
-    [Shuffle] VAL+CAL pool: 350 rows → CAL:150, VAL:200
-    [ClassBalance] Pos: 575 (57.5%) → weight=0.739
-    [HalfLife] n=1000, half_life=330
-    [HalfLife] Weights: oldest=0.123, median=0.350, newest=1.000
-    [FeatureSel] Phase 1: 981 → 392 features (top 40%)
-    [PACF] Optimal lag periods: [1, 2, 3, 4]
-    [FeatureSel] Phase 2: Added lags [1, 2, 3, 4] → 382 base + 1574 lagged features
-    [FeatureSel] Phase 2: 1574 lagged → 944 selected (top 60%)
-    [FeatureSel] Final: 382 base (kept) + 944 lagged = 1326 total
-    [CalBuffer] CB: 0 (none), LGB: 0 (none)
-    [CB+LGB] Averaging CatBoost + LightGBM predictions
-    [Diversity] AvgCorr=0.739, Disagree=33.0%, Spread=0.0312
-    [Ensemble] CB=0.565, LGB=0.546, Meta=cb_lgb_avg
-    [EnsDebug] CB=0.505, LGB=0.587 → Ens=0.546
-    [DisagreementGuard] PRED=0.083, VAL_avg=0.062±0.022, z=0.90 → OK
-    [Threshold] Quantile-match: 0.533 (regime_pos_rate=0.485, predicts 73/150 = 48.7% pos)
-    [AUC-Confidence] EnsAUC=0.547 → conf=0.09, uncert=0.91 → thr 0.533 -0.0149 = 0.518
-    [FeatureSel] Volatility: 972 → 388 features
-    [Returns] Ridge trained, pred=0.00137, actual=0.00701, MAE=0.00565
-  [VOTE] Insufficient configs: 0 < 5
-  [V3] Alpha check: exp_ret=0.00137, rf=0.00018, alpha=0.00119
-  [V3] HULL-V2: NEUTRAL_GOOD (Mkt=+0.0%, LtEMA=1.00) | base=0.30 × trust=1.10 × conf=1.04 = 0.34 → 0.34
-  [V3] Voting scale: 1.00 → 0.34
-  [V3-EQUITY] pnl=0.0024, equity=1.0024, peak=1.0024, drawdown=0.00%
-1/671   [   0,1000)  [1000,1150)  [1150,1350)  [1350,1351)   0.56  0.55 sin_non_qua_auc1_reg  0.55  0.52  1  1  TP    1    0      ∞      ∞  0.34      -      -   1.00   1.00    50    50 28.3s   +0.7%   +0.2%
-    [AdaptiveHL] Regime shift: local_p=45.7% vs hist=55.0% → half_life=100
-    [RegimeAdapt] TRAIN shrunk: 1000→500 (purity=0.27, trans=2.0, cp=29.0d)
-    [WindowVariants] SHRUNK: TRAIN=500, CAL=219, VAL=100 (ratio=0.50)
-    [WindowValidation] TRAIN=500, CAL=438, half_life=100
-    [RegimeState] hmm=1.0, stable=1.0, dur=2.0, trans5d=2.0
-    [RegimeTendency] regime_pos_rate=0.486, local_p=0.457
-    [Shuffle] VAL+CAL pool: 638 rows → CAL:438, VAL:200
-    [ClassBalance] Pos: 281 (56.2%) → weight=0.779
-    [HalfLife] n=500, half_life=100
-    [HalfLife] Weights: oldest=0.100, median=0.177, newest=1.000
-    [FeatureSel] Phase 1: 981 → 392 features (top 40%)
-    [PACF] Optimal lag periods: [1, 2, 3, 4]
-    [FeatureSel] Phase 2: Added lags [1, 2, 3, 4] → 382 base + 1570 lagged features
-    [FeatureSel] Phase 2: 1570 lagged → 942 selected (top 60%)
-    [FeatureSel] Final: 382 base (kept) + 942 lagged = 1324 total
-    [CalBuffer] CB: 150 (none), LGB: 150 (none)
-    [CB+LGB] Averaging CatBoost + LightGBM predictions
-    [Diversity] AvgCorr=0.688, Disagree=34.0%, Spread=0.0293
-    [Ensemble] CB=0.491, LGB=0.481, Meta=cb_lgb_avg
-    [EnsDebug] CB=0.507, LGB=0.543 → Ens=0.525
-    [DisagreementGuard] PRED=0.036, VAL_avg=0.059±0.045, z=-0.51 → OK
-    [Threshold] Quantile-match: 0.510 (regime_pos_rate=0.486, predicts 213/438 = 48.6% pos)
-    [AUC-Confidence] EnsAUC=0.481 → conf=0.00, uncert=1.00 → thr 0.510 -0.0051 = 0.505
-    [Returns] Ridge trained, pred=0.00138, actual=0.01265, MAE=0.01127
-    [ShrunkVariant] Trained: CB_AUC=0.597 (orig=0.491)
-  [VOTE] Insufficient configs: 0 < 5
-  [V3] Alpha check: exp_ret=0.00138, rf=0.00018, alpha=0.00120
-  [V3] HULL-V2: NEUTRAL_GOOD (Mkt=+0.7%, LtEMA=1.00) | base=0.30 × trust=1.10 × conf=1.02 = 0.34 → 0.34
-  [V3] Voting scale: 1.00 → 0.34
-  [V3-EQUITY] pnl=0.0043, equity=1.0067, peak=1.0067, drawdown=0.00%
-2/671   [ 213, 713)  [ 713,1151)  [1151,1351)  [1351,1352)   0.49  0.48 sin_non_qua_auc1_reg  0.52  0.51  1  1  TP    2    0      ∞      ∞  0.34   0.00   0.00   1.00   1.00    50    50 26.6s   +2.0%   +0.7%
-    [AdaptiveHL] Regime shift: local_p=45.7% vs hist=55.0% → half_life=100
-    [RegimeAdapt] TRAIN shrunk: 1000→500 (purity=0.27, cp=30.0d)
-    [WindowVariants] SHRUNK: TRAIN=500, CAL=219, VAL=100 (ratio=0.50)
-    [WindowValidation] TRAIN=500, CAL=438, half_life=100
-    [RegimeState] hmm=1.0, stable=1.0, dur=3.0, trans5d=1.0
-    [RegimeTendency] regime_pos_rate=0.485, local_p=0.457
-    [Shuffle] VAL+CAL pool: 638 rows → CAL:438, VAL:200
-    [ClassBalance] Pos: 281 (56.2%) → weight=0.779
-    [HalfLife] n=500, half_life=100
-    [HalfLife] Weights: oldest=0.100, median=0.177, newest=1.000
-    [FeatureSel] Phase 1: 981 → 392 features (top 40%)
-    [PACF] Optimal lag periods: [1, 2, 3, 7]
-    [FeatureSel] Phase 2: Added lags [1, 2, 3, 7] → 382 base + 1566 lagged features
-    [FeatureSel] Phase 2: 1566 lagged → 939 selected (top 60%)
-    [FeatureSel] Final: 382 base (kept) + 939 lagged = 1321 total
-    [CalBuffer] CB: 588 (platt), LGB: 588 (platt)
-    [CalDiag] CB: Brier 0.2513→0.2523, ECE 0.0269→0.0633
-    [CalDiag] LGB: Brier 0.2497→0.2523, ECE 0.0238→0.0633
-    [CB+LGB] Averaging CatBoost + LightGBM predictions
-    [Diversity] AvgCorr=0.657, Disagree=20.5%, Spread=0.0251
-    [Ensemble] CB=0.541, LGB=0.524, Meta=cb_lgb_avg
-    [EnsDebug] CB=0.478, LGB=0.478 → Ens=0.478
-    [DisagreementGuard] PRED=0.000, VAL_avg=0.000±0.000, z=-0.00 → OK
-    [Threshold] Quantile-match: 0.478 (regime_pos_rate=0.485, predicts 213/438 = 48.6% pos)
-    [AUC-Confidence] EnsAUC=0.511 → conf=0.00, uncert=1.00 → thr 0.478 +0.0111 = 0.489
-    [Returns] Ridge trained, pred=-0.00046, actual=0.00364, MAE=0.00410
-    [ShrunkVariant] Trained: CB_AUC=0.626 (orig=0.541)
-  [VOTE] Insufficient configs: 0 < 5
-  [V3] GATE FAIL: prob=0.478 < min_prob=0.5
-  [V3-EQUITY] pnl=0.0000, equity=1.0067, peak=1.0067, drawdown=0.00%
-3/671   [ 214, 714)  [ 714,1152)  [1152,1352)  [1352,1353)   0.54  0.52 sin_non_qua_auc1_reg  0.48  0.49  0  1  FN    2    0      ∞      ∞  0.00   0.22   0.22   1.00   1.00    50    50 22.0s   +2.3%   +0.7%
-    [AdaptiveHL] Regime shift: local_p=45.7% vs hist=55.0% → half_life=100
-    [RegimeAdapt] TRAIN shrunk: 1000→500 (purity=0.27, cp=31.0d)
-    [WindowVariants] SHRUNK: TRAIN=500, CAL=219, VAL=100 (ratio=0.50)
-    [WindowValidation] TRAIN=500, CAL=438, half_life=100
-    [RegimeState] hmm=1.0, stable=1.0, dur=4.0, trans5d=1.0
-    [RegimeTendency] regime_pos_rate=0.486, local_p=0.457
-    [ShrunkVariant] Trained: CB_AUC=0.552 (orig=0.478)
-  [VOTE] Insufficient configs: 0 < 5
-  [V3] Alpha check: exp_ret=-0.00004, rf=0.00018, alpha=-0.00022
-  [V3] GATE FAIL: alpha=-0.00022 <= 0
-  [V3-EQUITY] pnl=0.0000, equity=1.0067, peak=1.0067, drawdown=0.00%
-4/671   [ 215, 715)  [ 715,1153)  [1153,1353)  [1353,1354)   0.48  0.49 sin_non_qua_auc1_reg  0.50  0.50  1  1  TP    3    0      ∞      ∞  0.00   0.11   0.11   1.00   1.00    50    50 20.7s   +2.7%   +0.7%
-    [AdaptiveHL] Regime shift: local_p=45.7% vs hist=55.0% → half_life=100
-    [RegimeAdapt] TRAIN shrunk: 1000→500 (purity=0.28, cp=32.0d)
-    [WindowVariants] SHRUNK: TRAIN=500, CAL=219, VAL=100 (ratio=0.50)
-    [WindowValidation] TRAIN=500, CAL=438, half_life=100
-    [RegimeState] hmm=1.0, stable=1.0, dur=5.0, trans5d=1.0
-    [RegimeTendency] regime_pos_rate=0.486, local_p=0.457
-    [ShrunkVariant] Trained: CB_AUC=0.546 (orig=0.621)
-  [VOTE] Insufficient configs: 0 < 5
-  [V3] Alpha check: exp_ret=0.00049, rf=0.00018, alpha=0.00031
-  [V3] HULL-V2: NEUTRAL_GOOD (Mkt=+2.7%, LtEMA=1.00) | base=0.30 × trust=1.10 × conf=1.01 = 0.33 → 0.33
-  [V3] Voting scale: 1.00 → 0.33
-  [V3-EQUITY] pnl=-0.0006, equity=1.0060, peak=1.0067, drawdown=0.06%
-5/671   [ 216, 716)  [ 716,1154)  [1154,1354)  [1354,1355)   0.62  0.54 sin_non_qua_auc1_reg  0.52  0.51  1  0  FP    3    1   3.00   4.00  0.33   0.09   0.09   1.00   1.00    50    50 23.6s   +2.6%   +0.6%
-    [AdaptiveHL] Regime shift: local_p=45.3% vs hist=55.0% → half_life=100
-    [RegimeAdapt] TRAIN shrunk: 1000→500 (purity=0.29, cp=33.0d)
-    [WindowVariants] SHRUNK: TRAIN=500, CAL=221, VAL=100 (ratio=0.50)
-  [DRIFT] Checked 981 features
-  [DRIFT] Avg PSI: 1.2491, Max PSI: 32.9357
-  [DRIFT] Features with PSI > 0.1: 698
-  [DRIFT] ⚠️ DRIFT DETECTED - Consider retraining or window adjustment
-    ⚠️ DRIFT DETECTED at iter 6: PSI=32.936, adjusting model...
-
-    🔄 DRIFT RETUNE: Running Optuna (20s) with warm-start...
-       Adaptive gap_size=642 (CAL=442, VAL=200)
-
-======================================================================
-DATA-DRIVEN OPTUNA SEARCH SPACE CALCULATION
-======================================================================
-  Inputs:
-    N_train (sample size):     500
-    Gap Size (CAL+VAL):        642
-    Gap Ratio (G/N):           1.284
-    Gap Penalty:               0.438
-    Features:                  981
-    Sparsity:                  18.7%
-    Positive Rate:             56.2%
-----------------------------------------------------------------------
-  Calculated Search Ranges:
-    num_leaves:       [8, 16] step=4
-    max_depth:        [4, 6] step=2
-    learning_rate:    [0.005, 0.01, 0.02, 0.025, 0.05, 0.1]
-    n_estimators:     [300, 400] step=100
-    reg_lambda:       [1.0, 3.0, 5.0, 10.0, 15.0, 20.0, 30.0, 50.0]
-    min_child_samples:[5, 20] step=5
-    subsample:        [0.5, 0.6, 0.7, 0.8, 0.9]
-======================================================================
-
-    [Optuna] Enqueued previous best CatBoost params (adapted)
-    [Optuna] Enqueued previous best LightGBM params (adapted)
-    [Optuna] Warm-starting with 2 enqueued trial(s)
-   0%|          | 00:00/00:20Best trial: 0. Best value: 0.207512:    0%|          | 00:01/00:20Best trial: 0. Best value: 0.207512:    6%|▋         | 00:01/00:20Best trial: 1. Best value: 0.220629:    6%|▋         | 00:02/00:20Best trial: 1. Best value: 0.220629:   15%|█▍        | 00:02/00:20Best trial: 2. Best value: 0.343039:   15%|█▍        | 00:04/00:20Best trial: 2. Best value: 0.343039:   23%|██▎       | 00:04/00:20Best trial: 2. Best value: 0.343039:   23%|██▎       | 00:06/00:20Best trial: 2. Best value: 0.343039:   33%|███▎      | 00:06/00:20Best trial: 2. Best value: 0.343039:   33%|███▎      | 00:08/00:20Best trial: 2. Best value: 0.343039:   42%|████▏     | 00:08/00:20Best trial: 2. Best value: 0.343039:   42%|████▏     | 00:10/00:20Best trial: 2. Best value: 0.343039:   52%|█████▏    | 00:10/00:20Best trial: 2. Best value: 0.343039:   52%|█████▏    | 00:12/00:20Best trial: 2. Best value: 0.343039:   61%|██████    | 00:12/00:20Best trial: 2. Best value: 0.343039:   61%|██████    | 00:13/00:20Best trial: 2. Best value: 0.343039:   68%|██████▊   | 00:13/00:20Best trial: 2. Best value: 0.343039:   68%|██████▊   | 00:15/00:20Best trial: 2. Best value: 0.343039:   75%|███████▌  | 00:15/00:20Best trial: 2. Best value: 0.343039:   75%|███████▌  | 00:16/00:20Best trial: 2. Best value: 0.343039:   82%|████████▏ | 00:16/00:20Best trial: 2. Best value: 0.343039:   82%|████████▏ | 00:17/00:20Best trial: 2. Best value: 0.343039:   90%|████████▉ | 00:17/00:20Best trial: 2. Best value: 0.343039:   90%|████████▉ | 00:19/00:20Best trial: 2. Best value: 0.343039:   98%|█████████▊| 00:19/00:20Best trial: 2. Best value: 0.343039:   98%|█████████▊| 00:21/00:20Best trial: 2. Best value: 0.343039:  100%|██████████| 00:21/00:20Best trial: 2. Best value: 0.343039:  100%|██████████| 00:21/00:20
