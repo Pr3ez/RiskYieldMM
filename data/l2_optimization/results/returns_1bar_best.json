@@ -1,0 +1,29 @@
+{
+  "target": "returns",
+  "horizon": 1,
+  "task_type": "regression",
+  "metric_name": "IC",
+  "best_score": 0.06718157743256653,
+  "baseline_score": 0.015539046294329789,
+  "improvement_pct": 332.3404162653222,
+  "n_trials": 25,
+  "best_params": {
+    "icir_threshold": 0.25,
+    "n_rolling_windows": 3,
+    "correlation_threshold": 0.95,
+    "l2_window_size": 200,
+    "train_ratio": 0.65,
+    "purge_gap": 16,
+    "cb_iterations": 100,
+    "cb_depth": 6,
+    "cb_learning_rate": 0.05,
+    "cb_l2_leaf_reg": 1.0,
+    "lgb_n_estimators": 200,
+    "lgb_max_depth": 6,
+    "lgb_learning_rate": 0.05,
+    "lgb_reg_lambda": 0.5,
+    "cb_weight": 0.6,
+    "lgb_weight": 0.5
+  },
+  "timestamp": "2025-12-23T17:06:04.750128"
+}

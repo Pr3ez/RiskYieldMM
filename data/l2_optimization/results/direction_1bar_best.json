@@ -1,0 +1,29 @@
+{
+  "target": "direction",
+  "horizon": 1,
+  "task_type": "binary",
+  "metric_name": "AUC",
+  "best_score": 0.5362007237005006,
+  "baseline_score": 0.5072035598351388,
+  "improvement_pct": 5.71706631451623,
+  "n_trials": 19,
+  "best_params": {
+    "icir_threshold": 0.25,
+    "n_rolling_windows": 7,
+    "correlation_threshold": 0.95,
+    "l2_window_size": 200,
+    "train_ratio": 0.75,
+    "purge_gap": 6,
+    "cb_iterations": 100,
+    "cb_depth": 4,
+    "cb_learning_rate": 0.05,
+    "cb_l2_leaf_reg": 3.0,
+    "lgb_n_estimators": 200,
+    "lgb_max_depth": 4,
+    "lgb_learning_rate": 0.1,
+    "lgb_reg_lambda": 1.0,
+    "cb_weight": 0.5,
+    "lgb_weight": 0.5
+  },
+  "timestamp": "2025-12-23T16:57:41.493946"
+}

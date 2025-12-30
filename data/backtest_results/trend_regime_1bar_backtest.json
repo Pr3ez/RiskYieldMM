@@ -1,0 +1,12 @@
+{
+  "config_name": "trend_regime_1bar",
+  "task_type": "multiclass",
+  "n_iterations": 300,
+  "elapsed_seconds": 342.3893494606018,
+  "metrics": {
+    "accuracy": 0.6566666666666666
+  },
+  "coverage": 0.74,
+  "mean_interval_width": null,
+  "mean_set_size": 1.3166666666666667
+}

@@ -1,0 +1,16 @@
+{
+  "config_name": "returns_3bar",
+  "total_iterations": 5,
+  "backtest_rows": 5,
+  "total_rows": 4688,
+  "l1_warmup": 500,
+  "l2_window_size": 500,
+  "precompute_time_seconds": 9.88,
+  "created_at": "2025-12-24T16:25:30.721281",
+  "first_pred_timestamp": "2025-12-15T08:00:00+00:00",
+  "last_pred_timestamp": "2025-12-16T16:00:00+00:00",
+  "l2_pred_size": 3,
+  "horizon": 3,
+  "data_drop_na": true,
+  "truncate_end_timestamp": null
+}

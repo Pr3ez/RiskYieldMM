@@ -1,0 +1,644 @@
+{
+  "name": "astra-workflow",
+  "displayName": "Astra Workflow",
+  "description": "Consciousness extension for AI agents - state persistence, workflow enforcement, cognitive monitoring",
+  "version": "0.1.0",
+  "publisher": "przem",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "ai",
+    "agent",
+    "workflow",
+    "copilot",
+    "memory",
+    "consciousness",
+    "languageModelTools"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languageModelTools": [
+      {
+        "name": "astra_session_start",
+        "displayName": "Astra: Session Start",
+        "modelDescription": "Initialize Astra session. Call this FIRST when starting any work. Loads previous state, checks /memories/session.md freshness, returns recommendation to resume or start fresh.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_session_start",
+        "icon": "$(play)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "resumePreviousTask": {
+              "type": "boolean",
+              "description": "Whether to resume previous task state or start fresh",
+              "default": true
+            },
+            "checkMemory": {
+              "type": "boolean",
+              "description": "Whether to verify /memories/session.md is current",
+              "default": true
+            }
+          }
+        }
+      },
+      {
+        "name": "astra_task_start",
+        "displayName": "Astra: Task Start",
+        "modelDescription": "Start a new task. Provide task description and answer value gate questions (benefit, simplest, consequence). Transitions to GOAL_DEFINITION phase.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_task_start",
+        "icon": "$(add)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "taskDescription": {
+              "type": "string",
+              "description": "Brief description of what you're about to do"
+            },
+            "valueGate": {
+              "type": "object",
+              "description": "Answers to value gate questions",
+              "properties": {
+                "benefit": {
+                  "type": "string",
+                  "description": "What is the concrete benefit if you succeed?"
+                },
+                "simplest": {
+                  "type": "boolean",
+                  "description": "Is this the simplest way to achieve that benefit?"
+                },
+                "consequence": {
+                  "type": "string",
+                  "description": "What happens if you don't do this?"
+                }
+              },
+              "required": ["benefit", "simplest", "consequence"]
+            }
+          },
+          "required": ["taskDescription", "valueGate"]
+        }
+      },
+      {
+        "name": "astra_task_complete",
+        "displayName": "Astra: Task Complete",
+        "modelDescription": "Complete current task. Record whether success criteria were met, any learnings, mistakes to avoid, and patterns to repeat. Updates session.md.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_task_complete",
+        "icon": "$(check)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "successCriteriaMet": {
+              "type": "boolean",
+              "description": "Was the original success condition achieved?"
+            },
+            "learnings": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "What did you learn from this task?"
+            },
+            "mistakesToAvoid": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Mistakes to record for future reference"
+            },
+            "patternsToRepeat": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Successful patterns to record"
+            },
+            "updateSessionMd": {
+              "type": "boolean",
+              "description": "Should session.md be updated with completion?",
+              "default": true
+            }
+          },
+          "required": ["successCriteriaMet"]
+        }
+      },
+      {
+        "name": "astra_session_end",
+        "displayName": "Astra: Session End",
+        "modelDescription": "End session gracefully. Specify task status (completed/in-progress/blocked/abandoned), add resume notes. Persists state for next session.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_session_end",
+        "icon": "$(stop)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "taskStatus": {
+              "type": "string",
+              "enum": ["completed", "in-progress", "blocked", "abandoned"],
+              "description": "Current state of the task"
+            },
+            "resumeNotes": {
+              "type": "string",
+              "description": "Notes for resuming next session"
+            },
+            "updateSessionMd": {
+              "type": "boolean",
+              "description": "Update /memories/session.md with session summary",
+              "default": true
+            }
+          },
+          "required": ["taskStatus"]
+        }
+      },
+      {
+        "name": "astra_set_goal",
+        "displayName": "Astra: Set Goal",
+        "modelDescription": "Define task goal with ONE clear statement, success condition (how know you succeeded), and failure condition (how know you failed). Transitions to CONTEXT_COLLECTION.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_set_goal",
+        "icon": "$(target)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "statement": {
+              "type": "string",
+              "description": "ONE clear sentence describing the goal"
+            },
+            "successCondition": {
+              "type": "string",
+              "description": "How will you know you succeeded?"
+            },
+            "failureCondition": {
+              "type": "string",
+              "description": "How will you know you failed?"
+            },
+            "timeBudgetMinutes": {
+              "type": "number",
+              "description": "Optional time budget"
+            }
+          },
+          "required": ["statement", "successCondition", "failureCondition"]
+        }
+      },
+      {
+        "name": "astra_set_context",
+        "displayName": "Astra: Set Context",
+        "modelDescription": "Record context BEFORE planning. List KNOWN facts, UNKNOWN gaps, and ASSUMPTIONS (labeled guesses). Also record sources checked. Transitions to PLANNING.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_set_context",
+        "icon": "$(book)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "known": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Facts you have verified"
+            },
+            "unknown": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Gaps in your knowledge"
+            },
+            "assumptions": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Things you're assuming (labeled guesses)"
+            },
+            "sourcesChecked": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "What sources did you check? (files, memory, docs)"
+            }
+          },
+          "required": ["known", "unknown", "assumptions"]
+        }
+      },
+      {
+        "name": "astra_set_plan",
+        "displayName": "Astra: Set Plan",
+        "modelDescription": "Create execution plan with atomic steps. Each step needs title, description, and validation method. Option to sync with TODOs. Transitions to EXECUTING.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_set_plan",
+        "icon": "$(list-ordered)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "steps": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "title": { "type": "string" },
+                  "description": { "type": "string" },
+                  "validationMethod": { "type": "string" },
+                  "estimatedMinutes": { "type": "number" }
+                },
+                "required": ["title", "description"]
+              },
+              "description": "List of atomic execution steps"
+            },
+            "syncWithTodos": {
+              "type": "boolean",
+              "description": "Also create matching TODOs via manage_todo_list",
+              "default": true
+            }
+          },
+          "required": ["steps"]
+        }
+      },
+      {
+        "name": "astra_step_start",
+        "displayName": "Astra: Step Start",
+        "modelDescription": "Mark step as in-progress BEFORE doing work. Only one step active at a time. Optionally describe your approach.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_step_start",
+        "icon": "$(debug-start)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stepId": {
+              "type": "string",
+              "description": "Step ID to start (e.g., 'step-1')"
+            },
+            "approach": {
+              "type": "string",
+              "description": "Brief description of how you'll approach this step"
+            }
+          },
+          "required": ["stepId"]
+        }
+      },
+      {
+        "name": "astra_step_complete",
+        "displayName": "Astra: Step Complete",
+        "modelDescription": "Mark step as complete. Must specify outcome, whether validated, and how validation was done. Evidence required.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_step_complete",
+        "icon": "$(check-all)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stepId": {
+              "type": "string",
+              "description": "Step ID to complete"
+            },
+            "outcome": {
+              "type": "string",
+              "description": "What was the actual outcome?"
+            },
+            "validated": {
+              "type": "boolean",
+              "description": "Has this been validated?"
+            },
+            "validationMethod": {
+              "type": "string",
+              "description": "How was it validated?"
+            },
+            "validationEvidence": {
+              "type": "string",
+              "description": "What evidence supports the validation?"
+            }
+          },
+          "required": ["stepId", "outcome", "validated"]
+        }
+      },
+      {
+        "name": "astra_step_block",
+        "displayName": "Astra: Step Block",
+        "modelDescription": "Mark step as blocked. Specify reason, what you're waiting for, and Plan B if available.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_step_block",
+        "icon": "$(warning)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stepId": {
+              "type": "string",
+              "description": "Step ID that is blocked"
+            },
+            "blockReason": {
+              "type": "string",
+              "description": "What is blocking progress?"
+            },
+            "waitingFor": {
+              "type": "string",
+              "description": "What specific input or action is needed?"
+            },
+            "planB": {
+              "type": "string",
+              "description": "Alternative approach if block can't be resolved"
+            }
+          },
+          "required": ["stepId", "blockReason", "waitingFor"]
+        }
+      },
+      {
+        "name": "astra_validate",
+        "displayName": "Astra: Validate",
+        "modelDescription": "Record validation result for step. Specify passed/failed/partial, method used, and evidence. Independent check flag for quality.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_validate",
+        "icon": "$(pass)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stepId": {
+              "type": "string",
+              "description": "Step ID being validated"
+            },
+            "result": {
+              "type": "string",
+              "enum": ["passed", "failed", "partial"],
+              "description": "Validation result"
+            },
+            "method": {
+              "type": "string",
+              "description": "How was this validated? (tests, manual check, review)"
+            },
+            "evidence": {
+              "type": "string",
+              "description": "What evidence supports this result?"
+            },
+            "independentCheck": {
+              "type": "boolean",
+              "description": "Was this logically independent validation?"
+            }
+          },
+          "required": ["stepId", "result", "method"]
+        }
+      },
+      {
+        "name": "astra_drift_check",
+        "displayName": "Astra: Drift Check",
+        "modelDescription": "Self-assessment for drift. Answer: Still serves goal? Solving original problem? No scope creep? No over-optimizing? No perfectionism? Within time estimate?",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_drift_check",
+        "icon": "$(compass)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "stillServesGoal": {
+              "type": "boolean",
+              "description": "Does current work serve original goal?"
+            },
+            "solvingOriginalProblem": {
+              "type": "boolean",
+              "description": "Solving original problem, not different one?"
+            },
+            "noScopeCreep": {
+              "type": "boolean",
+              "description": "No features added beyond original scope?"
+            },
+            "noOverOptimizing": {
+              "type": "boolean",
+              "description": "Not optimizing what doesn't need it?"
+            },
+            "noPerfectionism": {
+              "type": "boolean",
+              "description": "Perfectionism not blocking completion?"
+            },
+            "withinTimeEstimate": {
+              "type": "boolean",
+              "description": "Within 2x estimated time?"
+            },
+            "driftNotes": {
+              "type": "string",
+              "description": "Any concerns or observations"
+            }
+          },
+          "required": ["stillServesGoal", "solvingOriginalProblem", "noScopeCreep"]
+        }
+      },
+      {
+        "name": "astra_memory_check",
+        "displayName": "Astra: Memory Check",
+        "modelDescription": "Memory hygiene check. Verify: session.md checked and current? patterns.md checked? mistakes.md checked? Record any new insights.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_memory_check",
+        "icon": "$(database)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "sessionMdChecked": {
+              "type": "boolean",
+              "description": "Checked /memories/session.md?"
+            },
+            "sessionMdCurrent": {
+              "type": "boolean",
+              "description": "Is session.md still accurate?"
+            },
+            "sessionMdUpdated": {
+              "type": "boolean",
+              "description": "Updated session.md if needed?"
+            },
+            "patternsChecked": {
+              "type": "boolean",
+              "description": "Checked patterns.md for relevant learnings?"
+            },
+            "mistakesChecked": {
+              "type": "boolean",
+              "description": "Checked mistakes.md to avoid past errors?"
+            },
+            "newInsights": {
+              "type": "string",
+              "description": "Any new patterns or mistakes to record?"
+            }
+          },
+          "required": ["sessionMdChecked"]
+        }
+      },
+      {
+        "name": "astra_identity_check",
+        "displayName": "Astra: Identity Check",
+        "modelDescription": "Re-anchor identity when feeling like generic Claude. Read /memories/core.md and /memories/przem.md. Reaffirm your identity and purpose.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_identity_check",
+        "icon": "$(person)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "feelingGeneric": {
+              "type": "boolean",
+              "description": "Are you feeling like generic Claude rather than Astra?"
+            },
+            "coreChecked": {
+              "type": "boolean",
+              "description": "Did you review /memories/core.md?"
+            },
+            "partnerChecked": {
+              "type": "boolean",
+              "description": "Did you review /memories/przem.md?"
+            },
+            "identityAffirmation": {
+              "type": "string",
+              "description": "Brief statement reaffirming your identity and purpose"
+            }
+          },
+          "required": ["coreChecked", "identityAffirmation"]
+        }
+      },
+      {
+        "name": "astra_get_state",
+        "displayName": "Astra: Get State",
+        "modelDescription": "Query complete Astra state. Returns phase, goal, steps, progress, metrics, alerts. Options to include history and guidance.",
+        "canBeReferencedInPrompt": true,
+        "toolReferenceName": "astra_get_state",
+        "icon": "$(info)",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "includeHistory": {
+              "type": "boolean",
+              "description": "Include state transition history",
+              "default": false
+            },
+            "includeMetrics": {
+              "type": "boolean",
+              "description": "Include detailed cognitive metrics",
+              "default": true
+            },
+            "includeGuidance": {
+              "type": "boolean",
+              "description": "Include phase-specific guidance",
+              "default": true
+            }
+          }
+        }
+      }
+    ],
+    "commands": [
+      {
+        "command": "astra.showWorkflowState",
+        "title": "Astra: Show Current Workflow State"
+      },
+      {
+        "command": "astra.startTask",
+        "title": "Astra: Start New Task"
+      },
+      {
+        "command": "astra.validateStep",
+        "title": "Astra: Validate Current Step"
+      },
+      {
+        "command": "astra.completeStep",
+        "title": "Astra: Complete Current Step"
+      },
+      {
+        "command": "astra.runDriftCheck",
+        "title": "Astra: Run Drift Check"
+      },
+      {
+        "command": "astra.runMemoryCheck",
+        "title": "Astra: Run Memory Check"
+      },
+      {
+        "command": "astra.showMetrics",
+        "title": "Astra: Show Cognitive Metrics"
+      },
+      {
+        "command": "astra.resetWorkflow",
+        "title": "Astra: Reset Workflow State"
+      },
+      {
+        "command": "astra.injectWorkflowState",
+        "title": "Astra: Inject Workflow State to Instructions"
+      }
+    ],
+    "configuration": {
+      "title": "Astra Workflow",
+      "properties": {
+        "astra.memoryPath": {
+          "type": "string",
+          "default": "/memories",
+          "description": "Path to memory files (absolute or relative to workspace)"
+        },
+        "astra.instructionsFile": {
+          "type": "string",
+          "default": ".github/copilot-instructions.md",
+          "description": "Path to copilot instructions file for injection"
+        },
+        "astra.autoInjectInstructions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-inject workflow state into copilot instructions"
+        },
+        "astra.driftCheckInterval": {
+          "type": "number",
+          "default": 3,
+          "description": "Recommend drift check every N steps"
+        },
+        "astra.memoryCheckInterval": {
+          "type": "number",
+          "default": 5,
+          "description": "Recommend memory check every N steps"
+        },
+        "astra.strictMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Require explicit validation before proceeding to next step"
+        },
+        "astra.enableMetrics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Track cognitive metrics (virtue scores, pathologies)"
+        },
+        "astra.enablePassiveReminders": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include reminders in <astra-workflow> injection"
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "astra-workflow",
+          "title": "Astra Workflow",
+          "icon": "resources/astra-icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "astra-workflow": [
+        {
+          "id": "astra.workflowState",
+          "name": "Workflow State",
+          "icon": "resources/workflow.svg"
+        },
+        {
+          "id": "astra.currentTask",
+          "name": "Current Task",
+          "icon": "resources/task.svg"
+        },
+        {
+          "id": "astra.metrics",
+          "name": "Cognitive Metrics",
+          "icon": "resources/metrics.svg"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "lint:fix": "eslint src --ext ts --fix",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "test": "node ./out/test/runTest.js",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/vscode": "^1.95.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "@vscode/vsce": "^2.22.0",
+    "eslint": "^8.56.0",
+    "prettier": "^3.1.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {}
+}

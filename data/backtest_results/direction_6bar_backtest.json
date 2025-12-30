@@ -1,0 +1,12 @@
+{
+  "config_name": "direction_6bar",
+  "task_type": "binary",
+  "n_iterations": 300,
+  "elapsed_seconds": 570.6183938980103,
+  "metrics": {
+    "accuracy": 0.45666666666666667
+  },
+  "coverage": 0.7433333333333333,
+  "mean_interval_width": null,
+  "mean_set_size": 1.5733333333333333
+}

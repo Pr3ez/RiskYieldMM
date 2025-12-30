@@ -1,0 +1,51 @@
+2025-12-18 01:36:00,266 [INFO] ======================================================================
+2025-12-18 01:36:00,266 [INFO] BYBIT MARKET DATA FETCHER - SESSION START
+2025-12-18 01:36:00,266 [INFO] ======================================================================
+2025-12-18 01:36:00,266 [INFO] Base directory: /media/przem/linux_data/RiskYieldMM/fetchingByBit
+2025-12-18 01:36:00,266 [INFO] Symbol: BTCUSDT | Category: linear
+2025-12-18 01:36:00,266 [INFO] Date range: 2021-01-01 → now
+2025-12-18 01:36:00,267 [INFO] Log file: /media/przem/linux_data/RiskYieldMM/fetchingByBit/fetch_log_20251218_013600.log
+2025-12-18 01:36:00,267 [INFO] === Starting fetch: LINEAR BTCUSDT 1m ===
+2025-12-18 01:36:00,270 [ERROR] Failed to fetch klines 1m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,270 [INFO] === Starting fetch: LINEAR BTCUSDT 5m ===
+2025-12-18 01:36:00,270 [ERROR] Failed to fetch klines 5m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,270 [INFO] === Starting fetch: LINEAR BTCUSDT 15m ===
+2025-12-18 01:36:00,270 [ERROR] Failed to fetch klines 15m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,270 [INFO] === Starting fetch: LINEAR BTCUSDT 1h ===
+2025-12-18 01:36:00,271 [ERROR] Failed to fetch klines 1h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,271 [INFO] === Starting fetch: LINEAR BTCUSDT 4h ===
+2025-12-18 01:36:00,271 [ERROR] Failed to fetch klines 4h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,271 [INFO] === Starting fetch: LINEAR BTCUSDT 1d ===
+2025-12-18 01:36:00,271 [ERROR] Failed to fetch klines 1d: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,271 [ERROR] Failed to fetch funding rate: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,272 [ERROR] Failed to fetch OI 1m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,272 [ERROR] Failed to fetch OI 5m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,272 [ERROR] Failed to fetch OI 15m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,272 [ERROR] Failed to fetch OI 1h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,273 [ERROR] Failed to fetch OI 4h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,273 [ERROR] Failed to fetch OI 1d: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,273 [ERROR] Failed to fetch mark price 1m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,274 [ERROR] Failed to fetch mark price 5m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,274 [ERROR] Failed to fetch mark price 15m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,274 [ERROR] Failed to fetch mark price 1h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,274 [ERROR] Failed to fetch mark price 4h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,274 [ERROR] Failed to fetch mark price 1d: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,275 [ERROR] Failed to fetch index price 1m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,275 [ERROR] Failed to fetch index price 5m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,275 [ERROR] Failed to fetch index price 15m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,275 [ERROR] Failed to fetch index price 1h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,276 [ERROR] Failed to fetch index price 4h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,276 [ERROR] Failed to fetch index price 1d: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,276 [ERROR] Failed to fetch premium index 1m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,276 [ERROR] Failed to fetch premium index 5m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,277 [ERROR] Failed to fetch premium index 15m: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,277 [ERROR] Failed to fetch premium index 1h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,277 [ERROR] Failed to fetch premium index 4h: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,277 [ERROR] Failed to fetch premium index 1d: could not find an appropriate format to parse dates, please define a format
+2025-12-18 01:36:00,278 [INFO] ======================================================================
+2025-12-18 01:36:00,278 [INFO] FETCH SESSION COMPLETE
+2025-12-18 01:36:00,278 [INFO] Duration: 0.0 minutes
+2025-12-18 01:36:00,278 [INFO] Sources attempted: 31
+2025-12-18 01:36:00,278 [INFO] Sources completed: 0
+2025-12-18 01:36:00,278 [INFO] Sources failed: 31
+2025-12-18 01:36:00,278 [INFO] ======================================================================

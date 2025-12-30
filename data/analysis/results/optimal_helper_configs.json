@@ -1,0 +1,1222 @@
+{
+  "volatility_1bar": {
+    "target": "volatility",
+    "horizon": 1,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.13005383362959844,
+        "improvement_pct": 3.3247281427505224
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.1317835000493415,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.08429204541295694,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.1037988670001379,
+        "improvement_pct": 20.010994942716945
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.0001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.14075158008161776,
+        "improvement_pct": 42.32782343312698
+      },
+      "cusum": {
+        "config": {
+          "threshold": 2.5,
+          "drift": 0.3
+        },
+        "ic": 0.07787639132582584,
+        "improvement_pct": 18.56328183730525
+      }
+    },
+    "total_ic": 0.6685562174994784,
+    "improvement_pct": 12.739140868052454
+  },
+  "volatility_3bar": {
+    "target": "volatility",
+    "horizon": 3,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.06814138049266788,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.058914374927124175,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.0821188599233382,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.005,
+          "contamination_moderate": 0.02,
+          "contamination_mild": 0.05,
+          "n_estimators": 100
+        },
+        "ic": 0.031602222137204816,
+        "improvement_pct": 0.0
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.10776049648877152,
+        "improvement_pct": 54.81354502496426
+      },
+      "cusum": {
+        "config": {
+          "threshold": 2.5,
+          "drift": 0.3
+        },
+        "ic": 0.11635753742408611,
+        "improvement_pct": 13.383821774647972
+      }
+    },
+    "total_ic": 0.4648948713931927,
+    "improvement_pct": 12.563662769287706
+  },
+  "volatility_6bar": {
+    "target": "volatility",
+    "horizon": 6,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.0702473231875809,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 6,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.10535529985457612,
+        "improvement_pct": 35.53874292675388
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.059073871173891714,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.03122298818098576,
+        "improvement_pct": 175.32237805718916
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.0005,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.04214027525231923,
+        "improvement_pct": 45.20093591760513
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.12023171763013064,
+        "improvement_pct": 19.143062867261744
+      }
+    },
+    "total_ic": 0.42827147527948434,
+    "improvement_pct": 22.95054100656381
+  },
+  "volatility_12bar": {
+    "target": "volatility",
+    "horizon": 12,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.13503358311481117,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 6,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.16478170197868364,
+        "improvement_pct": 30.243908707994617
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.2039446410772931,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.1507730396676961,
+        "improvement_pct": 3.5161486756035307
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.09201078227783255,
+        "improvement_pct": 20.229681364681976
+      },
+      "cusum": {
+        "config": {
+          "threshold": 4.0,
+          "drift": 0.1
+        },
+        "ic": 0.15969531215873856,
+        "improvement_pct": 17.775886952156007
+      }
+    },
+    "total_ic": 0.9062390602750551,
+    "improvement_pct": 10.078066085829388
+  },
+  "returns_1bar": {
+    "target": "returns",
+    "horizon": 1,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.18800152237053128,
+        "improvement_pct": 166.82836536592075
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 6,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.09979178811468269,
+        "improvement_pct": 67.36895695232111
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.05564639244777236,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.005,
+          "contamination_moderate": 0.02,
+          "contamination_mild": 0.05,
+          "n_estimators": 100
+        },
+        "ic": 0.10374363922861635,
+        "improvement_pct": 0.0
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.09974410846625063,
+        "improvement_pct": 11.059586666047638
+      },
+      "cusum": {
+        "config": {
+          "threshold": 3.0,
+          "drift": 0.2
+        },
+        "ic": 0.08164173896736733,
+        "improvement_pct": 16.48971658338753
+      }
+    },
+    "total_ic": 0.6285691895952207,
+    "improvement_pct": 39.87849692048495
+  },
+  "returns_3bar": {
+    "target": "returns",
+    "horizon": 3,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.11197434808322884,
+        "improvement_pct": 5.342155958639561
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 6,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.11967242498569074,
+        "improvement_pct": 142.96517595144562
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.04933348730158867,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.01,
+          "contamination_moderate": 0.05,
+          "contamination_mild": 0.1,
+          "n_estimators": 100
+        },
+        "ic": 0.11994468829956338,
+        "improvement_pct": 3.03953400959978
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.12473053302752146,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 2.5,
+          "drift": 0.3
+        },
+        "ic": 0.10798426533950568,
+        "improvement_pct": 22.236507272295015
+      }
+    },
+    "total_ic": 0.6336397470370988,
+    "improvement_pct": 18.578797170152505
+  },
+  "returns_6bar": {
+    "target": "returns",
+    "horizon": 6,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.1866228484484186,
+        "improvement_pct": 155.89119596427494
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.12710388839745235,
+        "improvement_pct": 0.20774978005745998
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.2942783731864456,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.15767867637636704,
+        "improvement_pct": 19.889290321467683
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.0479330525480791,
+        "improvement_pct": 41.023176235383204
+      },
+      "cusum": {
+        "config": {
+          "threshold": 2.0,
+          "drift": 0.5
+        },
+        "ic": 0.14108285938336834,
+        "improvement_pct": 0.0
+      }
+    },
+    "total_ic": 0.954699698340131,
+    "improvement_pct": 19.24178893604758
+  },
+  "returns_12bar": {
+    "target": "returns",
+    "horizon": 12,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.21125341131194214,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.14383085816386926,
+        "improvement_pct": 24.604240108789124
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.15730785060135064,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.01,
+          "contamination_moderate": 0.05,
+          "contamination_mild": 0.1,
+          "n_estimators": 100
+        },
+        "ic": 0.18349626482113757,
+        "improvement_pct": 4.937038008739722
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.0001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.07012759610358507,
+        "improvement_pct": 28.5150856025851
+      },
+      "cusum": {
+        "config": {
+          "threshold": 3.0,
+          "drift": 0.2
+        },
+        "ic": 0.13935984464858028,
+        "improvement_pct": 20.369824191968483
+      }
+    },
+    "total_ic": 0.905375825650465,
+    "improvement_pct": 9.186848440470232
+  },
+  "direction_1bar": {
+    "target": "direction",
+    "horizon": 1,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.18794556218121963,
+        "improvement_pct": 122.9054995624808
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 6,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.11798792342947155,
+        "improvement_pct": 57.567611518268116
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.04200375341590464,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.005,
+          "contamination_moderate": 0.02,
+          "contamination_mild": 0.05,
+          "n_estimators": 100
+        },
+        "ic": 0.1965830637020223,
+        "improvement_pct": 0.0
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.0001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.09385108672798367,
+        "improvement_pct": 39.93264789198396
+      },
+      "cusum": {
+        "config": {
+          "threshold": 3.0,
+          "drift": 0.2
+        },
+        "ic": 0.12053829377597886,
+        "improvement_pct": 2.607671957963088
+      }
+    },
+    "total_ic": 0.7589096832325806,
+    "improvement_pct": 30.32349977906575
+  },
+  "direction_3bar": {
+    "target": "direction",
+    "horizon": 3,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.17184615251426263,
+        "improvement_pct": 67.04928165994232
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.14699852279888853,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.1034293410166696,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.01,
+          "contamination_moderate": 0.05,
+          "contamination_mild": 0.1,
+          "n_estimators": 100
+        },
+        "ic": 0.11945437214579356,
+        "improvement_pct": 3.6439226155811975
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.15467960562386765,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.1379798715336303,
+        "improvement_pct": 17.502870930597293
+      }
+    },
+    "total_ic": 0.8343878656331123,
+    "improvement_pct": 12.654581463644806
+  },
+  "direction_6bar": {
+    "target": "direction",
+    "horizon": 6,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.15743007250843488,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.12284979861589815,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.138358430670287,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.18003325192996367,
+        "improvement_pct": 7.41511520587817
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.12264816971490064,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 2.5,
+          "drift": 0.3
+        },
+        "ic": 0.13085987148137146,
+        "improvement_pct": 26.79851692757309
+      }
+    },
+    "total_ic": 0.8521795949208558,
+    "improvement_pct": 4.935999659479251
+  },
+  "direction_12bar": {
+    "target": "direction",
+    "horizon": 12,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 3,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.25476980887361794,
+        "improvement_pct": 0.0
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.26932265089578916,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.04757708037422165,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.005,
+          "contamination_moderate": 0.02,
+          "contamination_mild": 0.05,
+          "n_estimators": 100
+        },
+        "ic": 0.08626045512820822,
+        "improvement_pct": 0.0
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.10341410212296719,
+        "improvement_pct": 26.641295131378577
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.10455313872726345,
+        "improvement_pct": 25.483128494786776
+      }
+    },
+    "total_ic": 0.8658972361220676,
+    "improvement_pct": 5.223866677453963
+  },
+  "vol_regime_1bar": {
+    "target": "vol_regime",
+    "horizon": 1,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.31516657174208706,
+        "improvement_pct": 8.110374821776583
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.4242313346544884,
+        "improvement_pct": 27.527670230536412
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.45359904441840265,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.2907547307930731,
+        "improvement_pct": 21.981821131582237
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.06430802406169546,
+        "improvement_pct": 72.32074729353964
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.10333689561855691,
+        "improvement_pct": 5.254061924074693
+      }
+    },
+    "total_ic": 1.6513966012883037,
+    "improvement_pct": 13.761014348197564
+  },
+  "vol_regime_3bar": {
+    "target": "vol_regime",
+    "horizon": 3,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.31516657174208706,
+        "improvement_pct": 8.110374821776583
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.4242313346544884,
+        "improvement_pct": 27.527670230536412
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.45359904441840265,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.2907547307930731,
+        "improvement_pct": 21.981821131582237
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.06430802406169546,
+        "improvement_pct": 72.32074729353964
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.10333689561855691,
+        "improvement_pct": 5.254061924074693
+      }
+    },
+    "total_ic": 1.6513966012883037,
+    "improvement_pct": 13.761014348197564
+  },
+  "vol_regime_6bar": {
+    "target": "vol_regime",
+    "horizon": 6,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.31516657174208706,
+        "improvement_pct": 8.110374821776583
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.4242313346544884,
+        "improvement_pct": 27.527670230536412
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.45359904441840265,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.2907547307930731,
+        "improvement_pct": 21.981821131582237
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 0.001,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.06430802406169546,
+        "improvement_pct": 72.32074729353964
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.10333689561855691,
+        "improvement_pct": 5.254061924074693
+      }
+    },
+    "total_ic": 1.6513966012883037,
+    "improvement_pct": 13.761014348197564
+  },
+  "vol_regime_12bar": {
+    "target": "vol_regime",
+    "horizon": 12,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.3605162404698587,
+        "improvement_pct": 7.070983548907915
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 5,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.4467933892400797,
+        "improvement_pct": 20.15716090030444
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.5802352912580072,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.31392319459895757,
+        "improvement_pct": 17.84520477111705
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.07326533395923517,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 4.0,
+          "drift": 0.1
+        },
+        "ic": 0.1698234773550432,
+        "improvement_pct": 12.154416356950486
+      }
+    },
+    "total_ic": 1.9445569268811813,
+    "improvement_pct": 9.253698580478227
+  },
+  "trend_regime_1bar": {
+    "target": "trend_regime",
+    "horizon": 1,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.2836133993902935,
+        "improvement_pct": 9.201208028840464
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.30660813446650176,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.47329107696192213,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.1435819501835943,
+        "improvement_pct": 17.245152282879232
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.05854348165563138,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 3.0,
+          "drift": 0.2
+        },
+        "ic": 0.12493292848939579,
+        "improvement_pct": 30.36179842867348
+      }
+    },
+    "total_ic": 1.3905709711473389,
+    "improvement_pct": 5.629757323129217
+  },
+  "trend_regime_3bar": {
+    "target": "trend_regime",
+    "horizon": 3,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.2836133993902935,
+        "improvement_pct": 9.201208028840464
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.30660813446650176,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.47329107696192213,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.1435819501835943,
+        "improvement_pct": 17.245152282879232
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.05854348165563138,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 3.0,
+          "drift": 0.2
+        },
+        "ic": 0.12493292848939579,
+        "improvement_pct": 30.36179842867348
+      }
+    },
+    "total_ic": 1.3905709711473389,
+    "improvement_pct": 5.629757323129217
+  },
+  "trend_regime_6bar": {
+    "target": "trend_regime",
+    "horizon": 6,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.21849806446979742,
+        "improvement_pct": 350.48351384320137
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.24141072653722487,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.08274058683867039,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.005,
+          "contamination_moderate": 0.02,
+          "contamination_mild": 0.05,
+          "n_estimators": 100
+        },
+        "ic": 0.3234764806815897,
+        "improvement_pct": 0.0
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-05,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.05591890768725597,
+        "improvement_pct": 8.816370511518484
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.10691349345921719,
+        "improvement_pct": 13.800712610189978
+      }
+    },
+    "total_ic": 1.0289582596737556,
+    "improvement_pct": 22.281456604034076
+  },
+  "trend_regime_12bar": {
+    "target": "trend_regime",
+    "horizon": 12,
+    "helpers": {
+      "hmm4": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.45092016637758775,
+        "improvement_pct": 50.18171893717178
+      },
+      "hmm5": {
+        "config": {
+          "n_states": 4,
+          "n_iter": 100,
+          "covariance_type": "diag"
+        },
+        "ic": 0.4697707294300589,
+        "improvement_pct": 0.0
+      },
+      "garch": {
+        "config": {
+          "p": 1,
+          "q": 1,
+          "mean": "Zero"
+        },
+        "ic": 0.5370009745806167,
+        "improvement_pct": 0.0
+      },
+      "if": {
+        "config": {
+          "contamination_extreme": 0.03,
+          "contamination_moderate": 0.1,
+          "contamination_mild": 0.2,
+          "n_estimators": 100
+        },
+        "ic": 0.23561562045090656,
+        "improvement_pct": 7.8909438492875585
+      },
+      "kalman": {
+        "config": {
+          "process_noise": 1e-06,
+          "measurement_noise": 0.001
+        },
+        "ic": 0.04646997704098476,
+        "improvement_pct": 0.0
+      },
+      "cusum": {
+        "config": {
+          "threshold": 5.0,
+          "drift": 0.0
+        },
+        "ic": 0.310833991736246,
+        "improvement_pct": 35.56370485001189
+      }
+    },
+    "total_ic": 2.0506114596164005,
+    "improvement_pct": 13.849205061275224
+  }
+}

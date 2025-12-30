@@ -1,0 +1,14 @@
+{
+  "config_name": "volatility_12bar",
+  "task_type": "regression",
+  "n_iterations": 300,
+  "elapsed_seconds": 244.4805393218994,
+  "metrics": {
+    "ic": 0.030236335959288436,
+    "mse": 0.015830722670052262,
+    "mae": 0.040626144978684116
+  },
+  "coverage": 0.77,
+  "mean_interval_width": 0.350049898935633,
+  "mean_set_size": null
+}

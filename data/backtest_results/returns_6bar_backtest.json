@@ -1,0 +1,14 @@
+{
+  "config_name": "returns_6bar",
+  "task_type": "regression",
+  "n_iterations": 300,
+  "elapsed_seconds": 238.81747770309448,
+  "metrics": {
+    "ic": 0.03826353626151401,
+    "mse": 1.8288660807914435e+19,
+    "mae": 246905389.33464578
+  },
+  "coverage": 0.0033783783783783786,
+  "mean_interval_width": 10.21016117319084,
+  "mean_set_size": null
+}

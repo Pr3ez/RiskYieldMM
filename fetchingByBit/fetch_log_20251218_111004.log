@@ -1,0 +1,33 @@
+2025-12-18 11:10:04,204 [INFO] ======================================================================
+2025-12-18 11:10:04,204 [INFO] BYBIT MARKET DATA FETCHER - SESSION START
+2025-12-18 11:10:04,204 [INFO] ======================================================================
+2025-12-18 11:10:04,204 [INFO] Base directory: /media/przem/linux_data/RiskYieldMM/fetchingByBit
+2025-12-18 11:10:04,204 [INFO] Symbol: BTCUSDT | Category: linear
+2025-12-18 11:10:04,204 [INFO] Date range: 2021-01-01 → now
+2025-12-18 11:10:04,204 [INFO] Log file: /media/przem/linux_data/RiskYieldMM/fetchingByBit/fetch_log_20251218_111004.log
+2025-12-18 11:10:04,204 [INFO] === Starting fetch: LINEAR BTCUSDT 1m ===
+2025-12-18 11:13:51,686 [ERROR] API error: HTTPSConnectionPool(host='api.bybit.com', port=443): Read timed out.; retrying in 5 s
+2025-12-18 11:15:06,283 [INFO] [1m] Checkpoint 1: saved 500000 rows
+2025-12-18 11:18:56,389 [INFO] [1m] Checkpoint 2: saved 1000000 rows
+2025-12-18 11:22:35,847 [INFO] [1m] Checkpoint 3: saved 1500000 rows
+2025-12-18 11:26:23,611 [INFO] [1m] Checkpoint 4: saved 2000000 rows
+2025-12-18 11:30:09,006 [INFO] [1m] Checkpoint 5: saved 2500000 rows
+2025-12-18 11:31:03,347 [INFO] Done: BTCUSDT 1m  total_rows=2609891  files=2613  time=21.0m  speed=2.07 pg/s
+2025-12-18 11:31:03,357 [INFO] === Starting fetch: LINEAR BTCUSDT 5m ===
+2025-12-18 11:34:54,634 [INFO] [5m] Checkpoint 1: saved 500000 rows
+2025-12-18 11:35:05,661 [INFO] Done: BTCUSDT 5m  total_rows=521983  files=523  time=4.0m  speed=2.15 pg/s
+2025-12-18 11:35:05,663 [INFO] === Starting fetch: LINEAR BTCUSDT 15m ===
+2025-12-18 11:36:26,066 [INFO] Done: BTCUSDT 15m  total_rows=173995  files=175  time=1.3m  speed=2.16 pg/s
+2025-12-18 11:36:26,067 [INFO] === Starting fetch: LINEAR BTCUSDT 1h ===
+2025-12-18 11:36:45,095 [INFO] Done: BTCUSDT 1h  total_rows=43499  files=45  time=0.3m  speed=2.31 pg/s
+2025-12-18 11:36:45,096 [INFO] === Starting fetch: LINEAR BTCUSDT 4h ===
+2025-12-18 11:36:49,816 [INFO] Done: BTCUSDT 4h  total_rows=10875  files=12  time=0.1m  speed=2.33 pg/s
+2025-12-18 11:36:49,817 [INFO] === Starting fetch: LINEAR BTCUSDT 1d ===
+2025-12-18 11:36:50,822 [INFO] Done: BTCUSDT 1d  total_rows=1813  files=3  time=0.0m  speed=1.99 pg/s
+2025-12-18 13:48:39,528 [INFO] ======================================================================
+2025-12-18 13:48:39,528 [INFO] FETCH SESSION COMPLETE
+2025-12-18 13:48:39,528 [INFO] Duration: 158.6 minutes
+2025-12-18 13:48:39,528 [INFO] Sources attempted: 31
+2025-12-18 13:48:39,528 [INFO] Sources completed: 31
+2025-12-18 13:48:39,528 [INFO] Sources failed: 0
+2025-12-18 13:48:39,528 [INFO] ======================================================================
