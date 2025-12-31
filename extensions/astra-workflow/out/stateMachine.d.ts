@@ -7,37 +7,7 @@
  * NEW: Virtue-based transition validation using the 4-filter decision gate
  * (Wisdom, Temperance, Courage, Justice) from Platonic/Aristotelian ethics.
  */
-import { WorkflowPhase, WorkflowState, WorkflowEvent, WorkflowStep, TaskGoal, ContextSnapshot, TaskType, VirtueMetrics, DetectedPathology } from "./types.js";
-/**
- * Result of a virtue filter check
- */
-export interface VirtueFilterResult {
-    /** Whether the filter passed */
-    passed: boolean;
-    /** Virtue being checked */
-    virtue: 'wisdom' | 'temperance' | 'courage' | 'justice';
-    /** Score for this check (0-100) */
-    score: number;
-    /** Reason for pass/fail */
-    reason: string;
-    /** Suggested correction if failed */
-    correction?: string;
-}
-/**
- * Result of the 4-filter decision gate
- */
-export interface VirtueGateResult {
-    /** Whether all filters passed */
-    passed: boolean;
-    /** Individual filter results */
-    filters: VirtueFilterResult[];
-    /** Overall virtue score */
-    overallScore: number;
-    /** Detected pathologies (if any) */
-    pathologies: DetectedPathology[];
-    /** Recommended action */
-    recommendation: 'proceed' | 'pause' | 'replan' | 'abort';
-}
+import { WorkflowPhase, WorkflowState, WorkflowEvent, WorkflowStep, TaskGoal, ContextSnapshot, TaskType, VirtueMetrics, DetectedPathology, VirtueGateResult, StepReflection, PatternSuggestion } from "./types.js";
 export declare class WorkflowStateMachine {
     private state;
     private virtueMetrics;
@@ -156,6 +126,25 @@ export declare class WorkflowStateMachine {
         success: boolean;
         error?: string;
     };
+    /**
+     * Attach reflection to a step
+     */
+    attachReflection(stepId: string, reflection: StepReflection): {
+        success: boolean;
+        error?: string;
+    };
+    /**
+     * Set identity affirmation (used for grounding)
+     */
+    setIdentityAffirmation(affirmation: string): void;
+    /**
+     * Set coaching tip (micro-habit for next session)
+     */
+    setCoachingTip(tip: string): void;
+    /**
+     * Set pattern suggestions for current context
+     */
+    setPatternSuggestions(suggestions: PatternSuggestion[]): void;
     /**
      * Complete a step and validate
      */

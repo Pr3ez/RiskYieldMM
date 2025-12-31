@@ -13,7 +13,18 @@
  */
 import * as vscode from "vscode";
 import { WorkflowStateMachine } from "./stateMachine.js";
-import { WorkflowPhase, TaskType, VirtueMetrics, DetectedPathology } from "./types.js";
+import { WorkflowPhase, TaskType, VirtueMetrics, DetectedPathology, PatternSuggestion } from "./types.js";
+export interface DisplayOptions {
+    maxPatternSuggestions: number;
+    maxSnippetLength: number;
+    showHypothesis: boolean;
+    showReflection: boolean;
+    showCoaching: boolean;
+    showPatterns: boolean;
+    showIdentity: boolean;
+    showValue: boolean;
+    showVirtueGate: boolean;
+}
 import { CognitiveMetricsMonitor, MetricAlert } from "./metricsMonitor.js";
 export declare class InstructionInjector {
     private static readonly WORKFLOW_MARKER_START;
@@ -41,7 +52,7 @@ export declare class InstructionInjector {
      * Generate <astra-workflow> XML section
      * This format coordinates with Agent TODOs' <todos> section
      */
-    static generateAstraWorkflowSection(stateMachine: WorkflowStateMachine, alerts: MetricAlert[], virtueMetrics?: VirtueMetrics, pathologies?: DetectedPathology[]): string;
+    static generateAstraWorkflowSection(stateMachine: WorkflowStateMachine, alerts: MetricAlert[], virtueMetrics?: VirtueMetrics, pathologies?: DetectedPathology[], patternSuggestions?: PatternSuggestion[], displayOptions?: DisplayOptions): string;
     /**
      * Generate workflow section content (legacy format for backward compatibility)
      */
@@ -55,11 +66,11 @@ export declare class InstructionInjector {
      * Inject <astra-workflow> section into copilot instructions
      * Coordinates with Agent TODOs by inserting AFTER </todos>
      */
-    static injectAstraSection(workspaceFolder: vscode.WorkspaceFolder, stateMachine: WorkflowStateMachine, metricsMonitor: CognitiveMetricsMonitor, virtueMetrics?: VirtueMetrics, pathologies?: DetectedPathology[]): Promise<void>;
+    static injectAstraSection(workspaceFolder: vscode.WorkspaceFolder, stateMachine: WorkflowStateMachine, metricsMonitor: CognitiveMetricsMonitor, virtueMetrics?: VirtueMetrics, pathologies?: DetectedPathology[], patternSuggestions?: PatternSuggestion[], displayOptions?: DisplayOptions): Promise<void>;
     /**
      * Inject workflow section into copilot instructions (legacy method)
      */
-    static injectWorkflowSection(workspaceFolder: vscode.WorkspaceFolder, stateMachine: WorkflowStateMachine, metricsMonitor: CognitiveMetricsMonitor): Promise<void>;
+    static injectWorkflowSection(workspaceFolder: vscode.WorkspaceFolder, stateMachine: WorkflowStateMachine, metricsMonitor: CognitiveMetricsMonitor, patternSuggestions?: PatternSuggestion[], displayOptions?: DisplayOptions): Promise<void>;
     /**
      * Remove workflow section from copilot instructions
      */

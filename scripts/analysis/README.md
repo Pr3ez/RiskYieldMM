@@ -14,8 +14,7 @@ python -m scripts.analysis.run features      # Feature IC/ICIR analysis
 python -m scripts.analysis.run importance    # Feature importance (MDI)
 python -m scripts.analysis.run mda           # Feature importance (MDA)
 python -m scripts.analysis.run cv            # Cross-validation
-python -m scripts.analysis.run backtest      # Walk-forward backtest
-```
+
 
 ## Commands
 
@@ -149,7 +148,6 @@ scripts/analysis/
 ├── data.py         # Data loading, target generation
 ├── features.py     # IC/ICIR, importance, domain classification
 ├── models.py       # CatBoost, LightGBM, PurgedKFold
-├── backtest.py     # Walk-forward simulation
 ├── viz.py          # Plotting utilities
 ├── run.py          # CLI entry point (1406 lines)
 └── optimizers/     # Feature and helper optimization

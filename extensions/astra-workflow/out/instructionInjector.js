@@ -51,6 +51,22 @@ exports.detectTaskType = detectTaskType;
 const vscode = __importStar(require("vscode"));
 const path = __importStar(require("path"));
 const types_js_1 = require("./types.js");
+const DEFAULT_DISPLAY_OPTIONS = {
+    maxPatternSuggestions: 3,
+    maxSnippetLength: 140,
+    showHypothesis: true,
+    showReflection: true,
+    showCoaching: true,
+    showPatterns: true,
+    showIdentity: true,
+    showValue: true,
+    showVirtueGate: true,
+};
+function truncate(text, limit) {
+    if (text.length <= limit)
+        return text;
+    return text.slice(0, limit - 1).trimEnd() + "…";
+}
 // =============================================================================
 // INSTRUCTION TEMPLATES
 // =============================================================================
@@ -211,7 +227,15 @@ class InstructionInjector {
      * Get the copilot instructions file path
      */
     static getInstructionsPath(workspaceFolder) {
-        return path.join(workspaceFolder.uri.fsPath, ".github", "copilot-instructions.md");
+        const configuredPath = vscode.workspace
+            .getConfiguration("astra")
+            .get("instructionsFile", ".github/copilot-instructions.md");
+        if (!configuredPath) {
+            return path.join(workspaceFolder.uri.fsPath, ".github", "copilot-instructions.md");
+        }
+        return path.isAbsolute(configuredPath)
+            ? configuredPath
+            : path.join(workspaceFolder.uri.fsPath, configuredPath);
     }
     /**
      * Generate passive reminder based on current phase
@@ -269,61 +293,105 @@ class InstructionInjector {
      * Generate <astra-workflow> XML section
      * This format coordinates with Agent TODOs' <todos> section
      */
-    static generateAstraWorkflowSection(stateMachine, alerts, virtueMetrics, pathologies) {
+    static generateAstraWorkflowSection(stateMachine, alerts, virtueMetrics, pathologies, patternSuggestions, displayOptions = DEFAULT_DISPLAY_OPTIONS) {
         const state = stateMachine.getState();
         const passiveReminder = this.generatePassiveReminder(state.phase);
-        let content = `${this.ASTRA_TAG_START}\n`;
-        // Phase and passive reminder
-        content += `## 📍 Phase: ${state.phase}\n`;
-        content += `${passiveReminder}\n\n`;
-        // Virtue metrics (if available)
+        const sections = [];
+        sections.push(`## 📍 Phase: ${state.phase}\n${passiveReminder}`);
         if (virtueMetrics) {
-            content += `**Virtues:** ${this.generateVirtueStatus(virtueMetrics)}\n`;
+            sections.push(`**Virtues:** ${this.generateVirtueStatus(virtueMetrics)}`);
         }
-        // Pathology warnings
         if (pathologies && pathologies.length > 0) {
-            content += this.generatePathologyWarnings(pathologies);
+            sections.push(this.generatePathologyWarnings(pathologies).trim());
         }
-        // Current task info
+        const lastGate = state.lastVirtueGate;
+        if (displayOptions.showVirtueGate && lastGate) {
+            const failed = lastGate.filters.filter((f) => !f.passed);
+            let virt = `Score: ${lastGate.overallScore.toFixed(1)} | Recommendation: ${lastGate.recommendation}`;
+            if (failed.length > 0) {
+                virt += ` | Fix: ${failed.map((f) => `${f.virtue}`).join(", ")}`;
+            }
+            sections.push(`### Virtue Gate\n${virt}`);
+        }
+        if (displayOptions.showValue && state.valueJustification) {
+            sections.push(`**Value:** ${truncate(state.valueJustification, displayOptions.maxSnippetLength)}`);
+        }
+        if (displayOptions.showIdentity && state.identityAffirmation) {
+            sections.push(`**Identity:** ${truncate(state.identityAffirmation, displayOptions.maxSnippetLength)}`);
+        }
         if (state.goal) {
-            content += `\n### Goal\n`;
-            content += `**${state.goal.statement}**\n`;
-            content += `- ✅ Success: ${state.goal.successCondition}\n`;
-            content += `- ❌ Failure: ${state.goal.failureCondition}\n`;
+            const goalLines = [
+                `**${truncate(state.goal.statement, displayOptions.maxSnippetLength)}**`,
+                `- ✅ ${truncate(state.goal.successCondition, displayOptions.maxSnippetLength)}`,
+                `- ❌ ${truncate(state.goal.failureCondition, displayOptions.maxSnippetLength)}`,
+            ];
+            sections.push(`### Goal\n${goalLines.join("\n")}`);
         }
-        // Current step
         const currentStep = stateMachine.getCurrentStep();
         if (currentStep) {
-            content += `\n### Active Step\n`;
-            content += `**[${currentStep.id}] ${currentStep.title}** - ${currentStep.status}\n`;
+            sections.push(`### Active Step\n**[${currentStep.id}] ${truncate(currentStep.title, displayOptions.maxSnippetLength)}** - ${currentStep.status}`);
         }
-        // Progress
         if (state.steps.length > 0) {
             const completed = state.steps.filter((s) => s.status === "completed").length;
             const blocked = state.steps.filter((s) => s.status === "blocked").length;
-            content += `\n### Progress\n`;
-            content += `✅ ${completed}/${state.steps.length} complete`;
+            let prog = `✅ ${completed}/${state.steps.length} complete`;
             if (blocked > 0)
-                content += ` | 🚫 ${blocked} blocked`;
-            content += '\n';
+                prog += ` | 🚫 ${blocked} blocked`;
+            sections.push(`### Progress\n${prog}`);
         }
-        // Alerts
         if (alerts.length > 0) {
-            content += `\n### ⚠️ Alerts\n`;
-            for (const alert of alerts) {
+            const alertLines = alerts.map((alert) => {
                 const icon = alert.severity === "critical" ? "🔴" : "🟡";
-                content += `${icon} **${alert.metric}**: ${alert.suggestion}\n`;
-            }
+                return `${icon} ${alert.metric}: ${truncate(alert.suggestion, displayOptions.maxSnippetLength)}`;
+            });
+            sections.push(`### ⚠️ Alerts\n${alertLines.join("\n")}`);
         }
-        // Watchdog timers
         const strictness = stateMachine.getStrictness();
+        const dueLines = [];
         if (state.stepsSinceDriftCheck >= strictness.driftCheckInterval) {
-            content += `\n🎯 **DRIFT CHECK DUE** - ${state.stepsSinceDriftCheck} steps since last check\n`;
+            dueLines.push(`🎯 Drift check due (${state.stepsSinceDriftCheck} steps)`);
         }
         if (state.stepsSinceMemoryCheck >= strictness.memoryCheckInterval) {
-            content += `\n🧠 **MEMORY CHECK DUE** - ${state.stepsSinceMemoryCheck} steps since last check\n`;
+            dueLines.push(`🧠 Memory check due (${state.stepsSinceMemoryCheck} steps)`);
         }
-        content += `\n${this.ASTRA_TAG_END}`;
+        if (dueLines.length > 0) {
+            sections.push(dueLines.join(" | "));
+        }
+        const lastReflection = state.lastReflection;
+        if (displayOptions.showReflection && lastReflection && (lastReflection.insight || lastReflection.tension)) {
+            const refl = [];
+            if (lastReflection.insight)
+                refl.push(`Insight: ${truncate(lastReflection.insight, displayOptions.maxSnippetLength)}`);
+            if (lastReflection.tension)
+                refl.push(`Tension: ${truncate(lastReflection.tension, displayOptions.maxSnippetLength)}`);
+            if (refl.length > 0)
+                sections.push(`### Reflection\n${refl.join("\n")}`);
+        }
+        if (displayOptions.showHypothesis && state.lastHypothesis) {
+            const h = state.lastHypothesis;
+            const lines = [];
+            if (h.statement)
+                lines.push(`Hypothesis: ${truncate(h.statement, displayOptions.maxSnippetLength)}`);
+            if (h.test)
+                lines.push(`Test: ${truncate(h.test, displayOptions.maxSnippetLength)}`);
+            if (h.evidence)
+                lines.push(`Evidence: ${truncate(h.evidence, displayOptions.maxSnippetLength)}`);
+            if (h.confidence !== undefined)
+                lines.push(`Confidence: ${h.confidence}%`);
+            if (h.outcome)
+                lines.push(`Outcome: ${h.outcome}`);
+            if (lines.length > 0)
+                sections.push(`### Hypothesis\n${lines.join("\n")}`);
+        }
+        if (displayOptions.showCoaching && state.coachingTip) {
+            sections.push(`### Coaching\n${truncate(state.coachingTip, displayOptions.maxSnippetLength)}`);
+        }
+        if (displayOptions.showPatterns && patternSuggestions && patternSuggestions.length > 0) {
+            const limited = patternSuggestions.slice(0, displayOptions.maxPatternSuggestions);
+            const patternLines = limited.map((p) => `- (${(p.score * 100).toFixed(0)}%) ${truncate(p.title, 60)} — ${truncate(p.snippet, displayOptions.maxSnippetLength)}`);
+            sections.push(`### Patterns\n${patternLines.join("\n")}`);
+        }
+        const content = `${this.ASTRA_TAG_START}\n${sections.join("\n\n")}\n\n${this.ASTRA_TAG_END}`;
         return content;
     }
     /**
@@ -397,7 +465,7 @@ class InstructionInjector {
      * Inject <astra-workflow> section into copilot instructions
      * Coordinates with Agent TODOs by inserting AFTER </todos>
      */
-    static async injectAstraSection(workspaceFolder, stateMachine, metricsMonitor, virtueMetrics, pathologies) {
+    static async injectAstraSection(workspaceFolder, stateMachine, metricsMonitor, virtueMetrics, pathologies, patternSuggestions, displayOptions) {
         const instructionsPath = this.getInstructionsPath(workspaceFolder);
         const uri = vscode.Uri.file(instructionsPath);
         // Read existing content
@@ -412,7 +480,7 @@ class InstructionInjector {
         }
         // Generate new astra section
         const alerts = metricsMonitor.checkHealth(stateMachine.getState().metrics);
-        const astraSection = this.generateAstraWorkflowSection(stateMachine, alerts, virtueMetrics, pathologies);
+        const astraSection = this.generateAstraWorkflowSection(stateMachine, alerts, virtueMetrics, pathologies, patternSuggestions, displayOptions ?? DEFAULT_DISPLAY_OPTIONS);
         // Remove existing astra section (if present)
         const astraStartIdx = content.indexOf(this.ASTRA_TAG_START);
         const astraEndIdx = content.indexOf(this.ASTRA_TAG_END);
@@ -452,9 +520,9 @@ class InstructionInjector {
     /**
      * Inject workflow section into copilot instructions (legacy method)
      */
-    static async injectWorkflowSection(workspaceFolder, stateMachine, metricsMonitor) {
+    static async injectWorkflowSection(workspaceFolder, stateMachine, metricsMonitor, patternSuggestions, displayOptions) {
         // Use new method with astra section
-        await this.injectAstraSection(workspaceFolder, stateMachine, metricsMonitor);
+        await this.injectAstraSection(workspaceFolder, stateMachine, metricsMonitor, undefined, undefined, patternSuggestions, displayOptions);
     }
     /**
      * Remove workflow section from copilot instructions

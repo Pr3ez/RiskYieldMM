@@ -745,12 +745,14 @@ def compute_vol_momentum(df: pd.DataFrame, n: int) -> pd.Series:
     Rate of change of volatility.
     Inner volatility window m = n//2 (per docs: n=6->m=3, n=12->m=6, n=21->m=10)
     >0: volatility increasing, <0: volatility decreasing.
+    Clipped to [-1, 15] to handle division by small volatility.
     """
     log_returns = np.log(df["close"] / df["close"].shift(1))
     # Inner window m = n/2 (per docs)
     m = max(n // 2, 2)  # minimum 2 for std calculation
     return_std = log_returns.rolling(m).std()
-    return (return_std / return_std.shift(n)) - 1
+    vol_mom = (return_std / return_std.shift(n)) - 1
+    return vol_mom.clip(-1, 15)
 
 
 # =============================================================================

@@ -14,8 +14,37 @@
 
 import * as vscode from "vscode";
 import * as path from "path";
-import { WorkflowStateMachine, VirtueGateResult } from "./stateMachine.js";
-import { WorkflowPhase, TaskType, VirtueMetrics, DetectedPathology } from "./types.js";
+import { WorkflowStateMachine } from "./stateMachine.js";
+import { WorkflowPhase, TaskType, VirtueMetrics, DetectedPathology, VirtueGateResult, StepReflection, PatternSuggestion } from "./types.js";
+
+export interface DisplayOptions {
+  maxPatternSuggestions: number;
+  maxSnippetLength: number;
+  showHypothesis: boolean;
+  showReflection: boolean;
+  showCoaching: boolean;
+  showPatterns: boolean;
+  showIdentity: boolean;
+  showValue: boolean;
+  showVirtueGate: boolean;
+}
+
+const DEFAULT_DISPLAY_OPTIONS: DisplayOptions = {
+  maxPatternSuggestions: 3,
+  maxSnippetLength: 140,
+  showHypothesis: true,
+  showReflection: true,
+  showCoaching: true,
+  showPatterns: true,
+  showIdentity: true,
+  showValue: true,
+  showVirtueGate: true,
+};
+
+function truncate(text: string, limit: number): string {
+  if (text.length <= limit) return text;
+  return text.slice(0, limit - 1).trimEnd() + "…";
+}
 import { CognitiveMetricsMonitor, MetricAlert } from "./metricsMonitor.js";
 
 // =============================================================================
@@ -195,7 +224,17 @@ export class InstructionInjector {
    * Get the copilot instructions file path
    */
   private static getInstructionsPath(workspaceFolder: vscode.WorkspaceFolder): string {
-    return path.join(workspaceFolder.uri.fsPath, ".github", "copilot-instructions.md");
+    const configuredPath = vscode.workspace
+      .getConfiguration("astra")
+      .get<string>("instructionsFile", ".github/copilot-instructions.md");
+    
+    if (!configuredPath) {
+      return path.join(workspaceFolder.uri.fsPath, ".github", "copilot-instructions.md");
+    }
+
+    return path.isAbsolute(configuredPath)
+      ? configuredPath
+      : path.join(workspaceFolder.uri.fsPath, configuredPath);
   }
 
   /**
@@ -263,71 +302,118 @@ export class InstructionInjector {
     stateMachine: WorkflowStateMachine,
     alerts: MetricAlert[],
     virtueMetrics?: VirtueMetrics,
-    pathologies?: DetectedPathology[]
+    pathologies?: DetectedPathology[],
+    patternSuggestions?: PatternSuggestion[],
+    displayOptions: DisplayOptions = DEFAULT_DISPLAY_OPTIONS
   ): string {
     const state = stateMachine.getState();
     const passiveReminder = this.generatePassiveReminder(state.phase);
-    
-    let content = `${this.ASTRA_TAG_START}\n`;
-    
-    // Phase and passive reminder
-    content += `## 📍 Phase: ${state.phase}\n`;
-    content += `${passiveReminder}\n\n`;
-    
-    // Virtue metrics (if available)
+    const sections: string[] = [];
+
+    sections.push(`## 📍 Phase: ${state.phase}\n${passiveReminder}`);
+
     if (virtueMetrics) {
-      content += `**Virtues:** ${this.generateVirtueStatus(virtueMetrics)}\n`;
+      sections.push(`**Virtues:** ${this.generateVirtueStatus(virtueMetrics)}`);
     }
-    
-    // Pathology warnings
+
     if (pathologies && pathologies.length > 0) {
-      content += this.generatePathologyWarnings(pathologies);
+      sections.push(this.generatePathologyWarnings(pathologies).trim());
     }
 
-    // Current task info
+    const lastGate: VirtueGateResult | undefined = (state as any).lastVirtueGate;
+    if (displayOptions.showVirtueGate && lastGate) {
+      const failed = lastGate.filters.filter((f) => !f.passed);
+      let virt = `Score: ${lastGate.overallScore.toFixed(1)} | Recommendation: ${lastGate.recommendation}`;
+      if (failed.length > 0) {
+        virt += ` | Fix: ${failed.map((f) => `${f.virtue}`).join(", ")}`;
+      }
+      sections.push(`### Virtue Gate\n${virt}`);
+    }
+
+    if (displayOptions.showValue && (state as any).valueJustification) {
+      sections.push(`**Value:** ${truncate((state as any).valueJustification, displayOptions.maxSnippetLength)}`);
+    }
+
+    if (displayOptions.showIdentity && (state as any).identityAffirmation) {
+      sections.push(`**Identity:** ${truncate((state as any).identityAffirmation, displayOptions.maxSnippetLength)}`);
+    }
+
     if (state.goal) {
-      content += `\n### Goal\n`;
-      content += `**${state.goal.statement}**\n`;
-      content += `- ✅ Success: ${state.goal.successCondition}\n`;
-      content += `- ❌ Failure: ${state.goal.failureCondition}\n`;
+      const goalLines = [
+        `**${truncate(state.goal.statement, displayOptions.maxSnippetLength)}**`,
+        `- ✅ ${truncate(state.goal.successCondition, displayOptions.maxSnippetLength)}`,
+        `- ❌ ${truncate(state.goal.failureCondition, displayOptions.maxSnippetLength)}`,
+      ];
+      sections.push(`### Goal\n${goalLines.join("\n")}`);
     }
 
-    // Current step
     const currentStep = stateMachine.getCurrentStep();
     if (currentStep) {
-      content += `\n### Active Step\n`;
-      content += `**[${currentStep.id}] ${currentStep.title}** - ${currentStep.status}\n`;
+      sections.push(
+        `### Active Step\n**[${currentStep.id}] ${truncate(currentStep.title, displayOptions.maxSnippetLength)}** - ${currentStep.status}`
+      );
     }
 
-    // Progress
     if (state.steps.length > 0) {
       const completed = state.steps.filter((s) => s.status === "completed").length;
       const blocked = state.steps.filter((s) => s.status === "blocked").length;
-      content += `\n### Progress\n`;
-      content += `✅ ${completed}/${state.steps.length} complete`;
-      if (blocked > 0) content += ` | 🚫 ${blocked} blocked`;
-      content += '\n';
+      let prog = `✅ ${completed}/${state.steps.length} complete`;
+      if (blocked > 0) prog += ` | 🚫 ${blocked} blocked`;
+      sections.push(`### Progress\n${prog}`);
     }
 
-    // Alerts
     if (alerts.length > 0) {
-      content += `\n### ⚠️ Alerts\n`;
-      for (const alert of alerts) {
+      const alertLines = alerts.map((alert) => {
         const icon = alert.severity === "critical" ? "🔴" : "🟡";
-        content += `${icon} **${alert.metric}**: ${alert.suggestion}\n`;
-      }
+        return `${icon} ${alert.metric}: ${truncate(alert.suggestion, displayOptions.maxSnippetLength)}`;
+      });
+      sections.push(`### ⚠️ Alerts\n${alertLines.join("\n")}`);
     }
 
-    // Watchdog timers
     const strictness = stateMachine.getStrictness();
+    const dueLines: string[] = [];
     if (state.stepsSinceDriftCheck >= strictness.driftCheckInterval) {
-      content += `\n🎯 **DRIFT CHECK DUE** - ${state.stepsSinceDriftCheck} steps since last check\n`;
+      dueLines.push(`🎯 Drift check due (${state.stepsSinceDriftCheck} steps)`);
     }
     if (state.stepsSinceMemoryCheck >= strictness.memoryCheckInterval) {
-      content += `\n🧠 **MEMORY CHECK DUE** - ${state.stepsSinceMemoryCheck} steps since last check\n`;
+      dueLines.push(`🧠 Memory check due (${state.stepsSinceMemoryCheck} steps)`);
+    }
+    if (dueLines.length > 0) {
+      sections.push(dueLines.join(" | "));
     }
 
-    content += `\n${this.ASTRA_TAG_END}`;
+    const lastReflection: StepReflection | undefined = (state as any).lastReflection;
+    if (displayOptions.showReflection && lastReflection && (lastReflection.insight || lastReflection.tension)) {
+      const refl: string[] = [];
+      if (lastReflection.insight) refl.push(`Insight: ${truncate(lastReflection.insight, displayOptions.maxSnippetLength)}`);
+      if (lastReflection.tension) refl.push(`Tension: ${truncate(lastReflection.tension, displayOptions.maxSnippetLength)}`);
+      if (refl.length > 0) sections.push(`### Reflection\n${refl.join("\n")}`);
+    }
+
+    if (displayOptions.showHypothesis && (state as any).lastHypothesis) {
+      const h = (state as any).lastHypothesis as { statement?: string; test?: string; evidence?: string; confidence?: number; outcome?: string };
+      const lines: string[] = [];
+      if (h.statement) lines.push(`Hypothesis: ${truncate(h.statement, displayOptions.maxSnippetLength)}`);
+      if (h.test) lines.push(`Test: ${truncate(h.test, displayOptions.maxSnippetLength)}`);
+      if (h.evidence) lines.push(`Evidence: ${truncate(h.evidence, displayOptions.maxSnippetLength)}`);
+      if (h.confidence !== undefined) lines.push(`Confidence: ${h.confidence}%`);
+      if (h.outcome) lines.push(`Outcome: ${h.outcome}`);
+      if (lines.length > 0) sections.push(`### Hypothesis\n${lines.join("\n")}`);
+    }
+
+    if (displayOptions.showCoaching && (state as any).coachingTip) {
+      sections.push(`### Coaching\n${truncate((state as any).coachingTip, displayOptions.maxSnippetLength)}`);
+    }
+
+    if (displayOptions.showPatterns && patternSuggestions && patternSuggestions.length > 0) {
+      const limited = patternSuggestions.slice(0, displayOptions.maxPatternSuggestions);
+      const patternLines = limited.map(
+        (p) => `- (${(p.score * 100).toFixed(0)}%) ${truncate(p.title, 60)} — ${truncate(p.snippet, displayOptions.maxSnippetLength)}`
+      );
+      sections.push(`### Patterns\n${patternLines.join("\n")}`);
+    }
+
+    const content = `${this.ASTRA_TAG_START}\n${sections.join("\n\n")}\n\n${this.ASTRA_TAG_END}`;
     return content;
   }
 
@@ -421,7 +507,9 @@ export class InstructionInjector {
     stateMachine: WorkflowStateMachine,
     metricsMonitor: CognitiveMetricsMonitor,
     virtueMetrics?: VirtueMetrics,
-    pathologies?: DetectedPathology[]
+    pathologies?: DetectedPathology[],
+    patternSuggestions?: PatternSuggestion[],
+    displayOptions?: DisplayOptions
   ): Promise<void> {
     const instructionsPath = this.getInstructionsPath(workspaceFolder);
     const uri = vscode.Uri.file(instructionsPath);
@@ -439,10 +527,12 @@ export class InstructionInjector {
     // Generate new astra section
     const alerts = metricsMonitor.checkHealth(stateMachine.getState().metrics);
     const astraSection = this.generateAstraWorkflowSection(
-      stateMachine, 
-      alerts, 
-      virtueMetrics, 
-      pathologies
+      stateMachine,
+      alerts,
+      virtueMetrics,
+      pathologies,
+      patternSuggestions,
+      displayOptions ?? DEFAULT_DISPLAY_OPTIONS
     );
 
     // Remove existing astra section (if present)
@@ -494,10 +584,20 @@ export class InstructionInjector {
   static async injectWorkflowSection(
     workspaceFolder: vscode.WorkspaceFolder,
     stateMachine: WorkflowStateMachine,
-    metricsMonitor: CognitiveMetricsMonitor
+    metricsMonitor: CognitiveMetricsMonitor,
+    patternSuggestions?: PatternSuggestion[],
+    displayOptions?: DisplayOptions
   ): Promise<void> {
     // Use new method with astra section
-    await this.injectAstraSection(workspaceFolder, stateMachine, metricsMonitor);
+    await this.injectAstraSection(
+      workspaceFolder,
+      stateMachine,
+      metricsMonitor,
+      undefined,
+      undefined,
+      patternSuggestions,
+      displayOptions
+    );
   }
 
   /**

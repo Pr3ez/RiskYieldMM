@@ -37,6 +37,7 @@ import pandas as pd
 from scripts.target_models.calibration import ConformalClassifier, ConformalRegressor
 from scripts.target_models.calibration.aci import AdaptiveConformalInference
 from scripts.target_models.calibration.config import ConformalConfig
+from scripts.target_models.calibration.cqr import CQRConfig, CQRRegressor
 from scripts.target_models.core.aligned_dual_window import (
     get_l2_config_for_target,
     is_regime_target,
@@ -50,8 +51,53 @@ from scripts.target_models.validation.l1_precompute import (
     load_precomputed_l1,
     load_precomputed_metadata,
 )
+from scripts.target_models.validation.statistical_metrics import (
+    compute_conformal_sizing_metrics,
+    compute_deflated_sharpe_ratio,
+    compute_regime_metrics,
+    compute_rolling_metrics,
+    compute_sortino_ratio,
+    compute_tail_risk_metrics,
+    compute_trade_metrics,
+)
 
 logger = logging.getLogger(__name__)
+
+
+def clip_extreme_features(
+    df: pd.DataFrame,
+    clip_percentile: float = 99,
+    duration_max: float = 500,
+) -> pd.DataFrame:
+    """
+    Clip extreme feature values to prevent model explosion.
+
+    Specifically targets HMM duration features which can reach 10,000+
+    while other features are typically in 0-5 range.
+
+    Args:
+        df: DataFrame with features
+        clip_percentile: Percentile for general feature clipping (default: 99)
+        duration_max: Hard cap for duration features (default: 500)
+
+    Returns:
+        DataFrame with clipped features
+    """
+    df = df.copy()
+
+    # Find duration columns (HMM state duration features)
+    duration_cols = [c for c in df.columns if "_duration" in c.lower()]
+
+    if duration_cols:
+        for col in duration_cols:
+            original_max = df[col].max()
+            if original_max > duration_max:
+                df[col] = df[col].clip(upper=duration_max)
+                logger.debug(
+                    f"Clipped {col}: max {original_max:.0f} -> {duration_max:.0f}"
+                )
+
+    return df
 
 
 @dataclass
@@ -83,14 +129,26 @@ class BacktestConfig:
     conformal_enabled: bool = True
     conformal_alpha: float = 0.10
 
+    # CQR (Conformalized Quantile Regression) for heteroscedasticity
+    # CQR produces adaptive-width intervals based on predicted uncertainty
+    # Validation (2025-01-01): CQR achieves 5/6 configs in target range vs 0/6 for standard
+    # Research: docs/conformal/HETEROSCEDASTICITY_ANALYSIS.md
+    use_cqr: bool = True  # Default True - CQR is strictly better for regression
+
     # Model settings
     random_state: int = 42
 
     # Class balance validation (Tier 1.1) - SAFETY NET, not primary fix
-    # Primary fix is use_adaptive_window=True which uses larger windows
+    # Primary fix is use_adaptive_window=True + class_weight='balanced' in models
+    # With balanced class weights, models can handle smaller minority classes
     validate_class_balance: bool = True
-    min_samples_per_class: int = 30
+    min_samples_per_class: int = 10  # Lowered from 30 since we now use class weights
     min_balance_score: float = 0.3
+
+    # Feature clipping (Tier 0 fix for HMM duration explosion)
+    # HMM duration features can reach 10,000+ causing model explosion
+    clip_extreme_features: bool = True
+    duration_feature_max: float = 500.0  # Hard cap for _duration features
 
     # Economic simulation (Tier 1.6)
     # Transaction costs as fraction of trade value (e.g., 0.001 = 0.1%)
@@ -99,6 +157,19 @@ class BacktestConfig:
     slippage_vol_fraction: float = 0.1  # 10% of realized volatility
     # Enable economic simulation in metrics
     compute_economic_metrics: bool = True
+
+    # Statistical rigor metrics (Tier 3)
+    # DSR: Deflated Sharpe Ratio corrects for multiple testing and non-normality
+    # Regime: Metrics partitioned by volatility regime (high/normal/low)
+    compute_statistical_metrics: bool = True
+    n_optuna_trials: int = 20  # Number of trials tested (for DSR correction)
+
+    # Distribution shift detection (Tier 5)
+    # PSI: Population Stability Index detects covariate shift in features
+    # Rolling metrics: Detect concept drift via degrading IC/Sharpe over time
+    detect_distribution_shift: bool = True
+    psi_bins: int = 10  # Number of bins for PSI calculation
+    rolling_window_size: int = 30  # Window size for rolling metrics
 
     def get_l2_splits(
         self,
@@ -351,6 +422,13 @@ class FastBacktester:
             # Load precomputed helper features for this iteration
             helper_features = load_precomputed_l1(config_name, iteration, l1_cfg)
 
+            # Clip extreme features (HMM duration can reach 10,000+)
+            if self.config.clip_extreme_features:
+                helper_features = clip_extreme_features(
+                    helper_features,
+                    duration_max=self.config.duration_feature_max,
+                )
+
             # Basic structural checks to catch drift vs. production windowing
             expected_rows = effective_window + spec["horizon"]
             if len(helper_features) != expected_rows:
@@ -480,11 +558,33 @@ class FastBacktester:
                         if y_true is not None:
                             covered = bool(prediction_set[int(y_true)])
                     else:
-                        conf_wrapper = ConformalRegressor(model_ensemble, conformal_cfg)
-                        conf_wrapper.calibrate(X_cal.values, y_cal.values)
-                        intervals = conf_wrapper.predict_with_intervals(
-                            X_pred.values, alpha=current_alpha
-                        )
+                        # Use CQR for regression if enabled (handles heteroscedasticity)
+                        if self.config.use_cqr:
+                            cqr_config = CQRConfig(
+                                alpha=self.config.conformal_alpha,
+                                aci_enabled=conformal_cfg.aci_enabled,
+                                aci_gamma=conformal_cfg.aci_gamma,
+                                random_state=self.config.random_state + iteration,
+                            )
+                            cqr = CQRRegressor(cqr_config)
+                            cqr.fit(
+                                X_train.values,
+                                y_train.values,
+                                X_val.values,
+                                y_val.values,
+                            )
+                            cqr.calibrate(X_cal.values, y_cal.values)
+                            _, intervals = cqr.predict(X_pred.values)
+                        else:
+                            # Standard conformal (constant-width intervals)
+                            conf_wrapper = ConformalRegressor(
+                                model_ensemble, conformal_cfg
+                            )
+                            conf_wrapper.calibrate(X_cal.values, y_cal.values)
+                            intervals = conf_wrapper.predict_with_intervals(
+                                X_pred.values, alpha=current_alpha
+                            )
+
                         lower, upper = intervals[-1]
                         prediction_interval = (float(lower), float(upper))
                         uncertainty = float(upper - lower)
@@ -686,6 +786,16 @@ class FastBacktester:
             econ_metrics = self._compute_economic_metrics(predictions, spec)
             metrics.update(econ_metrics)
 
+        # Statistical rigor metrics (Tier 3)
+        if self.config.compute_statistical_metrics:
+            stat_metrics = self._compute_statistical_metrics(predictions, spec)
+            metrics.update(stat_metrics)
+
+        # Distribution shift detection (Tier 5)
+        if self.config.detect_distribution_shift:
+            shift_metrics = self._compute_shift_metrics(predictions, spec)
+            metrics.update(shift_metrics)
+
         return metrics
 
     def _compute_economic_metrics(
@@ -817,6 +927,220 @@ class FastBacktester:
             np.mean(gross_returns) * periods_per_year
         )
         metrics["net_return_annual"] = float(np.mean(net_returns) * periods_per_year)
+
+        # =====================================================================
+        # TIER 4 ENHANCED METRICS
+        # =====================================================================
+
+        # 1. Tail risk metrics (CVaR, VaR)
+        tail_risk = compute_tail_risk_metrics(net_returns)
+        metrics["var_95"] = tail_risk.var_95
+        metrics["var_99"] = tail_risk.var_99
+        metrics["cvar_95"] = tail_risk.cvar_95
+        metrics["cvar_99"] = tail_risk.cvar_99
+        metrics["max_drawdown_duration"] = tail_risk.max_drawdown_duration
+
+        # 2. Trade-level metrics (win rate, profit factor)
+        trade_metrics = compute_trade_metrics(net_returns)
+        metrics["win_rate"] = trade_metrics.win_rate
+        metrics["profit_factor"] = trade_metrics.profit_factor
+        metrics["avg_win"] = trade_metrics.avg_win
+        metrics["avg_loss"] = trade_metrics.avg_loss
+        metrics["win_loss_ratio"] = trade_metrics.win_loss_ratio
+        metrics["expectancy"] = trade_metrics.expectancy
+
+        # 3. Sortino ratio (downside-only risk)
+        sortino = compute_sortino_ratio(net_returns, periods_per_year=periods_per_year)
+        metrics["sortino_ratio"] = sortino
+
+        # 4. Conformal-aware position sizing (if interval_width available)
+        if "interval_width" in predictions.columns:
+            interval_widths = predictions["interval_width"].values
+            valid_widths = ~np.isnan(interval_widths)
+
+            if np.sum(valid_widths) > 10:
+                conformal_sizing = compute_conformal_sizing_metrics(
+                    returns=y_true[valid_widths],
+                    predictions=y_pred[valid_widths],
+                    interval_widths=interval_widths[valid_widths],
+                    scaling_factor=1.0,  # Can be tuned
+                    min_position=0.1,
+                    max_position=1.0,
+                    periods_per_year=periods_per_year,
+                )
+
+                metrics["conformal_sharpe"] = conformal_sizing.conformal_sharpe
+                metrics["conformal_sizing_benefit"] = conformal_sizing.sizing_benefit
+                metrics["conformal_avg_position"] = conformal_sizing.avg_position_size
+                metrics["uncertainty_error_correlation"] = (
+                    conformal_sizing.uncertainty_correlation
+                )
+
+        return metrics
+
+    def _compute_statistical_metrics(
+        self,
+        predictions: pd.DataFrame,
+        spec: dict,
+    ) -> dict[str, float]:
+        """
+        Compute statistical rigor metrics (Tier 3).
+
+        Includes:
+        1. Deflated Sharpe Ratio (DSR) - corrected for multiple testing
+        2. Regime-conditional metrics - performance across volatility regimes
+
+        Args:
+            predictions: DataFrame with y_pred, y_true columns
+            spec: Target specification with task_type
+
+        Returns:
+            Dict with statistical metrics:
+                - dsr: Deflated Sharpe Ratio
+                - dsr_p_value: P-value for DSR significance
+                - dsr_significant: Whether DSR is statistically significant
+                - regime_ic_high: IC during high volatility
+                - regime_ic_normal: IC during normal volatility
+                - regime_ic_low: IC during low volatility
+                - regime_sharpe_high/normal/low: Sharpe by regime
+        """
+        metrics = {}
+
+        # Get valid predictions
+        valid = predictions.dropna(subset=["y_true"])
+        if len(valid) < 50:  # Need minimum samples for statistical tests
+            return metrics
+
+        y_true = valid["y_true"].values
+        y_pred = valid["y_pred"].values
+
+        # Only compute for regression or binary (not multiclass regime)
+        if spec["task_type"] not in ("regression", "binary"):
+            return metrics
+
+        # Calculate strategy returns for DSR
+        if spec["task_type"] == "regression":
+            positions = np.sign(y_pred)
+        else:  # binary
+            positions = np.where(y_pred == 1, 1.0, -1.0)
+
+        strategy_returns = positions * y_true
+
+        # 1. Deflated Sharpe Ratio
+        try:
+            dsr_result = compute_deflated_sharpe_ratio(
+                strategy_returns,
+                n_trials=self.config.n_optuna_trials,
+                periods_per_year=1095,  # 8-hour bars
+            )
+            metrics["dsr"] = dsr_result.deflated_sharpe
+            metrics["dsr_p_value"] = dsr_result.p_value
+            metrics["dsr_significant"] = dsr_result.is_significant
+            metrics["dsr_skewness"] = dsr_result.skewness
+            metrics["dsr_kurtosis"] = dsr_result.kurtosis
+        except Exception as e:
+            logger.warning(f"DSR calculation failed: {e}")
+
+        # 2. Regime-conditional metrics
+        try:
+            regime_result = compute_regime_metrics(
+                returns=y_true,
+                predictions=y_pred,
+                vol_window=21,
+                high_quantile=0.75,
+                low_quantile=0.25,
+            )
+
+            # IC by regime
+            metrics["regime_ic_high"] = regime_result.high_vol.get("ic", np.nan)
+            metrics["regime_ic_normal"] = regime_result.normal.get("ic", np.nan)
+            metrics["regime_ic_low"] = regime_result.low_vol.get("ic", np.nan)
+
+            # Sharpe by regime
+            metrics["regime_sharpe_high"] = regime_result.high_vol.get("sharpe", np.nan)
+            metrics["regime_sharpe_normal"] = regime_result.normal.get("sharpe", np.nan)
+            metrics["regime_sharpe_low"] = regime_result.low_vol.get("sharpe", np.nan)
+
+            # Accuracy by regime
+            metrics["regime_accuracy_high"] = regime_result.high_vol.get(
+                "accuracy", np.nan
+            )
+            metrics["regime_accuracy_normal"] = regime_result.normal.get(
+                "accuracy", np.nan
+            )
+            metrics["regime_accuracy_low"] = regime_result.low_vol.get(
+                "accuracy", np.nan
+            )
+
+            # Sample counts
+            metrics["regime_n_high"] = regime_result.regime_counts.get("high", 0)
+            metrics["regime_n_normal"] = regime_result.regime_counts.get("normal", 0)
+            metrics["regime_n_low"] = regime_result.regime_counts.get("low", 0)
+
+        except Exception as e:
+            logger.warning(f"Regime metrics calculation failed: {e}")
+
+        return metrics
+
+    def _compute_shift_metrics(
+        self,
+        predictions: pd.DataFrame,
+        spec: dict,
+    ) -> dict[str, float]:
+        """
+        Compute distribution shift detection metrics (Tier 5).
+
+        Detects two types of shift:
+        1. Covariate shift (PSI): Feature distributions changing between train/test
+        2. Concept drift (rolling IC/Sharpe): Model performance degrading over time
+
+        Args:
+            predictions: DataFrame with y_pred, y_true, and feature columns
+            spec: Target specification with task_type
+
+        Returns:
+            Dict with shift metrics:
+                - concept_drift_detected: Boolean flag for drift
+                - ic_trend: Slope of rolling IC (negative = degrading)
+                - sharpe_trend: Slope of rolling Sharpe
+                - recent_vs_early_ic: Ratio comparing recent to early performance
+        """
+        metrics = {}
+
+        # Get valid predictions
+        valid = predictions.dropna(subset=["y_true"])
+        if len(valid) < 30:  # Need minimum samples for rolling metrics
+            return metrics
+
+        y_true = valid["y_true"].values
+        y_pred = valid["y_pred"].values
+
+        try:
+            # Compute rolling metrics to detect concept drift
+            rolling_result = compute_rolling_metrics(
+                predictions=y_pred,
+                actuals=y_true,
+                returns=None,  # Will use sign(pred) * actual
+                window_size=self.config.rolling_window_size,
+                min_periods=10,
+                degradation_threshold=-0.01,
+            )
+
+            # Core drift metrics
+            metrics["concept_drift_detected"] = rolling_result.concept_drift_detected
+            metrics["ic_trend"] = rolling_result.ic_trend
+            metrics["sharpe_trend"] = rolling_result.sharpe_trend
+            metrics["ic_volatility"] = rolling_result.ic_volatility
+            metrics["recent_vs_early_ic"] = rolling_result.recent_vs_early_ic
+            metrics["ic_degrading"] = rolling_result.ic_degrading
+            metrics["sharpe_degrading"] = rolling_result.sharpe_degrading
+
+        except Exception as e:
+            logger.warning(f"Concept drift detection failed: {e}")
+
+        # Note: PSI (covariate shift) requires feature columns which may not
+        # always be in predictions DataFrame. If needed, can extend to track
+        # feature distributions separately during backtest iteration.
 
         return metrics
 
@@ -954,6 +1278,480 @@ class FastBacktester:
         result.predictions.to_parquet(pred_path)
 
         return output_path
+
+    def run_strategy_backtest(
+        self,
+        horizon: int = 1,
+        ohlc_path: str | Path | None = None,
+        strategy_config: dict | None = None,
+        verbose: bool = True,
+    ) -> StrategyBacktestResult:
+        """
+        Run regime-filtered strategy backtest using model predictions.
+
+        This runs direction, vol_regime, and trend_regime models, then applies
+        the regime filter strategy to only trade in profitable conditions.
+
+        Args:
+            horizon: Horizon for all models (default: 1 = 8h bars)
+            ohlc_path: Path to OHLC parquet file (default: auto-detect)
+            strategy_config: Config overrides for RegimeFilterConfig
+            verbose: Print progress
+
+        Returns:
+            StrategyBacktestResult with trades and metrics
+
+        Example:
+            >>> backtester = FastBacktester(BacktestConfig(backtest_rows=300))
+            >>> result = backtester.run_strategy_backtest(horizon=1)
+            >>> print(f"Win rate: {result.win_rate:.1%}")
+            >>> print(f"Avg PnL: {result.avg_pnl_bps:.1f} bps")
+        """
+        from scripts.strategy.regime_filtered_strategy import (
+            ModelPredictions,
+            RegimeFilterConfig,
+            RegimeFilteredStrategy,
+        )
+
+        start_time = time.time()
+
+        if verbose:
+            print("\n" + "=" * 70)
+            print("REGIME-FILTERED STRATEGY BACKTEST")
+            print("=" * 70)
+
+        # ─────────────────────────────────────────────────────────────────────
+        # Step 1: Run all three model backtests
+        # ─────────────────────────────────────────────────────────────────────
+        if verbose:
+            print("\n[1/4] Running model backtests...")
+
+        dir_result = self.run(f"direction_{horizon}bar", verbose=False)
+        vol_result = self.run(f"vol_regime_{horizon}bar", verbose=False)
+        trend_result = self.run(f"trend_regime_{horizon}bar", verbose=False)
+
+        if verbose:
+            print(f"  Direction: {len(dir_result.predictions)} predictions")
+            print(f"  Vol regime: {len(vol_result.predictions)} predictions")
+            print(f"  Trend regime: {len(trend_result.predictions)} predictions")
+
+        # ─────────────────────────────────────────────────────────────────────
+        # Step 2: Merge predictions
+        # ─────────────────────────────────────────────────────────────────────
+        if verbose:
+            print("\n[2/4] Merging predictions...")
+
+        predictions_df = self._merge_strategy_predictions(
+            dir_result, vol_result, trend_result
+        )
+
+        if verbose:
+            print(f"  Merged: {len(predictions_df)} aligned predictions")
+
+            # Show regime distribution
+            vol_dist = predictions_df["vol_pred"].value_counts().sort_index().to_dict()
+            trend_dist = (
+                predictions_df["trend_pred"].value_counts().sort_index().to_dict()
+            )
+            print(f"  Vol regime dist: {vol_dist}")
+            print(f"  Trend regime dist: {trend_dist}")
+
+            # Optimal regime count
+            mask = (predictions_df["vol_pred"] == 0) & (
+                predictions_df["trend_pred"] == 1
+            )
+            print(
+                f"  Optimal regime (vol=0, trend=1): {mask.sum()} ({mask.mean():.1%})"
+            )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # Step 3: Load OHLC data
+        # ─────────────────────────────────────────────────────────────────────
+        if verbose:
+            print("\n[3/4] Loading OHLC data...")
+
+        ohlc_df = self._load_ohlc_data(ohlc_path, horizon)
+
+        if verbose:
+            print(f"  OHLC rows: {len(ohlc_df)}")
+            print(f"  Date range: {ohlc_df.index.min()} to {ohlc_df.index.max()}")
+
+        # ─────────────────────────────────────────────────────────────────────
+        # Step 4: Run strategy backtest
+        # ─────────────────────────────────────────────────────────────────────
+        if verbose:
+            print("\n[4/4] Running strategy backtest...")
+
+        # Create strategy
+        cfg_dict = {
+            "optimal_vol_regimes": {0},
+            "optimal_trend_regimes": {1},
+            "take_profit_bps": 50.0,
+            "stop_loss_bps": 30.0,
+            "transaction_cost_bps": self.config.transaction_cost_bps,
+            "min_direction_prob": 0.5,
+            "min_vol_regime_prob": 0.5,
+            "min_trend_regime_prob": 0.5,
+        }
+        if strategy_config:
+            cfg_dict.update(strategy_config)
+
+        strategy = RegimeFilteredStrategy(RegimeFilterConfig(**cfg_dict))
+
+        # Execute backtest
+        trades = []
+        hours_per_bar = horizon * 8  # Assuming 8h base timeframe
+
+        for _, row in predictions_df.iterrows():
+            # Skip if any prediction is NaN
+            if (
+                pd.isna(row["dir_pred"])
+                or pd.isna(row["vol_pred"])
+                or pd.isna(row["trend_pred"])
+            ):
+                continue
+
+            # Create predictions object
+            preds = ModelPredictions(
+                timestamp=row["timestamp"],
+                direction_pred=int(row["dir_pred"]),
+                direction_prob=float(row["dir_prob"]),
+                vol_regime_pred=int(row["vol_pred"]),
+                vol_regime_prob=float(row["vol_prob"]),
+                trend_regime_pred=int(row["trend_pred"]),
+                trend_regime_prob=float(row["trend_prob"]),
+            )
+
+            # Generate signal
+            signal = strategy.generate_signal(preds)
+
+            if not signal.should_trade:
+                continue
+
+            # Get next bar's OHLC
+            next_ts = row["timestamp"] + pd.Timedelta(hours=hours_per_bar)
+            if next_ts not in ohlc_df.index:
+                continue
+
+            next_bar = ohlc_df.loc[next_ts]
+            entry_price = next_bar["open"]
+
+            # Create entry order
+            entry = strategy.create_entry(signal, entry_price)
+
+            # Check exit using actual high/low/close
+            _, exit_price, exit_reason = strategy.check_exit(
+                entry, next_bar["high"], next_bar["low"], next_bar["close"]
+            )
+
+            # Calculate PnL
+            pnl_bps = strategy.calculate_pnl(entry, exit_price, include_costs=True)
+
+            trades.append(
+                {
+                    "timestamp": row["timestamp"],
+                    "direction": signal.direction.name,
+                    "dir_true": row["dir_true"],
+                    "entry_price": entry_price,
+                    "exit_price": exit_price,
+                    "exit_reason": exit_reason,
+                    "pnl_bps": pnl_bps,
+                    "vol_regime": signal.vol_regime.value,
+                    "trend_regime": signal.trend_regime.value,
+                    "confidence": signal.confidence,
+                }
+            )
+
+        # Build result
+        elapsed = time.time() - start_time
+        result = StrategyBacktestResult.from_trades(
+            trades=trades,
+            predictions_df=predictions_df,
+            strategy_config=cfg_dict,
+            elapsed_seconds=elapsed,
+            horizon=horizon,
+        )
+
+        if verbose:
+            print("\n" + "=" * 70)
+            print("STRATEGY BACKTEST RESULTS")
+            print("=" * 70)
+            print(f"\nTotal predictions: {len(predictions_df)}")
+            print(f"Total trades: {result.n_trades}")
+            print(f"Trade rate: {result.trade_rate:.1%}")
+            print()
+            print(f"Win rate: {result.win_rate:.1%}")
+            print(f"Avg PnL (net): {result.avg_pnl_bps:.1f} bps")
+            print(f"Total PnL: {result.total_pnl_bps:.1f} bps")
+            print(f"Sharpe (annual): {result.sharpe:.2f}")
+            print(f"Direction accuracy: {result.direction_accuracy:.1%}")
+            print()
+            print(
+                f"Exit breakdown: TP={result.tp_hit_rate:.1%}, SL={result.sl_hit_rate:.1%}, HOLD={result.hold_rate:.1%}"
+            )
+            print(f"Elapsed: {elapsed:.1f}s")
+
+        return result
+
+    def _merge_strategy_predictions(
+        self,
+        dir_result: BacktestResult,
+        vol_result: BacktestResult,
+        trend_result: BacktestResult,
+    ) -> pd.DataFrame:
+        """
+        Merge predictions from direction, vol_regime, and trend_regime models.
+
+        Args:
+            dir_result: Direction model backtest result
+            vol_result: Vol regime model backtest result
+            trend_result: Trend regime model backtest result
+
+        Returns:
+            DataFrame with aligned predictions
+        """
+
+        def extract_prob(x, default=0.6):
+            """Extract max probability from array or scalar."""
+            if x is None or (isinstance(x, float) and np.isnan(x)):
+                return default
+            if isinstance(x, np.ndarray):
+                return float(np.max(x))
+            try:
+                return float(x)
+            except (TypeError, ValueError):
+                return default
+
+        # Direction predictions
+        dir_df = dir_result.predictions[
+            ["iteration", "aligned_timestamp", "y_pred", "y_true", "y_prob", "skipped"]
+        ].copy()
+        dir_df = dir_df[~dir_df["skipped"]]
+        dir_df["dir_prob"] = dir_df["y_prob"].apply(lambda x: extract_prob(x, 0.55))
+        dir_df = dir_df[
+            ["iteration", "aligned_timestamp", "y_pred", "y_true", "dir_prob"]
+        ]
+        dir_df.columns = ["iteration", "timestamp", "dir_pred", "dir_true", "dir_prob"]
+        dir_df["timestamp"] = pd.to_datetime(dir_df["timestamp"])
+
+        # Vol regime predictions
+        vol_df = vol_result.predictions[
+            ["iteration", "y_pred", "y_prob", "skipped"]
+        ].copy()
+        vol_df = vol_df[~vol_df["skipped"]]
+        vol_df["vol_prob"] = vol_df["y_prob"].apply(lambda x: extract_prob(x, 0.8))
+        vol_df = vol_df[["iteration", "y_pred", "vol_prob"]]
+        vol_df.columns = ["iteration", "vol_pred", "vol_prob"]
+
+        # Trend regime predictions
+        trend_df = trend_result.predictions[
+            ["iteration", "y_pred", "y_prob", "skipped"]
+        ].copy()
+        trend_df = trend_df[~trend_df["skipped"]]
+        trend_df["trend_prob"] = trend_df["y_prob"].apply(
+            lambda x: extract_prob(x, 0.7)
+        )
+        trend_df = trend_df[["iteration", "y_pred", "trend_prob"]]
+        trend_df.columns = ["iteration", "trend_pred", "trend_prob"]
+
+        # Merge on iteration (inner join)
+        merged = dir_df.merge(vol_df, on="iteration").merge(trend_df, on="iteration")
+        merged = merged.dropna()
+
+        return merged
+
+    def _load_ohlc_data(
+        self,
+        ohlc_path: str | Path | None,
+        horizon: int,
+    ) -> pd.DataFrame:
+        """
+        Load OHLC data for strategy backtest.
+
+        Args:
+            ohlc_path: Path to OHLC parquet file (auto-detect if None)
+            horizon: Horizon for timeframe detection
+
+        Returns:
+            DataFrame with OHLC data indexed by timestamp
+        """
+        if ohlc_path is None:
+            # Auto-detect based on horizon
+            hours = horizon * 8
+            ohlc_path = Path(
+                f"fetchingByBit/mark-price-{hours}h-bybit-linear/btcusdt_mark_price_{hours}h.parquet"
+            )
+
+        ohlc = pd.read_parquet(ohlc_path)
+        ohlc["timestamp"] = pd.to_datetime(ohlc["timestamp"])
+        ohlc.set_index("timestamp", inplace=True)
+
+        return ohlc
+
+
+@dataclass
+class StrategyBacktestResult:
+    """Results from regime-filtered strategy backtest."""
+
+    # Core metrics
+    n_trades: int
+    n_predictions: int
+    trade_rate: float
+    win_rate: float
+    avg_pnl_bps: float
+    std_pnl_bps: float
+    total_pnl_bps: float
+    sharpe: float
+
+    # Direction accuracy
+    direction_accuracy: float
+    n_correct: int
+
+    # Exit breakdown
+    tp_hit_rate: float
+    sl_hit_rate: float
+    hold_rate: float
+
+    # Trade details
+    trades_df: pd.DataFrame
+    predictions_df: pd.DataFrame
+
+    # Config used
+    strategy_config: dict
+    horizon: int
+    elapsed_seconds: float
+
+    # Additional metrics
+    max_win_bps: float = 0.0
+    max_loss_bps: float = 0.0
+    max_drawdown_bps: float = 0.0
+
+    @classmethod
+    def from_trades(
+        cls,
+        trades: list[dict],
+        predictions_df: pd.DataFrame,
+        strategy_config: dict,
+        elapsed_seconds: float,
+        horizon: int,
+    ) -> StrategyBacktestResult:
+        """Create result from list of trades."""
+        if not trades:
+            return cls(
+                n_trades=0,
+                n_predictions=len(predictions_df),
+                trade_rate=0.0,
+                win_rate=0.0,
+                avg_pnl_bps=0.0,
+                std_pnl_bps=0.0,
+                total_pnl_bps=0.0,
+                sharpe=0.0,
+                direction_accuracy=0.0,
+                n_correct=0,
+                tp_hit_rate=0.0,
+                sl_hit_rate=0.0,
+                hold_rate=0.0,
+                trades_df=pd.DataFrame(),
+                predictions_df=predictions_df,
+                strategy_config=strategy_config,
+                horizon=horizon,
+                elapsed_seconds=elapsed_seconds,
+            )
+
+        trades_df = pd.DataFrame(trades)
+        n_trades = len(trades_df)
+        n_predictions = len(predictions_df)
+
+        # Core metrics
+        win_rate = (trades_df["pnl_bps"] > 0).mean()
+        avg_pnl = trades_df["pnl_bps"].mean()
+        std_pnl = trades_df["pnl_bps"].std() if n_trades > 1 else 0.0
+        total_pnl = trades_df["pnl_bps"].sum()
+
+        # Sharpe (annualized for 8h bars = 3/day * 365)
+        periods_per_year = 365 * 3 / horizon
+        sharpe = avg_pnl / std_pnl * np.sqrt(periods_per_year) if std_pnl > 0 else 0.0
+
+        # Direction accuracy
+        n_correct = sum(
+            1
+            for _, t in trades_df.iterrows()
+            if (1 if t["direction"] == "LONG" else 0) == t["dir_true"]
+        )
+        direction_accuracy = n_correct / n_trades if n_trades > 0 else 0.0
+
+        # Exit breakdown
+        tp_hit_rate = (trades_df["exit_reason"] == "TP_HIT").mean()
+        sl_hit_rate = (trades_df["exit_reason"] == "SL_HIT").mean()
+        hold_rate = (trades_df["exit_reason"] == "HOLDING").mean()
+
+        # Max/min
+        max_win = trades_df["pnl_bps"].max()
+        max_loss = trades_df["pnl_bps"].min()
+
+        # Max drawdown
+        cum_pnl = trades_df["pnl_bps"].cumsum()
+        max_dd = (cum_pnl - cum_pnl.cummax()).min()
+
+        return cls(
+            n_trades=n_trades,
+            n_predictions=n_predictions,
+            trade_rate=n_trades / n_predictions if n_predictions > 0 else 0.0,
+            win_rate=win_rate,
+            avg_pnl_bps=avg_pnl,
+            std_pnl_bps=std_pnl,
+            total_pnl_bps=total_pnl,
+            sharpe=sharpe,
+            direction_accuracy=direction_accuracy,
+            n_correct=n_correct,
+            tp_hit_rate=tp_hit_rate,
+            sl_hit_rate=sl_hit_rate,
+            hold_rate=hold_rate,
+            trades_df=trades_df,
+            predictions_df=predictions_df,
+            strategy_config=strategy_config,
+            horizon=horizon,
+            elapsed_seconds=elapsed_seconds,
+            max_win_bps=max_win,
+            max_loss_bps=max_loss,
+            max_drawdown_bps=max_dd,
+        )
+
+    def __repr__(self) -> str:
+        return (
+            f"StrategyBacktestResult(trades={self.n_trades}, "
+            f"win_rate={self.win_rate:.1%}, avg_pnl={self.avg_pnl_bps:.1f}bps, "
+            f"sharpe={self.sharpe:.2f})"
+        )
+
+    def summary(self) -> str:
+        """Generate a formatted summary string."""
+        return f"""
+Regime-Filtered Strategy Results
+================================
+Trades: {self.n_trades} / {self.n_predictions} ({self.trade_rate:.1%} trade rate)
+Win Rate: {self.win_rate:.1%}
+Direction Accuracy: {self.direction_accuracy:.1%} ({self.n_correct}/{self.n_trades})
+
+PnL Metrics:
+  Avg PnL (net): {self.avg_pnl_bps:.1f} bps
+  Std PnL: {self.std_pnl_bps:.1f} bps
+  Total PnL: {self.total_pnl_bps:.1f} bps
+  Max Win: {self.max_win_bps:.1f} bps
+  Max Loss: {self.max_loss_bps:.1f} bps
+  Max Drawdown: {self.max_drawdown_bps:.1f} bps
+
+Risk-Adjusted:
+  Sharpe (annual): {self.sharpe:.2f}
+
+Exit Breakdown:
+  TP Hit: {self.tp_hit_rate:.1%}
+  SL Hit: {self.sl_hit_rate:.1%}
+  Hold: {self.hold_rate:.1%}
+
+Config: TP={self.strategy_config.get("take_profit_bps", 50)}bps, SL={self.strategy_config.get("stop_loss_bps", 30)}bps
+Elapsed: {self.elapsed_seconds:.1f}s
+"""
 
 
 if __name__ == "__main__":
