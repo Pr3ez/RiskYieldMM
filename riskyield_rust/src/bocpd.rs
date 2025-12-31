@@ -198,13 +198,24 @@ pub fn bocpd_online(
                 prior_beta,
             );
         }
+
+        // Predictive probability under a NEW segment (uses prior only)
+        let prior_pred = predictive_probability(
+            x,
+            0.0,
+            0.0,
+            0.0,
+            prior_mu,
+            prior_kappa,
+            prior_alpha,
+            prior_beta,
+        );
         
         // Growth probabilities: P(r_t = r+1 | r_{t-1} = r) = 1 - hazard
-        let mut cp_mass = 0.0;
+        let mut cp_mass = prior_pred * hazard;
         for r in 0..max_rl {
             let growth = r_dist[r] * pred_prob[r] * (1.0 - hazard);
             r_new[r + 1] = growth;
-            cp_mass += r_dist[r] * pred_prob[r] * hazard;
         }
         
         // Changepoint: reset to r=0
@@ -288,7 +299,7 @@ mod tests {
     #[test]
     fn test_lgamma() {
         // lgamma(5) = ln(4!) = ln(24) ≈ 3.178
-        let result = lgamma(5.0);
+        let result = ln_gamma(5.0);
         assert!((result - 3.178).abs() < 0.1);
     }
     
