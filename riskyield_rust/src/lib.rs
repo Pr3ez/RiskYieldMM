@@ -11,6 +11,7 @@ mod cusum;
 mod egarch;
 mod evt;
 mod garch;
+mod hmm;
 mod kalman;
 mod ou;
 
@@ -22,6 +23,7 @@ use egarch::{
 };
 use evt::{evt_rolling_transform, EVTConfig};
 use garch::garch_transform;
+use hmm::hmm_transform;
 use kalman::{kalman_transform, KalmanConfig};
 use ou::{ou_rolling_transform, OUConfig};
 
@@ -50,6 +52,9 @@ fn riskyield_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // GARCH functions
     m.add_function(wrap_pyfunction!(py_garch_transform, m)?)?;
+
+    // HMM functions
+    m.add_function(wrap_pyfunction!(py_hmm_transform, m)?)?;
 
     Ok(())
 }
@@ -583,4 +588,64 @@ fn py_kalman_transform<'py>(
 
     PyArray1::from_vec(py, output)
         .reshape([n, 7])
+}
+
+// =============================================================================
+// HMM Functions
+// =============================================================================
+
+/// Compute Hidden Markov Model regime features.
+///
+/// Fits a Gaussian HMM with diagonal covariance using Baum-Welch EM algorithm
+/// and returns regime features including state probabilities, entropy, etc.
+///
+/// Args:
+///     returns: 1D array of returns
+///     volatility: 1D array of volatility (same length as returns)
+///     n_states: Number of HMM states (4 for market regime, 5 for volatility regime)
+///     n_iter: Maximum EM iterations (default: 100)
+///     tol: Convergence tolerance (default: 1e-2)
+///     min_covar: Minimum covariance floor (default: 1e-3)
+///     seed: Random seed for initialization (default: 42)
+///
+/// Returns:
+///     2D array (n_samples, n_states + 5) with columns:
+///     [prob_0, ..., prob_{n-1}, state, entropy, confidence, duration, change]
+#[pyfunction]
+#[pyo3(signature = (returns, volatility, n_states, n_iter=100, tol=1e-2, min_covar=1e-3, seed=42))]
+fn py_hmm_transform<'py>(
+    py: Python<'py>,
+    returns: PyReadonlyArray1<f64>,
+    volatility: PyReadonlyArray1<f64>,
+    n_states: usize,
+    n_iter: usize,
+    tol: f64,
+    min_covar: f64,
+    seed: u64,
+) -> PyResult<Bound<'py, PyArray2<f64>>> {
+    let ret_data = returns.as_slice().unwrap();
+    let vol_data = volatility.as_slice().unwrap();
+
+    let features = hmm_transform(ret_data, vol_data, n_states, n_iter, tol, min_covar, seed);
+
+    // Convert to 2D array (n_samples, n_states + 5)
+    let n = features.states.len();
+    let n_features = n_states + 5;
+    let mut output = vec![0.0; n * n_features];
+
+    for i in 0..n {
+        // State probabilities
+        for s in 0..n_states {
+            output[i * n_features + s] = features.probs[i][s];
+        }
+        // Derived features
+        output[i * n_features + n_states] = features.states[i] as f64;
+        output[i * n_features + n_states + 1] = features.entropy[i];
+        output[i * n_features + n_states + 2] = features.confidence[i];
+        output[i * n_features + n_states + 3] = features.duration[i];
+        output[i * n_features + n_states + 4] = features.change[i];
+    }
+
+    PyArray1::from_vec(py, output)
+        .reshape([n, n_features])
 }

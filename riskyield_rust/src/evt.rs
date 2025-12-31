@@ -85,7 +85,7 @@ pub fn compute_var(
     
     let tail_prob = 1.0 - p;
     if tail_prob >= exceedance_rate {
-        return threshold * 0.5;
+        return threshold;
     }
     
     let var = if xi.abs() < 1e-10 {
@@ -258,11 +258,22 @@ pub fn evt_rolling_transform(
             if window_data.len() < 50 {
                 return (GPDParams::default(), 0.0, 0.0, 0.0, 0.0, 0.05, 0.01);
             }
+
+            // Threshold from rolling percentile with fallback to fitted value
+            let mut thresh_data = window_data.clone();
+            let mut threshold = if thresh_data.is_empty() {
+                fitted_threshold
+            } else {
+                percentile(&mut thresh_data, config.threshold_percentile)
+            };
+            if !threshold.is_finite() || threshold <= 0.0 {
+                threshold = fitted_threshold.max(1e-8);
+            }
             
             // Exceedances above threshold
             let mut exceedances: Vec<f64> = window_data.iter()
-                .filter(|&&x| x > fitted_threshold)
-                .map(|&x| x - fitted_threshold)
+                .filter(|&&x| x > threshold)
+                .map(|&x| x - threshold)
                 .collect();
             
             let exceedance_rate = exceedances.len() as f64 / window_data.len() as f64;
@@ -276,15 +287,15 @@ pub fn evt_rolling_transform(
             
             // Compute VaR/ES
             let var95 = if exceedance_rate > 0.0 {
-                compute_var(fitted_threshold, params.xi, params.beta, exceedance_rate, 0.95)
+                compute_var(threshold, params.xi, params.beta, exceedance_rate, 0.95)
             } else {
                 let mut sorted = window_data.clone();
                 sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                 sorted[(sorted.len() as f64 * 0.95) as usize]
             };
             
-            let var99 = compute_var(fitted_threshold, params.xi, params.beta, exceedance_rate, 0.99);
-            let es95 = compute_es(fitted_threshold, params.xi, params.beta, exceedance_rate, 0.95);
+            let var99 = compute_var(threshold, params.xi, params.beta, exceedance_rate, 0.99);
+            let es95 = compute_es(threshold, params.xi, params.beta, exceedance_rate, 0.95);
             
             // Tail probabilities
             let local_std = if window_returns.len() > 1 {
@@ -298,11 +309,11 @@ pub fn evt_rolling_transform(
             };
             
             let tail_prob_2std = compute_tail_prob(
-                fitted_threshold, params.xi, params.beta, exceedance_rate,
+                threshold, params.xi, params.beta, exceedance_rate,
                 config.tail_2std_mult * local_std,
             );
             let tail_prob_3std = compute_tail_prob(
-                fitted_threshold, params.xi, params.beta, exceedance_rate,
+                threshold, params.xi, params.beta, exceedance_rate,
                 config.tail_3std_mult * local_std,
             );
             
@@ -370,7 +381,7 @@ mod tests {
     #[test]
     fn test_var_computation() {
         let var = compute_var(0.02, 0.1, 0.01, 0.05, 0.95);
-        assert!(var > 0.02); // VaR should be above threshold
+        assert!(var >= 0.02); // VaR should not fall below threshold
         assert!(var < 1.0);  // And reasonably bounded
     }
 }

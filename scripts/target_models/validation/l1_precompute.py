@@ -62,6 +62,16 @@ def _filename_to_timestamp(filename: str) -> pd.Timestamp:
     return pd.Timestamp(dt, tz="UTC")
 
 
+def _filename_to_timestamp_str(filename_stem: str) -> str | None:
+    """Convert filename stem (without .parquet) to ISO timestamp string."""
+    try:
+        # Parse YYYY-MM-DD_HHh format
+        dt = datetime.strptime(filename_stem, "%Y-%m-%d_%Hh")
+        return pd.Timestamp(dt, tz="UTC").isoformat()
+    except ValueError:
+        return None
+
+
 @dataclass
 class L1PrecomputeConfig:
     """Configuration for L1 precomputation."""
@@ -149,6 +159,8 @@ class PrecomputeMetadata:
     horizon: int = 1
     data_drop_na: bool | None = None
     truncate_end_timestamp: str | None = None
+    # Feature count for resume validation
+    feature_count: int = 0
     # Per-iteration info stored in index.json (not here)
 
 
@@ -203,6 +215,9 @@ def precompute_l1_for_config(
     """
     Precompute L1 helper features for a single config.
 
+    INCREMENTAL RESUME: If interrupted or new data arrives, resumes from
+    where it left off. Only use force=True to completely restart.
+
     Runs the EXACT same process as production pipeline:
     - Creates DualLayerEngine with same config
     - Iterates through all walk-forward windows
@@ -213,6 +228,7 @@ def precompute_l1_for_config(
         config_name: e.g., "direction_1bar", "returns_6bar"
         cfg: Precomputation configuration
         verbose: Print progress
+        force: If True, delete existing and restart from scratch
 
     Returns:
         PrecomputeMetadata with info about what was saved
@@ -326,17 +342,49 @@ def precompute_l1_for_config(
 
     # Create output directory
     output_dir = cfg.config_output_dir(config_name)
+
+    # =========================================================================
+    # INCREMENTAL RESUME LOGIC
+    # =========================================================================
+    existing_timestamps: set[str] = set()
+    iterations_info: list[dict] = []
+    resume_from_iteration = 0
+
     if force and output_dir.exists():
         if verbose:
             print(f"Force enabled: removing existing precompute dir: {output_dir}")
         shutil.rmtree(output_dir)
+    elif output_dir.exists():
+        # Load existing iteration index to find what's already computed
+        index_path = cfg.index_path(config_name)
+        if index_path.exists():
+            with open(index_path) as f:
+                iterations_info = json.load(f)
+            existing_timestamps = {info["timestamp"] for info in iterations_info}
+            resume_from_iteration = len(iterations_info)
+            if verbose:
+                print(f"  📂 Found {len(existing_timestamps)} existing iterations")
+        else:
+            # Index missing but dir exists - scan parquet files
+            parquet_files = list(output_dir.glob("*.parquet"))
+            if parquet_files:
+                if verbose:
+                    print(f"  📂 Found {len(parquet_files)} parquet files (no index)")
+                # Extract timestamps from filenames like "2023-07-31_16h.parquet"
+                for pf in parquet_files:
+                    ts_str = _filename_to_timestamp_str(pf.stem)
+                    if ts_str:
+                        existing_timestamps.add(ts_str)
+                resume_from_iteration = len(existing_timestamps)
+
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Track metadata
-    iterations_info = []
     start_time = time.time()
     first_timestamp = None
     last_timestamp = None
+    computed_count = 0
+    skipped_count = 0
 
     # Iterate through all windows (same as production)
     for iteration, window in enumerate(engine.iterate()):
@@ -348,10 +396,20 @@ def precompute_l1_for_config(
         aligned_pred_idx = pred_idx + (horizon - 1)
         aligned_timestamp = timestamps.iloc[aligned_pred_idx]
 
-        # Track date range
+        # Track date range (even for skipped iterations)
         if first_timestamp is None:
             first_timestamp = pred_timestamp
         last_timestamp = pred_timestamp
+
+        # INCREMENTAL RESUME: Skip if already computed
+        ts_iso = pred_timestamp.isoformat()
+        if ts_iso in existing_timestamps:
+            skipped_count += 1
+            if verbose and skipped_count == 1:
+                print(
+                    f"  ⏭️  Skipping {len(existing_timestamps)} existing iterations..."
+                )
+            continue
 
         # Create fresh ensemble (same as production)
         ensemble = create_helper_ensemble(
@@ -383,6 +441,8 @@ def precompute_l1_for_config(
         helper_output = ensemble.transform(X_l2_full)
         helper_features = helper_output.features
 
+        computed_count += 1
+
         # Save to parquet with TIMESTAMP-BASED filename
         iter_path = cfg.timestamp_path(config_name, pred_timestamp)
         helper_features.to_parquet(iter_path)
@@ -406,13 +466,17 @@ def precompute_l1_for_config(
             }
         )
 
-        if verbose and (iteration + 1) % 20 == 0:
+        if verbose and computed_count % 20 == 0:
+            total_done = skipped_count + computed_count
             elapsed = time.time() - start_time
-            remaining = (elapsed / (iteration + 1)) * (
-                cfg.backtest_rows - iteration - 1
-            )
+            if computed_count > 0:
+                remaining = (elapsed / computed_count) * (
+                    cfg.backtest_rows - total_done
+                )
+            else:
+                remaining = 0
             print(
-                f"  Iteration {iteration + 1}/{cfg.backtest_rows} "
+                f"  Iteration {total_done}/{cfg.backtest_rows} "
                 f"[{pred_timestamp.strftime('%Y-%m-%d %H:%M')}] "
                 f"({helper_features.shape[1]} features) "
                 f"[{elapsed / 60:.1f}m elapsed, ~{remaining / 60:.1f}m remaining]"
@@ -420,14 +484,21 @@ def precompute_l1_for_config(
 
     total_time = time.time() - start_time
 
-    # Save iteration index (timestamp -> iteration info mapping)
-    with open(cfg.index_path(config_name), "w") as f:
-        json.dump(iterations_info, f, indent=2)
+    # Get feature count from last computed iteration (or existing)
+    feature_count = 0
+    if iterations_info:
+        feature_count = iterations_info[-1].get("n_features", 0)
 
-    # Save metadata
+    # Save iteration index (timestamp -> iteration info mapping)
+    # Sort by iteration number to ensure correct order after resume
+    iterations_info_sorted = sorted(iterations_info, key=lambda x: x["iteration"])
+    with open(cfg.index_path(config_name), "w") as f:
+        json.dump(iterations_info_sorted, f, indent=2)
+
+    # Save metadata with feature_count for resume validation
     metadata = PrecomputeMetadata(
         config_name=config_name,
-        total_iterations=len(iterations_info),
+        total_iterations=len(iterations_info_sorted),
         backtest_rows=cfg.backtest_rows,
         total_rows=total_rows,
         l1_warmup=dual_config.l1.min_warmup,
@@ -442,6 +513,7 @@ def precompute_l1_for_config(
         created_at=datetime.now().isoformat(),
         first_pred_timestamp=first_timestamp.isoformat() if first_timestamp else "",
         last_pred_timestamp=last_timestamp.isoformat() if last_timestamp else "",
+        feature_count=feature_count,
     )
 
     with open(cfg.metadata_path(config_name), "w") as f:
@@ -449,11 +521,14 @@ def precompute_l1_for_config(
 
     if verbose:
         print(
-            f"\n✓ Completed {len(iterations_info)} iterations in {total_time / 60:.1f} minutes"
+            f"\n✓ Completed: {computed_count} new + {skipped_count} existing = {len(iterations_info_sorted)} total"
         )
-        print(
-            f"  Date range: {first_timestamp.strftime('%Y-%m-%d')} to {last_timestamp.strftime('%Y-%m-%d')}"
-        )
+        print(f"  Time for new iterations: {total_time / 60:.1f} minutes")
+        if first_timestamp and last_timestamp:
+            print(
+                f"  Date range: {first_timestamp.strftime('%Y-%m-%d')} to {last_timestamp.strftime('%Y-%m-%d')}"
+            )
+        print(f"  Features: {feature_count}")
         print(f"  Saved to: {output_dir}")
         total_size = sum(f.stat().st_size for f in output_dir.glob("*.parquet"))
         print(f"  Total size: {total_size / 1024 / 1024:.1f} MB")

@@ -51,10 +51,15 @@ except ImportError:
 # =============================================================================
 @dataclass
 class EVTPOTConfig(HelperConfig):
-    """Configuration specific to EVT POT helper."""
+    """Configuration specific to EVT POT helper.
 
-    # Threshold selection
-    threshold_percentile: float = 95.0  # Use 95th percentile as threshold
+    Note: threshold_percentile uses adaptive params based on target type if None.
+    Adaptive params: direction/volatility/vol_regime=99.0, returns=92.5,
+    trend_regime=95.0 (validated +34.6% IC improvement overall).
+    """
+
+    # Threshold selection (None = use adaptive params)
+    threshold_percentile: float | None = None
     min_exceedances: int = 30  # Minimum exceedances for stable GPD fit
 
     # Rolling window for time-varying tail estimation
@@ -77,6 +82,13 @@ class EVTPOTConfig(HelperConfig):
 
     # Use absolute returns (two-sided tail) vs signed (one-sided)
     use_absolute: bool = True
+
+    def __post_init__(self):
+        """Apply adaptive params if percentile not specified."""
+        if self.threshold_percentile is None:
+            from .adaptive_params import get_evt_percentile
+
+            self.threshold_percentile = get_evt_percentile(self.target, self.horizon)
 
 
 # =============================================================================

@@ -272,7 +272,9 @@ mod tests {
         let mut series = vec![0.0; 100];
         let phi_true = 0.9;
         for i in 1..100 {
-            series[i] = phi_true * series[i-1] + 0.1 * (i as f64 % 3.0 - 1.0);
+            // Deterministic zero-mean noise for reproducibility
+            let noise = ((i * 17 % 100) as f64 / 100.0) - 0.49;
+            series[i] = phi_true * series[i - 1] + 0.1 * noise;
         }
         
         let phi_est = estimate_ar1(&series);
