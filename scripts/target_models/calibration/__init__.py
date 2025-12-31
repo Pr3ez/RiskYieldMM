@@ -27,6 +27,7 @@ from .coverage_monitor import (
     CoverageStats,
     RegimeAwareCoverageMonitor,
 )
+from .cqr import CQRConfig, CQRRegressor, create_cqr_from_conformal_config
 from .patches import apply_mapie_patches
 from .regressor import ConformalRegressor
 
@@ -36,6 +37,10 @@ __all__ = [
     "ConformalRegressor",
     "AdaptiveConformalInference",
     "apply_mapie_patches",
+    # CQR (Conformalized Quantile Regression)
+    "CQRConfig",
+    "CQRRegressor",
+    "create_cqr_from_conformal_config",
     # Coverage monitoring
     "CoverageMonitor",
     "CoverageAlert",

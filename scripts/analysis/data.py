@@ -159,9 +159,15 @@ def create_analysis_dataset(
 
     df = df.with_columns(close.alias("RAW_close"))
 
-    # Volatility regime (percentile-based)
-    vol_25 = df["rolling_vol_21"].quantile(0.25)
-    vol_75 = df["rolling_vol_21"].quantile(0.75)
+    # Volatility regime (fixed historical thresholds)
+    # Use first WARMUP_PERIOD bars to compute thresholds (avoids future data leakage)
+    WARMUP_PERIOD = 1000
+    warmup_vol = df["rolling_vol_21"].head(WARMUP_PERIOD).drop_nulls()
+    vol_25 = warmup_vol.quantile(0.25)
+    vol_75 = warmup_vol.quantile(0.75)
+    print(
+        f"  Volatility thresholds (from first {WARMUP_PERIOD} bars): 25%={vol_25:.6f}, 75%={vol_75:.6f}"
+    )
 
     y_vol_regime = (
         pl.when(df["rolling_vol_21"] < vol_25)

@@ -9,7 +9,7 @@ Modules:
 - data: Data loading and target generation
 - features: Feature analysis (domains, importance, IC/ICIR)
 - models: Model training and evaluation
-- backtest: Walk-forward backtesting
+
 - viz: Visualization utilities
 
 Usage:
@@ -21,10 +21,9 @@ Usage:
     # Analyze features
     ic_results = features.compute_ic_analysis(df)
 
-    # Run backtest
-    results = backtest.run_walk_forward(df)
+
 """
 
-from . import backtest, config, data, features, models, viz
+from . import config, data, features, models, viz
 
-__all__ = ["config", "data", "features", "models", "backtest", "viz"]
+__all__ = ["config", "data", "features", "models", "viz"]

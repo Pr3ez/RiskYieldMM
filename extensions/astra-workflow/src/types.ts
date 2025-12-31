@@ -350,6 +350,8 @@ export interface WorkflowStep {
   completedAt?: string;
   /** Reason step is blocked (if blocked) */
   blockReason?: string;
+  /** Reflection captured after completion */
+  reflection?: StepReflection;
 }
 
 /**
@@ -423,12 +425,87 @@ export interface WorkflowState {
   /** Error description if in error recovery */
   error?: string;
 
+  /** Last virtue gate result */
+  lastVirtueGate?: VirtueGateResult;
+
+  /** Last reflection captured */
+  lastReflection?: StepReflection;
+
+  /** Last hypothesis captured */
+  lastHypothesis?: Hypothesis;
+
+  /** Pattern suggestions derived from memory */
+  patternSuggestions?: PatternSuggestion[];
+
+  /** Latest identity affirmation */
+  identityAffirmation?: string;
+
+  /** Coaching tip for next session */
+  coachingTip?: string;
+
+  /** Value justification captured at value gate */
+  valueJustification?: string;
+
   /** State history for debugging */
   stateHistory: Array<{
     phase: WorkflowPhase;
     timestamp: Date;
     reason: string;
   }>;
+}
+
+// =============================================================================
+// VIRTUE FILTER / GATE
+// =============================================================================
+
+export interface VirtueFilterResult {
+  passed: boolean;
+  virtue: "wisdom" | "temperance" | "courage" | "justice";
+  score: number;
+  reason: string;
+  correction?: string;
+}
+
+export interface VirtueGateResult {
+  passed: boolean;
+  filters: VirtueFilterResult[];
+  overallScore: number;
+  pathologies: DetectedPathology[];
+  recommendation: "proceed" | "pause" | "replan" | "abort";
+}
+
+// =============================================================================
+// REFLECTIONS
+// =============================================================================
+
+export interface StepReflection {
+  insight?: string;
+  tension?: string;
+  habit?: string;
+  hypothesis?: string;
+  test?: string;
+  evidence?: string;
+  confidence?: number;
+  outcome?: "passed" | "failed" | "uncertain";
+}
+
+export interface Hypothesis {
+  statement: string;
+  test?: string;
+  evidence?: string;
+  confidence?: number;
+  outcome?: "passed" | "failed" | "uncertain";
+}
+
+// =============================================================================
+// PATTERN SUGGESTIONS
+// =============================================================================
+
+export interface PatternSuggestion {
+  title: string;
+  snippet: string;
+  score: number;
+  source: string;
 }
 
 // =============================================================================

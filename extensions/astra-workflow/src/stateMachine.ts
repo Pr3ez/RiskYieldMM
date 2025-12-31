@@ -23,43 +23,12 @@ import {
   VirtueScore,
   PathologyType,
   DetectedPathology,
+  VirtueGateResult,
+  VirtueFilterResult,
+  StepReflection,
+  Hypothesis,
+  PatternSuggestion,
 } from "./types.js";
-
-// =============================================================================
-// VIRTUE FILTER TYPES
-// =============================================================================
-
-/**
- * Result of a virtue filter check
- */
-export interface VirtueFilterResult {
-  /** Whether the filter passed */
-  passed: boolean;
-  /** Virtue being checked */
-  virtue: 'wisdom' | 'temperance' | 'courage' | 'justice';
-  /** Score for this check (0-100) */
-  score: number;
-  /** Reason for pass/fail */
-  reason: string;
-  /** Suggested correction if failed */
-  correction?: string;
-}
-
-/**
- * Result of the 4-filter decision gate
- */
-export interface VirtueGateResult {
-  /** Whether all filters passed */
-  passed: boolean;
-  /** Individual filter results */
-  filters: VirtueFilterResult[];
-  /** Overall virtue score */
-  overallScore: number;
-  /** Detected pathologies (if any) */
-  pathologies: DetectedPathology[];
-  /** Recommended action */
-  recommendation: 'proceed' | 'pause' | 'replan' | 'abort';
-}
 
 // =============================================================================
 // DEFAULT VIRTUE METRICS
@@ -551,10 +520,36 @@ export class WorkflowStateMachine {
       return { success: false, error: skipError };
     }
 
+    // Enforce hygiene gates before progressing
+    if (
+      toPhase !== WorkflowPhase.DRIFT_CHECK &&
+      strictness.driftCheckInterval !== Infinity &&
+      this.state.stepsSinceDriftCheck >= strictness.driftCheckInterval &&
+      this.state.phase !== WorkflowPhase.IDLE
+    ) {
+      return {
+        success: false,
+        error: `Drift check overdue (${this.state.stepsSinceDriftCheck} steps). Run drift check before proceeding.`,
+      };
+    }
+
+    if (
+      toPhase !== WorkflowPhase.MEMORY_CHECK &&
+      strictness.memoryCheckInterval !== Infinity &&
+      this.state.stepsSinceMemoryCheck >= strictness.memoryCheckInterval &&
+      this.state.phase !== WorkflowPhase.IDLE
+    ) {
+      return {
+        success: false,
+        error: `Memory check overdue (${this.state.stepsSinceMemoryCheck} steps). Run memory check before proceeding.`,
+      };
+    }
+
     // Run virtue gate for non-trivial tasks
     let virtueGateResult: VirtueGateResult | undefined;
     if (useVirtueGate && this.state.taskType !== TaskType.TRIVIAL) {
       virtueGateResult = this.runVirtueGate(toPhase);
+      this.state.lastVirtueGate = virtueGateResult;
       
       // If virtue gate fails severely, block transition
       if (virtueGateResult.recommendation === 'abort') {
@@ -672,6 +667,7 @@ export class WorkflowStateMachine {
     }
 
     // TODO: Store value justification somewhere?
+    this.state.valueJustification = valueJustification;
     return this.transition(
       WorkflowPhase.GOAL_DEFINITION,
       `Value gate passed: ${valueJustification}`
@@ -832,6 +828,52 @@ export class WorkflowStateMachine {
     this.emit({ type: "STEP_STARTED", stepId });
 
     return { success: true };
+  }
+
+  /**
+   * Attach reflection to a step
+   */
+  attachReflection(stepId: string, reflection: StepReflection): { success: boolean; error?: string } {
+    const step = this.state.steps.find((s) => s.id === stepId);
+    if (!step) {
+      return { success: false, error: `Step not found: ${stepId}` };
+    }
+    step.reflection = reflection;
+    this.state.lastReflection = reflection;
+    if (reflection.hypothesis) {
+      this.state.lastHypothesis = {
+        statement: reflection.hypothesis,
+        test: reflection.test,
+        evidence: reflection.evidence,
+        confidence: reflection.confidence,
+        outcome: reflection.outcome,
+      };
+    }
+    if (reflection.habit) {
+      this.state.coachingTip = reflection.habit;
+    }
+    return { success: true };
+  }
+
+  /**
+   * Set identity affirmation (used for grounding)
+   */
+  setIdentityAffirmation(affirmation: string): void {
+    this.state.identityAffirmation = affirmation;
+  }
+
+  /**
+   * Set coaching tip (micro-habit for next session)
+   */
+  setCoachingTip(tip: string): void {
+    this.state.coachingTip = tip;
+  }
+
+  /**
+   * Set pattern suggestions for current context
+   */
+  setPatternSuggestions(suggestions: PatternSuggestion[]): void {
+    this.state.patternSuggestions = suggestions;
   }
 
   /**

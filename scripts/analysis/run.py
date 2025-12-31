@@ -613,8 +613,11 @@ def cmd_build_datasets(args=None, horizons=None, target_types=None):
                 # Rolling vol at this horizon's scale
                 window = max(21, horizon * 3)  # Scale window with horizon
                 rolling_vol = log_returns.rolling_std(window)
-                vol_25 = rolling_vol.drop_nulls().quantile(0.25)
-                vol_75 = rolling_vol.drop_nulls().quantile(0.75)
+                # Fixed historical thresholds (warmup period) to avoid leakage
+                WARMUP_PERIOD = 1000
+                warmup_vol = rolling_vol.head(WARMUP_PERIOD).drop_nulls()
+                vol_25 = warmup_vol.quantile(0.25)
+                vol_75 = warmup_vol.quantile(0.75)
                 target = (
                     pl.when(rolling_vol < vol_25)
                     .then(pl.lit(0))
@@ -808,8 +811,11 @@ def cmd_auto_optimize(args=None, horizons=None, targets=None, save=True):
             log_returns = np.log(close / close.shift(1))
             window = max(21, horizon * 3)
             rolling_vol = log_returns.rolling(window).std()
-            vol_25 = rolling_vol.quantile(0.25)
-            vol_75 = rolling_vol.quantile(0.75)
+            # Fixed historical thresholds (warmup period) to avoid leakage
+            WARMUP_PERIOD = 1000
+            warmup_vol = rolling_vol.head(WARMUP_PERIOD).dropna()
+            vol_25 = warmup_vol.quantile(0.25)
+            vol_75 = warmup_vol.quantile(0.75)
             return pd.cut(
                 rolling_vol, bins=[-np.inf, vol_25, vol_75, np.inf], labels=[0, 1, 2]
             ).astype(float)
@@ -1088,8 +1094,11 @@ def cmd_optimize(
         log_returns = np.log(close / close.shift(1))
         window = max(21, horizon * 3)
         rolling_vol = log_returns.rolling(window).std()
-        vol_25 = rolling_vol.quantile(0.25)
-        vol_75 = rolling_vol.quantile(0.75)
+        # Fixed historical thresholds (warmup period) to avoid leakage
+        WARMUP_PERIOD = 1000
+        warmup_vol = rolling_vol.head(WARMUP_PERIOD).dropna()
+        vol_25 = warmup_vol.quantile(0.25)
+        vol_75 = warmup_vol.quantile(0.75)
         y = pd.cut(
             rolling_vol, bins=[-np.inf, vol_25, vol_75, np.inf], labels=[0, 1, 2]
         ).astype(float)

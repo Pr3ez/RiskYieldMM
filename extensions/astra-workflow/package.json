@@ -20,7 +20,27 @@
     "languageModelTools"
   ],
   "activationEvents": [
-    "onStartupFinished"
+    "onStartupFinished",
+    "onLanguageModelTools",
+    "onView:astra.workflowState",
+    "onView:astra.currentTask",
+    "onView:astra.metrics",
+    "onCommand:astra-workflow.showStatus",
+    "onCommand:astra-workflow.startTask",
+    "onCommand:astra-workflow.valueGate",
+    "onCommand:astra-workflow.defineGoal",
+    "onCommand:astra-workflow.createPlan",
+    "onCommand:astra-workflow.startStep",
+    "onCommand:astra-workflow.validateStep",
+    "onCommand:astra-workflow.completeStep",
+    "onCommand:astra-workflow.completeTask",
+    "onCommand:astra-workflow.driftCheck",
+    "onCommand:astra-workflow.memoryCheck",
+    "onCommand:astra-workflow.showMetrics",
+    "onCommand:astra-workflow.resetWorkflow",
+    "onCommand:astra-workflow.injectWorkflowState",
+    "onCommand:astra-workflow.reportError",
+    "onCommand:astra-workflow.showDashboard"
   ],
   "main": "./out/extension.js",
   "contributes": {
@@ -510,40 +530,84 @@
     ],
     "commands": [
       {
-        "command": "astra.showWorkflowState",
-        "title": "Astra: Show Current Workflow State"
+        "command": "astra-workflow.showStatus",
+        "title": "Astra: Show Current Workflow State",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.startTask",
-        "title": "Astra: Start New Task"
+        "command": "astra-workflow.startTask",
+        "title": "Astra: Start New Task",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.validateStep",
-        "title": "Astra: Validate Current Step"
+        "command": "astra-workflow.valueGate",
+        "title": "Astra: Run Value Gate",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.completeStep",
-        "title": "Astra: Complete Current Step"
+        "command": "astra-workflow.defineGoal",
+        "title": "Astra: Define Goal",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.runDriftCheck",
-        "title": "Astra: Run Drift Check"
+        "command": "astra-workflow.createPlan",
+        "title": "Astra: Create Plan",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.runMemoryCheck",
-        "title": "Astra: Run Memory Check"
+        "command": "astra-workflow.startStep",
+        "title": "Astra: Start Step",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.showMetrics",
-        "title": "Astra: Show Cognitive Metrics"
+        "command": "astra-workflow.validateStep",
+        "title": "Astra: Validate Current Step",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.resetWorkflow",
-        "title": "Astra: Reset Workflow State"
+        "command": "astra-workflow.completeStep",
+        "title": "Astra: Complete Current Step",
+        "category": "Astra Workflow"
       },
       {
-        "command": "astra.injectWorkflowState",
-        "title": "Astra: Inject Workflow State to Instructions"
+        "command": "astra-workflow.completeTask",
+        "title": "Astra: Complete Current Task",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.driftCheck",
+        "title": "Astra: Run Drift Check",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.memoryCheck",
+        "title": "Astra: Run Memory Check",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.showMetrics",
+        "title": "Astra: Show Cognitive Metrics",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.resetWorkflow",
+        "title": "Astra: Reset Workflow State",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.injectWorkflowState",
+        "title": "Astra: Inject Workflow State",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.reportError",
+        "title": "Astra: Report Error",
+        "category": "Astra Workflow"
+      },
+      {
+        "command": "astra-workflow.showDashboard",
+        "title": "Astra: Show Dashboard",
+        "category": "Astra Workflow"
       }
     ],
     "configuration": {
@@ -588,6 +652,51 @@
           "type": "boolean",
           "default": true,
           "description": "Include reminders in <astra-workflow> injection"
+        },
+        "astra.maxPatternSuggestions": {
+          "type": "number",
+          "default": 3,
+          "description": "Maximum number of pattern suggestions to show"
+        },
+        "astra.maxSnippetLength": {
+          "type": "number",
+          "default": 140,
+          "description": "Maximum length for injected snippets (characters)"
+        },
+        "astra.showHypothesis": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show hypothesis/test/evidence in injected instructions"
+        },
+        "astra.showReflection": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show reflection (insight/tension) in injected instructions"
+        },
+        "astra.showCoaching": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show coaching tip/micro-habit in injected instructions"
+        },
+        "astra.showPatterns": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show pattern suggestions in injected instructions"
+        },
+        "astra.showIdentity": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show identity affirmation in injected instructions"
+        },
+        "astra.showValue": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show value justification in injected instructions"
+        },
+        "astra.showVirtueGate": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show virtue gate snapshot in injected instructions"
         }
       }
     },
@@ -605,17 +714,20 @@
         {
           "id": "astra.workflowState",
           "name": "Workflow State",
-          "icon": "resources/workflow.svg"
+          "icon": "resources/workflow.svg",
+          "type": "webview"
         },
         {
           "id": "astra.currentTask",
           "name": "Current Task",
-          "icon": "resources/task.svg"
+          "icon": "resources/task.svg",
+          "type": "webview"
         },
         {
           "id": "astra.metrics",
           "name": "Cognitive Metrics",
-          "icon": "resources/metrics.svg"
+          "icon": "resources/metrics.svg",
+          "type": "webview"
         }
       ]
     }

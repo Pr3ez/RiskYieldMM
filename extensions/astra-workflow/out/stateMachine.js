@@ -439,10 +439,30 @@ class WorkflowStateMachine {
             this.state.metrics.phasesSkipped++;
             return { success: false, error: skipError };
         }
+        // Enforce hygiene gates before progressing
+        if (toPhase !== types_js_1.WorkflowPhase.DRIFT_CHECK &&
+            strictness.driftCheckInterval !== Infinity &&
+            this.state.stepsSinceDriftCheck >= strictness.driftCheckInterval &&
+            this.state.phase !== types_js_1.WorkflowPhase.IDLE) {
+            return {
+                success: false,
+                error: `Drift check overdue (${this.state.stepsSinceDriftCheck} steps). Run drift check before proceeding.`,
+            };
+        }
+        if (toPhase !== types_js_1.WorkflowPhase.MEMORY_CHECK &&
+            strictness.memoryCheckInterval !== Infinity &&
+            this.state.stepsSinceMemoryCheck >= strictness.memoryCheckInterval &&
+            this.state.phase !== types_js_1.WorkflowPhase.IDLE) {
+            return {
+                success: false,
+                error: `Memory check overdue (${this.state.stepsSinceMemoryCheck} steps). Run memory check before proceeding.`,
+            };
+        }
         // Run virtue gate for non-trivial tasks
         let virtueGateResult;
         if (useVirtueGate && this.state.taskType !== types_js_1.TaskType.TRIVIAL) {
             virtueGateResult = this.runVirtueGate(toPhase);
+            this.state.lastVirtueGate = virtueGateResult;
             // If virtue gate fails severely, block transition
             if (virtueGateResult.recommendation === 'abort') {
                 return {
@@ -530,6 +550,7 @@ class WorkflowStateMachine {
             };
         }
         // TODO: Store value justification somewhere?
+        this.state.valueJustification = valueJustification;
         return this.transition(types_js_1.WorkflowPhase.GOAL_DEFINITION, `Value gate passed: ${valueJustification}`);
     }
     /**
@@ -654,6 +675,48 @@ class WorkflowStateMachine {
         this.state.metrics.stepsStarted++;
         this.emit({ type: "STEP_STARTED", stepId });
         return { success: true };
+    }
+    /**
+     * Attach reflection to a step
+     */
+    attachReflection(stepId, reflection) {
+        const step = this.state.steps.find((s) => s.id === stepId);
+        if (!step) {
+            return { success: false, error: `Step not found: ${stepId}` };
+        }
+        step.reflection = reflection;
+        this.state.lastReflection = reflection;
+        if (reflection.hypothesis) {
+            this.state.lastHypothesis = {
+                statement: reflection.hypothesis,
+                test: reflection.test,
+                evidence: reflection.evidence,
+                confidence: reflection.confidence,
+                outcome: reflection.outcome,
+            };
+        }
+        if (reflection.habit) {
+            this.state.coachingTip = reflection.habit;
+        }
+        return { success: true };
+    }
+    /**
+     * Set identity affirmation (used for grounding)
+     */
+    setIdentityAffirmation(affirmation) {
+        this.state.identityAffirmation = affirmation;
+    }
+    /**
+     * Set coaching tip (micro-habit for next session)
+     */
+    setCoachingTip(tip) {
+        this.state.coachingTip = tip;
+    }
+    /**
+     * Set pattern suggestions for current context
+     */
+    setPatternSuggestions(suggestions) {
+        this.state.patternSuggestions = suggestions;
     }
     /**
      * Complete a step and validate

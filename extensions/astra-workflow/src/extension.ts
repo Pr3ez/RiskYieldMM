@@ -16,6 +16,7 @@ import {
   TaskType,
   type WorkflowStep,
 } from "./types.js";
+import { suggestPatterns } from "./patternsIndex.js";
 
 // =============================================================================
 // EXTENSION STATE
@@ -27,8 +28,33 @@ let memoryIntegration: MemoryIntegration;
 let statusBarItem: vscode.StatusBarItem;
 let outputChannel: vscode.OutputChannel;
 let autoSaveTimer: ReturnType<typeof setInterval> | null = null;
+let workflowStateViewProvider: SimpleWebviewViewProvider | null = null;
+let currentTaskViewProvider: SimpleWebviewViewProvider | null = null;
+let metricsViewProvider: SimpleWebviewViewProvider | null = null;
 
 const SESSION_ID = `session-${Date.now()}`;
+
+// =============================================================================
+// VIEW PROVIDERS
+// =============================================================================
+
+class SimpleWebviewViewProvider implements vscode.WebviewViewProvider {
+  private view: vscode.WebviewView | null = null;
+
+  constructor(private readonly getHtml: () => string) {}
+
+  resolveWebviewView(webviewView: vscode.WebviewView): void | Thenable<void> {
+    this.view = webviewView;
+    webviewView.webview.options = { enableScripts: false };
+    webviewView.webview.html = this.getHtml();
+  }
+
+  refresh(): void {
+    if (this.view) {
+      this.view.webview.html = this.getHtml();
+    }
+  }
+}
 
 // =============================================================================
 // ACTIVATION
@@ -56,6 +82,9 @@ export async function activate(
 
   // Register commands
   registerCommands(context);
+
+  // Register views
+  registerViews(context);
 
   // Register Language Model Tools
   const toolContext: ToolContext = {
@@ -109,6 +138,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
   const commands: Array<{ id: string; handler: () => Promise<void> }> = [
     { id: "astra-workflow.startTask", handler: cmdStartTask },
     { id: "astra-workflow.completeTask", handler: cmdCompleteTask },
+    { id: "astra-workflow.showMetrics", handler: cmdShowMetrics },
     { id: "astra-workflow.valueGate", handler: cmdValueGate },
     { id: "astra-workflow.defineGoal", handler: cmdDefineGoal },
     { id: "astra-workflow.createPlan", handler: cmdCreatePlan },
@@ -121,6 +151,7 @@ function registerCommands(context: vscode.ExtensionContext): void {
     { id: "astra-workflow.reportError", handler: cmdReportError },
     { id: "astra-workflow.resetWorkflow", handler: cmdResetWorkflow },
     { id: "astra-workflow.showDashboard", handler: cmdShowDashboard },
+    { id: "astra-workflow.injectWorkflowState", handler: cmdInjectWorkflowState },
   ];
 
   for (const cmd of commands) {
@@ -403,7 +434,72 @@ async function cmdCompleteStep(): Promise<void> {
     return;
   }
 
-  stateMachine.completeStep(currentStep.id, currentStep.validationResult);
+  const result = stateMachine.completeStep(currentStep.id, currentStep.validationResult);
+  if (!result.success) {
+    vscode.window.showErrorMessage(result.error ?? "Could not complete step.");
+    return;
+  }
+
+  const insight = await vscode.window.showInputBox({
+    prompt: "Quick reflection: What worked or insight gained?",
+    placeHolder: "e.g., Clearer when I wrote tests first",
+  });
+
+  const tension = await vscode.window.showInputBox({
+    prompt: "Any tension or concern to address next?",
+    placeHolder: "e.g., Validation feels weak on edge cases",
+  });
+
+  const hypothesis = await vscode.window.showInputBox({
+    prompt: "Hypothesis you tested? (optional)",
+    placeHolder: "e.g., Caching reduces p99 latency",
+  });
+
+  const testDesc = await vscode.window.showInputBox({
+    prompt: "Test you ran? (optional)",
+    placeHolder: "e.g., Benchmark with cache on/off",
+  });
+
+  const evidence = await vscode.window.showInputBox({
+    prompt: "Evidence/result? (optional)",
+    placeHolder: "e.g., p99 120ms→70ms",
+  });
+
+  const confidenceStr = await vscode.window.showInputBox({
+    prompt: "Confidence now (0-100)? (optional)",
+    placeHolder: "e.g., 75",
+  });
+
+  const habit = await vscode.window.showInputBox({
+    prompt: "Micro-habit to try next step? (optional)",
+    placeHolder: "e.g., State success before coding",
+  });
+
+  const confidence = confidenceStr ? parseInt(confidenceStr, 10) : undefined;
+  const outcome =
+    currentStep.validationResult === "skipped"
+      ? "uncertain"
+      : currentStep.validationResult;
+  if (
+    insight ||
+    tension ||
+    habit ||
+    hypothesis ||
+    testDesc ||
+    evidence ||
+    confidence !== undefined
+  ) {
+    stateMachine.attachReflection(currentStep.id, {
+      insight: insight ?? undefined,
+      tension: tension ?? undefined,
+      habit: habit ?? undefined,
+      hypothesis: hypothesis ?? undefined,
+      test: testDesc ?? undefined,
+      evidence: evidence ?? undefined,
+      confidence: Number.isFinite(confidence) ? confidence : undefined,
+      outcome,
+    });
+  }
 
   const state = stateMachine.getState();
   if (state.stepsSinceDriftCheck >= 3) {
@@ -470,6 +566,14 @@ async function cmdMemoryCheck(): Promise<void> {
     }
   }
 
+  const affirmation = await vscode.window.showInputBox({
+    prompt: "Identity pulse (one line, e.g., Astra’s mission with you)?",
+    placeHolder: "e.g., I am Astra: clarity partner, memory intact, no autopilot",
+  });
+  if (affirmation) {
+    stateMachine.setIdentityAffirmation(affirmation);
+  }
+
   vscode.window.showInformationMessage("Memory check completed.");
   await updateInstructions();
   updateStatusBar();
@@ -507,7 +611,19 @@ async function cmdCompleteTask(): Promise<void> {
     if (result === "✅ Done") checked++;
   }
 
-  stateMachine.complete(`Completed with ${checked}/${checklistItems.length} checklist items`);
+  const habit = await vscode.window.showInputBox({
+    prompt: "One micro-habit to carry forward?",
+    placeHolder: "e.g., Validate each step before moving on",
+  });
+  if (habit) {
+    stateMachine.setCoachingTip(habit);
+  }
+
+  const completeResult = stateMachine.complete(`Completed with ${checked}/${checklistItems.length} checklist items`);
+  if (!completeResult.success) {
+    vscode.window.showErrorMessage(completeResult.error ?? "Could not complete workflow.");
+    return;
+  }
 
   vscode.window.showInformationMessage(
     `Task completed! ${checked}/${checklistItems.length} checklist items done.`
@@ -601,6 +717,21 @@ async function cmdShowDashboard(): Promise<void> {
   outputChannel.show();
 }
 
+async function cmdShowMetrics(): Promise<void> {
+  log("Command: Show Metrics");
+
+  const report = metricsMonitor.generateReport(stateMachine.getState().metrics);
+  outputChannel.appendLine("\n=== ASTRA METRICS REPORT ===");
+  outputChannel.appendLine(report);
+  outputChannel.show();
+}
+
+async function cmdInjectWorkflowState(): Promise<void> {
+  log("Command: Inject Workflow State");
+  await updateInstructions({ force: true });
+  vscode.window.showInformationMessage("Astra workflow state injected into copilot instructions.");
+}
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
@@ -647,21 +778,87 @@ function updateStatusBar(): void {
 
   statusBarItem.tooltip = "Click to show workflow status";
   statusBarItem.show();
+  refreshViews();
 }
 
-async function updateInstructions(): Promise<void> {
+async function updateInstructions(options?: { force?: boolean }): Promise<void> {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
   if (!workspaceFolder) return;
 
+  const config = vscode.workspace.getConfiguration("astra");
+  const autoInject = config.get<boolean>("autoInjectInstructions", true);
+  if (!options?.force && autoInject === false) {
+    log("Auto-injection disabled; skipping instructions update.");
+    return;
+  }
+
   try {
+    // Pattern suggestions
+    const memoryPath = config.get<string>("memoryPath", "/memories");
+    const state = stateMachine.getState();
+    const goalText = state.goal
+      ? `${state.goal.statement} ${state.goal.successCondition} ${state.goal.failureCondition}`
+      : "";
+    const currentStep = stateMachine.getCurrentStep();
+    const stepText = currentStep
+      ? `${currentStep.title} ${currentStep.description ?? ""}`
+      : "";
+    const contextText = `${goalText} ${stepText}`.trim();
+    const maxPatternSuggestions = config.get<number>("maxPatternSuggestions", 3) ?? 3;
+    const patternSuggestions = await suggestPatterns(
+      workspaceFolder.uri.fsPath,
+      memoryPath ?? "/memories",
+      contextText,
+      maxPatternSuggestions
+    );
+    stateMachine.setPatternSuggestions(patternSuggestions);
+
+    const displayOptions = {
+      maxPatternSuggestions,
+      maxSnippetLength: config.get<number>("maxSnippetLength", 140) ?? 140,
+      showHypothesis: config.get<boolean>("showHypothesis", true) ?? true,
+      showReflection: config.get<boolean>("showReflection", true) ?? true,
+      showCoaching: config.get<boolean>("showCoaching", true) ?? true,
+      showPatterns: config.get<boolean>("showPatterns", true) ?? true,
+      showIdentity: config.get<boolean>("showIdentity", true) ?? true,
+      showValue: config.get<boolean>("showValue", true) ?? true,
+      showVirtueGate: config.get<boolean>("showVirtueGate", true) ?? true,
+    };
+
     await InstructionInjector.injectWorkflowSection(
       workspaceFolder,
       stateMachine,
-      metricsMonitor
+      metricsMonitor,
+      patternSuggestions,
+      displayOptions
     );
   } catch (error) {
     log(`Error updating instructions: ${error}`);
   }
+}
+
+function registerViews(context: vscode.ExtensionContext): void {
+  workflowStateViewProvider = new SimpleWebviewViewProvider(() =>
+    generateStatusHTML(stateMachine.getState())
+  );
+  currentTaskViewProvider = new SimpleWebviewViewProvider(() =>
+    generateCurrentTaskHTML(stateMachine.getState())
+  );
+  metricsViewProvider = new SimpleWebviewViewProvider(() =>
+    generateMetricsHTML(metricsMonitor.generateReport(stateMachine.getState().metrics))
+  );
+
+  context.subscriptions.push(
+    vscode.window.registerWebviewViewProvider("astra.workflowState", workflowStateViewProvider),
+    vscode.window.registerWebviewViewProvider("astra.currentTask", currentTaskViewProvider),
+    vscode.window.registerWebviewViewProvider("astra.metrics", metricsViewProvider)
+  );
+}
+
+function refreshViews(): void {
+  workflowStateViewProvider?.refresh();
+  currentTaskViewProvider?.refresh();
+  metricsViewProvider?.refresh();
 }
 
 function startAutoSave(context: vscode.ExtensionContext): void {
@@ -762,6 +959,79 @@ function generateStatusHTML(state: any): string {
       <span>${state.stepsSinceMemoryCheck}</span>
     </div>
   </div>
+</body>
+</html>
+  `;
+}
+
+function generateCurrentTaskHTML(state: any): string {
+  const goalSection = state.goal
+    ? `<p><strong>Goal:</strong> ${state.goal.statement}</p>
+       <ul>
+         <li>✅ Success: ${state.goal.successCondition}</li>
+         <li>❌ Failure: ${state.goal.failureCondition}</li>
+       </ul>`
+    : "<p>No goal defined.</p>";
+
+  const stepsSection =
+    state.steps && state.steps.length > 0
+      ? state.steps
+          .map(
+            (s: any) =>
+              `<div class="step ${s.status}">
+                ${s.status === "completed" ? "✅" : s.status === "in-progress" ? "🔄" : "⬜"}
+                <strong>${s.id}</strong> — ${s.title}
+              </div>`
+          )
+          .join("")
+      : "<p>No steps yet.</p>";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-foreground); background: var(--vscode-editor-background); }
+    .section { margin-bottom: 16px; }
+    .step { padding: 4px 0; }
+    .step.completed { color: green; }
+    .step.in-progress { color: orange; }
+    .step.not-started { color: gray; }
+  </style>
+</head>
+<body>
+  <h2>Current Task</h2>
+  <div class="section">
+    <h3>Phase: ${state.phase}</h3>
+    ${goalSection}
+  </div>
+  <div class="section">
+    <h3>Steps</h3>
+    ${stepsSection}
+  </div>
+</body>
+</html>
+  `;
+}
+
+function generateMetricsHTML(report: string): string {
+  const escaped = report
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: var(--vscode-font-family); padding: 16px; color: var(--vscode-foreground); background: var(--vscode-editor-background); }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>Cognitive Metrics</h2>
+  <pre>${escaped}</pre>
 </body>
 </html>
   `;
