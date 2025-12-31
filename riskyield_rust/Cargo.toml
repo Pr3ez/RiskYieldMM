@@ -1,0 +1,20 @@
+[package]
+name = "riskyield_rust"
+version = "0.1.0"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "riskyield_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.27.0", features = ["extension-module"] }
+numpy = "0.27"
+ndarray = "0.16"
+rayon = "1.10"
+statrs = "0.18"  # Statistical distributions (for GPD)
+
+[profile.release]
+opt-level = 3
+lto = true

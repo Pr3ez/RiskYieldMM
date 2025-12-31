@@ -8,11 +8,17 @@ Uses hmmlearn for implementation with Gaussian emissions.
 
 from __future__ import annotations
 
+import logging
 import warnings
 
 import numpy as np
 import pandas as pd
 from hmmlearn import hmm
+
+# Suppress hmmlearn's verbose logging about transmat_ zero sum rows
+# This warning is expected when some HMM states are rarely visited in early iterations
+# We already handle this properly in _sanitize_fitted_model()
+logging.getLogger("hmmlearn.base").setLevel(logging.ERROR)
 
 from scripts.target_models.helpers.base import BaseHelper, HelperConfig
 

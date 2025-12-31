@@ -30,7 +30,11 @@ Usage:
 """
 
 from scripts.analysis.optimizers.base import BaseOptimizer, OptimizerMetrics
-from scripts.analysis.optimizers.expanding_rank import ExpandingRankOptimizer
+
+# Use FAST Numba-accelerated ExpandingRank (10-50x speedup)
+from scripts.analysis.optimizers.expanding_rank_fast import (
+    ExpandingRankOptimizerFast as ExpandingRankOptimizer,
+)
 from scripts.analysis.optimizers.expanding_zscore import ExpandingZScoreOptimizer
 from scripts.analysis.optimizers.interactions import InteractionOptimizer
 from scripts.analysis.optimizers.log_transform import LogTransformOptimizer

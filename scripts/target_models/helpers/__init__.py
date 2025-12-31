@@ -41,12 +41,15 @@ Usage:
 """
 
 from scripts.target_models.helpers.base import BaseHelper, HelperConfig, HelperOutput
+from scripts.target_models.helpers.bocpd import BOCPDHelper, create_bocpd_helper
 from scripts.target_models.helpers.cusum import CUSUMHelper, create_cusum_helper
+from scripts.target_models.helpers.egarch import EGARCHHelper, create_egarch_helper
 from scripts.target_models.helpers.ensemble import (
     EnsembleOutput,
     HelperEnsemble,
     create_helper_ensemble,
 )
+from scripts.target_models.helpers.evt_pot import EVTPOTHelper, create_evt_pot_helper
 from scripts.target_models.helpers.garch import GARCHHelper, create_garch_helper
 from scripts.target_models.helpers.helper_selection import (
     get_helper_summary,
@@ -88,6 +91,7 @@ from scripts.target_models.helpers.optimized_config_loader import (
     get_optimized_model_params,
     is_config_optimized,
 )
+from scripts.target_models.helpers.ou import OUHelper, create_ou_helper
 
 __all__ = [
     # Base classes
@@ -136,4 +140,13 @@ __all__ = [
     "create_volatility_regime_hmm",
     "KalmanHelper",
     "create_kalman_helper",
+    # New helpers (v2)
+    "EVTPOTHelper",
+    "create_evt_pot_helper",
+    "OUHelper",
+    "create_ou_helper",
+    "BOCPDHelper",
+    "create_bocpd_helper",
+    "EGARCHHelper",
+    "create_egarch_helper",
 ]
