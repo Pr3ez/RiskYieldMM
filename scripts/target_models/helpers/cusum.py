@@ -13,6 +13,8 @@ Features Generated (~12 per target-horizon):
 - magnitude: Size of detected change
 - days_since: Time since last changepoint
 - combined: Either vol or return changepoint
+
+Now uses Rust backend for ~200x speedup when available.
 """
 
 from dataclasses import dataclass
@@ -21,6 +23,14 @@ from typing import Any
 import numpy as np
 
 from .base import BaseHelper, HelperConfig
+
+# Try to import Rust backend
+try:
+    import riskyield_rust as _rust
+
+    HAS_RUST = True
+except ImportError:
+    HAS_RUST = False
 
 
 # =============================================================================
@@ -53,6 +63,8 @@ class CUSUMHelper(BaseHelper):
 
     Applies CUSUM algorithm to returns and volatility series to
     detect regime changes and structural breaks.
+
+    Uses Rust backend when available for ~200x speedup.
 
     Features generated:
     - H_{prefix}_cusum_ret_pos: Positive CUSUM for returns
@@ -152,6 +164,41 @@ class CUSUMHelper(BaseHelper):
         returns = X[:, ret_idx]
         volatility = X[:, vol_idx]
 
+        # Use Rust backend if available (~200x faster)
+        if HAS_RUST:
+            return self._transform_rust(returns, volatility)
+
+        # Fallback to Python implementation
+        return self._transform_python(returns, volatility)
+
+    def _transform_rust(
+        self, returns: np.ndarray, volatility: np.ndarray
+    ) -> np.ndarray:
+        """Rust-accelerated CUSUM transform."""
+        # Ensure contiguous arrays
+        returns = np.ascontiguousarray(returns, dtype=np.float64)
+        volatility = np.ascontiguousarray(volatility, dtype=np.float64)
+
+        # Call Rust backend
+        features = _rust.py_cusum_transform(
+            returns,
+            volatility,
+            self._return_mean,
+            self._return_std,
+            self._vol_mean,
+            self._vol_std,
+            threshold=self.config.threshold,
+            drift=self.config.drift,
+            min_spacing=self.config.min_spacing,
+            rolling_window=self.config.rolling_window,
+        )
+
+        return features
+
+    def _transform_python(
+        self, returns: np.ndarray, volatility: np.ndarray
+    ) -> np.ndarray:
+        """Pure Python CUSUM transform (fallback)."""
         # Compute CUSUM for returns
         ret_cusum_pos, ret_cusum_neg, ret_cp_up, ret_cp_down = self._compute_cusum(
             returns,

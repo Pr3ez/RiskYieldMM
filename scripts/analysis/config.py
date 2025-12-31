@@ -12,7 +12,7 @@ from pathlib import Path
 # PATHS
 # =============================================================================
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM")
+PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
 DATA_DIR = PROJECT_ROOT / "data"
 PLOTS_DIR = DATA_DIR / "analysis" / "plots"
 RESULTS_DIR = DATA_DIR / "analysis" / "results"

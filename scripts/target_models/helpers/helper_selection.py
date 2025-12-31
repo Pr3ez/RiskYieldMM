@@ -41,6 +41,11 @@ HELPER_PROFILES = {
         "if": True,  # Anomaly detection
         "kalman": True,  # State estimation
         "cusum": True,  # Change point detection
+        # New helpers
+        "evt": True,  # Tail risk estimation
+        "ou": True,  # Mean reversion strength
+        "bocpd": True,  # Bayesian changepoint detection
+        "egarch": True,  # Asymmetric volatility
     },
     "binary": {
         # Direction/trend prediction - focus on regime detection
@@ -50,6 +55,11 @@ HELPER_PROFILES = {
         "if": True,  # Anomalies often precede moves
         "kalman": True,  # Trend estimation
         "cusum": True,  # Regime changes
+        # New helpers
+        "evt": True,  # Tail risk informs direction
+        "ou": True,  # Mean reversion for timing
+        "bocpd": True,  # Changepoints for regime shifts
+        "egarch": True,  # Leverage effect
     },
     "multiclass": {
         # Vol_regime prediction - volatility-focused
@@ -59,6 +69,11 @@ HELPER_PROFILES = {
         "if": True,  # Anomaly detection
         "kalman": True,  # Level/trend estimation
         "cusum": True,  # Volatility regime changes
+        # New helpers
+        "evt": True,  # Tail risk for vol regime
+        "ou": False,  # Less useful for vol regime
+        "bocpd": True,  # Regime changes
+        "egarch": True,  # Asymmetric vol for regime
     },
 }
 

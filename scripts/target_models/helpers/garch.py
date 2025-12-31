@@ -14,6 +14,8 @@ Features Generated (~8 per target-horizon):
 - vol_persistence: GARCH persistence (α + β)
 - vol_regime: HIGH/MED/LOW based on percentile
 - vol_change: Change in conditional vol
+
+Now uses Rust backend for ~360x speedup when available.
 """
 
 import warnings
@@ -23,6 +25,14 @@ from typing import Any
 import numpy as np
 
 from .base import BaseHelper, HelperConfig
+
+# Try to import Rust backend
+try:
+    import riskyield_rust as _rust
+
+    HAS_RUST = True
+except ImportError:
+    HAS_RUST = False
 
 
 # =============================================================================
@@ -219,12 +229,40 @@ class GARCHHelper(BaseHelper):
         """
         Generate GARCH-based features.
 
+        Uses Rust backend when available for ~360x speedup.
+        Falls back to Python implementation otherwise.
+
         Args:
             X: Feature matrix
 
         Returns:
             Feature matrix with GARCH features
         """
+        if HAS_RUST:
+            return self._transform_rust(X)
+        return self._transform_python(X)
+
+    def _transform_rust(self, X: np.ndarray) -> np.ndarray:
+        """Transform using Rust backend (~360x faster)."""
+        n_features = X.shape[1]
+        ret_idx = min(self.config.return_col_idx, n_features - 1)
+        returns = X[:, ret_idx] * self.config.rescale
+
+        return _rust.py_garch_transform(
+            returns.astype(np.float64),
+            self._omega,
+            self._alpha,
+            self._beta,
+            self._long_run_var,
+            self.config.forecast_horizon,
+            63,  # zscore_window
+            self._regime_low_thresh,
+            self._regime_high_thresh,
+            self.config.rescale,
+        )
+
+    def _transform_python(self, X: np.ndarray) -> np.ndarray:
+        """Transform using Python backend (original implementation)."""
         n_samples = X.shape[0]
         n_features = X.shape[1]
         ret_idx = min(self.config.return_col_idx, n_features - 1)

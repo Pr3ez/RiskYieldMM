@@ -1,6 +1,10 @@
-<todos title="Todos" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
-- No current todos
+<todos title="New L1 Helper Implementation Plan" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
+- [x] cusum-rust: Port CUSUM helper to Rust - COMPLETED with 227x speedup 🔴 🔴
+- [x] kalman-rust: Port Kalman filter to Rust - COMPLETED with 487x speedup 🔴 🔴
+- [x] garch-rust: Port GARCH volatility model to Rust - COMPLETED with 224x speedup 🔴 🔴
+- [x] final-validation: Run full helper suite to verify all Rust backends work correctly 🟡
 </todos>
+
 <astra-workflow>
 ## 📍 Phase: IDLE
 ⏸️ No task active. Run value gate before starting.

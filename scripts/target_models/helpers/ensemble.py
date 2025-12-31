@@ -20,7 +20,10 @@ import numpy as np
 import pandas as pd
 
 from scripts.target_models.helpers.base import HelperOutput
+from scripts.target_models.helpers.bocpd import create_bocpd_helper
 from scripts.target_models.helpers.cusum import create_cusum_helper
+from scripts.target_models.helpers.egarch import create_egarch_helper
+from scripts.target_models.helpers.evt_pot import create_evt_pot_helper
 from scripts.target_models.helpers.garch import create_garch_helper
 from scripts.target_models.helpers.hmm import (
     create_market_regime_hmm,
@@ -30,6 +33,7 @@ from scripts.target_models.helpers.isolation_forest import (
     create_isolation_forest_helper,
 )
 from scripts.target_models.helpers.kalman import create_kalman_helper
+from scripts.target_models.helpers.ou import create_ou_helper
 
 if TYPE_CHECKING:
     from scripts.target_models.helpers.icir_config import ICIRConfig
@@ -163,6 +167,22 @@ class HelperEnsemble:
             elif name == "kalman":
                 self._helpers["kalman"] = create_kalman_helper(
                     self.target, self.horizon, random_state=self.random_state
+                )
+            elif name == "evt":
+                self._helpers["evt"] = create_evt_pot_helper(
+                    self.target, self.horizon, self.random_state
+                )
+            elif name == "ou":
+                self._helpers["ou"] = create_ou_helper(
+                    self.target, self.horizon, self.random_state
+                )
+            elif name == "bocpd":
+                self._helpers["bocpd"] = create_bocpd_helper(
+                    self.target, self.horizon, self.random_state
+                )
+            elif name == "egarch":
+                self._helpers["egarch"] = create_egarch_helper(
+                    self.target, self.horizon, self.random_state
                 )
             else:
                 raise ValueError(f"Unknown helper: {name}")

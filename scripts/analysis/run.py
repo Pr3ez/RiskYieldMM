@@ -9,7 +9,6 @@
 # python -m scripts.analysis.run --help
 # python -m scripts.analysis.run prepare       # Create analysis dataset
 # python -m scripts.analysis.run cv            # Cross-validation
-# python -m scripts.analysis.run backtest      # Walk-forward backtest
 # python -m scripts.analysis.run features      # Feature analysis (IC/ICIR)
 # python -m scripts.analysis.run importance    # MDI feature importance
 # python -m scripts.analysis.run mda           # MDA (permutation) importance
@@ -103,7 +102,7 @@ project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
-from scripts.analysis import backtest, config, data, features, models, viz  # noqa: E402
+from scripts.analysis import config, data, features, models, viz  # noqa: E402
 
 # %% [markdown]
 # ## Command Functions
@@ -196,44 +195,6 @@ def cmd_cv(args=None, use_purged=False):
     results_df.to_csv(config.RESULTS_DIR / "cv_results.csv", index=False)
     print(f"\n✓ Saved: {config.RESULTS_DIR / 'cv_results.csv'}")
     return dir_results
-
-
-# %% cmd_backtest - Walk-forward backtest
-def cmd_backtest(args=None, iterations=500, plot=True):
-    """Run walk-forward backtest.
-
-    Args:
-        args: CLI args (optional)
-        iterations: Max backtest iterations
-        plot: Generate plots
-    """
-    # Handle both CLI and interactive calls
-    if args is not None:
-        iterations = getattr(args, "iterations", iterations)
-        plot = getattr(args, "plot", plot)
-
-    print("=" * 60)
-    print("WALK-FORWARD BACKTEST")
-    print("=" * 60)
-
-    df = data.load_analysis_data()
-
-    results_df, metrics = backtest.run_walk_forward(
-        df,
-        max_iterations=iterations,
-        verbose=True,
-    )
-
-    # Save results
-    results_df.to_csv(config.RESULTS_DIR / "backtest_results.csv", index=False)
-    print(f"\n✓ Saved: {config.RESULTS_DIR / 'backtest_results.csv'}")
-
-    # Plot
-    if plot:
-        viz.plot_backtest_results(results_df)
-        viz.plot_pnl_analysis(results_df)
-
-    return results_df, metrics
 
 
 # %% cmd_features - Feature analysis (IC/ICIR)
@@ -1231,19 +1192,17 @@ def cmd_optimize(
 
 
 # %% cmd_all - Run all analysis
-def cmd_all(args=None, force=False, iterations=500, plot=True):
+def cmd_all(args=None, force=False, plot=True):
     """Run all analysis steps.
 
     Args:
         args: CLI args (optional)
         force: Force recreate dataset
-        iterations: Backtest iterations
         plot: Generate plots
     """
     # Handle both CLI and interactive calls
     if args is not None:
         force = getattr(args, "force", force)
-        iterations = getattr(args, "iterations", iterations)
         plot = getattr(args, "plot", plot)
 
     # Prepare
@@ -1258,9 +1217,6 @@ def cmd_all(args=None, force=False, iterations=500, plot=True):
 
     # Importance
     cmd_importance(plot=plot)
-
-    # Backtest
-    cmd_backtest(iterations=iterations, plot=plot)
 
 
 # %% [markdown]
@@ -1287,15 +1243,6 @@ def main():
         "--purged",
         action="store_true",
         help="Use PurgedKFold CV (prevents temporal leakage)",
-    )
-
-    # Backtest
-    p_backtest = subparsers.add_parser("backtest", help="Walk-forward backtest")
-    p_backtest.add_argument(
-        "--iterations", type=int, default=500, help="Max iterations"
-    )
-    p_backtest.add_argument(
-        "--no-plot", dest="plot", action="store_false", help="Skip plots"
     )
 
     # Features
@@ -1386,9 +1333,6 @@ def main():
     p_all = subparsers.add_parser("all", help="Run all analysis")
     p_all.add_argument("--force", action="store_true", help="Force recreate dataset")
     p_all.add_argument(
-        "--iterations", type=int, default=500, help="Backtest iterations"
-    )
-    p_all.add_argument(
         "--no-plot", dest="plot", action="store_false", help="Skip plots"
     )
 
@@ -1402,7 +1346,6 @@ def main():
     commands = {
         "prepare": cmd_prepare,
         "cv": cmd_cv,
-        "backtest": cmd_backtest,
         "features": cmd_features,
         "importance": cmd_importance,
         "mda": cmd_mda,

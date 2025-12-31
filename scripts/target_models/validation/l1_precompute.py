@@ -78,6 +78,12 @@ class L1PrecomputeConfig:
     # Random state
     random_state: int = 42
 
+    # Optional: list of helpers to use (None = default ensemble)
+    helpers: list[str] | None = None
+
+    # Whether to enable ICIR feature selection/boosting (False = keep all features)
+    enable_boosting: bool = True
+
     def config_output_dir(self, config_name: str) -> Path:
         """Directory for a specific config's precomputed features."""
         return self.output_dir / config_name
@@ -314,10 +320,9 @@ def precompute_l1_for_config(
     engine = DualLayerEngine(X, y, dual_config)
 
     if verbose:
-        print("\nWalk-forward config:")
-        print(f"  Backtest rows: {cfg.backtest_rows}")
-        print(f"  L1 warmup: {dual_config.l1.min_warmup}")
-        print(f"  L2 window: {dual_config.l2.window_size}")
+        print(
+            f"\n  L1 config: {cfg.backtest_rows} iterations, warmup={dual_config.l1.min_warmup}"
+        )
 
     # Create output directory
     output_dir = cfg.config_output_dir(config_name)
@@ -353,6 +358,8 @@ def precompute_l1_for_config(
             target=target,
             horizon=horizon,
             random_state=cfg.random_state + iteration,
+            helpers=cfg.helpers,
+            enable_boosting=cfg.enable_boosting,
         )
 
         # Get L1 data slices (same as production _fit_helpers)

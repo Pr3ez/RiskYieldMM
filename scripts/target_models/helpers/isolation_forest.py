@@ -272,6 +272,9 @@ class IsolationForestHelper(BaseHelper):
         For now, keeps default levels. Future: could tune based on
         validation metrics or target correlation.
         """
+        # Ensure numpy (base class may pass DataFrame)
+        X_cal = X_cal.values if hasattr(X_cal, "values") else X_cal
+
         # Re-compute normalization stats on combined train+cal
         for level, model in self._models.items():
             scores = model.decision_function(X_cal)
@@ -298,6 +301,9 @@ class IsolationForestHelper(BaseHelper):
 
         Returns detection rates at each level.
         """
+        # Ensure numpy (base class may pass DataFrame)
+        X_val = X_val.values if hasattr(X_val, "values") else X_val
+
         metrics = {}
 
         for level, model in self._models.items():
