@@ -1,15 +1,15 @@
-<todos title="Helper Quality Improvements" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
-- [x] baseline-measure: Measure baseline IC per helper and total execution time on test data - Using direction_1bar target for IC measurement as it's our primary trading signal 🔴
-- [x] design-adaptive-params: Design target-adaptive parameter architecture based on 20-target analysis 🔴
-- [x] impl-adaptive-module: Implement adaptive_params.py with target-based parameter selection 🔴
-- [x] impl-kalman: Update Kalman helper to use adaptive dt based on target type 🔴
-- [x] impl-cusum: Update CUSUM helper to use adaptive threshold based on target type 🔴
-- [x] impl-ou: Update OU helper to use adaptive window based on target type 🔴
-- [x] impl-evt: Update EVT helper to use adaptive percentile based on target type 🔴
-- [x] validate-ic: Validate IC improvement across all 20 targets - RESULT: +6.4% full dataset, all 5 samples pass including OOS (+6.1%) 🔴
-- [x] regression-test: Run regression tests to ensure no breakage - PASSED: 97/103 tests, all helpers execute correctly 🔴
+<todos title="L2 Backtest: Proper 1-Step-Forward with CatBoost+LightGBM Ensemble" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
+- [x] analyze-dependencies: Map out which fixes depend on each other and identify safe execution order 🔴
+  _Order: B1→B3→B2→B4. All additive changes, no breaking risk._
+- [x] fix-is-binary: Change from training-data-based to config-based detection. Only direction_* configs (n_classes=2) are binary 🔴
+- [x] fix-early-exit: When single class in training, still store model_trained=False flag and majority class prediction 🔴
+- [x] fix-component-naming: Store both _prob and _pred for all classification configs. Binary: store class labels too. Multiclass: store probs too 🔴
+- [x] fix-display-logic: Use consistent column names in live metrics display 🟡
+- [x] test-single-config: Run direction_1bar and vol_regime_3bar to verify fixes work 🟡
+  _Quick test with step_size=200 passed. Binary AUC now working, all columns present._
+- [-] run-full-backtest: Execute all 20 configs after fixes validated 🟢
+  _Started at step 1/2714. All 20 configs loading. AUC showing for binary, IC for regression. Running ~16s/step._
 </todos>
-
 <astra-workflow>
 ## 📍 Phase: IDLE
 ⏸️ No task active. Run value gate before starting.

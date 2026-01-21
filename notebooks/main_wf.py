@@ -640,6 +640,11 @@ from dataclasses import asdict
 
 import pandas as pd
 
+from scripts.target_models.core.aligned_dual_window import (
+    ExpandingL1Config,
+    SlidingL2Config,
+    get_l2_config_for_target,
+)
 from scripts.target_models.helpers.bocpd import HAS_RUST as BOCPD_RUST
 
 # ============================================================================
@@ -697,7 +702,7 @@ print("  HMM4, HMM5, IsolationForest use optimized Python (hmmlearn/sklearn)")
 # ============================================================================
 # CONFIGURATION — SET YOUR L1 ITERATION COUNT HERE
 # ============================================================================
-L1_ROWS = 3436  # <-- How many L1 iterations to precompute (change this!)
+L1_ROWS = None  # None = auto (use max feasible per config); otherwise acts as cap
 
 # NEW: Include all 10 helpers (6 original + 4 new)
 HELPERS = [
@@ -720,7 +725,7 @@ ENABLE_BOOSTING = False  # Set True to enable ICIR feature selection
 cfg = L1PrecomputeConfig(
     data_dir=PROJECT_ROOT / "data" / "datasets",
     output_dir=PROJECT_ROOT / "data" / "precomputed",
-    backtest_rows=L1_ROWS,
+    backtest_rows=L1_ROWS or 1,  # overwritten per-config below
     random_state=42,
     helpers=HELPERS,  # Pass new helpers list
     enable_boosting=ENABLE_BOOSTING,  # False = keep all features
@@ -734,6 +739,71 @@ print(
 # SMART RESUME: Check config status (iterations AND features)
 # ============================================================================
 EXPECTED_FEATURES = 91  # All 10 helpers, no ICIR selection
+
+
+def compute_feasible_iters(
+    config_name: str,
+    cfg: L1PrecomputeConfig,
+    backtest_rows: int | None,
+    max_timestamp: pd.Timestamp | None = None,
+) -> int:
+    """
+    Compute the maximum walk-forward iterations possible for a config
+    given the data (after dropna) and current window settings.
+    If backtest_rows is None, uses the maximum possible.
+    Mirrors DualLayerEngine geometry: min warmup + L2 window + horizon.
+    """
+    data_path = cfg.data_dir / f"{config_name}.parquet"
+    df = pd.read_parquet(data_path)
+
+    feature_cols = [
+        c for c in df.columns if not c.startswith("y_") and c != "timestamp"
+    ]
+    y_cols = [c for c in df.columns if c.startswith("y_")]
+    target = config_name.rsplit("_", 1)[0]
+    y_col = f"y_{target}"
+    if y_col not in df.columns:
+        y_col = y_cols[0] if y_cols else None
+    if y_col is None:
+        raise ValueError(f"No target column found for {config_name}")
+
+    df = df.dropna(subset=feature_cols + [y_col])
+    if max_timestamp is not None:
+        df = df[df["timestamp"] <= max_timestamp]
+
+    total_rows = len(df)
+    if total_rows == 0:
+        return 0
+
+    horizon_part = config_name.rsplit("_", 1)[1]
+    horizon = (
+        int(horizon_part.replace("bar", ""))
+        if "bar" in horizon_part
+        else int(horizon_part)
+    )
+
+    base_l2 = get_l2_config_for_target(target)
+    l2_cfg = SlidingL2Config()
+    l2_cfg.window_size = base_l2.window_size
+    l2_cfg.train_ratio = base_l2.train_ratio
+    l2_cfg.cal_ratio = base_l2.cal_ratio
+    l2_cfg.val_ratio = base_l2.val_ratio
+    l2_cfg.purge_gap = base_l2.purge_gap
+    l2_cfg.pred_size = horizon
+    l1_warmup = ExpandingL1Config().min_warmup
+
+    min_required_rows = l1_warmup + l2_cfg.total_size
+    min_start = min_required_rows - 1
+    last_pred_idx = total_rows - l2_cfg.pred_size
+    if last_pred_idx < min_start:
+        return 0
+
+    if backtest_rows is None:
+        first_pred_idx = min_start
+    else:
+        desired_start = last_pred_idx - backtest_rows + 1
+        first_pred_idx = max(min_start, desired_start)
+    return last_pred_idx - first_pred_idx + 1
 
 
 def check_config_status(
@@ -766,8 +836,8 @@ def check_config_status(
     current_iters = meta.get("total_iterations", 0)
     current_features = meta.get("feature_count", 0)
 
-    # Check iteration count
-    if current_iters != expected_iters:
+    # Check iteration count (allow extra iterations; require at least expected)
+    if current_iters < expected_iters:
         return {
             "status": "wrong_iters",
             "current_iters": current_iters,
@@ -798,26 +868,37 @@ align_global_end = True
 no_verify = False
 
 # ============================================================================
+# Find global end timestamp (all configs truncated to same end)
+# ============================================================================
+global_end: pd.Timestamp | None = None
+if align_global_end:
+    ends = [_filtered_end_timestamp_and_last_idx(name, cfg)[0] for name in configs]
+    global_end = min(ends)
+
+# ============================================================================
 # PRE-SCAN: Show status of all configs BEFORE starting
 # ============================================================================
 print("\n" + "=" * 60)
 print("PRE-SCAN: CONFIG STATUS")
 print("=" * 60)
-print(f"Target: {L1_ROWS} iterations, {EXPECTED_FEATURES} features")
+print(
+    f"Target cap: {'auto' if L1_ROWS is None else L1_ROWS} iterations (per-config feasible computed), {EXPECTED_FEATURES} features"
+)
 print()
 
 to_compute = []
 to_skip = []
 
 for config_name in configs:
-    status = check_config_status(config_name, cfg, L1_ROWS, EXPECTED_FEATURES)
+    expected_iters = compute_feasible_iters(config_name, cfg, L1_ROWS, global_end)
+    status = check_config_status(config_name, cfg, expected_iters, EXPECTED_FEATURES)
     if status["needs_recompute"]:
         to_compute.append(config_name)
         if status["status"] == "missing":
             print(f"  ⚪ {config_name}: MISSING")
         elif status["status"] == "wrong_iters":
             print(
-                f"  🔄 {config_name}: {status['current_iters']} iters (need {L1_ROWS})"
+                f"  🔄 {config_name}: {status['current_iters']} iters (need {expected_iters})"
             )
         elif status["status"] == "wrong_features":
             print(
@@ -835,14 +916,6 @@ print("=" * 60)
 
 if len(to_compute) == 0:
     print("\n✓ All configs already complete! Nothing to do.")
-
-# ============================================================================
-# Find global end timestamp (all configs truncated to same end)
-# ============================================================================
-global_end: pd.Timestamp | None = None
-if align_global_end:
-    ends = [_filtered_end_timestamp_and_last_idx(name, cfg)[0] for name in configs]
-    global_end = min(ends)
 
 results: list[dict] = []
 end_timestamps: dict[str, str] = {}
@@ -872,7 +945,8 @@ for i, config_name in enumerate(configs, start=1):
     print(f"[{i}/{len(configs)}] {config_name}")
 
     # Smart resume: check if already done with correct settings
-    status = check_config_status(config_name, cfg, L1_ROWS, EXPECTED_FEATURES)
+    expected_iters = compute_feasible_iters(config_name, cfg, L1_ROWS, global_end)
+    status = check_config_status(config_name, cfg, expected_iters, EXPECTED_FEATURES)
 
     if not status["needs_recompute"]:
         print(
@@ -898,8 +972,11 @@ for i, config_name in enumerate(configs, start=1):
         print("  📥 Computing (fresh start)")
     elif action == "wrong_iters":
         if status["current_features"] == EXPECTED_FEATURES:
-            # Same feature count - can resume
-            print(f"  ▶️  Resuming ({status['current_iters']} → {L1_ROWS} iters)")
+            # Same feature count; append missing iterations without wiping
+            use_force = False
+            print(
+                f"  ▶️  Resuming/adding ({status['current_iters']} → {expected_iters} iters)"
+            )
         else:
             # Different features or old format (features=0) - must restart
             use_force = True
@@ -915,6 +992,9 @@ for i, config_name in enumerate(configs, start=1):
     regenerated_count += 1
 
     t0 = time.time()
+    # Use per-config feasible iteration count when computing
+    cfg.backtest_rows = expected_iters
+
     meta = precompute_l1_for_config(
         config_name,
         cfg=cfg,
@@ -928,9 +1008,13 @@ for i, config_name in enumerate(configs, start=1):
     meta_dict["elapsed_sec"] = round(dt, 2)
     meta_dict["action"] = action
 
-    if meta.total_iterations != L1_ROWS:
+    if meta.total_iterations < expected_iters:
         raise RuntimeError(
-            f"{config_name}: got {meta.total_iterations} L1 iterations, expected {L1_ROWS}"
+            f"{config_name}: got {meta.total_iterations} L1 iterations, expected >= {expected_iters}"
+        )
+    elif meta.total_iterations > expected_iters:
+        print(
+            f"  ⚠️  {config_name}: has {meta.total_iterations} iterations (more than expected {expected_iters}); keeping existing."
         )
 
     if meta.feature_count != EXPECTED_FEATURES:
@@ -1050,6 +1134,104 @@ if missing_configs:
     if len(missing_configs) > 5:
         print(f"  ... and {len(missing_configs) - 5} more")
 else:
-    print("\n✓ All 20 configs precomputed and ready for fast backtest")
+    print("\n✓ All 20 configs precomputed and ready for Step 9: Dataset Assembly")
+
+# %% [markdown]
+# # Step 9: Assemble Prediction Datasets
+#
+# Assemble continuous prediction datasets from precomputed L1 iterations.
+# Each assembled.parquet contains one row per walk-forward iteration (the prediction row).
+#
+# **What it does:**
+# - For each of 20 configs, reads all iteration parquet files
+# - Extracts the last row (prediction row) from each file
+# - Sorts chronologically by timestamp
+# - Saves as `assembled.parquet` in each config directory
+#
+# **Output:** `data/precomputed/{config}/assembled.parquet`
+# - ~3200-3700 rows per config (one per iteration)
+# - 92 columns (91 helper features + pred_idx)
+# - Indexed by timestamp (timezone-aware UTC)
+#
+# **Benefit:** Fast feature lookup during backtesting without loading individual parquet files.
 
 # %%
+# Step 9: Assemble prediction datasets from precomputed L1 iterations
+import time
+
+from scripts.target_models.validation.dataset_assembly import (
+    ALL_CONFIGS,
+    assemble_all,
+    check_assembly_status,
+    update_all,
+    validate_all,
+)
+
+# Check status of all configs
+precomputed_dir = PROJECT_ROOT / "data" / "precomputed"
+
+print("Checking assembly status...")
+needs_update = []
+up_to_date = []
+missing = []
+
+for config in ALL_CONFIGS:
+    assembled_path = precomputed_dir / config / "assembled.parquet"
+    if not assembled_path.exists():
+        missing.append(config)
+    else:
+        status = check_assembly_status(config, precomputed_dir)
+        if status.needs_update:
+            needs_update.append((config, status.missing_rows))
+        else:
+            up_to_date.append(config)
+
+# Report status
+print(f"  ✓ Up to date: {len(up_to_date)} configs")
+if needs_update:
+    print(f"  🔄 Need update: {len(needs_update)} configs")
+    for cfg, n_new in needs_update[:3]:
+        print(f"      {cfg}: +{n_new} new iterations")
+    if len(needs_update) > 3:
+        print(f"      ... and {len(needs_update) - 3} more")
+if missing:
+    print(f"  ⚪ Missing: {len(missing)} configs")
+
+# Handle assembly/update
+if missing:
+    print("\nAssembling missing datasets...")
+    t0 = time.time()
+    results = assemble_all(precomputed_dir)
+    elapsed = time.time() - t0
+    print(f"Assembly completed in {elapsed:.1f}s")
+elif needs_update:
+    print("\nUpdating with new iterations...")
+    results = update_all(precomputed_dir)
+else:
+    print("\n✓ All 20 assembled datasets are current. Nothing to do.")
+
+# %%
+# Verify Step 9: Assembled datasets
+
+print("=" * 60)
+print("STEP 9 VERIFICATION: ASSEMBLED DATASETS")
+print("=" * 60)
+
+all_valid, reports = validate_all(precomputed_dir)
+
+print()
+if all_valid:
+    total_rows = sum(r.get("n_rows", 0) for r in reports)
+    print("=" * 60)
+    print("STEP 9 COMPLETE: PREDICTION DATASETS ASSEMBLED")
+    print("=" * 60)
+    print("  Configs: 20/20 valid")
+    print(f"  Total prediction rows: {total_rows:,}")
+    print("  Features per row: 91 helper features + pred_idx")
+    print("  Output: data/precomputed/{config}/assembled.parquet")
+    print("\n✓ Ready for fast backtesting with precomputed L1 features")
+else:
+    failed = [r["config_name"] for r in reports if not r.get("is_valid", False)]
+    print(f"✗ {len(failed)} configs failed validation:")
+    for name in failed:
+        print(f"  - {name}")
