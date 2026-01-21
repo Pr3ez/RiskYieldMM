@@ -381,35 +381,50 @@ def precompute_l1_for_config(
 
     # Track metadata
     start_time = time.time()
-    first_timestamp = None
-    last_timestamp = None
     computed_count = 0
     skipped_count = 0
 
-    # Iterate through all windows (same as production)
-    for iteration, window in enumerate(engine.iterate()):
+    # Initialize first/last timestamps from existing iterations (for resume support)
+    # BUG FIX: Previously these were only set from newly computed iterations,
+    # causing metadata to show wrong dates when resuming
+    first_timestamp = None
+    last_timestamp = None
+    if iterations_info:
+        # Sort by timestamp to get actual date range
+        sorted_ts = sorted(info["timestamp"] for info in iterations_info)
+        first_timestamp = pd.Timestamp(sorted_ts[0])
+        last_timestamp = pd.Timestamp(sorted_ts[-1])
+
+    # Build list of pending prediction indices (skip already computed timestamps)
+    pending: list[tuple[int, int]] = []
+    pred_idx = engine.first_pred_idx
+    iteration = 0
+    while pred_idx <= engine.last_pred_idx:
+        ts_iso = timestamps.iloc[pred_idx].isoformat()
+        if ts_iso not in existing_timestamps:
+            pending.append((iteration, pred_idx))
+        iteration += 1
+        pred_idx += engine.config.step_size
+
+    total_pending = len(pending)
+    if verbose:
+        print(f"  📋 Pending iterations to compute: {total_pending}")
+
+    # Iterate only over pending windows (same as production for those timestamps)
+    for idx, (iteration, pred_idx) in enumerate(pending, start=1):
         iter_start = time.time()
 
         # Get prediction timestamp for this iteration
-        pred_idx = window.l2.pred.start_idx
         pred_timestamp = timestamps.iloc[pred_idx]
         aligned_pred_idx = pred_idx + (horizon - 1)
         aligned_timestamp = timestamps.iloc[aligned_pred_idx]
+        window = engine.get_window(pred_idx, iteration)
 
-        # Track date range (even for skipped iterations)
-        if first_timestamp is None:
+        # Track date range - use min/max to handle resume correctly
+        if first_timestamp is None or pred_timestamp < first_timestamp:
             first_timestamp = pred_timestamp
-        last_timestamp = pred_timestamp
-
-        # INCREMENTAL RESUME: Skip if already computed
-        ts_iso = pred_timestamp.isoformat()
-        if ts_iso in existing_timestamps:
-            skipped_count += 1
-            if verbose and skipped_count == 1:
-                print(
-                    f"  ⏭️  Skipping {len(existing_timestamps)} existing iterations..."
-                )
-            continue
+        if last_timestamp is None or pred_timestamp > last_timestamp:
+            last_timestamp = pred_timestamp
 
         # Create fresh ensemble (same as production)
         ensemble = create_helper_ensemble(
@@ -467,16 +482,16 @@ def precompute_l1_for_config(
         )
 
         if verbose and computed_count % 20 == 0:
-            total_done = skipped_count + computed_count
+            total_done = len(existing_timestamps) + computed_count
             elapsed = time.time() - start_time
             if computed_count > 0:
                 remaining = (elapsed / computed_count) * (
-                    cfg.backtest_rows - total_done
+                    total_pending - computed_count
                 )
             else:
                 remaining = 0
             print(
-                f"  Iteration {total_done}/{cfg.backtest_rows} "
+                f"  Iteration {total_done}/{len(existing_timestamps) + total_pending} "
                 f"[{pred_timestamp.strftime('%Y-%m-%d %H:%M')}] "
                 f"({helper_features.shape[1]} features) "
                 f"[{elapsed / 60:.1f}m elapsed, ~{remaining / 60:.1f}m remaining]"
