@@ -77,7 +77,7 @@ def create_analysis_dataset(
     - y_direction: Binary (1=up, 0=down)
     - y_volatility: |forward_return|
     - y_forward_return_{1,3,6,12}: Multi-horizon returns
-    - y_vol_regime: LOW/MEDIUM/HIGH (0/1/2)
+    - y_volatility_regime: Binary (0=DECREASE, 1=INCREASE)
     - y_trend_regime: Binary (SMA crossover)
 
     Returns:
@@ -159,26 +159,96 @@ def create_analysis_dataset(
 
     df = df.with_columns(close.alias("RAW_close"))
 
-    # Volatility regime (fixed historical thresholds)
-    # Use first WARMUP_PERIOD bars to compute thresholds (avoids future data leakage)
-    WARMUP_PERIOD = 1000
-    warmup_vol = df["rolling_vol_21"].head(WARMUP_PERIOD).drop_nulls()
-    vol_25 = warmup_vol.quantile(0.25)
-    vol_75 = warmup_vol.quantile(0.75)
-    print(
-        f"  Volatility thresholds (from first {WARMUP_PERIOD} bars): 25%={vol_25:.6f}, 75%={vol_75:.6f}"
+    # Volatility regime: will volatility INCREASE or DECREASE?
+    # Binary: 1 = INCREASE (future_vol > current_vol), 0 = DECREASE
+    # Guaranteed ~50/50 balance due to volatility mean-reversion
+    VOL_WINDOW = 21
+    print(f"  Computing volatility_regime (window={VOL_WINDOW})")
+
+    # Calculate rolling vol and future vol
+    rolling_vol = df["rolling_vol_21"]
+    future_vol = rolling_vol.shift(-1)  # Shift by 1 bar (horizon=1)
+
+    y_volatility_regime = (
+        pl.when(future_vol > rolling_vol)
+        .then(pl.lit(1))  # INCREASE
+        .otherwise(pl.lit(0))  # DECREASE
+        .cast(pl.Int8)
+        .alias("y_volatility_regime")
+    )
+    df = df.with_columns(y_volatility_regime)
+
+    # Triple-Barrier Labels (AFML Ch.3)
+    # Uses high/low for accurate barrier touch detection
+    print("\nComputing triple-barrier labels...")
+    from scripts.analysis.triple_barrier_labels import compute_triple_barrier_labels
+
+    # Need raw OHLC for barrier computation - merge from raw data
+    df = df.with_columns(
+        [
+            raw["RAW_P_high_abs_NN"].alias("_tb_high"),
+            raw["RAW_P_low_abs_NN"].alias("_tb_low"),
+            raw["RAW_P_close_abs_NN"].alias("_tb_close"),
+        ]
     )
 
-    y_vol_regime = (
-        pl.when(df["rolling_vol_21"] < vol_25)
-        .then(pl.lit(0))
-        .when(df["rolling_vol_21"] < vol_75)
-        .then(pl.lit(1))
-        .otherwise(pl.lit(2))
-        .cast(pl.Int8)
-        .alias("y_vol_regime")
+    df = compute_triple_barrier_labels(
+        df,
+        tp_mult=2.0,  # TP = 2 × ATR
+        sl_mult=2.0,  # SL = 2 × ATR
+        max_bars=3,  # 3 bars = 24h time barrier
+        atr_window=21,
+        high_col="_tb_high",
+        low_col="_tb_low",
+        close_col="_tb_close",
+        verbose=True,
     )
-    df = df.with_columns(y_vol_regime)
+
+    # Remove temporary columns
+    df = df.drop(["_tb_high", "_tb_low", "_tb_close"])
+
+    # Multi-Class Signal Labels (research-backed)
+    # Based on: Dezhkam et al. 2022 (Bayesian tri-state), Lopez de Prado AFML
+    print("\nComputing multi-class signal labels...")
+    from scripts.analysis.signal_labels import (
+        LABEL_NAMES_3C,
+        LABEL_NAMES_5C,
+        LabelingConfig,
+        add_signal_labels_to_df,
+    )
+
+    # Convert to pandas for signal labeling (uses adaptive threshold)
+    df_pd = df.to_pandas()
+    label_config = LabelingConfig(
+        threshold_sigma=0.5,  # 0.5σ threshold for neutrality
+        min_threshold=0.005,  # 0.5% minimum
+        max_threshold=0.05,  # 5% maximum
+        vol_lookback=21,
+        use_triple_barrier=True,
+    )
+
+    df_pd = add_signal_labels_to_df(
+        df_pd,
+        config=label_config,
+        schemes=["3class", "5class", "4class"],
+        return_col="y_tb_return",
+        barrier_col="y_tb_barrier",
+    )
+
+    # Show distribution
+    for scheme, names in [
+        ("y_signal_3c", LABEL_NAMES_3C),
+        ("y_signal_5c", LABEL_NAMES_5C),
+    ]:
+        counts = df_pd[scheme].value_counts().sort_index()
+        print(f"  {scheme}:")
+        for label, count in counts.items():
+            pct = count / len(df_pd) * 100
+            name = names.get(label, f"Class {label}")
+            print(f"    {name}: {count:,} ({pct:.1f}%)")
+
+    # Convert back to polars
+    df = pl.from_pandas(df_pd)
 
     # Save
     print(f"\nSaving to {output_file}...")

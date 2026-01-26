@@ -1539,3 +1539,188 @@ def compute_rolling_metrics(
         recent_vs_early_ic=float(recent_vs_early),
         concept_drift_detected=concept_drift,
     )
+
+
+# =============================================================================
+# ROLLING METRICS STATE (Per-Step Tracking for Backtest)
+# =============================================================================
+
+
+@dataclass
+class RollingMetricsState:
+    """State for tracking rolling performance metrics during backtest.
+
+    Uses Exponential Moving Average (EMA) for smooth tracking.
+    EMA formula: EMA_t = α * x_t + (1 - α) * EMA_{t-1}
+    where α = 2 / (span + 1)
+
+    This class maintains state across backtest steps, updating after each
+    prediction to track rolling accuracy and IC.
+
+    Attributes:
+        acc_ema20: EMA of accuracy with span=20 (fast, responsive)
+        acc_ema50: EMA of accuracy with span=50 (slow, stable)
+        ic_ema20: EMA of IC with span=20 (for regression)
+        ic_ema50: EMA of IC with span=50 (for regression)
+        cb_acc_ema20: Per-model accuracy tracking (CatBoost)
+        lgb_acc_ema20: Per-model accuracy tracking (LightGBM)
+        lstm_acc_ema20: Per-model accuracy tracking (LSTM)
+        linear_acc_ema20: Per-model accuracy tracking (Linear)
+
+    Usage:
+        # Initialize at start of backtest
+        rolling_state = RollingMetricsState()
+
+        # Update after each prediction (classification)
+        metrics = rolling_state.update_classification(
+            ens_correct=True,
+            cb_correct=True,
+            lgb_correct=False,
+            lstm_correct=None,  # LSTM may be disabled
+            linear_correct=True,
+        )
+
+        # Store metrics in prediction dict
+        components.update(metrics)
+    """
+
+    # Ensemble metrics
+    acc_ema20: float | None = None
+    acc_ema50: float | None = None
+    ic_ema20: float | None = None
+    ic_ema50: float | None = None
+
+    # Per-model metrics (classification)
+    cb_acc_ema20: float | None = None
+    lgb_acc_ema20: float | None = None
+    lstm_acc_ema20: float | None = None
+    linear_acc_ema20: float | None = None
+
+    # Per-model metrics (regression)
+    cb_ic_ema20: float | None = None
+    lgb_ic_ema20: float | None = None
+
+    @staticmethod
+    def _update_ema(current: float | None, value: float, alpha: float) -> float:
+        """Update EMA with new value."""
+        if current is None:
+            return value
+        return alpha * value + (1 - alpha) * current
+
+    def update_classification(
+        self,
+        ens_correct: bool,
+        cb_correct: bool,
+        lgb_correct: bool,
+        lstm_correct: bool | None,
+        linear_correct: bool,
+    ) -> dict:
+        """Update rolling metrics for classification task.
+
+        Args:
+            ens_correct: Whether ensemble prediction was correct
+            cb_correct: Whether CatBoost prediction was correct
+            lgb_correct: Whether LightGBM prediction was correct
+            lstm_correct: Whether LSTM prediction was correct (None if disabled)
+            linear_correct: Whether Linear prediction was correct
+
+        Returns:
+            Dict of current rolling values for storage
+        """
+        alpha20 = 2 / (20 + 1)  # ~0.095
+        alpha50 = 2 / (50 + 1)  # ~0.039
+
+        # Update ensemble EMA
+        self.acc_ema20 = self._update_ema(self.acc_ema20, float(ens_correct), alpha20)
+        self.acc_ema50 = self._update_ema(self.acc_ema50, float(ens_correct), alpha50)
+
+        # Update per-model EMA
+        self.cb_acc_ema20 = self._update_ema(
+            self.cb_acc_ema20, float(cb_correct), alpha20
+        )
+        self.lgb_acc_ema20 = self._update_ema(
+            self.lgb_acc_ema20, float(lgb_correct), alpha20
+        )
+        self.linear_acc_ema20 = self._update_ema(
+            self.linear_acc_ema20, float(linear_correct), alpha20
+        )
+
+        if lstm_correct is not None:
+            self.lstm_acc_ema20 = self._update_ema(
+                self.lstm_acc_ema20, float(lstm_correct), alpha20
+            )
+
+        return {
+            "rolling_acc_ema20": self.acc_ema20,
+            "rolling_acc_ema50": self.acc_ema50,
+            "rolling_cb_acc_ema20": self.cb_acc_ema20,
+            "rolling_lgb_acc_ema20": self.lgb_acc_ema20,
+            "rolling_lstm_acc_ema20": self.lstm_acc_ema20,
+            "rolling_linear_acc_ema20": self.linear_acc_ema20,
+        }
+
+    def update_regression(
+        self,
+        y_true: float,
+        y_pred: float,
+        cb_pred: float | None = None,
+        lgb_pred: float | None = None,
+    ) -> dict:
+        """Update rolling metrics for regression task.
+
+        Uses normalized prediction accuracy as proxy for rolling IC.
+        True rolling IC requires a window of predictions.
+
+        Args:
+            y_true: Actual target value
+            y_pred: Ensemble predicted value
+            cb_pred: CatBoost prediction (optional)
+            lgb_pred: LightGBM prediction (optional)
+
+        Returns:
+            Dict of current rolling values for storage
+        """
+        alpha20 = 2 / (20 + 1)
+        alpha50 = 2 / (50 + 1)
+
+        # Normalized accuracy: 1 / (1 + |error| / |target|)
+        # Ranges from ~0 (very wrong) to 1 (perfect)
+        error = abs(y_true - y_pred)
+        target_scale = max(abs(y_true), 0.001)  # Avoid div by zero
+        normalized_acc = 1.0 / (1.0 + error / target_scale)
+
+        self.ic_ema20 = self._update_ema(self.ic_ema20, normalized_acc, alpha20)
+        self.ic_ema50 = self._update_ema(self.ic_ema50, normalized_acc, alpha50)
+
+        # Per-model (if provided)
+        if cb_pred is not None:
+            cb_error = abs(y_true - cb_pred)
+            cb_acc = 1.0 / (1.0 + cb_error / target_scale)
+            self.cb_ic_ema20 = self._update_ema(self.cb_ic_ema20, cb_acc, alpha20)
+
+        if lgb_pred is not None:
+            lgb_error = abs(y_true - lgb_pred)
+            lgb_acc = 1.0 / (1.0 + lgb_error / target_scale)
+            self.lgb_ic_ema20 = self._update_ema(self.lgb_ic_ema20, lgb_acc, alpha20)
+
+        return {
+            "rolling_ic_ema20": self.ic_ema20,
+            "rolling_ic_ema50": self.ic_ema50,
+            "rolling_cb_ic_ema20": self.cb_ic_ema20,
+            "rolling_lgb_ic_ema20": self.lgb_ic_ema20,
+        }
+
+    def get_current_metrics(self) -> dict:
+        """Get all current rolling metrics as dict."""
+        return {
+            "rolling_acc_ema20": self.acc_ema20,
+            "rolling_acc_ema50": self.acc_ema50,
+            "rolling_ic_ema20": self.ic_ema20,
+            "rolling_ic_ema50": self.ic_ema50,
+            "rolling_cb_acc_ema20": self.cb_acc_ema20,
+            "rolling_lgb_acc_ema20": self.lgb_acc_ema20,
+            "rolling_lstm_acc_ema20": self.lstm_acc_ema20,
+            "rolling_linear_acc_ema20": self.linear_acc_ema20,
+            "rolling_cb_ic_ema20": self.cb_ic_ema20,
+            "rolling_lgb_ic_ema20": self.lgb_ic_ema20,
+        }

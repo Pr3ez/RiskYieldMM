@@ -377,7 +377,9 @@ class EnsemblePrediction:
     volatility_pred: dict[int, float] = field(default_factory=dict)  # horizon → E[vol]
 
     # Regime predictions
-    vol_regime: dict[int, int] = field(default_factory=dict)  # horizon → 0/1/2
+    vol_spike: dict[int, int] = field(
+        default_factory=dict
+    )  # horizon → 0/1 (NO_SPIKE/SPIKE)
     trend_regime: dict[int, int] = field(default_factory=dict)  # horizon → 0/1
 
     def get_direction_consensus(self) -> float:
@@ -392,11 +394,11 @@ class EnsemblePrediction:
             return 0.0
         return np.mean(list(self.volatility_pred.values()))
 
-    def is_high_vol_regime(self) -> bool:
-        """Check if majority of vol_regime predictions are HIGH (2)."""
-        if not self.vol_regime:
+    def is_vol_spike(self) -> bool:
+        """Check if majority of vol_spike predictions are SPIKE (1)."""
+        if not self.vol_spike:
             return False
-        return np.mean([v == 2 for v in self.vol_regime.values()]) > 0.5
+        return np.mean([v == 1 for v in self.vol_spike.values()]) > 0.5
 
 
 @dataclass
@@ -1013,8 +1015,8 @@ class EnsembleAggregator:
             elif pred.target == "volatility":
                 ensemble.volatility_pred[horizon] = pred.aligned_pred
 
-            elif pred.target == "vol_regime":
-                ensemble.vol_regime[horizon] = int(pred.aligned_pred)
+            elif pred.target == "vol_spike":
+                ensemble.vol_spike[horizon] = int(pred.aligned_pred)
 
             elif pred.target == "trend_regime":
                 ensemble.trend_regime[horizon] = int(pred.aligned_pred)
@@ -1191,8 +1193,8 @@ class PositionSizer:
         # Step 3: Config alignment - now uses multi-horizon agreement
         alignment_factor = self.compute_alignment_factor(ensemble)
 
-        # Step 4: Volatility adjustment
-        vol_factor = 0.7 if ensemble.is_high_vol_regime() else 1.0
+        # Step 4: Volatility adjustment - reduce position if spike predicted
+        vol_factor = 0.7 if ensemble.is_vol_spike() else 1.0
 
         # Step 5: Base position and final
         base_position = 1.0  # Start with base position

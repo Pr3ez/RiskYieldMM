@@ -2,25 +2,33 @@
 Parallel Auto-Optimization (Causal-Safe)
 ========================================
 
-Runs 20 target-horizon optimizations in parallel.
+Runs target-horizon optimizations in parallel.
 Each worker still computes ROW-BY-ROW internally (causal).
 
 SAFETY GUARANTEE:
     - Workers are independent (no shared state)
     - Each worker runs sequential row-by-row
     - No data leakage between combinations
-    - Equivalent to running 20 times sequentially, just faster
+    - Equivalent to running sequentially, just faster
+
+Metadata Storage:
+    - Optimization method stored in parquet file metadata
+    - Read with: pyarrow.parquet.read_table(f).schema.metadata[b'optimization_method']
 
 Usage:
     from scripts.analysis.parallel_optimize import parallel_auto_optimize
     results = parallel_auto_optimize(n_workers=4)
 """
 
+import json
 import multiprocessing as mp
 from concurrent.futures import ProcessPoolExecutor, as_completed
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pandas as pd
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 
 def _optimize_single_target_horizon(args_tuple):
@@ -59,6 +67,9 @@ def _optimize_single_target_horizon(args_tuple):
         WinsorizeOptimizer,
     )
 
+    # Import centralized targets module (single source of truth)
+    from scripts.workflow.targets import compute_target_pandas
+
     # Load data in this process
     X_base = pd.read_parquet(X_base_path)
     raw = pl.read_parquet(raw_path)
@@ -86,40 +97,15 @@ def _optimize_single_target_horizon(args_tuple):
         return np.mean(ics) if ics else 0.0
 
     def get_target_series(target: str, horizon: int) -> pd.Series:
-        """Compute target series - CAUSAL, uses only past data."""
-        fwd_ret = (close.shift(-horizon) - close) / close
-
-        future_high = high.shift(-horizon)
-        future_low = low.shift(-horizon)
-        up_move = (future_high - close) / close
-        down_move = (close - future_low) / close
-        net_candle_ret = up_move - down_move
-
-        if target == "direction":
-            return (net_candle_ret > 0).astype(float)
-        elif target == "returns":
-            return net_candle_ret
-        elif target == "volatility":
-            return fwd_ret.abs()
-        elif target == "vol_regime":
-            log_returns = np.log(close / close.shift(1))
-            window = max(21, horizon * 3)
-            rolling_vol = log_returns.rolling(window).std()
-            WARMUP_PERIOD = 1000
-            warmup_vol = rolling_vol.head(WARMUP_PERIOD).dropna()
-            vol_25 = warmup_vol.quantile(0.25)
-            vol_75 = warmup_vol.quantile(0.75)
-            return pd.cut(
-                rolling_vol, bins=[-np.inf, vol_25, vol_75, np.inf], labels=[0, 1, 2]
-            ).astype(float)
-        elif target == "trend_regime":
-            fast_window = max(21, horizon * 5)
-            slow_window = max(63, horizon * 15)
-            sma_fast = close.rolling(fast_window).mean()
-            sma_slow = close.rolling(slow_window).mean()
-            return (sma_fast > sma_slow).astype(float)
-        else:
-            raise ValueError(f"Unknown target: {target}")
+        """Compute target series using centralized targets module."""
+        # Use centralized target computation - single source of truth
+        return compute_target_pandas(
+            target_name=target,
+            close=close,
+            high=high,
+            low=low,
+            horizon=horizon,
+        ).astype(float)
 
     def get_pipeline_candidates(target: str):
         """Get pipeline candidates for target type."""
@@ -139,7 +125,12 @@ def _optimize_single_target_horizon(args_tuple):
                 InteractionOptimizer(top_k=3, n_interactions=5, min_ic=0.02),
             ]
 
-        if target in {"direction", "trend_regime", "vol_regime"}:
+        if target in {
+            "direction",
+            "trend_regime",
+            "volatility_regime",
+            "first_extreme",
+        }:
             pipelines["winsorize_rank"] = [
                 WinsorizeOptimizer(lower=0.01, upper=0.99),
                 ExpandingRankOptimizer(min_periods=252),
@@ -150,14 +141,22 @@ def _optimize_single_target_horizon(args_tuple):
                 InteractionOptimizer(top_k=3, n_interactions=5, min_ic=0.05),
             ]
 
-        if target == "volatility":
+        if target in {"volatility", "vol_to_extreme"}:
             pipelines["winsorize_log"] = [
                 WinsorizeOptimizer(lower=0.01, upper=0.99),
                 LogTransformOptimizer(),
             ]
 
         min_ic = (
-            0.05 if target in {"volatility", "vol_regime", "trend_regime"} else 0.02
+            0.05
+            if target
+            in {
+                "volatility",
+                "volatility_regime",
+                "trend_regime",
+                "vol_to_extreme",
+            }
+            else 0.02
         )
         pipelines["winsorize_interactions"] = [
             WinsorizeOptimizer(lower=0.01, upper=0.99),
@@ -196,12 +195,33 @@ def _optimize_single_target_horizon(args_tuple):
         except Exception:
             pass  # Skip failed pipelines
 
-    # Save optimized features
+    # Save optimized features with metadata
     if best_X is not None:
         output_file = (
             Path(output_dir) / f"features_8h_optimized_{target}_{horizon}bar.parquet"
         )
-        best_X.to_parquet(output_file)
+
+        # Create metadata to store with the parquet file
+        optimization_metadata = {
+            "target": target,
+            "horizon": horizon,
+            "method": best_pipeline,
+            "baseline_ic": float(baseline_ic),
+            "best_ic": float(best_ic),
+            "n_features": int(best_X.shape[1]),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # Convert DataFrame to PyArrow Table with custom metadata
+        table = pa.Table.from_pandas(best_X)
+        existing_metadata = table.schema.metadata or {}
+        new_metadata = {
+            **existing_metadata,
+            b"optimization_method": best_pipeline.encode(),
+            b"optimization_metadata": json.dumps(optimization_metadata).encode(),
+        }
+        table = table.replace_schema_metadata(new_metadata)
+        pq.write_table(table, output_file)
 
     improvement = (
         ((best_ic - baseline_ic) / baseline_ic * 100) if baseline_ic > 0 else 0
@@ -253,7 +273,7 @@ def parallel_auto_optimize(
         "direction",
         "returns",
         "volatility",
-        "vol_regime",
+        "volatility_regime",
         "trend_regime",
     ]
     n_workers = n_workers or min(mp.cpu_count(), 8)

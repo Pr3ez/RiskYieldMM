@@ -360,12 +360,12 @@ def plot_target_distributions(df: pd.DataFrame, save: bool = True) -> plt.Figure
     ax3.set_title("Forward Return (8h) Distribution")
     ax3.set_xlabel("Return")
 
-    # Vol regime distribution
+    # Vol spike distribution
     ax4 = axes[1, 1]
-    regime_counts = df["y_vol_regime"].value_counts().sort_index()
-    labels = ["LOW", "MEDIUM", "HIGH"]
-    ax4.bar(labels, regime_counts.values, color=["green", "yellow", "red"], alpha=0.7)
-    ax4.set_title("Volatility Regime Distribution")
+    spike_counts = df["y_vol_spike"].value_counts().sort_index()
+    labels = ["NO_SPIKE", "SPIKE"]
+    ax4.bar(labels, spike_counts.values, color=["green", "red"], alpha=0.7)
+    ax4.set_title("Volatility Spike Distribution")
     ax4.set_ylabel("Count")
 
     plt.tight_layout()

@@ -86,7 +86,7 @@ TARGET_TASK_TYPES: dict[str, str] = {
     "direction": "binary",
     "returns": "regression",
     "volatility": "regression",
-    "vol_regime": "multiclass",
+    "vol_spike": "binary",
     "trend_regime": "binary",
 }
 

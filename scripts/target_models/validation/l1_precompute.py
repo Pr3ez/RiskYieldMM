@@ -191,18 +191,58 @@ def load_iteration_index(
 
 
 def get_all_config_names() -> list[str]:
-    """Get all 20 config names."""
+    """Get all config names (6 targets × 4 horizons = 24).
+
+    DEPRECATED: Use get_config_names(mode='all') instead.
+    NOTE: 'returns' removed - redundant with direction + volatility
+    """
     return [
         f"{target}_{horizon}bar"
         for target in [
-            "returns",
             "direction",
             "volatility",
-            "vol_regime",
+            "volatility_regime",
             "trend_regime",
+            "first_extreme",
+            "vol_to_extreme",
         ]
         for horizon in [1, 3, 6, 12]
     ]
+
+
+# Import centralized target configuration
+from scripts.workflow.config import WORKFLOW_TARGETS
+
+# Convenience constants for different run modes - NOW USES WORKFLOW_TARGETS
+CONFIGS_1BAR = [f"{target}_1bar" for target in WORKFLOW_TARGETS]
+
+CONFIGS_REDUCED = [
+    f"{target}_{horizon}bar" for target in WORKFLOW_TARGETS for horizon in [1, 3]
+]
+
+
+def get_config_names(mode: str = "1bar") -> list[str]:
+    """Get config names based on mode.
+
+    Config counts auto-update based on WORKFLOW_TARGETS in config.py.
+
+    Args:
+        mode: One of:
+            - "1bar": 1-bar configs only (len(WORKFLOW_TARGETS) configs) - DEFAULT, fastest
+            - "reduced": 1bar + 3bar (len(WORKFLOW_TARGETS) × 2 configs)
+            - "all": All horizons (len(WORKFLOW_TARGETS) × 4 configs)
+
+    Returns:
+        List of config names
+    """
+    if mode == "1bar":
+        return CONFIGS_1BAR.copy()
+    elif mode == "reduced":
+        return CONFIGS_REDUCED.copy()
+    elif mode == "all":
+        return get_all_config_names()
+    else:
+        raise ValueError(f"Unknown mode: {mode}. Use '1bar', 'reduced', or 'all'")
 
 
 def precompute_l1_for_config(
@@ -316,7 +356,7 @@ def precompute_l1_for_config(
     # >1 would save only window+1 rows and fail downstream shape checks.
     #
     # TIER 1.2: Use adaptive window config for regime targets
-    # Regime targets (trend_regime, vol_regime) use window=700, train=60%
+    # Regime targets (trend_regime, volatility_regime) use window=700, train=60%
     # to ensure sufficient class representation
     adaptive_l2_config = get_l2_config_for_target(target)
     l2_config = SlidingL2Config(

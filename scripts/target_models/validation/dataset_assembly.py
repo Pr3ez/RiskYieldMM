@@ -45,29 +45,13 @@ from typing import Any
 
 import pandas as pd
 
-# All 20 configs (5 targets × 4 horizons)
-ALL_CONFIGS = [
-    "returns_1bar",
-    "returns_3bar",
-    "returns_6bar",
-    "returns_12bar",
-    "direction_1bar",
-    "direction_3bar",
-    "direction_6bar",
-    "direction_12bar",
-    "volatility_1bar",
-    "volatility_3bar",
-    "volatility_6bar",
-    "volatility_12bar",
-    "vol_regime_1bar",
-    "vol_regime_3bar",
-    "vol_regime_6bar",
-    "vol_regime_12bar",
-    "trend_regime_1bar",
-    "trend_regime_3bar",
-    "trend_regime_6bar",
-    "trend_regime_12bar",
-]
+# Centralized config generation (Single Source of Truth)
+# DO NOT HARDCODE CONFIG LISTS - add new targets to config.py → WORKFLOW_TARGETS
+from scripts.workflow.config import get_all_configs
+
+# All configs (WORKFLOW_TARGETS × ALL_HORIZONS)
+# Auto-generated from config.py - DO NOT HARDCODE
+ALL_CONFIGS = get_all_configs()
 
 
 @dataclass
@@ -582,6 +566,9 @@ def validate_assembled(
         "config_name": config_name,
         "checks": {},
         "errors": [],
+        "n_rows": 0,  # Default to 0 for early returns
+        "n_features": 0,
+        "is_valid": False,
     }
 
     # Check assembled.parquet exists

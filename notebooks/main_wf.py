@@ -1,9 +1,64 @@
 # %% [markdown]
-# # Step 1: Feature Engineering
+# # RiskYieldMM ML Pipeline
 #
-# Run `prepare_dataset.py` → `compute_features.py`
+# **Automated workflow for BTC perpetual futures prediction**
+#
+# ## Architecture Overview
+#
+# This notebook is the **main orchestration layer**. Heavy calculations are in modules.
+#
+# ```
+# ┌─────────────────────────────────────────────────────────────────────────┐
+# │                        PIPELINE OVERVIEW                                │
+# ├─────────┬───────────────────────────────────────────────────────────────┤
+# │ Step 0  │ Data Fetching & Aggregation (Bybit API → 8h bars)            │
+# │ Step 1a │ Merge raw sources → merged_8h_raw.parquet                     │
+# │ Step 1b │ Compute features → features_8h.parquet                        │
+# │ Step 2  │ Generate targets → analysis_8h.parquet                        │
+# │ Step 3  │ Feature optimization → features_8h_optimized_*.parquet        │
+# │ Step 4  │ Build final datasets → data/datasets/*.parquet                │
+# │ Step 5  │ IC/ICIR analysis → data/analysis/results/ic_*.csv             │
+# │ Step 6  │ Feature importance → data/analysis/results/*_importance.csv   │
+# │ Step 7  │ Cross-validation → data/analysis/results/cv_results.csv       │
+# │ Step 8  │ L1 Precomputation → data/precomputed/{config}/               │
+# │ Step 9  │ Dataset Assembly → data/precomputed/{config}/assembled.parquet│
+# │ Step 10 │ L2 Backtest → data/l2_backtest_results/                       │
+# └─────────┴───────────────────────────────────────────────────────────────┘
+# ```
+#
+# ## Module Guide (scripts/workflow/)
+#
+# | Module | Purpose | When to Modify |
+# |--------|---------|----------------|
+# | `config.py` | Constants, defaults, WorkflowConfig | Add new config options, change defaults |
+# | `data_fetching.py` | Step 0: fetch & aggregate | Change data sources, fetch logic |
+# | `state_detection.py` | Staleness detection, sync checks | Add new file checks, change stale logic |
+# | `validation.py` | Causality tests, pipeline verification | Add new validation tests |
+# | `l1_helpers.py` | L1 precompute helpers | Modify iteration calculation, status checks |
+#
+# ## Where to Make Changes
+#
+# | Change Type | Location |
+# |-------------|----------|
+# | Add new target type | `config.py` → WORKFLOW_TARGETS |
+# | Add new horizon | `config.py` → WORKFLOW_HORIZONS |
+# | Change data freshness threshold | `config.py` → STALE_THRESHOLD_HOURS |
+# | Modify fetch behavior | `data_fetching.py` → run_step0_fetch_and_aggregate() |
+# | Add new staleness check | `state_detection.py` → get_data_status() |
+# | Add new validation test | `validation.py` → new function, export in __init__.py |
+# | Change L1 helpers list | `config.py` → L1_HELPERS |
+# | Modify L1 iteration logic | `l1_helpers.py` → compute_feasible_iters() |
+# | Add new pipeline step | This notebook + relevant module |
+#
+# ## Backup & Recovery
+#
+# - Original 1703-line version: `notebooks/main_wf_original_backup.py`
+# - If modules break, can copy logic back from backup
 
 # %%
+# ============================================================================
+# WORKSPACE SETUP
+# ============================================================================
 import os
 import sys
 from pathlib import Path
@@ -16,25 +71,182 @@ if not PROJECT_ROOT.exists():
 
 os.chdir(PROJECT_ROOT)
 sys.path.insert(0, str(PROJECT_ROOT))
+# Add validation directory for backtest package imports
+sys.path.insert(0, str(PROJECT_ROOT / "scripts" / "target_models" / "validation"))
 
 print(f"Working dir: {os.getcwd()}")
 print(f"✓ Workspace: {PROJECT_ROOT.name}")
 
 # %%
+# ============================================================================
+# WORKFLOW CONFIGURATION
+# ============================================================================
+# MODIFY: scripts/workflow/config.py for persistent changes
+# OVERRIDE: Uncomment lines below for one-time runs
+#
+# Available config options (from config.py):
+#   WORKFLOW_HORIZONS  - List of bar horizons [1, 3, 6, 12]
+#   WORKFLOW_TARGETS   - List of targets ["direction", "volatility", ...]
+#   AUTO_FETCH_IF_STALE - Auto-fetch from Bybit when data is old
+#   STALE_THRESHOLD_HOURS - Hours before data considered stale
+#   L1_CONFIG_MODE     - "1bar", "reduced", or "all"
+#   L1_ROWS            - Number of backtest iterations (None=auto)
+#   L1_HELPERS         - List of helper names to use
+#   EXPECTED_FEATURES  - Expected feature count (for validation)
+# ============================================================================
+
+from scripts.workflow.config import (
+    AUTO_FETCH_IF_STALE,
+    L1_CONFIG_MODE,
+    L1_HELPERS,
+    L1_ROWS,
+    STALE_THRESHOLD_HOURS,
+    WORKFLOW_HORIZONS,
+    WORKFLOW_TARGETS,
+    get_workflow_config,
+)
+
+# Optional: Override defaults for this run
+# WORKFLOW_HORIZONS = [1, 3]  # Uncomment to process more horizons
+# WORKFLOW_TARGETS = ["direction", "volatility"]  # Uncomment to limit targets
+
+config = get_workflow_config()
+config.print_summary()
+
+# %% [markdown]
+# # Step 0: Data Fetching & Aggregation
+#
+# **Automatic** - fetches new data from Bybit if current data is stale.
+# Uses `fetchingByBit/update_data.py` which handles:
+# 1. Incremental fetch from Bybit API (resumes from last point)
+# 2. Aggregation from 4h → 8h timeframe
+# 3. Data quality validation
+
+# %%
+# ----------------------------------------------------------------------------
+# STEP 0 IMPLEMENTATION: scripts/workflow/data_fetching.py
+# ----------------------------------------------------------------------------
+# Functions:
+#   run_step0_fetch_and_aggregate() - Main entry point
+#   check_data_freshness()          - Check if data is stale
+#   get_raw_8h_info()               - Get 8h parquet file info
+#
+# To modify data fetching behavior:
+#   1. Change freshness logic → data_fetching.py::check_data_freshness()
+#   2. Add new data sources → fetchingByBit/update_data.py
+#   3. Change aggregation → fetchingByBit/aggregate_to_8h.py
+# ----------------------------------------------------------------------------
+from scripts.workflow.data_fetching import run_step0_fetch_and_aggregate
+
+step0_success = run_step0_fetch_and_aggregate(
+    project_root=PROJECT_ROOT,
+    auto_fetch=AUTO_FETCH_IF_STALE,
+    stale_threshold_hours=STALE_THRESHOLD_HOURS,
+)
+
+if not step0_success:
+    print("\n⚠️ WARNING: Proceeding with potentially stale data!")
+
+# Quality Gate: Verify data quality hasn't degraded
+from scripts.workflow import run_quality_gate
+
+run_quality_gate("step0_data", PROJECT_ROOT, threshold_pct=10.0, auto_halt=True)
+
+# %%
+# ============================================================================
+# PIPELINE STATE MANAGEMENT
+# ============================================================================
+# Track data versions to detect when full recompute is needed.
+#
+# VERIFIED (2026-01-18): All optimizers are CAUSAL and incrementally resumable!
+# - ExpandingRank: rank[i] uses only rows 0..i-1 (historical unchanged)
+# - Winsorize: bounds from expanding quantiles with shift(1)
+# - Interactions: standardization from expanding mean/std with shift(1)
+#
+# Recompute from scratch only when source data is CORRECTED (not just extended)
+# or when pipeline code changes. Adding new rows does NOT change historical values.
+
+# ----------------------------------------------------------------------------
+# STATE DETECTION: scripts/workflow/state_detection.py
+# ----------------------------------------------------------------------------
+# Functions:
+#   detect_new_data()       - Check if new rows added, returns (bool, row_count)
+#   get_data_status()       - Get DataStatus with all file row counts
+#   check_file_sync()       - Check single file against expected rows
+#   check_optimized_files() - Check all optimized files exist and current
+#
+# DataStatus fields: raw_rows, merged_rows, features_rows, analysis_rows,
+#                    new_data_detected, new_rows, sync_reason
+#
+# To add new staleness checks:
+#   1. Add file check in get_data_status()
+#   2. Update DataStatus dataclass if new field needed
+#   3. Export in __init__.py if public
+# ----------------------------------------------------------------------------
+from scripts.analysis.pipeline_state import (
+    PipelineState,
+    compute_data_checksum,
+    compute_schema_hash,
+    print_pipeline_status,
+)
+from scripts.workflow.state_detection import detect_new_data
+
+# Load pipeline state and detect changes
+pipeline_state = PipelineState.load(PROJECT_ROOT)
+print_pipeline_status(pipeline_state, PROJECT_ROOT)
+
+NEW_DATA_DETECTED, current_raw_rows = detect_new_data(
+    PROJECT_ROOT, pipeline_state, verbose=True
+)
+
+# %% [markdown]
+# # Step 1: Feature Engineering
+#
+# Run `prepare_dataset.py` → `compute_features.py`
+# These steps are ALWAYS rerun when new data is detected to ensure consistency.
+
+# %%
 # Step 1a: Merge raw data sources → merged_8h_raw.parquet
+import polars as pl
+
 from scripts.feature_engineering.prepare_dataset import (
     merge_all_sources,
     print_dataset_summary,
 )
 
-data_dir = PROJECT_ROOT / "fetchingByBit"
-df_raw = merge_all_sources(data_dir)
-print_dataset_summary(df_raw)
+print("=" * 70)
+print("STEP 1a: MERGE RAW DATA SOURCES")
+print("=" * 70)
 
-# Save
-output_path = PROJECT_ROOT / "data" / "merged_8h_raw.parquet"
-df_raw.to_parquet(output_path)
-print(f"\n✓ Saved: {output_path}")
+merged_file = PROJECT_ROOT / "data" / "merged_8h_raw.parquet"
+SKIP_MERGE = False
+
+if not NEW_DATA_DETECTED and merged_file.exists():
+    merged_df = pl.read_parquet(merged_file)
+    if len(merged_df) == current_raw_rows:
+        print(f"✓ merged_8h_raw.parquet is current ({len(merged_df)} rows)")
+        print("  Skipping merge (no new data)")
+        SKIP_MERGE = True
+        df_raw = merged_df.to_pandas()
+
+if not SKIP_MERGE:
+    data_dir = PROJECT_ROOT / "fetchingByBit"
+    df_raw = merge_all_sources(data_dir)
+    print_dataset_summary(df_raw)
+
+    # Save
+    df_raw.to_parquet(merged_file)
+    print(f"\n✓ Saved: {merged_file}")
+
+    # Update state
+    pipeline_state.update_step(
+        "merged_raw",
+        row_count=len(df_raw),
+        last_timestamp=str(df_raw["RAW_TM_timestamp"].max()),
+        checksum=compute_data_checksum(df_raw),
+        schema_hash=compute_schema_hash(df_raw),
+    )
+    pipeline_state.save(PROJECT_ROOT)
 
 # %%
 # Step 1b: Compute features → features_8h.parquet
@@ -43,40 +255,70 @@ from scripts.feature_engineering.compute_features import (
     load_raw_data,
 )
 
-# Load raw data (compute_features expects its own format)
-df_for_features = load_raw_data(data_dir)
-print(f"Loaded raw data: {df_for_features.shape}")
+print("=" * 70)
+print("STEP 1b: COMPUTE FEATURES")
+print("=" * 70)
 
-# Compute all features
-features_df = compute_all_features(df_for_features)
-print(f"Computed features: {features_df.shape}")
+features_file = PROJECT_ROOT / "data" / "features_8h.parquet"
+SKIP_FEATURES = False
 
-# Save
-features_path = PROJECT_ROOT / "data" / "features_8h.parquet"
-features_df.to_parquet(features_path)
-print(f"\n✓ Saved: {features_path}")
+if not NEW_DATA_DETECTED and features_file.exists():
+    features_df_check = pl.read_parquet(features_file)
+    if len(features_df_check) == current_raw_rows:
+        print(f"✓ features_8h.parquet is current ({len(features_df_check)} rows)")
+        print("  Skipping feature computation (no new data)")
+        SKIP_FEATURES = True
+        features_df = features_df_check.to_pandas()
+
+if not SKIP_FEATURES:
+    data_dir = PROJECT_ROOT / "fetchingByBit"
+    df_for_features = load_raw_data(data_dir)
+    print(f"Loaded raw data: {df_for_features.shape}")
+
+    features_df = compute_all_features(df_for_features)
+    print(f"Computed features: {features_df.shape}")
+
+    # Save
+    features_df.to_parquet(features_file)
+    print(f"\n✓ Saved: {features_file}")
+
+    # Update state
+    pipeline_state.update_step(
+        "features",
+        row_count=len(features_df),
+        last_timestamp=str(features_df["timestamp"].max()),
+        checksum=compute_data_checksum(features_df),
+        schema_hash=compute_schema_hash(features_df),
+    )
+    pipeline_state.save(PROJECT_ROOT)
 
 # %%
-# Validation summary
-import pandas as pd
+# ----------------------------------------------------------------------------
+# VALIDATION: scripts/workflow/validation.py
+# ----------------------------------------------------------------------------
+# Functions:
+#   run_causality_test()       - Verify no future leakage in ExpandingRank
+#   run_pipeline_verification() - Check all pipeline steps complete
+#   verify_step1_features()    - Verify features_8h.parquet output
+#   verify_step2_targets()     - Verify analysis_8h.parquet output
+#   verify_step3_optimization() - Verify optimized files exist
+#
+# Result classes:
+#   CausalityTestResult      - spike_test_passed, manual_verify_passed, etc.
+#   PipelineVerificationResult - all_passed, checks list, details dict
+#
+# To add new validation tests:
+#   1. Create function in validation.py
+#   2. Return structured result (dataclass preferred)
+#   3. Export in __init__.py
+#   4. Call from this notebook where appropriate
+# ----------------------------------------------------------------------------
+from scripts.workflow.validation import verify_step1_features
 
-features = pd.read_parquet(PROJECT_ROOT / "data" / "features_8h.parquet")
+verify_step1_features(PROJECT_ROOT)
 
-print("=" * 60)
-print("STEP 1 COMPLETE: FEATURE ENGINEERING")
-print("=" * 60)
-print("\n✓ features_8h.parquet")
-print(f"  Shape: {features.shape}")
-print(f"  Columns: {features.shape[1]}")
-print(f"  Rows: {features.shape[0]:,}")
-
-# Verify volMomentum fix
-vol_cols = ["V_volMomentum_6_pct_N", "V_volMomentum_12_pct_N", "V_volMomentum_21_pct_N"]
-print("\n✓ volMomentum clipping verified:")
-for col in vol_cols:
-    print(f"  {col}: max={features[col].max():.1f} (clipped at 15.0)")
-
-print("\n✓ Ready for Step 2: Target generation")
+# Quality Gate: Verify feature engineering metrics haven't degraded
+run_quality_gate("step1_features", PROJECT_ROOT, threshold_pct=10.0, auto_halt=True)
 
 # %% [markdown]
 # # Step 2: Target Generation
@@ -85,271 +327,231 @@ print("\n✓ Ready for Step 2: Target generation")
 # - `y_direction_1bar`: Binary (1=up, 0=down)
 # - `y_forward_return_{1,3,6,12}`: Multi-horizon returns
 # - `y_volatility`: |forward_return_1|
-# - `y_vol_regime`: LOW/MED/HIGH (0/1/2)
+# - `y_volatility_regime`: DECREASE/INCREASE (0/1)
 # - `y_trend_regime`: SMA crossover
 
 # %%
-# Step 2: Create analysis dataset with targets
 from scripts.analysis.data import create_analysis_dataset
 
-df_analysis = create_analysis_dataset()
+print("=" * 70)
+print("STEP 2: TARGET GENERATION")
+print("=" * 70)
 
-print(f"\n✓ Saved: {PROJECT_ROOT / 'data' / 'analysis_8h.parquet'}")
+analysis_file = PROJECT_ROOT / "data" / "analysis_8h.parquet"
+SKIP_ANALYSIS = False
+
+if not NEW_DATA_DETECTED and analysis_file.exists():
+    analysis_check = pl.read_parquet(analysis_file)
+    if len(analysis_check) == current_raw_rows:
+        print(f"✓ analysis_8h.parquet is current ({len(analysis_check)} rows)")
+        print("  Skipping target generation (no new data)")
+        SKIP_ANALYSIS = True
+        df_analysis = analysis_check
+
+if not SKIP_ANALYSIS:
+    df_analysis = create_analysis_dataset()
+    print(f"\n✓ Saved: {analysis_file}")
+
+    # Update state
+    pipeline_state.update_step(
+        "analysis",
+        row_count=len(df_analysis),
+        last_timestamp=str(df_analysis.select("timestamp").max().item()),
+        checksum=compute_data_checksum(df_analysis),
+        schema_hash=compute_schema_hash(df_analysis),
+    )
+    pipeline_state.save(PROJECT_ROOT)
 
 # %%
 # Verify Step 2 output
-import polars as pl
+from scripts.workflow.validation import verify_step2_targets
 
-df_check = pl.read_parquet(PROJECT_ROOT / "data" / "analysis_8h.parquet")
+verify_step2_targets(PROJECT_ROOT)
 
-print("=" * 60)
-print("STEP 2 COMPLETE: TARGET GENERATION")
-print("=" * 60)
-print("\n✓ analysis_8h.parquet")
-print(f"  Shape: {df_check.shape}")
-
-# Count target columns
-target_cols = [c for c in df_check.columns if c.startswith("y_")]
-print(f"  Target columns: {len(target_cols)}")
-print(f"    {', '.join(target_cols)}")
-
-print("\n✓ Ready for Step 3: Dataset generation")
+# Quality Gate: Verify target distributions haven't degraded
+run_quality_gate("step2_targets", PROJECT_ROOT, threshold_pct=10.0, auto_halt=True)
 
 # %% [markdown]
 # # Step 3: Feature Optimization
 #
 # Per-target feature optimization using optimization pipeline.
+# Configs controlled by WORKFLOW_HORIZONS and WORKFLOW_TARGETS.
 #
-# **Why per-target optimization?**
-# - InteractionOptimizer selects feature pairs by IC against the TARGET
-# - Features predictive of `direction` ≠ features predictive of `volatility`
-# - RollingZScore HELPS direction/returns, HURTS volatility/regime targets
+# **✅ CAUSAL & INCREMENTALLY RESUMABLE (Verified 2026-01-18)**
+#
+# All optimizers use expanding windows with `.shift(1)` — at row N, only
+# rows 0..N-1 are used. Adding new rows does NOT change historical values.
+#
+# Verification tests confirmed:
+# - ExpandingRank: rank[i] = count(rows 0..i-1 <= value[i]) / count(rows 0..i-1)
+# - Winsorize: bounds from expanding quantiles with shift(1)
+# - Interactions: standardization from expanding mean/std with shift(1)
+#
+# **When to recompute from scratch:**
+# - Source data (analysis_8h.parquet) was CORRECTED (not just extended)
+# - Pipeline code changed (different algorithm/params)
 #
 # **Pipeline by target type:**
 #
-# | Target        | Pipeline Steps                           |
-# |---------------|------------------------------------------|
-# | direction     | Winsorize → ExpandingRank → Interactions |
-# | returns       | Winsorize → RollingZScore → Interactions |
-# | volatility    | Winsorize only (base features are excellent) |
-# | vol_regime    | Winsorize → ExpandingRank → Interactions |
-# | trend_regime  | Winsorize → ExpandingRank → Interactions |
+# | Target            | Pipeline Steps                           |
+# |-------------------|------------------------------------------|
+# | direction         | Winsorize → ExpandingRank → Interactions |
+# | volatility        | Winsorize only (base features are excellent) |
+# | volatility_regime | Winsorize → ExpandingRank → Interactions |
+# | trend_regime      | Winsorize → ExpandingRank → Interactions |
 #
-# **Output:** 20 files `features_8h_optimized_{target}_{horizon}bar.parquet`
+# **Output:** `features_8h_optimized_{target}_{horizon}bar.parquet`
 
 # %%
-# Step 3: Run auto-optimization with THREADED execution (live output in Jupyter)
-# Each worker processes one target-horizon combo SEQUENTIALLY (causal-safe)
-#
-# CAUSALITY GUARANTEE:
-#   - Workers are isolated (no shared state)
-#   - Each worker computes row-by-row internally
-#   - Equivalent to sequential, just faster
-
 import importlib
 import multiprocessing as mp
 
 import scripts.analysis.parallel_optimize as po
 from scripts.analysis.optimizers.expanding_rank_fast import HAS_NUMBA
+from scripts.workflow.state_detection import check_optimized_files
 
 importlib.reload(po)  # Reload to get latest changes
 
-print(f"Numba JIT available: {HAS_NUMBA}")
+print("=" * 70)
+print("STEP 3: FEATURE OPTIMIZATION")
+print("=" * 70)
+print(f"\nNumba JIT available: {HAS_NUMBA}")
 print(f"CPU cores available: {mp.cpu_count()}")
-print("Running THREADED auto-optimization (live output, causal row-by-row preserved)\n")
 
-# use_threading=True for Jupyter live output (default)
-# use_threading=False for max speed (but no live output)
-optimization_results = po.parallel_auto_optimize(
-    horizons=[1, 3, 6, 12],
-    targets=["direction", "returns", "volatility", "vol_regime", "trend_regime"],
-    n_workers=4,
-    save=True,
-    use_threading=True,  # Threads show live output in Jupyter (processes don't)
-)
-
-# %%
-# VALIDATION: Verify NO FUTURE PEEKING in ExpandingRank
-# This test proves row N only sees data from rows 0..N-1
-
-import numpy as np
-import pandas as pd
-
-from scripts.analysis.optimizers.expanding_rank_fast import ExpandingRankOptimizerFast
-
-print("=" * 70)
-print("CAUSALITY VALIDATION: No Future Peeking Test")
-print("=" * 70)
-
-# Create test data with KNOWN pattern
-np.random.seed(42)
-n = 500
-test_values = np.random.randn(n).cumsum()  # Random walk
-
-# Add a SPIKE at row 400 that would be obvious if leaked
-test_values[400:] += 100  # Huge jump
-
-df_test = pd.DataFrame({"feature": test_values})
-
-# Apply expanding rank
-optimizer = ExpandingRankOptimizerFast(min_periods=50, use_numba=True)
-optimizer.fit(df_test)
-df_ranked = optimizer.transform(df_test)
-
-# CAUSALITY TEST 1: Row 399 should NOT know about the spike at row 400
-# If causal: rank[399] computed from rows 0..398 only (no spike knowledge)
-# If leaky: rank[399] would be very low because future values are much higher
-
-rank_before_spike = df_ranked["feature"].iloc[399]
-rank_after_spike = df_ranked["feature"].iloc[400]
-
-print("\n1. Spike Detection Test:")
-print(f"   Row 399 (just before spike): rank = {rank_before_spike:.4f}")
-print(f"   Row 400 (spike row): rank = {rank_after_spike:.4f}")
-
-# Before spike: rank should be HIGH (near 1.0) - it's the cumsum maximum so far
-# After spike: rank should be HIGH (near 1.0) - spike is much higher than history
-if rank_before_spike > 0.9:
-    print(
-        f"   ✓ PASS: Row 399 has high rank ({rank_before_spike:.2f}) - doesn't know about future spike"
+# Check if optimization is needed
+SKIP_OPTIMIZATION = False
+if not NEW_DATA_DETECTED:
+    all_current = check_optimized_files(
+        PROJECT_ROOT, WORKFLOW_TARGETS, WORKFLOW_HORIZONS, current_raw_rows
     )
-else:
-    print(
-        f"   ✗ FAIL: Row 399 has LOW rank ({rank_before_spike:.2f}) - FUTURE LEAKAGE DETECTED!"
+    if all_current:
+        print("  Skipping optimization (no new data)")
+        SKIP_OPTIMIZATION = True
+
+if not SKIP_OPTIMIZATION:
+    if NEW_DATA_DETECTED:
+        print("\n✅ NEW DATA DETECTED - Running incremental optimization")
+        print(
+            "   (Causal: only new rows need computation, historical values unchanged)"
+        )
+
+    print("\nRunning THREADED auto-optimization...\n")
+
+    optimization_results = po.parallel_auto_optimize(
+        horizons=WORKFLOW_HORIZONS,
+        targets=WORKFLOW_TARGETS,
+        n_workers=4,
+        save=True,
+        use_threading=True,
     )
 
-# CAUSALITY TEST 2: Manually verify row 100
-row_idx = 100
-manual_hist = test_values[:row_idx]  # Rows 0..99
-current_val = test_values[row_idx]
-manual_rank = np.mean(manual_hist <= current_val)
-computed_rank = df_ranked["feature"].iloc[row_idx]
+    # Update state
+    for target in WORKFLOW_TARGETS:
+        for horizon in WORKFLOW_HORIZONS:
+            opt_file = (
+                PROJECT_ROOT
+                / "data"
+                / f"features_8h_optimized_{target}_{horizon}bar.parquet"
+            )
+            if opt_file.exists():
+                opt_df = pl.read_parquet(opt_file)
+                pipeline_state.update_step(
+                    f"optimized_{target}_{horizon}bar",
+                    row_count=len(opt_df),
+                    last_timestamp=str(opt_df.select("timestamp").max().item()),
+                )
+    pipeline_state.save(PROJECT_ROOT)
 
-print(f"\n2. Manual Verification (row {row_idx}):")
-print(f"   Current value: {current_val:.4f}")
-print(f"   History size: {len(manual_hist)} rows")
-print(f"   Manual rank: {manual_rank:.6f}")
-print(f"   Computed rank: {computed_rank:.6f}")
-print(f"   Match: {'✓ PASS' if abs(manual_rank - computed_rank) < 1e-6 else '✗ FAIL'}")
+    # Record metrics for quality monitoring
+    from scripts.workflow.metrics_tracking import (
+        check_quality_degradation,
+        compute_optimization_metrics,
+        record_run_metrics,
+    )
 
-# CAUSALITY TEST 3: Check expanding window behavior
-print("\n3. Expanding Window Test:")
-print(
-    f"   First valid rank at row {optimizer.min_periods} (min_periods={optimizer.min_periods})"
-)
-print(f"   Rows 0-{optimizer.min_periods - 1} should be NaN:")
-nan_count = df_ranked["feature"].iloc[: optimizer.min_periods].isna().sum()
-print(f"   NaN count in first {optimizer.min_periods} rows: {nan_count}")
-print(f"   {'✓ PASS' if nan_count == optimizer.min_periods else '✗ FAIL'}")
+    opt_metrics = compute_optimization_metrics(PROJECT_ROOT)
+    record_run_metrics(
+        run_type="optimization",
+        metrics=opt_metrics,
+        data_rows=current_raw_rows,
+        data_timestamp_end=str(
+            pl.read_parquet(PROJECT_ROOT / "data" / "analysis_8h.parquet")
+            .select("timestamp")
+            .max()
+            .item()
+        ),
+    )
 
-print("\n" + "=" * 70)
-if rank_before_spike > 0.9 and abs(manual_rank - computed_rank) < 1e-6:
-    print("✓ ALL CAUSALITY TESTS PASSED - No future peeking detected")
-else:
-    print("✗ CAUSALITY VIOLATION DETECTED - Check implementation!")
-print("=" * 70)
+    # Check for quality degradation
+    degradation = check_quality_degradation(threshold_pct=10.0)
+    if degradation:
+        print("\n⚠️ QUALITY DEGRADATION DETECTED!")
+        for d in degradation["degradations"]:
+            print(
+                f"   {d['metric']}: {d['prev']:.4f} → {d['curr']:.4f} ({d['pct_change']:+.1f}%)"
+            )
+        # Show skipped metrics (new/removed targets)
+        if degradation.get("skipped_metrics"):
+            print(
+                f"\nℹ️ Skipped (target changed): {', '.join(degradation['skipped_metrics'])}"
+            )
+
+    # Print optimization summary (methods stored in parquet metadata)
+    from scripts.workflow.config import print_optimization_summary
+
+    print_optimization_summary(PROJECT_ROOT)
+
+# Quality Gate: Halt if optimization metrics degraded significantly
+run_quality_gate("step3_optimization", PROJECT_ROOT, threshold_pct=10.0, auto_halt=True)
 
 # %%
-# Verify Step 3: Check optimized feature files exist
-from pathlib import Path
+# Causality validation (optional but recommended)
+from scripts.workflow.validation import run_causality_test
 
-print("=" * 60)
-print("STEP 3 VERIFICATION: OPTIMIZED FEATURES")
-print("=" * 60)
+run_causality_test(verbose=True)
 
-data_dir = PROJECT_ROOT / "data"
-targets = ["direction", "returns", "volatility", "vol_regime", "trend_regime"]
-horizons = [1, 3, 6, 12]
+# %%
+# Verify Step 3 output
+from scripts.workflow.validation import verify_step3_optimization
 
-created_files = []
-missing_files = []
-
-for target in targets:
-    for horizon in horizons:
-        filename = f"features_8h_optimized_{target}_{horizon}bar.parquet"
-        filepath = data_dir / filename
-        if filepath.exists():
-            size_mb = filepath.stat().st_size / (1024 * 1024)
-            created_files.append((filename, size_mb))
-        else:
-            missing_files.append(filename)
-
-print(f"\n✓ Created files: {len(created_files)}/20")
-for f, size in created_files[:5]:  # Show first 5
-    print(f"  {f}: {size:.2f} MB")
-if len(created_files) > 5:
-    print(f"  ... and {len(created_files) - 5} more")
-
-if missing_files:
-    print(f"\n✗ Missing files: {len(missing_files)}")
-    for f in missing_files[:5]:
-        print(f"  {f}")
-else:
-    print("\n✓ All 20 optimized feature files created")
-
-print("\n✓ Ready for Step 4: Dataset generation")
+verify_step3_optimization(PROJECT_ROOT, WORKFLOW_TARGETS, WORKFLOW_HORIZONS)
 
 # %% [markdown]
 # # Step 4: Build Dataset Matrix
 #
-# Generate 20 final datasets (5 targets × 4 horizons).
+# Generate datasets for selected configs (controlled by WORKFLOW_HORIZONS).
 #
 # Each dataset contains:
 # - 166 base features (shared across all)
 # - 3-5 target-specific interaction features (from Step 3 optimization)
 # - 1 target column
 #
-# **Target types:**
-# - `direction`: Binary (1=up, 0=down) — classification
-# - `returns`: Continuous forward return — regression
-# - `volatility`: |return| — risk/position sizing
-# - `vol_regime`: LOW/MED/HIGH — regime-aware strategies
-# - `trend_regime`: Up/Down trend — trend-following
-#
-# **Horizons:**
-# - `1bar` (8h): Intraday
-# - `3bar` (24h): Daily rebalancing
-# - `6bar` (48h): Swing trading
-# - `12bar` (96h): Position trading
-#
 # **Output:** `data/datasets/{target_type}_{horizon}bar.parquet`
 
 # %%
-# Step 4: Build the 20-dataset matrix
 from scripts.analysis.run import cmd_build_datasets
 
-# Build all 20 datasets: 5 targets × 4 horizons
-# Each dataset:
-#   - 166 base features (shared)
-#   - 3-5 interaction features (target-specific from Step 3)
-#   - 1 target column (y_{target_type})
-
-print("Building 20-dataset matrix...")
-print("This loads optimized features from Step 3 for each target-horizon combination\n")
+expected_datasets = len(WORKFLOW_TARGETS) * len(WORKFLOW_HORIZONS)
+print(
+    f"Building {expected_datasets}-dataset matrix (horizons={WORKFLOW_HORIZONS})...\n"
+)
 
 dataset_summary = cmd_build_datasets(
-    horizons=[1, 3, 6, 12],
-    target_types=["direction", "returns", "volatility", "vol_regime", "trend_regime"],
+    horizons=WORKFLOW_HORIZONS,
+    target_types=WORKFLOW_TARGETS,
 )
 
 # %%
-# Final verification: All datasets created
-import polars as pl
-
+# Verify Step 4 output
 print("=" * 60)
 print("STEP 4 COMPLETE: DATASET MATRIX")
 print("=" * 60)
 
 datasets_dir = PROJECT_ROOT / "data" / "datasets"
-targets = ["direction", "returns", "volatility", "vol_regime", "trend_regime"]
-horizons = [1, 3, 6, 12]
-
-print(f"\nDatasets directory: {datasets_dir}")
-print("-" * 60)
 
 total_valid = 0
-for target in targets:
-    for horizon in horizons:
+for target in WORKFLOW_TARGETS:
+    for horizon in WORKFLOW_HORIZONS:
         filepath = datasets_dir / f"{target}_{horizon}bar.parquet"
         if filepath.exists():
             df = pl.read_parquet(filepath)
@@ -366,54 +568,27 @@ for target in targets:
         else:
             print(f"✗ {target}_{horizon}bar: NOT FOUND")
 
-print("-" * 60)
-print("\n✓ Total: 20 datasets")
-print("✓ Ready for Step 5: Feature Analysis & Model Training")
+print(f"\n✓ Total: {expected_datasets} datasets")
 
 # %% [markdown]
 # # Step 5: Feature Analysis (IC/ICIR)
 #
 # Compute Information Coefficient (IC) and IC Information Ratio (ICIR) for all features.
-#
-# **Metrics computed:**
-# - **IC** (Spearman correlation): Feature's predictive power
-# - **ICIR** = mean(IC) / std(IC): Stability of predictive power
-# - **Hit Rate**: Directional accuracy
-# - **FDR-corrected significance**: Multiple testing correction
-#
-# **Multi-horizon analysis** uses non-overlapping samples for horizons > 1 bar to avoid autocorrelation bias.
-#
-# **Output:**
-# - `data/analysis/results/ic_multi_horizon.csv` — All features across horizons
-# - `data/analysis/results/ic_horizon_summary.csv` — Best horizon per feature
 
 # %%
-# Step 5: Feature Analysis (IC/ICIR) across all horizons
 from scripts.analysis.run import cmd_features
 
-# Compute multi-horizon IC analysis
-# - IC for each feature against y_forward_return_{1,3,6,12}
-# - Uses non-overlapping samples for horizons > 1 (to avoid autocorrelation)
-# - FDR correction for multiple testing
-# - Identifies best horizon per feature
-
-print("Running multi-horizon IC analysis...")
-print(
-    "This computes Information Coefficient for each feature against all forward return horizons\n"
-)
-
-ic_results = cmd_features(plot=False)  # Set plot=True to generate visualizations
+print("Running multi-horizon IC analysis...\n")
+ic_results = cmd_features(plot=False)
 
 # %%
-# Show top features by IC
+# Show top features
 import pandas as pd
 
-print("=" * 60)
-print("TOP FEATURES BY |IC|")
-print("=" * 60)
-
-# Display top 20 features with their IC across horizons
 if ic_results is not None:
+    print("=" * 60)
+    print("TOP 20 FEATURES BY |IC|")
+    print("=" * 60)
     display_cols = [
         "feature",
         "domain",
@@ -423,47 +598,19 @@ if ic_results is not None:
         "ic_12bar",
         "best_horizon",
     ]
-    top_20 = ic_results[display_cols].head(20)
-
-    # Format IC values
-    for col in ["ic_1bar", "ic_3bar", "ic_6bar", "ic_12bar"]:
-        top_20[col] = top_20[col].apply(lambda x: f"{x:+.4f}" if pd.notna(x) else "")
-
+    available_cols = [c for c in display_cols if c in ic_results.columns]
+    top_20 = ic_results[available_cols].head(20)
     print(top_20.to_string(index=False))
-
-    # Domain summary
-    print("\n" + "-" * 60)
-    print("TOP FEATURES BY DOMAIN")
-    print("-" * 60)
-    domain_counts = (
-        ic_results.groupby("domain")
-        .agg({"feature": "count", "ic_1bar": lambda x: x.abs().mean()})
-        .rename(columns={"feature": "count", "ic_1bar": "mean_|IC|"})
-    )
-    domain_counts = domain_counts.sort_values("mean_|IC|", ascending=False)
-    print(domain_counts.to_string())
 
 # %% [markdown]
 # # Step 6: Feature Importance (MDI + MDA)
 #
 # Two complementary importance methods:
-#
-# **MDI (Mean Decrease Impurity):**
-# - Fast, from LightGBM's built-in feature importances
-# - Can be biased toward high-cardinality features
-#
-# **MDA (Mean Decrease Accuracy / Permutation Importance):**
-# - Out-of-sample, model-agnostic
-# - Based on Lopez de Prado, AFML Ch.8
-# - More reliable but slower
-#
-# **Output:**
-# - `data/analysis/results/feature_importance.csv` (MDI)
-# - `data/analysis/results/mda_importance.csv` (MDA)
+# - **MDI**: Fast, from LightGBM's built-in feature importances
+# - **MDA**: Out-of-sample, model-agnostic (based on AFML Ch.8)
 
 # %%
-# Step 6a: MDI (Mean Decrease Impurity) - Fast importance from LightGBM
-from scripts.analysis.run import cmd_importance
+from scripts.analysis.run import cmd_importance, cmd_mda
 
 print("Computing MDI feature importance...")
 mdi_results = cmd_importance(plot=False)
@@ -474,13 +621,8 @@ print("=" * 60)
 print(mdi_results.head(20).to_string(index=False))
 
 # %%
-# Step 6b: MDA (Permutation Importance) - Out-of-sample, model-agnostic
-from scripts.analysis.run import cmd_mda
-
-print("Computing MDA feature importance (permutation-based)...")
-print("This is more reliable but slower than MDI\n")
-
-mda_results = cmd_mda(n_repeats=5)  # 5 repeats for speed, use 10 for production
+print("Computing MDA feature importance (permutation-based)...\n")
+mda_results = cmd_mda(n_repeats=5)
 
 print("\n" + "=" * 60)
 print("TOP 20 FEATURES BY MDA IMPORTANCE")
@@ -491,29 +633,16 @@ print(mda_results.head(20).to_string(index=False))
 # # Step 7: Cross-Validation
 #
 # Time-series cross-validation with proper temporal separation.
-#
-# **PurgedKFold CV** (from Lopez de Prado, AFML Ch.7):
-# - **Purge gap** (21 bars): Removes training samples that could have features using test period data
-# - **Embargo gap** (12 bars): Removes training samples whose targets overlap with test period
-#
-# **Models trained:**
-# - CatBoost Classifier (direction)
-# - LightGBM Classifier (direction)
-# - CatBoost Regressor (volatility)
-#
-# **Output:** `data/analysis/results/cv_results.csv`
+# Uses PurgedKFold CV (from Lopez de Prado, AFML Ch.7).
 
 # %%
-# Step 7: Cross-Validation with PurgedKFold
 from scripts.analysis.run import cmd_cv
 
 print("Running PurgedKFold Cross-Validation...")
-print("  purge_gap=21 bars (prevents feature look-ahead)")
-print("  embargo_gap=12 bars (prevents target overlap)\n")
+print("  purge_gap=21 bars, embargo_gap=12 bars\n")
 
 cv_results = cmd_cv(use_purged=True)
 
-# Summary
 print("\n" + "=" * 60)
 print("CROSS-VALIDATION SUMMARY")
 print("=" * 60)
@@ -523,659 +652,213 @@ for model_name, cv_result in cv_results.items():
     )
 
 # %% [markdown]
-# # Pipeline Complete ✓
+# # Pipeline Verification
 #
-# **Summary of outputs:**
-#
-# | Step | Output | Location |
-# |------|--------|----------|
-# | 1a | Raw merged data | `data/merged_8h_raw.parquet` |
-# | 1b | Computed features | `data/features_8h.parquet` |
-# | 2 | Analysis dataset + targets | `data/analysis_8h.parquet` |
-# | 3 | Optimized features | `data/features_8h_optimized_{target}_{horizon}bar.parquet` (20 files) |
-# | 4 | Final datasets | `data/datasets/{target}_{horizon}bar.parquet` (20 files) |
-# | 5 | IC/ICIR analysis | `data/analysis/results/ic_*.csv` |
-# | 6 | Feature importance | `data/analysis/results/{feature_importance,mda_importance}.csv` |
-# | 7 | CV results | `data/analysis/results/cv_results.csv` |
-#
-# **Next steps:**
-# - Walk-forward backtest: `cmd_backtest()`
-# - Full analysis: `cmd_all()`
+# Check all steps are complete.
 
 # %%
-# Final pipeline verification
-import os
-from pathlib import Path
+from scripts.workflow.validation import run_pipeline_verification
 
-print("=" * 70)
-print("PIPELINE VERIFICATION")
-print("=" * 70)
-
-checks = []
-
-# Check Step 1: Raw and features
-raw_file = PROJECT_ROOT / "data" / "merged_8h_raw.parquet"
-features_file = PROJECT_ROOT / "data" / "features_8h.parquet"
-checks.append(("Step 1a: merged_8h_raw.parquet", raw_file.exists()))
-checks.append(("Step 1b: features_8h.parquet", features_file.exists()))
-
-# Check Step 2: Analysis dataset
-analysis_file = PROJECT_ROOT / "data" / "analysis_8h.parquet"
-checks.append(("Step 2: analysis_8h.parquet", analysis_file.exists()))
-
-# Check Step 3: Optimized features (20 files)
-opt_count = len(list(PROJECT_ROOT.glob("data/features_8h_optimized_*.parquet")))
-checks.append((f"Step 3: Optimized features ({opt_count}/20)", opt_count == 20))
-
-# Check Step 4: Final datasets (20 files)
-datasets_dir = PROJECT_ROOT / "data" / "datasets"
-dataset_count = (
-    len(list(datasets_dir.glob("*.parquet"))) if datasets_dir.exists() else 0
-)
-checks.append((f"Step 4: Final datasets ({dataset_count}/20)", dataset_count == 20))
-
-# Check Step 5-7: Results
-results_dir = PROJECT_ROOT / "data" / "analysis" / "results"
-ic_file = results_dir / "ic_multi_horizon.csv"
-mdi_file = results_dir / "feature_importance.csv"
-mda_file = results_dir / "mda_importance.csv"
-cv_file = results_dir / "cv_results.csv"
-
-checks.append(("Step 5: IC analysis", ic_file.exists()))
-checks.append(("Step 6a: MDI importance", mdi_file.exists()))
-checks.append(("Step 6b: MDA importance", mda_file.exists()))
-checks.append(("Step 7: CV results", cv_file.exists()))
-
-# Print results
-print()
-all_passed = True
-for name, passed in checks:
-    status = "✓" if passed else "✗"
-    print(f"  {status} {name}")
-    if not passed:
-        all_passed = False
-
-print()
-if all_passed:
-    print("═" * 70)
-    print("ALL PIPELINE STEPS COMPLETE ✓")
-    print("═" * 70)
-else:
-    print("Some steps incomplete - run the missing cells above")
+run_pipeline_verification(PROJECT_ROOT)
 
 # %% [markdown]
 # # Step 8: L1 Precomputation
 #
-# Precompute L1 helper features for all 20 configs (5 targets × 4 horizons).
+# Precompute L1 helper features for selected configs.
 #
-# **Walk-forward config:**
-# - `backtest_rows`: 500 iterations
-# - `L1_warmup`: 500 bars minimum history before first prediction
-# - `L1_window`: 500 bars training window
-#
-# **What it does per iteration:**
-# 1. `fit(X[train_window])` — Fit L1 ensemble on training data
-# 2. `transform(X[pred_row])` — Generate helper features for prediction row
-# 3. Save `{timestamp}.parquet` with helper features
-#
-# **Resume capability:**
-# - Detects if new data was fetched → regenerates to include new rows
-# - Detects if `backtest_rows` changed → regenerates with new count
-# - Set `force=True` to regenerate everything from scratch
+# **Config Modes:** (counts auto-update based on WORKFLOW_TARGETS in config.py)
+# - `"1bar"`: len(WORKFLOW_TARGETS) configs (currently 7) - **DEFAULT**
+# - `"reduced"`: len(WORKFLOW_TARGETS) × 2 configs (1bar + 3bar horizons)
+# - `"all"`: len(WORKFLOW_TARGETS) × 4 configs (all 4 horizons)
 #
 # **Storage:** `data/precomputed/{config_name}/{YYYY-MM-DD_HHh}.parquet`
-#
-# **Benefit:** After precomputation, backtests load pre-saved helper features instead of recomputing L1 each iteration.
 
 # %%
-# Step 8: Precompute L1 helper features for all 20 configs
-#
-# This ONLY computes L1 features. Later layers use these precomputed outputs.
-# NOW INCLUDES NEW HELPERS: EVT POT, OU, BOCPD, EGARCH
-# RUST BACKENDS: 7 helpers use high-performance Rust implementations
-
 import json
 import time
 from dataclasses import asdict
 
-import pandas as pd
-
-from scripts.target_models.core.aligned_dual_window import (
-    ExpandingL1Config,
-    SlidingL2Config,
-    get_l2_config_for_target,
-)
-from scripts.target_models.helpers.bocpd import HAS_RUST as BOCPD_RUST
-
-# ============================================================================
-# RUST BACKEND STATUS
-# ============================================================================
-from scripts.target_models.helpers.cusum import HAS_RUST as CUSUM_RUST
-from scripts.target_models.helpers.egarch import HAS_RUST as EGARCH_RUST
-from scripts.target_models.helpers.evt_pot import HAS_RUST as EVT_RUST
-from scripts.target_models.helpers.garch import HAS_RUST as GARCH_RUST
-from scripts.target_models.helpers.kalman import HAS_RUST as KALMAN_RUST
-from scripts.target_models.helpers.ou import HAS_RUST as OU_RUST
 from scripts.target_models.validation.l1_precompute import (
     L1PrecomputeConfig,
-    get_all_config_names,
+    get_config_names,
     precompute_l1_for_config,
 )
 from scripts.target_models.validation.regenerate_all_precomputes import (
     _filtered_end_timestamp_and_last_idx,
-    verify_config_finishes_at_dataset_end,
 )
 
-print("=" * 60)
-print("RUST BACKEND STATUS")
-print("=" * 60)
-rust_status = {
-    "CUSUM": CUSUM_RUST,
-    "Kalman": KALMAN_RUST,
-    "GARCH": GARCH_RUST,
-    "EVT": EVT_RUST,
-    "OU": OU_RUST,
-    "BOCPD": BOCPD_RUST,
-    "EGARCH": EGARCH_RUST,
-}
-for name, has_rust in rust_status.items():
-    status = "✓ Rust" if has_rust else "○ Python"
-    speedup = {
-        "CUSUM": "156x",
-        "Kalman": "487x",
-        "GARCH": "224x",
-        "EVT": "25x",
-        "OU": "30x",
-        "BOCPD": "20x",
-        "EGARCH": "22x",
-    }
-    print(
-        f"  {name:8s}: {status} ({speedup.get(name, '')} speedup)"
-        if has_rust
-        else f"  {name:8s}: {status}"
-    )
+# ----------------------------------------------------------------------------
+# L1 HELPERS: scripts/workflow/l1_helpers.py
+# ----------------------------------------------------------------------------
+# Functions:
+#   compute_feasible_iters() - Calculate max walk-forward iterations for config
+#   check_config_status()    - Check if config done (iterations + features match)
+#   print_rust_status()      - Show which helpers have Rust acceleration
+#   scan_config_status()     - Pre-scan all configs, return (to_compute, to_skip)
+#
+# Status dict from check_config_status():
+#   status: 'done', 'wrong_iters', 'wrong_features', 'missing'
+#   current_iters, current_features, needs_recompute
+#
+# To modify iteration calculation:
+#   1. Edit compute_feasible_iters() for geometry changes
+#   2. Edit check_config_status() for status logic changes
+#
+# Note: These depend on L1PrecomputeConfig, SlidingL2Config, ExpandingL1Config
+#       from scripts/target_models/ modules
+# ----------------------------------------------------------------------------
+from scripts.workflow.l1_helpers import (
+    check_config_status,
+    compute_feasible_iters,
+    print_rust_status,
+    scan_config_status,
+)
 
-rust_count = sum(rust_status.values())
-print(f"\n  {rust_count}/7 helpers using Rust backends")
-print("  HMM4, HMM5, IsolationForest use optimized Python (hmmlearn/sklearn)")
+# Print Rust backend status
+rust_status = print_rust_status()
 
-# ============================================================================
-# CONFIGURATION — SET YOUR L1 ITERATION COUNT HERE
-# ============================================================================
-L1_ROWS = None  # None = auto (use max feasible per config); otherwise acts as cap
-
-# NEW: Include all 10 helpers (6 original + 4 new)
-HELPERS = [
-    "if",
-    "cusum",
-    "garch",
-    "hmm4",
-    "hmm5",
-    "kalman",
-    "evt",
-    "ou",
-    "bocpd",
-    "egarch",
-]
-print(f"\nL1 Helpers enabled: {HELPERS}")
-
-# DISABLE feature selection - keep ALL features from helpers
-ENABLE_BOOSTING = False  # Set True to enable ICIR feature selection
+# Configuration
+from scripts.workflow.config import EXPECTED_FEATURES
 
 cfg = L1PrecomputeConfig(
     data_dir=PROJECT_ROOT / "data" / "datasets",
     output_dir=PROJECT_ROOT / "data" / "precomputed",
-    backtest_rows=L1_ROWS or 1,  # overwritten per-config below
+    backtest_rows=L1_ROWS or 1,
     random_state=42,
-    helpers=HELPERS,  # Pass new helpers list
-    enable_boosting=ENABLE_BOOSTING,  # False = keep all features
+    helpers=L1_HELPERS,
+    enable_boosting=False,
 )
 
-print(
-    f"Feature selection: {'ENABLED (ICIR filtering)' if ENABLE_BOOSTING else 'DISABLED (keep all features)'}"
-)
+configs = get_config_names(L1_CONFIG_MODE)
+print(f"\nL1 Config Mode: {L1_CONFIG_MODE} ({len(configs)} configs)")
+print(f"Configs: {', '.join(configs)}")
 
-# ============================================================================
-# SMART RESUME: Check config status (iterations AND features)
-# ============================================================================
-EXPECTED_FEATURES = 91  # All 10 helpers, no ICIR selection
-
-
-def compute_feasible_iters(
-    config_name: str,
-    cfg: L1PrecomputeConfig,
-    backtest_rows: int | None,
-    max_timestamp: pd.Timestamp | None = None,
-) -> int:
-    """
-    Compute the maximum walk-forward iterations possible for a config
-    given the data (after dropna) and current window settings.
-    If backtest_rows is None, uses the maximum possible.
-    Mirrors DualLayerEngine geometry: min warmup + L2 window + horizon.
-    """
-    data_path = cfg.data_dir / f"{config_name}.parquet"
-    df = pd.read_parquet(data_path)
-
-    feature_cols = [
-        c for c in df.columns if not c.startswith("y_") and c != "timestamp"
-    ]
-    y_cols = [c for c in df.columns if c.startswith("y_")]
-    target = config_name.rsplit("_", 1)[0]
-    y_col = f"y_{target}"
-    if y_col not in df.columns:
-        y_col = y_cols[0] if y_cols else None
-    if y_col is None:
-        raise ValueError(f"No target column found for {config_name}")
-
-    df = df.dropna(subset=feature_cols + [y_col])
-    if max_timestamp is not None:
-        df = df[df["timestamp"] <= max_timestamp]
-
-    total_rows = len(df)
-    if total_rows == 0:
-        return 0
-
-    horizon_part = config_name.rsplit("_", 1)[1]
-    horizon = (
-        int(horizon_part.replace("bar", ""))
-        if "bar" in horizon_part
-        else int(horizon_part)
-    )
-
-    base_l2 = get_l2_config_for_target(target)
-    l2_cfg = SlidingL2Config()
-    l2_cfg.window_size = base_l2.window_size
-    l2_cfg.train_ratio = base_l2.train_ratio
-    l2_cfg.cal_ratio = base_l2.cal_ratio
-    l2_cfg.val_ratio = base_l2.val_ratio
-    l2_cfg.purge_gap = base_l2.purge_gap
-    l2_cfg.pred_size = horizon
-    l1_warmup = ExpandingL1Config().min_warmup
-
-    min_required_rows = l1_warmup + l2_cfg.total_size
-    min_start = min_required_rows - 1
-    last_pred_idx = total_rows - l2_cfg.pred_size
-    if last_pred_idx < min_start:
-        return 0
-
-    if backtest_rows is None:
-        first_pred_idx = min_start
-    else:
-        desired_start = last_pred_idx - backtest_rows + 1
-        first_pred_idx = max(min_start, desired_start)
-    return last_pred_idx - first_pred_idx + 1
-
-
-def check_config_status(
-    config_name: str,
-    cfg: L1PrecomputeConfig,
-    expected_iters: int,
-    expected_features: int,
-) -> dict:
-    """Check if config is done with correct settings.
-
-    Returns dict with:
-        - status: 'done', 'wrong_iters', 'wrong_features', 'missing'
-        - current_iters: int or None
-        - current_features: int or None
-        - needs_recompute: bool
-    """
-    metadata_file = cfg.metadata_path(config_name)
-
-    if not metadata_file.exists():
-        return {
-            "status": "missing",
-            "current_iters": None,
-            "current_features": None,
-            "needs_recompute": True,
-        }
-
-    with open(metadata_file) as f:
-        meta = json.load(f)
-
-    current_iters = meta.get("total_iterations", 0)
-    current_features = meta.get("feature_count", 0)
-
-    # Check iteration count (allow extra iterations; require at least expected)
-    if current_iters < expected_iters:
-        return {
-            "status": "wrong_iters",
-            "current_iters": current_iters,
-            "current_features": current_features,
-            "needs_recompute": True,
-        }
-
-    # Check feature count (important for enable_boosting changes)
-    if current_features != expected_features:
-        return {
-            "status": "wrong_features",
-            "current_iters": current_iters,
-            "current_features": current_features,
-            "needs_recompute": True,
-        }
-
-    # Both match - config is done
-    return {
-        "status": "done",
-        "current_iters": current_iters,
-        "current_features": current_features,
-        "needs_recompute": False,
-    }
-
-
-configs = get_all_config_names()
-align_global_end = True
-no_verify = False
-
-# ============================================================================
-# Find global end timestamp (all configs truncated to same end)
-# ============================================================================
+# Find global end timestamp
 global_end: pd.Timestamp | None = None
-if align_global_end:
-    ends = [_filtered_end_timestamp_and_last_idx(name, cfg)[0] for name in configs]
-    global_end = min(ends)
+ends = [_filtered_end_timestamp_and_last_idx(name, cfg)[0] for name in configs]
+global_end = min(ends)
 
-# ============================================================================
-# PRE-SCAN: Show status of all configs BEFORE starting
-# ============================================================================
-print("\n" + "=" * 60)
-print("PRE-SCAN: CONFIG STATUS")
-print("=" * 60)
-print(
-    f"Target cap: {'auto' if L1_ROWS is None else L1_ROWS} iterations (per-config feasible computed), {EXPECTED_FEATURES} features"
+# Pre-scan status
+to_compute, to_skip = scan_config_status(
+    configs, cfg, L1_ROWS, EXPECTED_FEATURES, global_end, verbose=True
 )
-print()
-
-to_compute = []
-to_skip = []
-
-for config_name in configs:
-    expected_iters = compute_feasible_iters(config_name, cfg, L1_ROWS, global_end)
-    status = check_config_status(config_name, cfg, expected_iters, EXPECTED_FEATURES)
-    if status["needs_recompute"]:
-        to_compute.append(config_name)
-        if status["status"] == "missing":
-            print(f"  ⚪ {config_name}: MISSING")
-        elif status["status"] == "wrong_iters":
-            print(
-                f"  🔄 {config_name}: {status['current_iters']} iters (need {expected_iters})"
-            )
-        elif status["status"] == "wrong_features":
-            print(
-                f"  🔧 {config_name}: {status['current_features']} features (need {EXPECTED_FEATURES})"
-            )
-    else:
-        to_skip.append(config_name)
-        print(
-            f"  ✅ {config_name}: DONE ({status['current_iters']} iters, {status['current_features']} features)"
-        )
-
-print()
-print(f"Summary: {len(to_skip)} done, {len(to_compute)} need computation")
-print("=" * 60)
 
 if len(to_compute) == 0:
     print("\n✓ All configs already complete! Nothing to do.")
 
+# %%
+# Run L1 precomputation
+from scripts.workflow import run_l1_quality_gate, snapshot_l1_historical
+
 results: list[dict] = []
-end_timestamps: dict[str, str] = {}
-
-print("\n" + "=" * 60)
-print("L1 PRECOMPUTATION (WITH RUST ACCELERATION)")
-print("=" * 60)
-print(f"\n  L1 iterations: {L1_ROWS}")
-print(f"  Expected features: {EXPECTED_FEATURES}")
-print(f"  Helpers: {len(HELPERS)} ({', '.join(HELPERS)})")
-print(f"  Configs total: {len(configs)}")
-print(f"  To skip: {len(to_skip)}")
-print(f"  To compute: {len(to_compute)}")
-print(f"  Output: {cfg.output_dir}")
-if global_end is not None:
-    print(f"  Global end: {global_end.strftime('%Y-%m-%d %H:%M')}")
-print()
-
-# ============================================================================
-# Run L1 precomputation (SMART RESUME)
-# ============================================================================
 total_t0 = time.time()
 skipped_count = 0
 regenerated_count = 0
 
+print("\n" + "=" * 60)
+print("L1 PRECOMPUTATION (WITH RUST ACCELERATION)")
+print("=" * 60)
+
 for i, config_name in enumerate(configs, start=1):
     print(f"[{i}/{len(configs)}] {config_name}")
 
-    # Smart resume: check if already done with correct settings
     expected_iters = compute_feasible_iters(config_name, cfg, L1_ROWS, global_end)
     status = check_config_status(config_name, cfg, expected_iters, EXPECTED_FEATURES)
 
     if not status["needs_recompute"]:
-        print(
-            f"  ⏭️  SKIP (already {status['current_iters']} iters, {status['current_features']} features)"
-        )
-        metadata_file = cfg.metadata_path(config_name)
-        with open(metadata_file) as f:
-            existing_meta = json.load(f)
-        existing_meta["skipped"] = True
-        results.append(existing_meta)
+        print("  ⏭️  SKIP (already done)")
         skipped_count += 1
         continue
 
-    # Need to compute this config
-    action = status["status"]
+    # SNAPSHOT: Capture historical values BEFORE computation
+    l1_snapshot = snapshot_l1_historical(config_name, PROJECT_ROOT, n_rows=100)
+    if l1_snapshot["status"] == "captured":
+        print(f"  📸 Snapshot: {l1_snapshot['n_rows']} historical rows captured")
 
-    # Decide whether to force restart or allow resume
-    # - wrong_features: MUST restart (old features incompatible)
-    # - wrong_iters: CAN resume if features match, but features=0 means old format
-    # - missing: fresh start
-    use_force = False
-    if action == "missing":
-        print("  📥 Computing (fresh start)")
-    elif action == "wrong_iters":
-        if status["current_features"] == EXPECTED_FEATURES:
-            # Same feature count; append missing iterations without wiping
-            use_force = False
-            print(
-                f"  ▶️  Resuming/adding ({status['current_iters']} → {expected_iters} iters)"
-            )
-        else:
-            # Different features or old format (features=0) - must restart
-            use_force = True
-            print(
-                f"  🔄 Restarting ({status['current_iters']} iters, features mismatch)"
-            )
-    elif action == "wrong_features":
-        use_force = True
-        print(
-            f"  🔧 Restarting ({status['current_features']} → {EXPECTED_FEATURES} features)"
-        )
+    # Compute
+    action = status["status"]
+    use_force = action == "wrong_features"
 
     regenerated_count += 1
-
     t0 = time.time()
-    # Use per-config feasible iteration count when computing
     cfg.backtest_rows = expected_iters
 
     meta = precompute_l1_for_config(
         config_name,
         cfg=cfg,
         verbose=True,
-        force=use_force,  # Only force when features mismatch
+        force=use_force,
         max_timestamp=global_end,
     )
     dt = time.time() - t0
 
     meta_dict = asdict(meta)
     meta_dict["elapsed_sec"] = round(dt, 2)
-    meta_dict["action"] = action
-
-    if meta.total_iterations < expected_iters:
-        raise RuntimeError(
-            f"{config_name}: got {meta.total_iterations} L1 iterations, expected >= {expected_iters}"
-        )
-    elif meta.total_iterations > expected_iters:
-        print(
-            f"  ⚠️  {config_name}: has {meta.total_iterations} iterations (more than expected {expected_iters}); keeping existing."
-        )
-
-    if meta.feature_count != EXPECTED_FEATURES:
-        raise RuntimeError(
-            f"{config_name}: got {meta.feature_count} features, expected {EXPECTED_FEATURES}"
-        )
-
-    if not no_verify:
-        check = verify_config_finishes_at_dataset_end(
-            config_name, cfg, max_timestamp=global_end
-        )
-        meta_dict["end_alignment"] = check
-        if not check["ok"]:
-            raise RuntimeError(f"End alignment failed: {json.dumps(check, indent=2)}")
-        end_timestamps[config_name] = check["data_last_timestamp"]
-
     results.append(meta_dict)
     print(f"  ✓ {meta.total_iterations} L1 iterations in {dt:.1f}s")
 
+    # VERIFY: Check historical values haven't changed (causality guarantee)
+    if l1_snapshot["status"] == "captured":
+        run_l1_quality_gate(config_name, PROJECT_ROOT, l1_snapshot, auto_halt=True)
+
 total_dt = time.time() - total_t0
-
-# ============================================================================
-# Verify all configs aligned
-# ============================================================================
-if not no_verify and end_timestamps:
-    unique_ends = sorted(set(end_timestamps.values()))
-    if len(unique_ends) != 1:
-        print(f"\n⚠️  WARNING: {len(unique_ends)} different end timestamps (expected 1)")
-
-# ============================================================================
-# Save summary
-# ============================================================================
-summary_path = cfg.output_dir / "precompute_summary.json"
-summary_path.parent.mkdir(parents=True, exist_ok=True)
-with open(summary_path, "w") as f:
-    json.dump(
-        {
-            "l1_iterations": L1_ROWS,
-            "expected_features": EXPECTED_FEATURES,
-            "helpers": HELPERS,
-            "rust_backends": rust_count,
-            "output_dir": str(cfg.output_dir),
-            "data_dir": str(cfg.data_dir),
-            "total_elapsed_sec": round(total_dt, 2),
-            "configs": results,
-        },
-        f,
-        indent=2,
-    )
 
 print(f"\n{'=' * 60}")
 print("L1 PRECOMPUTATION COMPLETE")
 print(f"{'=' * 60}")
-print(f"  L1 iterations: {L1_ROWS}")
-print(f"  Features: {EXPECTED_FEATURES}")
-print(f"  Helpers: {len(HELPERS)} (7 Rust + 3 Python)")
 print(f"  Skipped: {skipped_count}")
 print(f"  Computed: {regenerated_count}")
 print(f"  Time: {total_dt / 60:.1f} min")
-print(f"\n  Output: {cfg.output_dir}")
-print(f"  Summary: {summary_path}")
 
 # %%
 # Verify L1 precomputation
-import json
-from pathlib import Path
-
 precomputed_dir = PROJECT_ROOT / "data" / "precomputed"
 
-# Re-import in case running standalone
-from scripts.target_models.validation.l1_precompute import get_all_config_names
-
-config_names = get_all_config_names()
-
 print("=" * 60)
-print("L1 PRECOMPUTATION VERIFICATION")
+print(f"L1 PRECOMPUTATION VERIFICATION (mode: {L1_CONFIG_MODE})")
 print("=" * 60)
-
-# Check summary file for helpers and Rust info
-summary_path = precomputed_dir / "precompute_summary.json"
-if summary_path.exists():
-    with open(summary_path) as f:
-        summary = json.load(f)
-    helpers = summary.get("helpers", [])
-    rust_count = summary.get("rust_backends", 0)
-    print(f"\n  Helpers: {len(helpers)} ({', '.join(helpers)})")
-    print(f"  Rust backends: {rust_count}/7")
-    print(f"  Total time: {summary.get('total_elapsed_sec', 0) / 60:.1f} min")
 
 valid_configs = []
-missing_configs = []
-
-for config_name in config_names:
+for config_name in configs:
     metadata_path = precomputed_dir / config_name / "metadata.json"
-
     if metadata_path.exists():
         with open(metadata_path) as f:
             meta = json.load(f)
-        n_iters = meta["total_iterations"]
-        date_range = (
-            f"{meta['first_pred_timestamp'][:10]} to {meta['last_pred_timestamp'][:10]}"
-        )
-        valid_configs.append((config_name, n_iters, date_range))
-    else:
-        missing_configs.append(config_name)
+        valid_configs.append((config_name, meta["total_iterations"]))
 
-print(f"\n✓ Precomputed configs: {len(valid_configs)}/{len(config_names)}")
-for name, n_iters, date_range in valid_configs[:5]:
-    print(f"  {name}: {n_iters} iterations ({date_range})")
+print(f"\n✓ Precomputed configs: {len(valid_configs)}/{len(configs)}")
+for name, n_iters in valid_configs[:5]:
+    print(f"  {name}: {n_iters} iterations")
 if len(valid_configs) > 5:
     print(f"  ... and {len(valid_configs) - 5} more")
-
-if missing_configs:
-    print(f"\n✗ Missing configs: {len(missing_configs)}")
-    for name in missing_configs[:5]:
-        print(f"  {name}")
-    if len(missing_configs) > 5:
-        print(f"  ... and {len(missing_configs) - 5} more")
-else:
-    print("\n✓ All 20 configs precomputed and ready for Step 9: Dataset Assembly")
 
 # %% [markdown]
 # # Step 9: Assemble Prediction Datasets
 #
 # Assemble continuous prediction datasets from precomputed L1 iterations.
-# Each assembled.parquet contains one row per walk-forward iteration (the prediction row).
-#
-# **What it does:**
-# - For each of 20 configs, reads all iteration parquet files
-# - Extracts the last row (prediction row) from each file
-# - Sorts chronologically by timestamp
-# - Saves as `assembled.parquet` in each config directory
+# Each assembled.parquet contains one row per walk-forward iteration.
 #
 # **Output:** `data/precomputed/{config}/assembled.parquet`
-# - ~3200-3700 rows per config (one per iteration)
-# - 92 columns (91 helper features + pred_idx)
-# - Indexed by timestamp (timezone-aware UTC)
-#
-# **Benefit:** Fast feature lookup during backtesting without loading individual parquet files.
 
 # %%
-# Step 9: Assemble prediction datasets from precomputed L1 iterations
-import time
-
 from scripts.target_models.validation.dataset_assembly import (
-    ALL_CONFIGS,
     assemble_all,
     check_assembly_status,
     update_all,
     validate_all,
 )
+from scripts.workflow.config import get_workflow_configs
 
-# Check status of all configs
-precomputed_dir = PROJECT_ROOT / "data" / "precomputed"
+# Use workflow configs (consistent with WORKFLOW_HORIZONS × WORKFLOW_TARGETS)
+workflow_configs = get_workflow_configs()
 
-print("Checking assembly status...")
+print(f"Checking assembly status for {len(workflow_configs)} configs...")
+print(f"  Configs: {', '.join(workflow_configs)}")
 needs_update = []
 up_to_date = []
 missing = []
 
-for config in ALL_CONFIGS:
+for config in workflow_configs:
     assembled_path = precomputed_dir / config / "assembled.parquet"
     if not assembled_path.exists():
         missing.append(config)
@@ -1186,52 +869,241 @@ for config in ALL_CONFIGS:
         else:
             up_to_date.append(config)
 
-# Report status
 print(f"  ✓ Up to date: {len(up_to_date)} configs")
 if needs_update:
     print(f"  🔄 Need update: {len(needs_update)} configs")
-    for cfg, n_new in needs_update[:3]:
-        print(f"      {cfg}: +{n_new} new iterations")
-    if len(needs_update) > 3:
-        print(f"      ... and {len(needs_update) - 3} more")
 if missing:
     print(f"  ⚪ Missing: {len(missing)} configs")
 
 # Handle assembly/update
 if missing:
     print("\nAssembling missing datasets...")
-    t0 = time.time()
-    results = assemble_all(precomputed_dir)
-    elapsed = time.time() - t0
-    print(f"Assembly completed in {elapsed:.1f}s")
+    results = assemble_all(precomputed_dir, configs=workflow_configs)
 elif needs_update:
     print("\nUpdating with new iterations...")
-    results = update_all(precomputed_dir)
+    results = update_all(precomputed_dir, configs=workflow_configs)
 else:
-    print("\n✓ All 20 assembled datasets are current. Nothing to do.")
+    print("\n✓ All assembled datasets are current.")
 
 # %%
-# Verify Step 9: Assembled datasets
-
+# Verify Step 9 - ONLY validate configs that have assembled.parquet
 print("=" * 60)
 print("STEP 9 VERIFICATION: ASSEMBLED DATASETS")
 print("=" * 60)
 
-all_valid, reports = validate_all(precomputed_dir)
+# Filter to only configs that have L1 data (assembled.parquet exists)
+configs_with_l1 = [
+    cfg
+    for cfg in workflow_configs
+    if (precomputed_dir / cfg / "assembled.parquet").exists()
+]
+configs_missing_l1 = [cfg for cfg in workflow_configs if cfg not in configs_with_l1]
 
-print()
-if all_valid:
-    total_rows = sum(r.get("n_rows", 0) for r in reports)
-    print("=" * 60)
-    print("STEP 9 COMPLETE: PREDICTION DATASETS ASSEMBLED")
-    print("=" * 60)
-    print("  Configs: 20/20 valid")
-    print(f"  Total prediction rows: {total_rows:,}")
-    print("  Features per row: 91 helper features + pred_idx")
-    print("  Output: data/precomputed/{config}/assembled.parquet")
-    print("\n✓ Ready for fast backtesting with precomputed L1 features")
+if configs_missing_l1:
+    print(f"\n⚠️  {len(configs_missing_l1)} configs missing L1 data (need Step 8):")
+    for cfg in configs_missing_l1:
+        print(f"   - {cfg}")
+    print()
+
+if configs_with_l1:
+    all_valid, reports = validate_all(precomputed_dir, configs=configs_with_l1)
+
+    if all_valid:
+        total_rows = sum(r.get("n_rows", 0) for r in reports)
+        print(f"✓ {len(configs_with_l1)} configs valid")
+        print(f"  Total prediction rows: {total_rows:,}")
+        print("  Ready for fast backtesting with precomputed L1 features")
+    else:
+        failed = [r["config_name"] for r in reports if not r.get("is_valid", False)]
+        print(f"\n✗ {len(failed)} configs failed validation")
 else:
-    failed = [r["config_name"] for r in reports if not r.get("is_valid", False)]
-    print(f"✗ {len(failed)} configs failed validation:")
-    for name in failed:
-        print(f"  - {name}")
+    print("\n⚠️  No configs have L1 data yet. Run Step 8 first.")
+
+# %% [markdown]
+# # Pipeline Complete ✓
+#
+# **Summary of outputs:**
+#
+# | Step | Output | Location |
+# |------|--------|----------|
+# | 0 | Fetched & aggregated 8h data | `fetchingByBit/*-8h-bybit-linear/` |
+# | 1a | Raw merged data | `data/merged_8h_raw.parquet` |
+# | 1b | Computed features | `data/features_8h.parquet` |
+# | 2 | Analysis dataset + targets | `data/analysis_8h.parquet` |
+# | 3 | Optimized features | `data/features_8h_optimized_{target}_{horizon}bar.parquet` |
+# | 4 | Final datasets | `data/datasets/{target}_{horizon}bar.parquet` |
+# | 5 | IC/ICIR analysis | `data/analysis/results/ic_*.csv` |
+# | 6 | Feature importance | `data/analysis/results/{feature_importance,mda_importance}.csv` |
+# | 7 | CV results | `data/analysis/results/cv_results.csv` |
+# | 8 | L1 precomputed | `data/precomputed/{config}/*.parquet` |
+# | 9 | Assembled datasets | `data/precomputed/{config}/assembled.parquet` |
+# | 10 | L2 Backtest | `data/l2_backtest_results/` |
+#
+# **Next steps:**
+# - Full analysis: `cmd_all()`
+
+# %% [markdown]
+# # Step 9b: Create Combined Datasets for L2 Backtest
+#
+# Combine raw features, helper features, and targets into single datasets
+# for each config. These are required for L2 walk-forward backtesting.
+#
+# **Output:** `data/combined_datasets/{config}.parquet`
+
+# %%
+from scripts.target_models.validation.combined_datasets import (
+    create_all_combined_datasets,
+)
+
+print("=" * 60)
+print("STEP 9b: CREATE COMBINED DATASETS FOR L2 BACKTEST")
+print("=" * 60)
+
+# Only create combined datasets for configs that have L1 data
+# (configs_with_l1 is defined in Step 9 cell above)
+if not configs_with_l1:
+    print("\n⚠️  No configs have L1 data. Run Step 8 first.")
+    combined_results = {}
+else:
+    print(
+        f"Creating combined datasets for {len(configs_with_l1)} configs with L1 data..."
+    )
+    if configs_missing_l1:
+        print(f"  (Skipping {len(configs_missing_l1)} configs without L1 data)")
+
+    # Create combined datasets (raw + helper + interactions + targets)
+    combined_results = create_all_combined_datasets(configs=configs_with_l1)
+
+    print(f"\n✓ Created {len(combined_results)} combined datasets")
+    for config, info in combined_results.items():
+        print(
+            f"   {config}: {info.get('rows', '?')} rows, {info.get('total_cols', '?')} features"
+        )
+
+# %% [markdown]
+# # Step 10: L2 Walk-Forward Backtest
+#
+# **4-Model Ensemble Backtest:**
+# - CatBoost (GPU) - gradient boosting
+# - LightGBM (GPU) - gradient boosting
+# - LSTM (GPU) - temporal sequence model
+# - Linear (CPU) - Ridge regularized baseline
+#
+# **Configuration from workflow:**
+# - Uses `get_workflow_configs()` for consistent config list
+# - Uses `L2BacktestDefaults` for default parameters
+#
+# **Note:** Quality gates skipped for backtest (not ready yet)
+
+# %%
+# ============================================================================
+# STEP 10: L2 WALK-FORWARD BACKTEST
+# ============================================================================
+# Module: scripts/target_models/validation/l2_backtest_sync.py
+# Config: scripts/workflow/config.py (L2BacktestDefaults, get_workflow_configs)
+# Output: data/l2_backtest_results/
+# ============================================================================
+
+# Path setup (allows running this cell standalone or as part of full notebook)
+import os
+import sys
+from pathlib import Path
+
+# Setup PROJECT_ROOT if not already defined (when running standalone)
+if "PROJECT_ROOT" not in dir() or not PROJECT_ROOT.exists():
+    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    os.chdir(PROJECT_ROOT)
+    if str(PROJECT_ROOT) not in sys.path:
+        sys.path.insert(0, str(PROJECT_ROOT))
+    validation_path = str(PROJECT_ROOT / "scripts" / "target_models" / "validation")
+    if validation_path not in sys.path:
+        sys.path.insert(0, validation_path)
+    print(f"✓ Standalone mode: PROJECT_ROOT={PROJECT_ROOT}")
+
+from scripts.target_models.validation.l2_backtest_sync import (
+    SyncBacktestConfig,
+    run_sync_backtest,
+)
+from scripts.workflow.config import L2BacktestDefaults, get_workflow_configs
+
+# Get configs from workflow (consistent with WORKFLOW_HORIZONS × WORKFLOW_TARGETS)
+all_configs = get_workflow_configs()
+
+# Filter to only configs with combined datasets (Step 9b completed)
+COMBINED_DIR = Path("data/combined_datasets")
+configs_ready = []
+configs_pending = []
+for cfg in all_configs:
+    combined_path = COMBINED_DIR / f"{cfg}.parquet"
+    if combined_path.exists():
+        configs_ready.append(cfg)
+    else:
+        configs_pending.append(cfg)
+
+backtest_configs = configs_ready
+
+# Get default backtest parameters
+defaults = L2BacktestDefaults()
+
+print("=" * 70)
+print("STEP 10: L2 WALK-FORWARD BACKTEST")
+print("=" * 70)
+print(f"\n📊 Configs ready for backtest ({len(configs_ready)}/{len(all_configs)}):")
+for cfg_name in configs_ready:
+    print(f"   ✓ {cfg_name}")
+if configs_pending:
+    print("\n⚠️  Configs pending (no combined dataset yet):")
+    for cfg_name in configs_pending:
+        print(f"   - {cfg_name}")
+    print("\n   → Run Steps 8 (L1) and 9b (Combined) first for these configs")
+
+defaults.print_summary()
+
+# %%
+# Run L2 Backtest
+# ---------------
+# This runs walk-forward validation with 4-model ensemble.
+# At each step: train on window → predict next bar → move forward.
+#
+# Optional overrides (uncomment to modify):
+#   defaults.n_steps = 100  # Limit to last 100 steps (faster for testing)
+#   defaults.enable_optuna = False  # Disable Optuna tuning (much faster)
+#   defaults.train_window = 300  # Smaller training window
+
+# Create SyncBacktestConfig from workflow defaults
+sync_config = SyncBacktestConfig(**defaults.to_sync_config_kwargs())
+
+# Run the backtest
+print("\n" + "=" * 70)
+print("STARTING BACKTEST")
+print("=" * 70)
+
+results = run_sync_backtest(
+    configs=backtest_configs,
+    config=sync_config,
+    verbose=True,
+)
+
+# %%
+# Step 10 Summary
+print("\n" + "=" * 70)
+print("STEP 10 SUMMARY: BACKTEST RESULTS")
+print("=" * 70)
+
+for config_name, result in results.items():
+    metrics = result.get("metrics", {})
+    task_type = "Classification" if "accuracy" in metrics else "Regression"
+
+    if task_type == "Classification":
+        acc = metrics.get("accuracy", 0) * 100
+        auc = metrics.get("auc", None)
+        auc_str = f", AUC={auc:.3f}" if auc else ""
+        print(f"  {config_name}: Acc={acc:.1f}%{auc_str}")
+    else:
+        ic = metrics.get("ic", 0)
+        rmse = metrics.get("rmse", 0)
+        print(f"  {config_name}: IC={ic:.4f}, RMSE={rmse:.4f}")
+
+print("\n✓ Backtest complete")
+print(f"  Results saved to: {sync_config.output_dir}/")
+print("  Files: backtest_run.log, predictions_*.parquet")

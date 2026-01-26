@@ -25,7 +25,7 @@
 # - `direction`: Binary (1=up, 0=down) — for classification
 # - `returns`: Continuous forward return — for regression
 # - `volatility`: |return| — for risk/position sizing
-# - `vol_regime`: LOW/MED/HIGH — for regime-aware strategies
+# - `vol_spike`: Binary volatility spike detection — for risk management
 # - `trend_regime`: Up/Down trend — for trend-following
 #
 # **Horizons:**
@@ -70,12 +70,12 @@
 # | direction     | Winsorize → RollingZScore → Interactions |
 # | returns       | Winsorize → RollingZScore → Interactions |
 # | volatility    | Winsorize → Interactions (NO ZScore)     |
-# | vol_regime    | Winsorize → Interactions (NO ZScore)     |
+# | vol_spike     | Winsorize → Interactions (NO ZScore)     |
 # | trend_regime  | Winsorize → Interactions (NO ZScore)     |
 #
 # **Full optimization workflow (20 combinations):**
 # ```python
-# for target in ['direction', 'returns', 'volatility', 'vol_regime', 'trend_regime']:
+# for target in ['direction', 'returns', 'volatility', 'vol_spike', 'trend_regime']:
 #     for horizon in [1, 3, 6, 12]:
 #         cmd_optimize(target=target, horizon=horizon)
 # cmd_build_datasets()  # Uses target-specific optimized files
@@ -85,7 +85,7 @@
 # - direction: +0.7% to +1.4% IC improvement
 # - returns: +1.0% to +1.5% IC improvement
 # - volatility: +0.8% to +1.8% IC improvement
-# - vol_regime: +3.8% to +4.3% IC improvement
+# - vol_spike: +3.8% to +4.3% IC improvement
 # - trend_regime: +1.9% to +6.3% IC improvement
 #
 # **Interactive Usage:** Run cells individually with VS Code / Jupyter
@@ -103,6 +103,10 @@ if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
 
 from scripts.analysis import config, data, features, models, viz  # noqa: E402
+from scripts.workflow.targets import (  # noqa: E402
+    compute_target_polars,
+    get_target_config,
+)
 
 # %% [markdown]
 # ## Command Functions
@@ -458,7 +462,7 @@ def cmd_build_datasets(args=None, horizons=None, target_types=None):
     - direction: Binary (1=up, 0=down) based on forward_return sign
     - returns: Continuous forward return
     - volatility: |forward_return| (absolute return)
-    - vol_regime: Categorical (0=LOW, 1=MED, 2=HIGH) based on rolling vol
+    - vol_spike: Binary (0=NO_SPIKE, 1=SPIKE) based on vol ratio >= 1.5
     - trend_regime: Binary based on SMA crossover at horizon
 
     Args:
@@ -478,7 +482,7 @@ def cmd_build_datasets(args=None, horizons=None, target_types=None):
         "direction",
         "returns",
         "volatility",
-        "vol_regime",
+        "vol_spike",
         "trend_regime",
     ]
 
@@ -502,6 +506,7 @@ def cmd_build_datasets(args=None, horizons=None, target_types=None):
     close = raw["RAW_P_close_abs_NN"]
     high = raw["RAW_P_high_abs_NN"]
     low = raw["RAW_P_low_abs_NN"]
+    timestamp = raw["RAW_TM_timestamp"]  # Needed for 15m-based targets
 
     print(f"\nBase features: {len(feature_cols)}")
     print(f"Rows: {len(df)}")
@@ -555,49 +560,17 @@ def cmd_build_datasets(args=None, horizons=None, target_types=None):
                 print(
                     f"\n[{target_type}/{horizon}-bar] No optimized features found, using base only"
                 )
-            # Compute target for this horizon
-            # NOTE: direction and returns now use FULL CANDLE info (high, low, close)
-            # This gives 3x better autocorrelation and stronger feature ICs
-            if target_type == "direction":
-                # NEW: direction = (up_move > down_move) based on full candle
-                # up_move = how far price went above current close
-                # down_move = how far price went below current close
-                target = (net_candle_ret > 0).cast(pl.Int8).alias("y_direction")
-            elif target_type == "returns":
-                # NEW: returns = up_move - down_move (net candle direction)
-                # Positive = more upside movement, Negative = more downside movement
-                target = net_candle_ret.alias("y_returns")
-            elif target_type == "volatility":
-                # Keep using close-to-close for volatility (absolute movement)
-                target = fwd_ret.abs().alias("y_volatility")
-            elif target_type == "vol_regime":
-                # Rolling vol at this horizon's scale
-                window = max(21, horizon * 3)  # Scale window with horizon
-                rolling_vol = log_returns.rolling_std(window)
-                # Fixed historical thresholds (warmup period) to avoid leakage
-                WARMUP_PERIOD = 1000
-                warmup_vol = rolling_vol.head(WARMUP_PERIOD).drop_nulls()
-                vol_25 = warmup_vol.quantile(0.25)
-                vol_75 = warmup_vol.quantile(0.75)
-                target = (
-                    pl.when(rolling_vol < vol_25)
-                    .then(pl.lit(0))
-                    .when(rolling_vol < vol_75)
-                    .then(pl.lit(1))
-                    .otherwise(pl.lit(2))
-                    .cast(pl.Int8)
-                    .alias("y_vol_regime")
-                )
-            elif target_type == "trend_regime":
-                # SMA crossover scaled to horizon
-                fast_window = max(21, horizon * 5)
-                slow_window = max(63, horizon * 15)
-                sma_fast = close.rolling_mean(fast_window)
-                sma_slow = close.rolling_mean(slow_window)
-                target = (sma_fast > sma_slow).cast(pl.Int8).alias("y_trend_regime")
-            else:
-                print(f"  Unknown target type: {target_type}")
-                continue
+            # Compute target using centralized targets module (single source of truth)
+            # All target definitions come from scripts.workflow.targets
+            target_config = get_target_config(target_type)
+            target = compute_target_polars(
+                target_name=target_type,
+                close=close,
+                high=high,
+                low=low,
+                horizon=horizon,
+                timestamp=timestamp,  # For 15m-based targets (first_extreme, etc.)
+            ).alias(target_config.target_column)
 
             # Build dataset: base features + interactions + target
             dataset = df.select(["timestamp"] + feature_cols)
@@ -705,7 +678,7 @@ def cmd_auto_optimize(args=None, horizons=None, targets=None, save=True):
         "direction",
         "returns",
         "volatility",
-        "vol_regime",
+        "vol_spike",
         "trend_regime",
     ]
 
@@ -768,18 +741,13 @@ def cmd_auto_optimize(args=None, horizons=None, targets=None, save=True):
             return net_candle_ret
         elif target == "volatility":
             return fwd_ret.abs()
-        elif target == "vol_regime":
+        elif target == "vol_spike":
             log_returns = np.log(close / close.shift(1))
-            window = max(21, horizon * 3)
-            rolling_vol = log_returns.rolling(window).std()
-            # Fixed historical thresholds (warmup period) to avoid leakage
-            WARMUP_PERIOD = 1000
-            warmup_vol = rolling_vol.head(WARMUP_PERIOD).dropna()
-            vol_25 = warmup_vol.quantile(0.25)
-            vol_75 = warmup_vol.quantile(0.75)
-            return pd.cut(
-                rolling_vol, bins=[-np.inf, vol_25, vol_75, np.inf], labels=[0, 1, 2]
-            ).astype(float)
+            vol_window = 21
+            rolling_vol = log_returns.rolling(vol_window).std()
+            future_vol = rolling_vol.shift(-horizon)
+            vol_ratio = future_vol / rolling_vol.clip(lower=1e-8)
+            return (vol_ratio >= 1.5).astype(float)
         elif target == "trend_regime":
             fast_window = max(21, horizon * 5)
             slow_window = max(63, horizon * 15)
@@ -810,7 +778,7 @@ def cmd_auto_optimize(args=None, horizons=None, targets=None, save=True):
                 InteractionOptimizer(top_k=3, n_interactions=5, min_ic=0.02),
             ]
 
-        if target in {"direction", "trend_regime", "vol_regime"}:
+        if target in {"direction", "trend_regime", "vol_spike"}:
             # Classification: ExpandingRank may help
             pipelines["winsorize_rank"] = [
                 WinsorizeOptimizer(lower=0.01, upper=0.99),
@@ -830,9 +798,7 @@ def cmd_auto_optimize(args=None, horizons=None, targets=None, save=True):
             ]
 
         # Interactions without other transforms
-        min_ic = (
-            0.05 if target in {"volatility", "vol_regime", "trend_regime"} else 0.02
-        )
+        min_ic = 0.05 if target in {"volatility", "vol_spike", "trend_regime"} else 0.02
         pipelines["winsorize_interactions"] = [
             WinsorizeOptimizer(lower=0.01, upper=0.99),
             InteractionOptimizer(top_k=3, n_interactions=5, min_ic=min_ic),
@@ -966,7 +932,7 @@ def cmd_optimize(
 
     The pipeline automatically adapts:
     - direction/returns: Winsorize → RollingZScore → Interactions
-    - volatility/vol_regime/trend_regime: Winsorize → Interactions (NO ZScore)
+    - volatility/vol_spike/trend_regime: Winsorize → Interactions (NO ZScore)
 
     Output file: data/features_8h_optimized_{target}_{horizon}bar.parquet
 
@@ -978,7 +944,7 @@ def cmd_optimize(
             - 'direction': Binary classification (up/down)
             - 'returns': Regression on forward returns
             - 'volatility': Regression on |forward_return|
-            - 'vol_regime': Multiclass (LOW/MED/HIGH volatility)
+            - 'vol_spike': Binary (NO_SPIKE/SPIKE volatility)
             - 'trend_regime': Binary (uptrend/downtrend)
         save: Save optimized features to disk
 
@@ -1051,19 +1017,15 @@ def cmd_optimize(
     elif target == "volatility":
         y = fwd_ret.abs()
         target_name = f"y_volatility_{horizon}"
-    elif target == "vol_regime":
+    elif target == "vol_spike":
         log_returns = np.log(close / close.shift(1))
-        window = max(21, horizon * 3)
-        rolling_vol = log_returns.rolling(window).std()
-        # Fixed historical thresholds (warmup period) to avoid leakage
-        WARMUP_PERIOD = 1000
-        warmup_vol = rolling_vol.head(WARMUP_PERIOD).dropna()
-        vol_25 = warmup_vol.quantile(0.25)
-        vol_75 = warmup_vol.quantile(0.75)
-        y = pd.cut(
-            rolling_vol, bins=[-np.inf, vol_25, vol_75, np.inf], labels=[0, 1, 2]
-        ).astype(float)
-        target_name = f"y_vol_regime_{horizon}"
+        vol_window = 21
+        rolling_vol = log_returns.rolling(vol_window).std()
+        future_vol = rolling_vol.shift(-horizon)
+        vol_ratio = future_vol / rolling_vol.clip(lower=1e-8)
+        y = (vol_ratio >= 1.5).astype(float)
+        y[rolling_vol.isna() | future_vol.isna()] = np.nan
+        target_name = f"y_vol_spike_{horizon}"
     elif target == "trend_regime":
         fast_window = max(21, horizon * 5)
         slow_window = max(63, horizon * 15)
@@ -1089,7 +1051,7 @@ def cmd_optimize(
     # | volatility    | regression  | Winsorize → Log → ExpandingZScore     |
     # | direction     | binary      | Winsorize → ExpandingRank             |
     # | trend_regime  | binary      | Winsorize → ExpandingRank             |
-    # | vol_regime    | multiclass  | Winsorize → ExpandingRank             |
+    # | vol_spike     | binary      | Winsorize → ExpandingRank             |
     #
     # InteractionOptimizer is OPTIONAL and target-specific.
     # ==========================================================================
@@ -1122,12 +1084,12 @@ def cmd_optimize(
             RegimeConditioningOptimizer(),
         ]
 
-    elif target in {"direction", "trend_regime", "vol_regime"}:
+    elif target in {"direction", "trend_regime", "vol_spike"}:
         # CLASSIFICATION: Winsorize → ExpandingRank
         # ExpandingRank maps features to [0,1] percentiles
         # Classification doesn't care about magnitude, only relative ordering
         # Works well with tree-based models (CatBoost, LightGBM)
-        min_ic = 0.10 if target in {"vol_regime", "trend_regime"} else 0.02
+        min_ic = 0.10 if target in {"vol_spike", "trend_regime"} else 0.02
         default_steps = [
             WinsorizeOptimizer(lower=0.01, upper=0.99),
             ExpandingRankOptimizer(min_periods=252),
@@ -1279,12 +1241,15 @@ def main():
         choices=[1, 3, 6, 12],
         help="Target horizon in bars (1=8h, 3=24h, 6=48h, 12=96h)",
     )
+    # Import centralized target configuration
+    from scripts.workflow.config import WORKFLOW_TARGETS
+
     p_optimize.add_argument(
         "--target",
         type=str,
-        default="returns",
-        choices=["direction", "returns", "volatility", "vol_regime", "trend_regime"],
-        help="Target type for optimization (default: returns)",
+        default="direction",
+        choices=WORKFLOW_TARGETS,
+        help=f"Target type for optimization (default: direction). Available: {WORKFLOW_TARGETS}",
     )
     p_optimize.add_argument(
         "--no-save", dest="save", action="store_false", help="Skip saving results"
@@ -1303,8 +1268,8 @@ def main():
         "--target-types",
         type=str,
         nargs="+",
-        default=["direction", "returns", "volatility", "vol_regime", "trend_regime"],
-        help="Target types to build",
+        default=WORKFLOW_TARGETS,
+        help=f"Target types to build (default: {WORKFLOW_TARGETS})",
     )
 
     # Auto-optimize (NEW)
@@ -1322,8 +1287,8 @@ def main():
         "--targets",
         type=str,
         nargs="+",
-        default=["direction", "returns", "volatility", "vol_regime", "trend_regime"],
-        help="Target types to optimize",
+        default=WORKFLOW_TARGETS,
+        help=f"Target types to optimize (default: {WORKFLOW_TARGETS})",
     )
     p_auto.add_argument(
         "--no-save", dest="save", action="store_false", help="Skip saving results"
