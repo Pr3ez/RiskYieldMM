@@ -121,9 +121,9 @@ TASK_RECOMMENDED_CONFIGS = {
     "direction": {
         "kalman": {"process_noise": 5e-4, "measurement_noise": 1e-3},
     },
-    # For vol_regime: match HMM states to target classes
-    "vol_regime": {
-        "hmm5": {"n_states": 5},  # Match 5 volatility levels
+    # For vol_spike: match HMM states for spike detection
+    "vol_spike": {
+        "hmm5": {"n_states": 3},  # Match binary + transition
         "if": {"contamination_extreme": 0.02, "contamination_moderate": 0.07},
     },
     # For trend_regime: fewer states
@@ -303,10 +303,8 @@ def _get_task_type(target: str) -> Literal["regression", "binary", "multiclass"]
     """Get task type for target."""
     if target in ("volatility", "returns"):
         return "regression"
-    elif target in ("direction", "trend_regime"):
+    elif target in ("direction", "trend_regime", "vol_spike"):
         return "binary"
-    elif target == "vol_regime":
-        return "multiclass"
     else:
         return "regression"
 
@@ -556,7 +554,7 @@ def run_helper_optimization(
     from scripts.target_models.registry import load_target_data
 
     if targets is None:
-        targets = ["volatility", "returns", "direction", "vol_regime", "trend_regime"]
+        targets = ["volatility", "returns", "direction", "vol_spike", "trend_regime"]
     if horizons is None:
         horizons = [1, 3, 6, 12]
 

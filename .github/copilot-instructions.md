@@ -1,14 +1,37 @@
-<todos title="L2 Backtest: Proper 1-Step-Forward with CatBoost+LightGBM Ensemble" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
-- [x] analyze-dependencies: Map out which fixes depend on each other and identify safe execution order 🔴
-  _Order: B1→B3→B2→B4. All additive changes, no breaking risk._
-- [x] fix-is-binary: Change from training-data-based to config-based detection. Only direction_* configs (n_classes=2) are binary 🔴
-- [x] fix-early-exit: When single class in training, still store model_trained=False flag and majority class prediction 🔴
-- [x] fix-component-naming: Store both _prob and _pred for all classification configs. Binary: store class labels too. Multiclass: store probs too 🔴
-- [x] fix-display-logic: Use consistent column names in live metrics display 🟡
-- [x] test-single-config: Run direction_1bar and vol_regime_3bar to verify fixes work 🟡
-  _Quick test with step_size=200 passed. Binary AUC now working, all columns present._
-- [-] run-full-backtest: Execute all 20 configs after fixes validated 🟢
-  _Started at step 1/2714. All 20 configs loading. AUC showing for binary, IC for regression. Running ~16s/step._
+<todos title="main_wf.py target validation - comprehensive" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
+- [x] check-workflow-config: Check scripts/workflow/config.py - WORKFLOW_TARGETS 🔴 🔴
+  _✅ VERIFIED:
+- WORKFLOW_TARGETS has 'volatility_regime'
+- get_workflow_configs() generates correct config names
+- All L1/L2 backtest uses WORKFLOW_TARGETS_
+- [x] check-targets-py: Check scripts/workflow/targets.py - compute_target_polars 🔴 🔴
+  _✅ VERIFIED:
+- @register_target('volatility_regime') defined
+- compute_target_polars handles volatility_regime
+- Formula: INCREASE if future_vol > current_vol else DECREASE_
+- [x] check-run-py: Check scripts/analysis/run.py - cmd_build_datasets 🔴 🔴
+  _✅ VERIFIED:
+- cmd_build_datasets uses compute_target_polars (centralized)
+- Step 4 builds correct datasets
+- Old vol_spike logic in cmd_auto_optimize/cmd_optimize_features NOT USED in main_wf_
+- [x] check-data-py: Check scripts/analysis/data.py - create_analysis_dataset 🔴 🔴
+  _✅ VERIFIED (just fixed):
+- y_volatility_regime computed with Option C formula
+- Creates analysis_8h.parquet for Step 2_
+- [x] check-analysis-config: Check scripts/analysis/config.py - TARGET_COLS 🟡 🟡
+  _⚠️ NEEDS UPDATE:
+- Has old y_vol_spike in TARGET_COLS list
+- Used by get_target_columns() for filtering
+- LOW PRIORITY: doesn't block main_wf_
+- [x] check-backtest-labels: Check backtest/services/backtest.py - LABEL_NAMES 🔴 🔴
+  _✅ VERIFIED:
+- LABEL_NAMES has volatility_regime with DECREASE/INCREASE_
+- [ ] cleanup-old-refs: Optional: Clean up old comments and unused functions 🟢 🟢
+  _⚠️ OPTIONAL:
+- signal_labels.py has old comments referencing vol_regime
+- run.py CLI functions have old vol_spike references
+- main_wf.py doesn't use these functions
+- LOW PRIORITY: cleanup only_
 </todos>
 <astra-workflow>
 ## 📍 Phase: IDLE

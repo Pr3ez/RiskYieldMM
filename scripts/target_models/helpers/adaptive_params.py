@@ -32,7 +32,7 @@ ADAPTIVE_PARAMS_BY_TARGET: dict[str, dict[str, float]] = {
     "direction": ROBUST_PARAMS.copy(),
     "returns": ROBUST_PARAMS.copy(),
     "volatility": ROBUST_PARAMS.copy(),
-    "vol_regime": ROBUST_PARAMS.copy(),
+    "vol_spike": ROBUST_PARAMS.copy(),
     "trend_regime": ROBUST_PARAMS.copy(),
 }
 

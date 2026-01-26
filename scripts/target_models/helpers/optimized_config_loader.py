@@ -45,16 +45,16 @@ IMPROVED_CONFIGS: set[str] = {
     "volatility_3bar",  # +9.5%
     "volatility_6bar",  # +382.8%
     "volatility_12bar",  # +576.1%
-    "vol_regime_1bar",  # +0.3%
-    "vol_regime_3bar",  # +0.3%
-    "vol_regime_6bar",  # +0.3%
+    "vol_spike_1bar",  # +0.3%
+    "vol_spike_3bar",  # +0.3%
+    "vol_spike_6bar",  # +0.3%
 }
 
 # Configs that DEGRADED during optimization (keep defaults)
 # direction_6bar (-4.2%), direction_12bar (-5.9%)
 # returns_3bar (-24.9%), returns_6bar (-67.7%)
 # volatility_1bar (-17.7%)
-# vol_regime_12bar (-5.2%)
+# vol_spike_12bar (-5.2%)
 # trend_regime_1bar (-2.0%), trend_regime_3bar (-2.0%), trend_regime_6bar (-1.8%), trend_regime_12bar (+0.0%)
 
 
@@ -261,7 +261,7 @@ def print_optimization_summary() -> None:
             print(f"  {key}: +{pct:.1f}%")
 
     print("\n⚠️ USING DEFAULT PARAMS (10 configs):")
-    all_targets = ["direction", "returns", "volatility", "vol_regime", "trend_regime"]
+    all_targets = ["direction", "returns", "volatility", "vol_spike", "trend_regime"]
     all_horizons = [1, 3, 6, 12]
     for target in all_targets:
         for horizon in all_horizons:

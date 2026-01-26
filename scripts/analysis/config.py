@@ -164,7 +164,7 @@ TARGET_COLS = [
     "y_forward_return_3",
     "y_forward_return_6",
     "y_forward_return_12",
-    "y_vol_regime",
+    "y_volatility_regime",  # Binary: DECREASE(0) vs INCREASE(1)
     "y_trend_regime",
 ]
 

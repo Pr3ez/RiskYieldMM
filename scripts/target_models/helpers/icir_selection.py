@@ -435,3 +435,177 @@ def _select_by_simple_ic(
         "n_selected": len(selected),
         "method": "ic_fallback",
     }
+
+
+# =============================================================================
+# ADDITIONAL FEATURE SELECTION METHODS (Per-Model Optimization)
+# =============================================================================
+
+
+def select_features_by_importance(
+    model,
+    feature_cols: list[str],
+    ratio: float = 0.6,
+    min_features: int = 20,
+) -> list[str]:
+    """Select top features by tree model importance.
+
+    Works with CatBoost and LightGBM models that have get_feature_importance().
+
+    Args:
+        model: Trained CatBoost or LightGBM model with get_feature_importance()
+        feature_cols: All feature column names (in same order as training data)
+        ratio: Keep top X% of features (0.0-1.0)
+        min_features: Minimum features to keep (floor)
+
+    Returns:
+        List of selected feature names, ordered by importance (descending)
+
+    Example:
+        cb_model.fit(X_train, y_train)
+        selected = select_features_by_importance(cb_model, X_train.columns, ratio=0.6)
+        X_selected = X_train[selected]
+    """
+    # Get importance scores
+    try:
+        importances = model.get_feature_importance()
+    except AttributeError:
+        # LightGBM uses feature_importances_ attribute
+        importances = getattr(model, "feature_importances_", None)
+        if importances is None:
+            # Fall back: return all features
+            return feature_cols
+
+    importances = np.array(importances)
+
+    # Calculate how many to keep
+    n_keep = max(int(len(feature_cols) * ratio), min_features)
+    n_keep = min(n_keep, len(feature_cols))  # Can't keep more than we have
+
+    # Get indices of top features
+    indices = np.argsort(importances)[::-1][:n_keep]
+
+    # Return feature names in importance order
+    return [feature_cols[i] for i in indices]
+
+
+def select_features_by_variance(
+    X: pd.DataFrame,
+    ratio: float = 0.8,
+    min_features: int = 20,
+) -> list[str]:
+    """Select features by variance (remove low-variance features).
+
+    Low-variance features provide little information and can hurt models
+    that are sensitive to scaling (like LSTM).
+
+    Args:
+        X: Feature DataFrame (samples x features)
+        ratio: Keep top X% by variance (0.0-1.0)
+        min_features: Minimum features to keep (floor)
+
+    Returns:
+        List of selected feature names, ordered by variance (descending)
+
+    Example:
+        selected = select_features_by_variance(X_train, ratio=0.8)
+        X_selected = X_train[selected]
+    """
+    # Compute variance for each column
+    variances = X.var()
+
+    # Calculate how many to keep
+    n_keep = max(int(len(X.columns) * ratio), min_features)
+    n_keep = min(n_keep, len(X.columns))
+
+    # Get top columns by variance
+    top_cols = variances.nlargest(n_keep).index.tolist()
+    return top_cols
+
+
+def apply_feature_selection(
+    X: pd.DataFrame,
+    method: str,
+    model=None,
+    target: np.ndarray | None = None,
+    ratio: float = 1.0,
+    min_features: int = 20,
+    icir_config: ICIRConfig | None = None,
+) -> tuple[pd.DataFrame, list[str]]:
+    """Apply feature selection based on specified method.
+
+    Unified wrapper for all feature selection methods:
+    - "none": Keep all features
+    - "importance": Tree model importance (requires trained model)
+    - "variance": Remove low-variance features
+    - "icir": Rolling ICIR selection (requires target)
+
+    Args:
+        X: Feature DataFrame
+        method: Selection method ("none", "importance", "variance", "icir")
+        model: Trained model (required for "importance" method)
+        target: Target values (required for "icir" method)
+        ratio: Keep top X% of features (0.0-1.0)
+        min_features: Minimum features to keep
+        icir_config: ICIRConfig for ICIR method (optional, uses defaults)
+
+    Returns:
+        Tuple of (filtered DataFrame, list of selected column names)
+
+    Example:
+        # After training CatBoost
+        X_cb, selected_cb = apply_feature_selection(
+            X_train, method="importance", model=cb_model, ratio=0.6
+        )
+
+        # For LSTM (variance-based)
+        X_lstm, selected_lstm = apply_feature_selection(
+            X_train, method="variance", ratio=0.8
+        )
+    """
+    if method == "none" or ratio >= 1.0:
+        return X, X.columns.tolist()
+
+    elif method == "importance":
+        if model is None:
+            # No model provided, return all
+            return X, X.columns.tolist()
+        selected = select_features_by_importance(
+            model, X.columns.tolist(), ratio=ratio, min_features=min_features
+        )
+        return X[selected], selected
+
+    elif method == "variance":
+        selected = select_features_by_variance(
+            X, ratio=ratio, min_features=min_features
+        )
+        return X[selected], selected
+
+    elif method == "icir":
+        if target is None:
+            # No target provided, return all
+            return X, X.columns.tolist()
+
+        # Use existing ICIR selection
+        from .icir_config import DEFAULT_ICIR_CONFIG
+
+        config = icir_config if icir_config is not None else DEFAULT_ICIR_CONFIG
+        result = select_features_full_pipeline(X, target, config)
+        selected = result.get("selected_features", X.columns.tolist())
+
+        # Ensure minimum features
+        if len(selected) < min_features:
+            # Fall back to keeping top by |IC|
+            ic_values = {}
+            for col in X.columns:
+                ic = compute_single_ic(X[col].values, target)
+                if ic is not None:
+                    ic_values[col] = abs(ic)
+            sorted_by_ic = sorted(ic_values.items(), key=lambda x: x[1], reverse=True)
+            selected = [f[0] for f in sorted_by_ic[:min_features]]
+
+        return X[selected], selected
+
+    else:
+        # Unknown method, return all
+        return X, X.columns.tolist()

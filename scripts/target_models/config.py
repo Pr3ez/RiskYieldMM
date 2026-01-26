@@ -78,12 +78,12 @@ TARGETS = {
         primary_metric="rmse",
         secondary_metrics=["mae", "r2", "ic"],
     ),
-    "vol_regime": TargetConfig(
-        name="vol_regime",
-        task_type="multiclass",
-        target_column_pattern="y_vol_regime",
-        primary_metric="accuracy",
-        secondary_metrics=["f1_macro", "log_loss"],
+    "vol_spike": TargetConfig(
+        name="vol_spike",
+        task_type="binary",
+        target_column_pattern="y_vol_spike",
+        primary_metric="auc",
+        secondary_metrics=["accuracy", "f1"],
     ),
     "trend_regime": TargetConfig(
         name="trend_regime",

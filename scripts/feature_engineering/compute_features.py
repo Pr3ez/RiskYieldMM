@@ -1427,6 +1427,24 @@ def compute_all_features(df: pd.DataFrame) -> pd.DataFrame:
     for n in [12, 21]:
         features[f"V_yangZhang_{n}_pct_N"] = compute_yang_zhang_volatility(df, n)
 
+    # -------------------------------------------------------------------------
+    # FRACTIONAL DIFFERENTIATION (AFML Ch.5) - 2026-01-16
+    # Preserves memory while achieving stationarity
+    # d=0.3-0.7 optimal for financial series
+    # -------------------------------------------------------------------------
+    from scripts.feature_engineering.fracdiff import compute_ffd
+
+    # Price FFD features (close)
+    for d in [0.3, 0.5, 0.7]:
+        features[f"M_P_close_fracdiff_{d}_pct_N"] = compute_ffd(
+            df["close"].values, d=d, max_window=100
+        )
+
+    # Volume FFD feature
+    features["L_V_volume_fracdiff_0.5_N"] = compute_ffd(
+        df["volume"].values, d=0.5, max_window=100
+    )
+
     return features
 
 

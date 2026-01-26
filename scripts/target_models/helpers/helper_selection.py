@@ -88,8 +88,8 @@ TARGET_OVERRIDES = {
     "returns": {},
     "direction": {},
     # Regime targets need regime detection
-    "vol_regime": {
-        "hmm4": False,  # Not useful for vol regime
+    "vol_spike": {
+        "hmm4": False,  # Not useful for vol spike
     },
     "trend_regime": {
         "hmm4": True,  # Market regime is key for trend
@@ -255,7 +255,7 @@ def print_helper_matrix():
         "volatility": "regression",
         "returns": "regression",
         "direction": "binary",
-        "vol_regime": "multiclass",
+        "vol_spike": "binary",
         "trend_regime": "binary",
     }
 

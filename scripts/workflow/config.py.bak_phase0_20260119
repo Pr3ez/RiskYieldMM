@@ -1,0 +1,386 @@
+"""
+Workflow configuration for the RiskYieldMM ML pipeline.
+
+This module centralizes all configuration that controls the workflow behavior.
+Edit values here to change workflow behavior across all notebooks.
+
+SINGLE SOURCE OF TRUTH:
+=======================
+All target and config lists throughout the pipeline should derive from:
+- WORKFLOW_TARGETS: List of target names
+- WORKFLOW_HORIZONS: List of horizon values
+- ALL_HORIZONS: Complete list [1, 3, 6, 12] for full configs
+
+Helper functions provided:
+- get_configs_1bar(): WORKFLOW_TARGETS × [1]
+- get_configs_reduced(): WORKFLOW_TARGETS × [1, 3]
+- get_all_configs(): WORKFLOW_TARGETS × [1, 3, 6, 12]
+- get_workflow_configs(): WORKFLOW_TARGETS × WORKFLOW_HORIZONS
+
+Adding a new target:
+1. Add to WORKFLOW_TARGETS list below
+2. Implement compute function in scripts/workflow/targets.py with @register_target
+3. That's it! All config lists auto-update.
+"""
+
+from dataclasses import dataclass
+from pathlib import Path
+
+# ============================================================================
+# WORKFLOW TARGETS AND HORIZONS
+# ============================================================================
+# WORKFLOW_HORIZONS: Which horizons to process throughout the workflow
+#   - [1]: Only 1-bar configs (fastest, DEFAULT)
+#   - [1, 3]: 1-bar + 3-bar
+#   - [1, 3, 6, 12]: All horizons (slowest)
+WORKFLOW_HORIZONS: list[int] = [1]  # DEFAULT: Only 1-bar (fastest)
+
+# ALL_HORIZONS: Complete set of horizons for full config generation
+ALL_HORIZONS: list[int] = [1, 3, 6, 12]
+
+# WORKFLOW_TARGETS: Which targets to process
+# NOTE: 'returns' removed - redundant with direction + volatility
+# NEW: first_extreme, time_to_extreme, vol_to_extreme use 15m intrabar analysis
+#
+# TO ADD A NEW TARGET:
+# 1. Add the target name to this list
+# 2. Implement @register_target function in scripts/workflow/targets.py
+WORKFLOW_TARGETS: list[str] = [
+    "direction",
+    "volatility",
+    "vol_regime",
+    "trend_regime",
+    "first_extreme",  # Binary: which 8h extreme hit first (from 15m data)
+    "time_to_extreme",  # Regression: bars until first extreme (0-31)
+    "vol_to_extreme",  # Regression: magnitude of move to first extreme
+]
+
+
+# ============================================================================
+# CENTRALIZED CONFIG GENERATION FUNCTIONS
+# ============================================================================
+# Use these functions instead of hardcoding config lists!
+
+
+def get_configs_1bar() -> list[str]:
+    """Get 1-bar configs for all WORKFLOW_TARGETS.
+
+    Returns:
+        e.g., ['direction_1bar', 'volatility_1bar', ..., 'vol_to_extreme_1bar']
+    """
+    return [f"{target}_1bar" for target in WORKFLOW_TARGETS]
+
+
+def get_configs_reduced() -> list[str]:
+    """Get reduced configs (1bar + 3bar) for all WORKFLOW_TARGETS.
+
+    Returns:
+        e.g., ['direction_1bar', 'direction_3bar', 'volatility_1bar', ...]
+    """
+    return [
+        f"{target}_{horizon}bar" for target in WORKFLOW_TARGETS for horizon in [1, 3]
+    ]
+
+
+def get_all_configs() -> list[str]:
+    """Get all configs (all 4 horizons) for all WORKFLOW_TARGETS.
+
+    Returns:
+        e.g., ['direction_1bar', 'direction_3bar', ..., 'vol_to_extreme_12bar']
+    """
+    return [
+        f"{target}_{horizon}bar"
+        for target in WORKFLOW_TARGETS
+        for horizon in ALL_HORIZONS
+    ]
+
+
+# ============================================================================
+# DATA FETCHING CONFIGURATION
+# ============================================================================
+# AUTO_FETCH: Automatically fetch & aggregate new data if stale
+# Set to False only if you want to skip data updates entirely
+AUTO_FETCH_IF_STALE: bool = True
+
+# STALE_THRESHOLD_HOURS: How many hours behind before data is considered stale
+# 16h = 2 bars behind for 8h timeframe
+STALE_THRESHOLD_HOURS: int = 16
+
+# ============================================================================
+# L1 PRECOMPUTATION CONFIGURATION
+# ============================================================================
+# L1_CONFIG_MODE: Which configs to precompute
+#   - "1bar": 4 configs (direction, volatility, vol_regime, trend_regime) - FASTEST
+#   - "reduced": 8 configs (1bar + 3bar horizons)
+#   - "all": 16 configs (all 4 horizons)
+L1_CONFIG_MODE: str = "1bar"
+
+# L1_ROWS: Number of walk-forward iterations
+# None = auto (use max feasible per config)
+L1_ROWS: int | None = None
+
+# L1_HELPERS: Which helpers to compute
+L1_HELPERS: list[str] = [
+    "if",
+    "cusum",
+    "garch",
+    "hmm4",
+    "hmm5",
+    "kalman",
+    "evt",
+    "ou",
+    "bocpd",
+    "egarch",
+]
+
+# EXPECTED_FEATURES: Expected feature count (all 10 helpers, no ICIR selection)
+EXPECTED_FEATURES: int = 91
+
+# ENABLE_BOOSTING: Whether to enable ICIR feature selection
+ENABLE_BOOSTING: bool = False
+
+
+@dataclass
+class WorkflowConfig:
+    """Complete workflow configuration."""
+
+    # Core settings
+    horizons: list[int]
+    targets: list[str]
+
+    # Data fetching
+    auto_fetch_if_stale: bool
+    stale_threshold_hours: int
+
+    # L1 precomputation
+    l1_config_mode: str
+    l1_rows: int | None
+    l1_helpers: list[str]
+    expected_features: int
+    enable_boosting: bool
+
+    @property
+    def total_configs(self) -> int:
+        """Total number of target-horizon configurations."""
+        return len(self.horizons) * len(self.targets)
+
+    def print_summary(self) -> None:
+        """Print configuration summary."""
+        print("\n⚙️ Workflow Config:")
+        print(f"   Horizons: {self.horizons}")
+        print(f"   Targets: {self.targets}")
+        print(f"   Total configs: {self.total_configs}")
+        print(
+            f"   Auto-fetch if stale: {self.auto_fetch_if_stale} "
+            f"(threshold: {self.stale_threshold_hours}h)"
+        )
+        print(f"   L1 mode: {self.l1_config_mode}")
+
+
+def get_workflow_config() -> WorkflowConfig:
+    """Get the current workflow configuration."""
+    return WorkflowConfig(
+        horizons=WORKFLOW_HORIZONS,
+        targets=WORKFLOW_TARGETS,
+        auto_fetch_if_stale=AUTO_FETCH_IF_STALE,
+        stale_threshold_hours=STALE_THRESHOLD_HOURS,
+        l1_config_mode=L1_CONFIG_MODE,
+        l1_rows=L1_ROWS,
+        l1_helpers=L1_HELPERS,
+        expected_features=EXPECTED_FEATURES,
+        enable_boosting=ENABLE_BOOSTING,
+    )
+
+
+def get_project_root() -> Path:
+    """Get the project root path."""
+    # HARDCODED to Copy workspace due to space in path name
+    return Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+
+
+def get_workflow_configs() -> list[str]:
+    """
+    Generate config names from WORKFLOW_HORIZONS × WORKFLOW_TARGETS.
+
+    Returns config names in the format used by l2_backtest_sync.py:
+    e.g., ["direction_1bar", "volatility_1bar", "vol_regime_1bar", "trend_regime_1bar"]
+
+    This ensures consistency between workflow config and backtest config.
+    """
+    configs = []
+    for horizon in WORKFLOW_HORIZONS:
+        for target in WORKFLOW_TARGETS:
+            configs.append(f"{target}_{horizon}bar")
+    return configs
+
+
+# ============================================================================
+# L2 BACKTEST CONFIGURATION
+# ============================================================================
+@dataclass
+class L2BacktestDefaults:
+    """
+    Default configuration for L2 backtest.
+
+    These values can be overridden when calling run_sync_backtest.
+    Centralized here for consistency between CLI and notebook usage.
+    """
+
+    # Walk-forward settings
+    train_window: int = 500
+    step_size: int = 1
+    n_steps: int | None = None  # None = all available
+
+    # Model settings
+    n_estimators: int = 100
+    max_depth: int = 6
+
+    # Ensemble weights (CatBoost + LightGBM + LSTM + Linear = 1.0)
+    cb_weight: float = 0.30
+    lgb_weight: float = 0.30
+    lstm_weight: float = 0.25
+    # linear_weight auto-computed as remainder
+
+    # Learning rates
+    cb_learning_rate: float = 0.03
+    lgb_learning_rate: float = 0.03
+
+    # Optuna tuning
+    enable_optuna: bool = True
+    n_optuna_trials: int = 15
+    optuna_timeout: float | None = 30.0
+
+    # Per-model optimization is ALWAYS enabled (each model tunes independently)
+    # Extended metrics storage
+    store_extended_metrics: bool = False  # Store all 34 new fields
+
+    @property
+    def linear_weight(self) -> float:
+        """Auto-computed linear weight (remainder after CB+LGB+LSTM)."""
+        return max(0.0, 1.0 - self.cb_weight - self.lgb_weight - self.lstm_weight)
+
+    def to_sync_config_kwargs(self) -> dict:
+        """Convert to kwargs dict for SyncBacktestConfig."""
+        return {
+            "train_window": self.train_window,
+            "step_size": self.step_size,
+            "n_steps": self.n_steps,
+            "n_estimators": self.n_estimators,
+            "max_depth": self.max_depth,
+            "cb_weight": self.cb_weight,
+            "lgb_weight": self.lgb_weight,
+            "lstm_weight": self.lstm_weight,
+            "cb_learning_rate": self.cb_learning_rate,
+            "lgb_learning_rate": self.lgb_learning_rate,
+            "enable_optuna": self.enable_optuna,
+            "n_optuna_trials": self.n_optuna_trials,
+            "optuna_timeout": self.optuna_timeout,
+            # Per-model optimization is always active
+            "store_extended_metrics": self.store_extended_metrics,
+        }
+
+    def print_summary(self) -> None:
+        """Print backtest configuration summary."""
+        print("\n📊 L2 Backtest Config:")
+        print(f"   Train window: {self.train_window}")
+        print(f"   Step size: {self.step_size}")
+        print(f"   N steps: {self.n_steps or 'ALL'}")
+        print(
+            f"   Ensemble: CB={self.cb_weight}, LGB={self.lgb_weight}, "
+            f"LSTM={self.lstm_weight}, Linear={self.linear_weight:.2f}"
+        )
+        print(
+            f"   Optuna: {'ENABLED' if self.enable_optuna else 'DISABLED'} "
+            f"({self.n_optuna_trials} trials, {self.optuna_timeout}s timeout)"
+        )
+        print("   Per-model optimization: ALWAYS ENABLED")
+        if self.store_extended_metrics:
+            print("   Extended metrics: ENABLED (34 additional fields)")
+
+
+# ============================================================================
+# OPTIMIZATION METADATA UTILITIES
+# ============================================================================
+def read_optimization_metadata(parquet_path: Path) -> dict | None:
+    """
+    Read optimization metadata from a parquet file.
+
+    Args:
+        parquet_path: Path to optimized features parquet file
+
+    Returns:
+        Dict with optimization metadata, or None if not found
+
+    Example:
+        >>> meta = read_optimization_metadata(Path("data/features_8h_optimized_direction_1bar.parquet"))
+        >>> print(meta["method"])  # "winsorize_rank_interactions"
+    """
+    import json
+
+    import pyarrow.parquet as pq
+
+    if not parquet_path.exists():
+        return None
+
+    try:
+        table = pq.read_table(parquet_path)
+        metadata = table.schema.metadata
+
+        if metadata is None:
+            return None
+
+        # Try to get full metadata JSON
+        if b"optimization_metadata" in metadata:
+            return json.loads(metadata[b"optimization_metadata"].decode())
+
+        # Fallback: just get the method name
+        if b"optimization_method" in metadata:
+            return {"method": metadata[b"optimization_method"].decode()}
+
+        return None
+
+    except Exception:
+        return None
+
+
+def get_all_optimization_metadata(project_root: Path | None = None) -> dict[str, dict]:
+    """
+    Get optimization metadata for all workflow configs.
+
+    Returns:
+        Dict mapping config_name -> metadata dict
+
+    Example:
+        >>> all_meta = get_all_optimization_metadata()
+        >>> for config, meta in all_meta.items():
+        ...     print(f"{config}: {meta.get('method', 'UNKNOWN')}")
+    """
+    project_root = project_root or get_project_root()
+
+    configs = get_workflow_configs()
+    result = {}
+
+    for config_name in configs:
+        parquet_path = (
+            project_root / "data" / f"features_8h_optimized_{config_name}.parquet"
+        )
+        meta = read_optimization_metadata(parquet_path)
+        if meta:
+            result[config_name] = meta
+        else:
+            result[config_name] = {"method": None, "exists": parquet_path.exists()}
+
+    return result
+
+
+def print_optimization_summary(project_root: Path | None = None) -> None:
+    """Print summary of optimization methods used for each config."""
+    all_meta = get_all_optimization_metadata(project_root)
+
+    print("\n📊 Optimization Summary:")
+    print("-" * 50)
+    for config_name, meta in all_meta.items():
+        method = meta.get("method", "NOT FOUND")
+        ic = meta.get("best_ic")
+        ic_str = f" (IC={ic:.4f})" if ic else ""
+        print(f"   {config_name}: {method}{ic_str}")
