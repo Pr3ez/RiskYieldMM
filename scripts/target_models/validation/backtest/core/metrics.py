@@ -4,6 +4,7 @@ Core Metrics Module
 Contains metrics computation functions for backtest evaluation:
 - build_step_metrics: Build classification and regression metrics for a step
 - compute_config_metrics: Compute final metrics for a single config
+- compute_direction_weighted_accuracy: Weighted accuracy for direction targets
 
 Dependencies:
 - ConfigData dataclass (from services for type hints only)
@@ -30,6 +31,170 @@ from sklearn.metrics import (
 # Type-only import to avoid circular dependency
 if TYPE_CHECKING:
     pass
+
+
+# =============================================================================
+# WEIGHTED ACCURACY SCORING MATRICES
+# =============================================================================
+# For ordinal targets, gives partial credit for predictions that are
+# "close" to the correct class in the ordered space.
+#
+# Scoring logic:
+#   - Exact match: 1.0
+#   - Adjacent class (1 step away): 0.75
+#   - 2 steps away: 0.25
+#   - Opposite direction: 0.0
+
+# -----------------------------------------------------------------------------
+# DIRECTION (5-class): STRONG_BULLISH, BULLISH, NEUTRAL, BEARISH, STRONG_BEARISH
+# -----------------------------------------------------------------------------
+DIRECTION_SCORE = {
+    0: {0: 1.0, 1: 0.75, 2: 0.25, 3: 0.0, 4: 0.0},  # STRONG_BULLISH
+    1: {0: 0.75, 1: 1.0, 2: 0.25, 3: 0.0, 4: 0.0},  # BULLISH
+    2: {0: 0.25, 1: 0.25, 2: 1.0, 3: 0.25, 4: 0.25},  # NEUTRAL
+    3: {0: 0.0, 1: 0.0, 2: 0.25, 3: 1.0, 4: 0.75},  # BEARISH
+    4: {0: 0.0, 1: 0.0, 2: 0.25, 3: 0.75, 4: 1.0},  # STRONG_BEARISH
+}
+
+# -----------------------------------------------------------------------------
+# TRADE_SETUP (4-class): STRONG_LONG, LONG_SETUP, SHORT_SETUP, STRONG_SHORT
+# -----------------------------------------------------------------------------
+TRADE_SETUP_SCORE = {
+    0: {0: 1.0, 1: 0.75, 2: 0.0, 3: 0.0},  # STRONG_LONG
+    1: {0: 0.75, 1: 1.0, 2: 0.25, 3: 0.0},  # LONG_SETUP (adjacent to both)
+    2: {0: 0.0, 1: 0.25, 2: 1.0, 3: 0.75},  # SHORT_SETUP (adjacent to both)
+    3: {0: 0.0, 1: 0.0, 2: 0.75, 3: 1.0},  # STRONG_SHORT
+}
+
+# -----------------------------------------------------------------------------
+# TREND_REGIME (3-class): UP, SIDEWAYS, DOWN
+# -----------------------------------------------------------------------------
+TREND_REGIME_SCORE = {
+    0: {0: 1.0, 1: 0.5, 2: 0.0},  # UP
+    1: {0: 0.5, 1: 1.0, 2: 0.5},  # SIDEWAYS (middle ground)
+    2: {0: 0.0, 1: 0.5, 2: 1.0},  # DOWN
+}
+
+# -----------------------------------------------------------------------------
+# PATH_LABEL_5 (5-class): STRONG_TREND_UP, WEAK_TREND_UP, SIDEWAYS, WEAK_TREND_DOWN, STRONG_TREND_DOWN
+# -----------------------------------------------------------------------------
+PATH_LABEL_5_SCORE = {
+    0: {0: 1.0, 1: 0.75, 2: 0.25, 3: 0.0, 4: 0.0},  # STRONG_TREND_UP
+    1: {0: 0.75, 1: 1.0, 2: 0.5, 3: 0.0, 4: 0.0},  # WEAK_TREND_UP
+    2: {0: 0.25, 1: 0.5, 2: 1.0, 3: 0.5, 4: 0.25},  # SIDEWAYS
+    3: {0: 0.0, 1: 0.0, 2: 0.5, 3: 1.0, 4: 0.75},  # WEAK_TREND_DOWN
+    4: {0: 0.0, 1: 0.0, 2: 0.25, 3: 0.75, 4: 1.0},  # STRONG_TREND_DOWN
+}
+
+# -----------------------------------------------------------------------------
+# STRATEGY_LABEL (5-class): FLAT, TREND_FOLLOW_LONG, TREND_FOLLOW_SHORT, MEAN_REVERT_LONG, MEAN_REVERT_SHORT
+# Strategy labels are not strictly ordinal - give partial credit for same action type
+# -----------------------------------------------------------------------------
+STRATEGY_LABEL_SCORE = {
+    # FLAT (0) - partial credit for any non-aggressive
+    0: {0: 1.0, 1: 0.25, 2: 0.25, 3: 0.25, 4: 0.25},
+    # TREND_FOLLOW_LONG (1) - partial credit for LONG actions
+    1: {0: 0.25, 1: 1.0, 2: 0.0, 3: 0.5, 4: 0.0},
+    # TREND_FOLLOW_SHORT (2) - partial credit for SHORT actions
+    2: {0: 0.25, 1: 0.0, 2: 1.0, 3: 0.0, 4: 0.5},
+    # MEAN_REVERT_LONG (3) - partial credit for LONG actions
+    3: {0: 0.25, 1: 0.5, 2: 0.0, 3: 1.0, 4: 0.0},
+    # MEAN_REVERT_SHORT (4) - partial credit for SHORT actions
+    4: {0: 0.25, 1: 0.0, 2: 0.5, 3: 0.0, 4: 1.0},
+}
+
+# Map target prefix to scoring matrix
+WEIGHTED_SCORE_MATRICES = {
+    "direction": DIRECTION_SCORE,
+    "trade_setup": TRADE_SETUP_SCORE,
+    "trend_regime": TREND_REGIME_SCORE,
+    "path_label_5": PATH_LABEL_5_SCORE,
+    "strategy_label": STRATEGY_LABEL_SCORE,
+}
+
+
+def compute_weighted_accuracy(
+    y_true: np.ndarray | list,
+    y_pred: np.ndarray | list,
+    score_matrix: dict[int, dict[int, float]],
+) -> float:
+    """
+    Compute weighted accuracy using a scoring matrix.
+
+    Gives partial credit based on the score_matrix[pred][actual] values.
+
+    Args:
+        y_true: Array of actual class labels
+        y_pred: Array of predicted class labels
+        score_matrix: Dict of {pred: {actual: score}} mappings
+
+    Returns:
+        Weighted accuracy score (0.0 to 1.0)
+    """
+    y_true = np.asarray(y_true).astype(int)
+    y_pred = np.asarray(y_pred).astype(int)
+
+    if len(y_true) == 0:
+        return 0.0
+
+    total_score = 0.0
+    for pred, actual in zip(y_pred, y_true):
+        # Handle out-of-range values gracefully
+        if pred in score_matrix and actual in score_matrix[pred]:
+            total_score += score_matrix[pred][actual]
+        elif pred == actual:
+            total_score += 1.0  # Exact match fallback
+
+    return total_score / len(y_true)
+
+
+def compute_direction_weighted_accuracy(
+    y_true: np.ndarray | list,
+    y_pred: np.ndarray | list,
+) -> float:
+    """
+    Compute weighted accuracy for direction targets with partial credit.
+
+    Gives partial credit when prediction is directionally correct but
+    intensity is wrong (e.g., pred=BULLISH, actual=STRONG_BULLISH = 0.75).
+
+    Args:
+        y_true: Array of actual class labels (0-4)
+        y_pred: Array of predicted class labels (0-4)
+
+    Returns:
+        Weighted accuracy score (0.0 to 1.0)
+
+    Example:
+        >>> y_true = [0, 1, 2, 3, 4]  # STRONG_BULL, BULL, NEUTRAL, BEAR, STRONG_BEAR
+        >>> y_pred = [1, 1, 2, 3, 3]  # BULL, BULL, NEUTRAL, BEAR, BEAR
+        >>> compute_direction_weighted_accuracy(y_true, y_pred)
+        0.9  # (0.75 + 1.0 + 1.0 + 1.0 + 0.75) / 5
+    """
+    return compute_weighted_accuracy(y_true, y_pred, DIRECTION_SCORE)
+
+
+def get_weighted_accuracy_for_config(
+    config_name: str,
+    y_true: np.ndarray | list,
+    y_pred: np.ndarray | list,
+) -> float | None:
+    """
+    Get weighted accuracy for a config if it supports weighted scoring.
+
+    Args:
+        config_name: Config name (e.g., "direction_1bar", "trade_setup_1bar")
+        y_true: Array of actual class labels
+        y_pred: Array of predicted class labels
+
+    Returns:
+        Weighted accuracy score (0.0 to 1.0) or None if not supported
+    """
+    # Find matching score matrix by prefix
+    for prefix, score_matrix in WEIGHTED_SCORE_MATRICES.items():
+        if config_name.startswith(prefix):
+            return compute_weighted_accuracy(y_true, y_pred, score_matrix)
+    return None
 
 
 def build_step_metrics(
@@ -108,6 +273,27 @@ def build_step_metrics(
                 preds["covered"].mean() * 100 if preds["covered"].notna().any() else 0.0
             )
 
+            # Weighted accuracy for direction targets (partial credit for directionally correct)
+            is_direction = config_name.startswith("direction")
+            if is_direction:
+                weighted_acc = compute_direction_weighted_accuracy(
+                    y_true_arr, y_pred_arr
+                )
+                cb_weighted_acc = compute_direction_weighted_accuracy(
+                    y_true_arr, cb_preds
+                )
+                lgb_weighted_acc = compute_direction_weighted_accuracy(
+                    y_true_arr, lgb_preds
+                )
+                lin_weighted_acc = compute_direction_weighted_accuracy(
+                    y_true_arr, lin_preds
+                )
+            else:
+                weighted_acc = acc  # Same as strict accuracy for non-direction
+                cb_weighted_acc = cb_acc
+                lgb_weighted_acc = lgb_acc
+                lin_weighted_acc = lin_acc
+
             cls_metrics.append(
                 {
                     "step": step,
@@ -118,6 +304,10 @@ def build_step_metrics(
                     "cb_acc": cb_acc,
                     "lgb_acc": lgb_acc,
                     "lin_acc": lin_acc,
+                    "ens_weighted_acc": weighted_acc,
+                    "cb_weighted_acc": cb_weighted_acc,
+                    "lgb_weighted_acc": lgb_weighted_acc,
+                    "lin_weighted_acc": lin_weighted_acc,
                     "auc": auc,
                     "precision": prec,
                     "recall": rec,

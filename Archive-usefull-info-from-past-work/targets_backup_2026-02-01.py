@@ -69,20 +69,11 @@ if TYPE_CHECKING:
 
 
 class DirectionLabel(IntEnum):
-    """5-class direction labels from 15m BBand analysis with persistence.
+    """3-class direction labels (tristate from triple barrier)."""
 
-    Uses Bollinger Bands on 15m data to classify direction based on:
-    1. Where price spent time relative to bands
-    2. Whether it persisted in that zone (especially toward end of 8h)
-
-    Classes ordered bullish → bearish for intuitive label values.
-    """
-
-    STRONG_BULLISH = 0  # >50% above upper band AND closes above upper
-    BULLISH = 1  # >50% above mid AND closes above mid
-    NEUTRAL = 2  # Around mid OR direction reversed / didn't persist
-    BEARISH = 3  # >50% below mid AND closes below mid
-    STRONG_BEARISH = 4  # >50% below lower band AND closes below lower
+    DOWN = 0  # Clear short signal (SL hit or strong negative)
+    UP = 1  # Clear long signal (TP hit or strong positive)
+    NEUTRAL = 2  # No clear signal (TIME barrier, weak move)
 
 
 class VolatilityRegimeLabel(IntEnum):
@@ -262,9 +253,9 @@ def register_target(
 @register_target(
     name="direction",
     task_type="classification",
-    n_classes=5,
-    target_column="y_direction_5c",
-    description="5-class direction from 15m BBand analysis with persistence",
+    n_classes=3,
+    target_column="y_direction_3c",
+    description="3-class direction from triple barrier (DOWN/UP/NEUTRAL)",
     label_enum=DirectionLabel,
 )
 def compute_direction(
@@ -272,91 +263,59 @@ def compute_direction(
     high: pd.Series,
     low: pd.Series,
     horizon: int,
+    tb_barrier: pd.Series | None = None,
+    tb_return: pd.Series | None = None,
     **kwargs: Any,
 ) -> pd.Series:
     """
-    Compute 5-class direction target using 15m BBand analysis.
+    Compute 3-class direction target.
 
-    Uses 5-level Bollinger Bands on 15m data:
-        Upper (2σ) > Upper-mid (1σ) > Mid (SMA) > Lower-mid (-1σ) > Lower (-2σ)
+    Uses triple-barrier information if available, otherwise falls back
+    to return magnitude thresholds.
 
-    Classification based on:
-    1. WHERE price spent time relative to bands (position)
-    2. WHETHER it persisted in that zone (closes there at end of 8h)
-
-    Classification logic:
-    - STRONG_BULLISH (0): >50% above 1σ band AND closes above 1σ
-    - BULLISH (1): >50% above mid AND closes above mid (but not strong)
-    - NEUTRAL (2): Mixed zones OR didn't persist at close
-    - BEARISH (3): >50% below mid AND closes below mid (but not strong)
-    - STRONG_BEARISH (4): >50% below -1σ band AND closes below -1σ
-
-    The "persistence" requirement (closes in same zone) filters out:
-    - Brief spikes that reversed
-    - False breakouts that failed to hold
-
-    The target is shifted by -horizon to predict the NEXT bar(s).
+    Labels:
+        0 (DOWN): Clear short signal (SL hit or strong negative)
+        1 (UP): Clear long signal (TP hit or strong positive)
+        2 (NEUTRAL): No clear signal (TIME barrier, weak move)
     """
-    # Get 15m analysis with BBand data
-    analysis = _get_15m_analysis(close)
-    analysis = analysis.reindex(close.index)
-
-    # Extract BBand columns (5-level bands)
-    pct_above_upper_mid = analysis["bband_pct_above_upper_mid"]  # 1σ for STRONG_BULLISH
-    pct_above_mid = analysis["bband_pct_above_mid"]
-    pct_below_mid = analysis["bband_pct_below_mid"]
-    pct_below_lower_mid = analysis[
-        "bband_pct_below_lower_mid"
-    ]  # -1σ for STRONG_BEARISH
-
-    closes_above_upper_mid = analysis["bband_closes_above_upper_mid"]
-    closes_above_mid = analysis["bband_closes_above_mid"]
-    closes_below_mid = analysis["bband_closes_below_mid"]
-    closes_below_lower_mid = analysis["bband_closes_below_lower_mid"]
+    # Compute net candle return
+    future_high = high.shift(-horizon)
+    future_low = low.shift(-horizon)
+    up_move = (future_high - close) / close
+    down_move = (close - future_low) / close
+    net_candle_ret = up_move - down_move
 
     # Initialize as NEUTRAL
-    result = pd.Series(DirectionLabel.NEUTRAL, index=close.index, dtype=float)
+    labels = pd.Series(DirectionLabel.NEUTRAL, index=close.index, dtype=np.int8)
 
-    # Persistence threshold: must spend >50% of time in zone
-    PERSISTENCE_THRESHOLD = 0.5
+    if tb_barrier is not None and tb_return is not None:
+        # Use triple-barrier information (most accurate)
+        labels[tb_barrier == "TP"] = DirectionLabel.UP
+        labels[tb_barrier == "SL"] = DirectionLabel.DOWN
 
-    # STRONG_BULLISH: >50% above 1σ band AND closes above 1σ
-    strong_bullish = (pct_above_upper_mid > PERSISTENCE_THRESHOLD) & (
-        closes_above_upper_mid == True  # noqa: E712
-    )
-    result[strong_bullish] = DirectionLabel.STRONG_BULLISH
+        # TIME barrier: only classify if move is significant
+        rolling_vol = net_candle_ret.rolling(21, min_periods=10).std()
+        threshold = 0.5 * rolling_vol.clip(lower=0.005, upper=0.05)
+        threshold = threshold.bfill()
 
-    # STRONG_BEARISH: >50% below -1σ band AND closes below -1σ
-    strong_bearish = (pct_below_lower_mid > PERSISTENCE_THRESHOLD) & (
-        closes_below_lower_mid == True  # noqa: E712
-    )
-    result[strong_bearish] = DirectionLabel.STRONG_BEARISH
+        time_mask = tb_barrier == "TIME"
+        labels.loc[time_mask & (tb_return > threshold)] = DirectionLabel.UP
+        labels.loc[time_mask & (tb_return < -threshold)] = DirectionLabel.DOWN
+    else:
+        # Fallback: use return magnitude thresholds
+        rolling_vol = net_candle_ret.rolling(21, min_periods=10).std()
+        threshold = 0.5 * rolling_vol.clip(lower=0.005, upper=0.05)
+        threshold = threshold.bfill()
 
-    # BULLISH: >50% above mid AND closes above mid (exclude already strong bullish)
-    bullish = (
-        (pct_above_mid > PERSISTENCE_THRESHOLD)
-        & (closes_above_mid == True)  # noqa: E712
-        & ~strong_bullish
-    )
-    result[bullish] = DirectionLabel.BULLISH
+        labels[net_candle_ret > threshold] = DirectionLabel.UP
+        labels[net_candle_ret < -threshold] = DirectionLabel.DOWN
 
-    # BEARISH: >50% below mid AND closes below mid (exclude already strong bearish)
-    bearish = (
-        (pct_below_mid > PERSISTENCE_THRESHOLD)
-        & (closes_below_mid == True)  # noqa: E712
-        & ~strong_bearish
-    )
-    result[bearish] = DirectionLabel.BEARISH
+    # Set NaN for rows where we can't compute (last horizon rows due to shift)
+    # Convert to float to allow NaN values
+    labels = labels.astype(float)
+    labels[net_candle_ret.isna()] = np.nan
 
-    # Everything else remains NEUTRAL (mixed zones or didn't persist)
-
-    # Handle NaN (missing data)
-    result[pct_above_mid.isna()] = np.nan
-
-    # Shift by -horizon to make it a forward-looking target
-    result = result.shift(-horizon)
-
-    return result
+    return labels
 
 
 @register_target(
@@ -476,30 +435,6 @@ class FirstExtremeLabel(IntEnum):
     HIGH_FIRST = 1  # 8h high was touched before 8h low
 
 
-class TradeSetupLabel(IntEnum):
-    """4-class trade setup labels based on BBand touch sequence.
-
-    Predicts pullback entry opportunities by detecting which band was
-    touched first during the 8h window. The sequence tells us if there
-    was a dip (long setup) or rally (short setup) before the opposite move.
-
-    Uses 5-level BBands:
-        +2σ (upper)      → STRONG_SHORT entry signal
-        +1σ (upper_mid)  → SHORT entry / LONG target
-        SMA (mid)        → boundary
-        -1σ (lower_mid)  → LONG entry / SHORT target
-        -2σ (lower)      → STRONG_LONG entry signal
-
-    Classes ordered by bullish → bearish for intuitive label values.
-    Rare cases (~1%) where no band touched are assigned based on net return.
-    """
-
-    STRONG_LONG = 0  # Touched -2σ BEFORE reaching +1σ (deep pullback buy)
-    LONG_SETUP = 1  # Touched -1σ BEFORE reaching +1σ (pullback buy)
-    SHORT_SETUP = 2  # Touched +1σ BEFORE reaching -1σ (pullback short)
-    STRONG_SHORT = 3  # Touched +2σ BEFORE reaching -1σ (deep pullback short)
-
-
 def _load_15m_data_for_8h(
     timestamps_8h: pd.DatetimeIndex,
     data_dir: str = "fetchingByBit/sorted-15m-bybit-linear",
@@ -512,6 +447,9 @@ def _load_15m_data_for_8h(
 
     Returns DataFrame with columns:
         - timestamp_8h: The 8h bar timestamp
+        - bars_15m: List of 32 15m OHLCV dicts for that period
+        - high_8h: Max high across 32 bars
+        - low_8h: Min low across 32 bars
         - first_extreme: 'high' or 'low' (which was hit first)
         - time_to_first: Bars until first extreme (0-31)
         - vol_to_first: |price move| to first extreme
@@ -520,21 +458,6 @@ def _load_15m_data_for_8h(
         - high_time_idx: Bar index when high was hit (0-31)
         - low_time_idx: Bar index when low was hit (0-31)
         - net_return: (close - open) / open for the 8h period
-        # BBand analysis (5-level: ±2σ and ±1σ bands)
-        - bband_pct_above_upper: % of bars closing above +2σ band
-        - bband_pct_above_upper_mid: % of bars closing above +1σ band
-        - bband_pct_above_mid: % of bars closing above SMA
-        - bband_pct_below_mid: % of bars closing below SMA
-        - bband_pct_below_lower_mid: % of bars closing below -1σ band
-        - bband_pct_below_lower: % of bars closing below -2σ band
-        - bband_closes_above_upper: Final bar closes above +2σ
-        - bband_closes_above_upper_mid: Final bar closes above +1σ
-        - bband_closes_above_mid: Final bar closes above SMA
-        - bband_closes_below_mid: Final bar closes below SMA
-        - bband_closes_below_lower_mid: Final bar closes below -1σ
-        - bband_closes_below_lower: Final bar closes below -2σ
-
-    BBand parameters: 20-period SMA with ±1σ and ±2σ bands on 15m close.
     """
     from pathlib import Path
 
@@ -583,24 +506,6 @@ def _load_15m_data_for_8h(
                     "high_time_idx": np.nan,
                     "low_time_idx": np.nan,
                     "net_return": np.nan,
-                    # BBand columns (all NaN for insufficient bars)
-                    "bband_pct_above_upper": np.nan,
-                    "bband_pct_above_upper_mid": np.nan,
-                    "bband_pct_above_mid": np.nan,
-                    "bband_pct_below_mid": np.nan,
-                    "bband_pct_below_lower_mid": np.nan,
-                    "bband_pct_below_lower": np.nan,
-                    "bband_closes_above_upper": np.nan,
-                    "bband_closes_above_upper_mid": np.nan,
-                    "bband_closes_above_mid": np.nan,
-                    "bband_closes_below_mid": np.nan,
-                    "bband_closes_below_lower_mid": np.nan,
-                    "bband_closes_below_lower": np.nan,
-                    # First touch columns (all NaN for insufficient bars)
-                    "first_touch_upper": np.nan,
-                    "first_touch_upper_mid": np.nan,
-                    "first_touch_lower_mid": np.nan,
-                    "first_touch_lower": np.nan,
                 }
             )
             continue
@@ -666,140 +571,6 @@ def _load_15m_data_for_8h(
         # Clamp retracement to [0, 1] for edge cases
         retracement = max(0.0, min(1.0, retracement))
 
-        # =====================================================================
-        # BOLLINGER BAND ANALYSIS (20-period, multi-level bands on 15m close)
-        # =====================================================================
-        # Extended BBands with 5 levels:
-        #   Upper (2σ) > Upper-mid (1σ) > Mid (SMA) > Lower-mid (-1σ) > Lower (-2σ)
-        # On 15m data: 20 bars = 5 hours lookback
-        bband_period = 20
-
-        closes = bars["close"]
-
-        # Calculate rolling BBands (need at least bband_period bars)
-        if len(bars) >= bband_period:
-            sma = closes.rolling(bband_period).mean()
-            std = closes.rolling(bband_period).std()
-
-            # 5-level bands
-            upper_band = sma + 2.0 * std  # +2σ (outer upper)
-            upper_mid_band = sma + 1.0 * std  # +1σ (inner upper) ← for STRONG_BULLISH
-            mid_band = sma  # SMA
-            lower_mid_band = sma - 1.0 * std  # -1σ (inner lower) ← for STRONG_BEARISH
-            lower_band = sma - 2.0 * std  # -2σ (outer lower)
-
-            # Only analyze bars where BBands are valid (after warmup)
-            valid_mask = ~sma.isna()
-            valid_closes = closes[valid_mask]
-            valid_upper = upper_band[valid_mask]
-            valid_upper_mid = upper_mid_band[valid_mask]
-            valid_mid = mid_band[valid_mask]
-            valid_lower_mid = lower_mid_band[valid_mask]
-            valid_lower = lower_band[valid_mask]
-
-            n_valid = len(valid_closes)
-            if n_valid > 0:
-                # Count bars in each zone
-                above_upper = (valid_closes > valid_upper).sum()
-                above_upper_mid = (valid_closes > valid_upper_mid).sum()
-                above_mid = (valid_closes > valid_mid).sum()
-                below_mid = (valid_closes < valid_mid).sum()
-                below_lower_mid = (valid_closes < valid_lower_mid).sum()
-                below_lower = (valid_closes < valid_lower).sum()
-
-                # Percentages
-                pct_above_upper = above_upper / n_valid
-                pct_above_upper_mid = above_upper_mid / n_valid
-                pct_above_mid = above_mid / n_valid
-                pct_below_mid = below_mid / n_valid
-                pct_below_lower_mid = below_lower_mid / n_valid
-                pct_below_lower = below_lower / n_valid
-
-                # Final close position relative to bands
-                final_close = valid_closes.iloc[-1]
-                final_upper = valid_upper.iloc[-1]
-                final_upper_mid = valid_upper_mid.iloc[-1]
-                final_mid = valid_mid.iloc[-1]
-                final_lower_mid = valid_lower_mid.iloc[-1]
-                final_lower = valid_lower.iloc[-1]
-
-                closes_above_upper = final_close > final_upper
-                closes_above_upper_mid = final_close > final_upper_mid
-                closes_above_mid = final_close > final_mid
-                closes_below_mid = final_close < final_mid
-                closes_below_lower_mid = final_close < final_lower_mid
-                closes_below_lower = final_close < final_lower
-
-                # =============================================================
-                # FIRST TOUCH DETECTION (for trade_setup target)
-                # Track which bar index first closed beyond each band
-                # -1 means never touched during this 8h window
-                # =============================================================
-                first_touch_upper = -1  # First close above +2σ
-                first_touch_upper_mid = -1  # First close above +1σ
-                first_touch_lower_mid = -1  # First close below -1σ
-                first_touch_lower = -1  # First close below -2σ
-
-                for idx in range(n_valid):
-                    c = valid_closes.iloc[idx]
-                    # Check upper bands (bullish touches)
-                    if first_touch_upper == -1 and c > valid_upper.iloc[idx]:
-                        first_touch_upper = idx
-                    if first_touch_upper_mid == -1 and c > valid_upper_mid.iloc[idx]:
-                        first_touch_upper_mid = idx
-                    # Check lower bands (bearish touches)
-                    if first_touch_lower_mid == -1 and c < valid_lower_mid.iloc[idx]:
-                        first_touch_lower_mid = idx
-                    if first_touch_lower == -1 and c < valid_lower.iloc[idx]:
-                        first_touch_lower = idx
-                    # Early exit if all bands touched
-                    if all(
-                        x != -1
-                        for x in [
-                            first_touch_upper,
-                            first_touch_upper_mid,
-                            first_touch_lower_mid,
-                            first_touch_lower,
-                        ]
-                    ):
-                        break
-            else:
-                pct_above_upper = np.nan
-                pct_above_upper_mid = np.nan
-                pct_above_mid = np.nan
-                pct_below_mid = np.nan
-                pct_below_lower_mid = np.nan
-                pct_below_lower = np.nan
-                closes_above_upper = np.nan
-                closes_above_upper_mid = np.nan
-                closes_above_mid = np.nan
-                closes_below_mid = np.nan
-                closes_below_lower_mid = np.nan
-                closes_below_lower = np.nan
-                # First touch (NaN for invalid BBand data)
-                first_touch_upper = np.nan
-                first_touch_upper_mid = np.nan
-                first_touch_lower_mid = np.nan
-                first_touch_lower = np.nan
-        else:
-            pct_above_upper = np.nan
-            pct_above_upper_mid = np.nan
-            pct_above_mid = np.nan
-            pct_below_mid = np.nan
-            pct_below_lower_mid = np.nan
-            pct_below_lower = np.nan
-            closes_above_upper = np.nan
-            closes_above_upper_mid = np.nan
-            closes_above_mid = np.nan
-            closes_below_mid = np.nan
-            closes_below_lower_mid = np.nan
-            closes_below_lower = np.nan
-            # First touch (NaN for insufficient bars)
-            first_touch_upper = np.nan
-            first_touch_upper_mid = np.nan
-            first_touch_lower_mid = np.nan
-            first_touch_lower = np.nan
-
         results.append(
             {
                 "timestamp_8h": ts_8h,
@@ -815,26 +586,6 @@ def _load_15m_data_for_8h(
                 "high_time_idx": high_time_idx,
                 "low_time_idx": low_time_idx,
                 "net_return": net_return,
-                # BBand analysis (5-level bands)
-                "bband_pct_above_upper": pct_above_upper,
-                "bband_pct_above_upper_mid": pct_above_upper_mid,
-                "bband_pct_above_mid": pct_above_mid,
-                "bband_pct_below_mid": pct_below_mid,
-                "bband_pct_below_lower_mid": pct_below_lower_mid,
-                "bband_pct_below_lower": pct_below_lower,
-                "bband_closes_above_upper": closes_above_upper,
-                "bband_closes_above_upper_mid": closes_above_upper_mid,
-                "bband_closes_above_mid": closes_above_mid,
-                "bband_closes_below_mid": closes_below_mid,
-                "bband_closes_below_lower_mid": closes_below_lower_mid,
-                "bband_closes_below_lower": closes_below_lower,
-                # First touch indices (for trade_setup target)
-                # Bar index (0-based) when price first closed beyond each band
-                # -1 means never touched during this 8h window
-                "first_touch_upper": first_touch_upper,  # First close > +2σ
-                "first_touch_upper_mid": first_touch_upper_mid,  # First close > +1σ
-                "first_touch_lower_mid": first_touch_lower_mid,  # First close < -1σ
-                "first_touch_lower": first_touch_lower,  # First close < -2σ
             }
         )
 
@@ -976,92 +727,6 @@ def compute_vol_to_extreme(
     analysis = _get_15m_analysis(close)
     result = analysis["vol_to_first"].reindex(close.index)
     # Shift by -horizon to make it a forward-looking target
-    result = result.shift(-horizon)
-    return result
-
-
-@register_target(
-    name="trade_setup",
-    task_type="classification",
-    n_classes=4,
-    target_column="y_trade_setup",
-    description="4-class trade setup from BBand touch sequence (pullback entry opportunities)",
-    label_enum=TradeSetupLabel,
-)
-def compute_trade_setup(
-    close: pd.Series,
-    high: pd.Series,
-    low: pd.Series,
-    horizon: int,
-    **kwargs: Any,
-) -> pd.Series:
-    """
-    Compute trade setup target based on BBand touch sequence.
-
-    Detects pullback entry opportunities by tracking which band was
-    touched first during the 8h window:
-
-    - STRONG_LONG (0): Touched -2σ BEFORE reaching +1σ (deep pullback buy)
-    - LONG_SETUP (1): Touched -1σ BEFORE reaching +1σ (pullback buy)
-    - SHORT_SETUP (2): Touched +1σ BEFORE reaching -1σ (pullback short)
-    - STRONG_SHORT (3): Touched +2σ BEFORE reaching -1σ (deep pullback short)
-
-    Uses first_touch_* columns from 15m BBand analysis to determine sequence.
-    Value of -1 means the band was never touched during the 8h window.
-    Rare cases (~1%) where no band was touched are assigned to LONG_SETUP or
-    SHORT_SETUP based on net return direction to avoid class imbalance issues.
-
-    The target is shifted by -horizon to predict the NEXT bar(s).
-    """
-    analysis = _get_15m_analysis(close)
-
-    # Get first touch indices (-1 = never touched)
-    ft_upper = analysis["first_touch_upper"]  # First close > +2σ
-    ft_upper_mid = analysis["first_touch_upper_mid"]  # First close > +1σ
-    ft_lower_mid = analysis["first_touch_lower_mid"]  # First close < -1σ
-    ft_lower = analysis["first_touch_lower"]  # First close < -2σ
-    net_return = analysis["net_return"]  # For assigning ambiguous cases
-
-    # Initialize result (will assign all values below)
-    result = pd.Series(np.nan, index=analysis.index, dtype="float64")
-
-    # STRONG_LONG: Touched -2σ BEFORE reaching +1σ
-    # Either: never touched +1σ, OR touched -2σ first
-    strong_long = (ft_lower >= 0) & (
-        (ft_upper_mid < 0) | (ft_lower < ft_upper_mid)  # Never reached +1σ
-    )
-    result[strong_long] = TradeSetupLabel.STRONG_LONG
-
-    # LONG_SETUP: Touched -1σ BEFORE reaching +1σ (but not already STRONG_LONG)
-    long_setup = (
-        ~strong_long
-        & (ft_lower_mid >= 0)
-        & ((ft_upper_mid < 0) | (ft_lower_mid < ft_upper_mid))
-    )
-    result[long_setup] = TradeSetupLabel.LONG_SETUP
-
-    # STRONG_SHORT: Touched +2σ BEFORE reaching -1σ
-    strong_short = (ft_upper >= 0) & (
-        (ft_lower_mid < 0) | (ft_upper < ft_lower_mid)  # Never reached -1σ
-    )
-    result[strong_short] = TradeSetupLabel.STRONG_SHORT
-
-    # SHORT_SETUP: Touched +1σ BEFORE reaching -1σ (but not already STRONG_SHORT)
-    short_setup = (
-        ~strong_short
-        & (ft_upper_mid >= 0)
-        & ((ft_lower_mid < 0) | (ft_upper_mid < ft_lower_mid))
-    )
-    result[short_setup] = TradeSetupLabel.SHORT_SETUP
-
-    # Handle rare cases (~1%) where no band was touched
-    # Assign to LONG_SETUP or SHORT_SETUP based on net return direction
-    unassigned = result.isna()
-    result[unassigned & (net_return >= 0)] = TradeSetupLabel.LONG_SETUP
-    result[unassigned & (net_return < 0)] = TradeSetupLabel.SHORT_SETUP
-
-    # Reindex to match close.index and shift for prediction
-    result = result.reindex(close.index)
     result = result.shift(-horizon)
     return result
 

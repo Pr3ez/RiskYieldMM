@@ -1,37 +1,24 @@
-<todos title="main_wf.py target validation - comprehensive" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
-- [x] check-workflow-config: Check scripts/workflow/config.py - WORKFLOW_TARGETS 🔴 🔴
-  _✅ VERIFIED:
-- WORKFLOW_TARGETS has 'volatility_regime'
-- get_workflow_configs() generates correct config names
-- All L1/L2 backtest uses WORKFLOW_TARGETS_
-- [x] check-targets-py: Check scripts/workflow/targets.py - compute_target_polars 🔴 🔴
-  _✅ VERIFIED:
-- @register_target('volatility_regime') defined
-- compute_target_polars handles volatility_regime
-- Formula: INCREASE if future_vol > current_vol else DECREASE_
-- [x] check-run-py: Check scripts/analysis/run.py - cmd_build_datasets 🔴 🔴
-  _✅ VERIFIED:
-- cmd_build_datasets uses compute_target_polars (centralized)
-- Step 4 builds correct datasets
-- Old vol_spike logic in cmd_auto_optimize/cmd_optimize_features NOT USED in main_wf_
-- [x] check-data-py: Check scripts/analysis/data.py - create_analysis_dataset 🔴 🔴
-  _✅ VERIFIED (just fixed):
-- y_volatility_regime computed with Option C formula
-- Creates analysis_8h.parquet for Step 2_
-- [x] check-analysis-config: Check scripts/analysis/config.py - TARGET_COLS 🟡 🟡
-  _⚠️ NEEDS UPDATE:
-- Has old y_vol_spike in TARGET_COLS list
-- Used by get_target_columns() for filtering
-- LOW PRIORITY: doesn't block main_wf_
-- [x] check-backtest-labels: Check backtest/services/backtest.py - LABEL_NAMES 🔴 🔴
-  _✅ VERIFIED:
-- LABEL_NAMES has volatility_regime with DECREASE/INCREASE_
-- [ ] cleanup-old-refs: Optional: Clean up old comments and unused functions 🟢 🟢
-  _⚠️ OPTIONAL:
-- signal_labels.py has old comments referencing vol_regime
-- run.py CLI functions have old vol_spike references
-- main_wf.py doesn't use these functions
-- LOW PRIORITY: cleanup only_
+<todos title="path_label_7 Target Implementation" rule="Review steps frequently throughout the conversation and DO NOT stop between steps unless they explicitly require it.">
+- [x] add-enum: Add PathLabel7Class enum to scripts/workflow/targets.py near other enums (line ~70) 🔴
+  _Added 7-class IntEnum: STRONG_BULLISH=0 through STRONG_BEARISH=6 after TrendRegimeLabel_
+- [x] extend-helper: Extend _load_15m_data_for_8h helper with efficiency_ratio, retracement, high_time_idx, low_time_idx, net_return 🔴
+  _CAREFUL: existing targets first_extreme, vol_to_extreme use this helper - must not break them_
+- [x] validate-existing: Validate existing targets (first_extreme, vol_to_extreme) still work after helper change 🔴
+  _CRITICAL checkpoint - must pass before proceeding_
+- [x] register-function: Register compute_path_label_7 function with @register_target decorator and classification logic 🔴
+  _Thresholds: FLAT_THRESHOLD=0.001, ER_HIGH=0.224, RETURN_75=0.0152, RETRACEMENT_THRESHOLD=0.65_
+- [x] add-workflow-targets: Add 'path_label_7' to scripts/workflow/config.py WORKFLOW_TARGETS list 🟡
+  _Will make target available in Steps 3, 4, 8-10_
+- [x] add-label-names: Add path_label_7 LABEL_NAMES to backtest/services/backtest.py 🟡
+  _Human-readable names for 7 classes_
+- [x] unit-test: Unit test target computation - verify distribution matches empirical analysis 🟡
+  _ALL CLASSES WITHIN 5%! MEAN_REVERT_UP and SIDEWAYS are exact matches (28.1% and 9.4%)_
+- [x] integration-step2: Integration: data.py doesn't need changes - Step 4 uses compute_target_polars() from registry 🔴
+  _Verified: Step 4 auto-picks up from WORKFLOW_TARGETS × compute_target_polars()_
+- [x] integration-test-2-4: Integration test Steps 3-4: verify path_label_7_1bar.parquet created with y_path_label_7 column 🟢
+  _VERIFIED: Step 3 created features_8h_optimized_path_label_7_1bar.parquet (IC=0.0105). Step 4 created data/datasets/path_label_7_1bar.parquet with y_path_label_7 column (5547 valid, 100%)_
+- [ ] update-docs: Update main_wf.py comments and research doc with implementation results 🟢
+  _Final documentation cleanup_
 </todos>
 <astra-workflow>
 ## 📍 Phase: IDLE

@@ -21,8 +21,23 @@ from backtest.adapters.data_loader import (
     load_config_data,
 )
 from backtest.adapters.output import DualOutput
+from backtest.core.display import (
+    CLASSIFICATION_TABLE,
+    PRED_ACTUAL_CLS_TABLE,
+    PRED_ACTUAL_REG_TABLE,
+    REGRESSION_TABLE,
+    RESULTS_CLS_TABLE,
+    RESULTS_REG_TABLE,
+    format_float,
+    format_pct,
+    format_ratio,
+)
 from backtest.core.ensemble import AdaptiveWeightTracker
-from backtest.core.metrics import build_step_metrics, compute_config_metrics
+from backtest.core.metrics import (
+    build_step_metrics,
+    compute_config_metrics,
+    get_weighted_accuracy_for_config,
+)
 from backtest.domain.config import SyncBacktestConfig
 from backtest.services.training import (
     train_predict_classification_permodel,
@@ -59,10 +74,50 @@ ALL_CONFIGS = get_all_configs()
 
 # Human-readable label names for each target type
 LABEL_NAMES = {
-    "direction": {0: "DOWN", 1: "UP", 2: "NEUTRAL"},
+    "direction": {
+        0: "STRONG_BULLISH",
+        1: "BULLISH",
+        2: "NEUTRAL",
+        3: "BEARISH",
+        4: "STRONG_BEARISH",
+    },
     "volatility_regime": {0: "DECREASE", 1: "INCREASE"},
     "trend_regime": {0: "DOWN", 1: "UP"},
     "first_extreme": {0: "LOW", 1: "HIGH"},
+    "trade_setup": {
+        0: "STRONG_LONG",
+        1: "LONG_SETUP",
+        2: "SHORT_SETUP",
+        3: "STRONG_SHORT",
+    },
+    "path_label_7": {
+        0: "STRONG_BULLISH",
+        1: "BULLISH",
+        2: "MEAN_REVERT_UP",
+        3: "SIDEWAYS",
+        4: "MEAN_REVERT_DOWN",
+        5: "BEARISH",
+        6: "STRONG_BEARISH",
+    },
+    "path_label_5": {
+        0: "BULLISH",
+        1: "MEAN_REVERT_UP",
+        2: "SIDEWAYS",
+        3: "MEAN_REVERT_DOWN",
+        4: "BEARISH",
+    },
+    "strategy_label": {
+        0: "FLAT",
+        1: "TREND_FOLLOW_LONG",
+        2: "TREND_FOLLOW_SHORT",
+        3: "MEAN_REVERT_LONG",
+        4: "MEAN_REVERT_SHORT",
+    },
+    "triple_barrier": {
+        0: "STOP_LOSS",
+        1: "TIME_EXIT",
+        2: "TAKE_PROFIT",
+    },
 }
 
 
@@ -592,10 +647,8 @@ def _display_step_metrics(
     print("\n[LATEST PRED vs ACTUAL - ALL CONFIGS]")
     # Classification configs first
     if cls_configs:
-        print(
-            f"{'Config':<24} {'Pred':>8} {'Actual':>8} {'Match':>6} {'|':>2} {'Cum Correct':>12} {'Cum Acc%':>9}"
-        )
-        print("-" * 78)
+        print(PRED_ACTUAL_CLS_TABLE.header())
+        print(PRED_ACTUAL_CLS_TABLE.divider())
         for config_name, data in sorted(cls_configs, key=lambda x: x[0]):
             last_pred = data.predictions[-1]
             y_pred = last_pred["y_pred"]
@@ -609,17 +662,41 @@ def _display_step_metrics(
             n_total = len(preds_df)
             n_correct = (preds_df["y_pred"] == preds_df["y_true"]).sum()
             cum_acc = (n_correct / n_total * 100) if n_total > 0 else 0.0
+
+            # Weighted accuracy for ordinal targets (direction, trade_setup, etc.)
+            weighted_acc = get_weighted_accuracy_for_config(
+                config_name, preds_df["y_true"].values, preds_df["y_pred"].values
+            )
+            if weighted_acc is not None:
+                weighted_acc_pct = weighted_acc * 100
+                weighted_correct = weighted_acc * n_total
+                w_corr_str = f"{weighted_correct:.1f}/{n_total}"
+                w_acc_str = format_pct(weighted_acc_pct)
+            else:
+                w_corr_str = "-"
+                w_acc_str = "-"
+
             print(
-                f"{config_name:<24} {pred_name:>8} {actual_name:>8} {match:>6} {'|':>2} {n_correct:>5}/{n_total:<6} {cum_acc:>8.1f}%"
+                PRED_ACTUAL_CLS_TABLE.row(
+                    [
+                        config_name,
+                        pred_name,
+                        actual_name,
+                        match,
+                        "|",
+                        format_ratio(n_correct, n_total),
+                        format_pct(cum_acc),
+                        w_corr_str,
+                        w_acc_str,
+                    ]
+                )
             )
     # Regression configs
     if reg_configs:
         if cls_configs:
             print()  # Separator between cls and reg
-        print(
-            f"{'Config':<24} {'Pred':>10} {'Actual':>10} {'Err%':>8} {'|':>2} {'Cum Pred':>10} {'Cum Act':>10} {'Cum Err%':>9}"
-        )
-        print("-" * 100)
+        print(PRED_ACTUAL_REG_TABLE.header())
+        print(PRED_ACTUAL_REG_TABLE.divider())
         for config_name, data in sorted(reg_configs, key=lambda x: x[0]):
             last_pred = data.predictions[-1]
             y_pred = last_pred["y_pred"]
@@ -631,30 +708,39 @@ def _display_step_metrics(
                 error_pct = 0.0 if abs(y_pred) < 1e-10 else float("inf")
             # Format with sign and %
             if abs(error_pct) == float("inf"):
-                err_str = "   inf%"
+                err_str = "inf%"
             else:
-                err_str = f"{error_pct:>+7.1f}%"
+                err_str = f"{error_pct:+.1f}%"
             # Cumulative stats
             preds_df = pd.DataFrame(data.predictions)
             cum_pred = preds_df["y_pred"].sum()
             cum_actual = preds_df["y_true"].sum()
             if abs(cum_actual) > 1e-10:
                 cum_err_pct = ((cum_pred - cum_actual) / abs(cum_actual)) * 100
-                cum_err_str = f"{cum_err_pct:>+8.1f}%"
+                cum_err_str = f"{cum_err_pct:+.1f}%"
             else:
-                cum_err_str = "    0.0%" if abs(cum_pred) < 1e-10 else "    inf%"
+                cum_err_str = "0.0%" if abs(cum_pred) < 1e-10 else "inf%"
             print(
-                f"{config_name:<24} {y_pred:>10.6f} {y_true:>10.6f} {err_str} {'|':>2} {cum_pred:>10.4f} {cum_actual:>10.4f} {cum_err_str}"
+                PRED_ACTUAL_REG_TABLE.row(
+                    [
+                        config_name,
+                        f"{y_pred:.6f}",
+                        f"{y_true:.6f}",
+                        err_str,
+                        "|",
+                        f"{cum_pred:.4f}",
+                        f"{cum_actual:.4f}",
+                        cum_err_str,
+                    ]
+                )
             )
 
     # Classification table - show ensemble + individual model accuracy + AUC
     if cls_configs:
         # Section header and column header with proper alignment
         print("\n[CLASSIFICATION]")
-        print(
-            f"{'Config':<20} {'Ens':>6} {'CB':>6} {'LGB':>6} {'LSTM':>6} {'Lin':>6} {'AUC':>6} {'Prec':>6} {'Rec':>6} {'F1':>6} {'N':>5}"
-        )
-        print("-" * 105)
+        print(CLASSIFICATION_TABLE.header())
+        print(CLASSIFICATION_TABLE.divider())
         for config_name, data in cls_configs:
             preds = pd.DataFrame(data.predictions)
             y_true_arr = preds["y_true"].values
@@ -729,6 +815,11 @@ def _display_step_metrics(
             lstm_acc = accuracy_score(y_true_arr, lstm_preds)
             lin_acc = accuracy_score(y_true_arr, lin_preds)
 
+            # Weighted accuracy for ordinal targets (partial credit)
+            weighted_acc = get_weighted_accuracy_for_config(
+                config_name, y_true_arr, y_pred_arr
+            )
+
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
                 prec = precision_score(
@@ -739,19 +830,32 @@ def _display_step_metrics(
                 )
                 f1 = f1_score(y_true_arr, y_pred_arr, average="macro", zero_division=0)
 
-            # Right-aligned values for proper column alignment
+            # Build row using table formatter
             print(
-                f"{config_name:<20} {acc:>6.3f} {cb_acc:>6.3f} {lgb_acc:>6.3f} {lstm_acc:>6.3f} {lin_acc:>6.3f} {auc:>6.3f} {prec:>6.3f} {rec:>6.3f} {f1:>6.3f} {n_samples:>5}"
+                CLASSIFICATION_TABLE.row(
+                    [
+                        config_name,
+                        format_float(acc),
+                        format_float(cb_acc),
+                        format_float(lgb_acc),
+                        format_float(lstm_acc),
+                        format_float(lin_acc),
+                        format_float(auc),
+                        format_float(prec),
+                        format_float(rec),
+                        format_float(f1),
+                        n_samples,
+                        format_float(weighted_acc),
+                    ]
+                )
             )
 
     # Regression table - show ensemble + individual model IC
     if reg_configs:
         # Section header and column header with proper alignment
         print("\n[REGRESSION]")
-        print(
-            f"{'Config':<20} {'Ens_IC':>7} {'CB_IC':>7} {'LGB_IC':>7} {'LSTM_IC':>7} {'Lin_IC':>7} {'RMSE':>10} {'MAE':>10} {'N':>5}"
-        )
-        print("-" * 100)
+        print(REGRESSION_TABLE.header())
+        print(REGRESSION_TABLE.divider())
         for config_name, data in reg_configs:
             preds = pd.DataFrame(data.predictions)
             y_true_arr = preds["y_true"].values.astype(float)
@@ -799,12 +903,24 @@ def _display_step_metrics(
             rmse = np.sqrt(np.mean((y_true_arr - y_pred_arr) ** 2))
             mae = np.mean(np.abs(y_true_arr - y_pred_arr))
 
-            # Right-aligned values for proper column alignment
+            # Build row using table formatter
             print(
-                f"{config_name:<20} {ic:>7.3f} {cb_ic:>7.3f} {lgb_ic:>7.3f} {lstm_ic:>7.3f} {lin_ic:>7.3f} {rmse:>10.6f} {mae:>10.6f} {n_samples:>5}"
+                REGRESSION_TABLE.row(
+                    [
+                        config_name,
+                        f"{ic:.3f}",
+                        f"{cb_ic:.3f}",
+                        f"{lgb_ic:.3f}",
+                        f"{lstm_ic:.3f}",
+                        f"{lin_ic:.3f}",
+                        f"{rmse:.6f}",
+                        f"{mae:.6f}",
+                        n_samples,
+                    ]
+                )
             )
 
-    print("-" * 100)
+    print(REGRESSION_TABLE.divider())
 
 
 def _print_results_summary(
@@ -822,8 +938,8 @@ def _print_results_summary(
 
     # Classification configs
     print("CLASSIFICATION:")
-    print(f"{'Config':<25} {'Accuracy':<12} {'F1':<12} {'Coverage':<12} {'N':<8}")
-    print("-" * 70)
+    print(RESULTS_CLS_TABLE.header())
+    print(RESULTS_CLS_TABLE.divider())
     for config_name, res in sorted(results.items()):
         if res["task_type"] == "classification":
             m = res["metrics"]
@@ -831,12 +947,16 @@ def _print_results_summary(
             f1 = m.get("f1_weighted", 0)
             cov = m.get("coverage", 0)
             n = m.get("n_predictions", 0)
-            print(f"{config_name:<25} {acc:<12.4f} {f1:<12.4f} {cov:<12.4f} {n:<8}")
+            print(
+                RESULTS_CLS_TABLE.row(
+                    [config_name, f"{acc:.4f}", f"{f1:.4f}", f"{cov:.4f}", n]
+                )
+            )
 
     print()
     print("REGRESSION:")
-    print(f"{'Config':<25} {'IC':<12} {'RMSE':<12} {'Coverage':<12} {'N':<8}")
-    print("-" * 70)
+    print(RESULTS_REG_TABLE.header())
+    print(RESULTS_REG_TABLE.divider())
     for config_name, res in sorted(results.items()):
         if res["task_type"] == "regression":
             m = res["metrics"]
@@ -844,4 +964,8 @@ def _print_results_summary(
             rmse = m.get("rmse", 0)
             cov = m.get("coverage", 0)
             n = m.get("n_predictions", 0)
-            print(f"{config_name:<25} {ic:<12.4f} {rmse:<12.6f} {cov:<12.4f} {n:<8}")
+            print(
+                RESULTS_REG_TABLE.row(
+                    [config_name, f"{ic:.4f}", f"{rmse:.6f}", f"{cov:.4f}", n]
+                )
+            )

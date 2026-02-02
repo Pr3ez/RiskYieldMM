@@ -41,6 +41,15 @@ ALL_HORIZONS: list[int] = [1, 3, 6, 12]
 # WORKFLOW_TARGETS: Which targets to process
 # NOTE: 'returns' removed - redundant with direction + volatility
 # NEW: first_extreme, vol_to_extreme use 15m intrabar analysis
+# NEW: path_label_5 - 5-class path characterization (trend vs mean-revert)
+# NEW: strategy_label - 5-class prescriptive (what to do)
+# NEW: triple_barrier - 3-class risk/reward outcome
+#
+# Target System Architecture:
+# 1. direction       → "Will price go up or down?"
+# 2. path_label_5    → "What type of move will occur?"
+# 3. strategy_label  → "Should I trade, and how?"
+# 4. triple_barrier  → "What's my expected risk/reward?"
 #
 # TO ADD A NEW TARGET:
 # 1. Add the target name to this list
@@ -50,8 +59,11 @@ WORKFLOW_TARGETS: list[str] = [
     "volatility",
     "volatility_regime",  # Binary: will price volatility increase or decrease?
     "trend_regime",
-    "first_extreme",  # Binary: which 8h extreme hit first (from 15m data)
-    "vol_to_extreme",  # Regression: magnitude of move to first extreme
+    "trade_setup",  # 4-class: pullback entry opportunities from BBand touch sequence
+    "path_label_5",  # 5-class: path characterization (merged STRONG_* into BULLISH/BEARISH)
+    "strategy_label",  # 5-class: prescriptive strategy (FLAT, TF_LONG, TF_SHORT, MR_LONG, MR_SHORT)
+    "triple_barrier",  # 3-class: risk/reward outcome (STOP_LOSS, TIME_EXIT, TAKE_PROFIT)
+    # DEPRECATED: first_extreme, vol_to_extreme, time_to_extreme (replaced by trade_setup)
 ]
 
 

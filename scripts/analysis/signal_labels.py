@@ -427,8 +427,8 @@ LABEL_NAMES_4C = {
 
 # Target type to labeling strategy mapping
 TARGET_LABELING_STRATEGY = {
-    # Direction targets: Use triple-barrier based 3-class
-    "direction": "tristate_tb",
+    # Direction targets: 5-class from 15m BBand analysis with persistence
+    "direction": "existing_multiclass",
     # Returns targets: DEPRECATED - kept for backwards compatibility
     # (returns ≈ sign(direction) × volatility, so redundant)
     "returns": "regression",
@@ -438,10 +438,20 @@ TARGET_LABELING_STRATEGY = {
     "volatility_regime": "existing_binary",
     # Trend regime: Binary (0=down, 1=up) - use existing
     "trend_regime": "existing_binary",
-    # First extreme: Binary (0=low first, 1=high first) - 15m analysis
+    # First extreme: Binary (0=low first, 1=high first) - 15m analysis (DEPRECATED)
     "first_extreme": "existing_binary",
-    # Vol to extreme: Regression (magnitude) - 15m analysis
+    # Vol to extreme: Regression (magnitude) - 15m analysis (DEPRECATED)
     "vol_to_extreme": "regression",
+    # Trade setup: 4-class pullback entry (STRONG_LONG, LONG_SETUP, SHORT_SETUP, STRONG_SHORT)
+    "trade_setup": "existing_multiclass",
+    # Path label 7: 7-class path characterization (trend vs mean-revert)
+    "path_label_7": "existing_multiclass",
+    # Path label 5: 5-class path characterization (merged STRONG_* classes)
+    "path_label_5": "existing_multiclass",
+    # Strategy label: 5-class prescriptive (FLAT, TF_LONG, TF_SHORT, MR_LONG, MR_SHORT)
+    "strategy_label": "existing_multiclass",
+    # Triple barrier: 3-class risk/reward (STOP_LOSS, TIME_EXIT, TAKE_PROFIT)
+    "triple_barrier": "existing_multiclass",
 }
 
 
