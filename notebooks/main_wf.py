@@ -1070,6 +1070,11 @@ defaults.print_summary()
 #   defaults.enable_optuna = False  # Disable Optuna tuning (much faster)
 #   defaults.train_window = 300  # Smaller training window
 
+# Suppress Numba JIT compilation warnings
+import warnings
+
+warnings.filterwarnings("ignore", message=".*warning generated.*")
+
 # Create SyncBacktestConfig from workflow defaults
 sync_config = SyncBacktestConfig(**defaults.to_sync_config_kwargs())
 
