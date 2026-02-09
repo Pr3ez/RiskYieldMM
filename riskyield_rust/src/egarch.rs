@@ -271,24 +271,20 @@ pub fn egarch_rolling_transform(
         }
     }
     
-    // Compute vol z-score
-    let valid_vol: Vec<f64> = vol_series.iter()
-        .filter(|&&v| v.is_finite() && v > 0.0)
-        .copied()
-        .collect();
-    
-    if !valid_vol.is_empty() {
-        let vol_mean: f64 = valid_vol.iter().sum::<f64>() / valid_vol.len() as f64;
-        let vol_std: f64 = (valid_vol.iter()
-            .map(|&v| (v - vol_mean).powi(2))
-            .sum::<f64>() / valid_vol.len() as f64)
-            .sqrt()
-            .max(1e-8);
-        
-        for t in 0..n {
-            if vol_series[t].is_finite() && vol_series[t] > 0.0 {
-                features.vol_zscore[t] = (vol_series[t] - vol_mean) / vol_std;
-            }
+    // Compute vol z-score (causal expanding, no look-ahead)
+    let mut count = 0.0;
+    let mut sum_v = 0.0;
+    let mut sum_sq = 0.0;
+    for t in 0..n {
+        let v = vol_series[t];
+        if v.is_finite() && v > 0.0 {
+            count += 1.0;
+            sum_v += v;
+            sum_sq += v * v;
+            let mean = sum_v / count;
+            let var = (sum_sq / count - mean * mean).max(1e-10);
+            let std = var.sqrt().max(1e-8);
+            features.vol_zscore[t] = (v - mean) / std;
         }
     }
     
@@ -303,27 +299,29 @@ pub fn egarch_rolling_transform(
         }
     }
     
-    // Leverage active: recent negative shock
-    let ret_std: f64 = {
-        let valid_ret: Vec<f64> = returns.iter()
-            .filter(|&&r| r.is_finite())
-            .copied()
-            .collect();
-        if valid_ret.is_empty() {
-            1e-8
-        } else {
-            let mean: f64 = valid_ret.iter().sum::<f64>() / valid_ret.len() as f64;
-            (valid_ret.iter()
-                .map(|&r| (r - mean).powi(2))
-                .sum::<f64>() / valid_ret.len() as f64)
-                .sqrt()
-                .max(1e-8)
+    // Leverage active: recent negative shock (use expanding ret std)
+    let mut ret_std_series = vec![1e-8; n];
+    let mut r_count = 0.0;
+    let mut r_sum = 0.0;
+    let mut r_sum_sq = 0.0;
+    for t in 0..n {
+        let r = returns[t];
+        if r.is_finite() {
+            r_count += 1.0;
+            r_sum += r;
+            r_sum_sq += r * r;
+            let mean = r_sum / r_count;
+            let var = (r_sum_sq / r_count - mean * mean).max(1e-10);
+            ret_std_series[t] = var.sqrt().max(1e-8);
+        } else if t > 0 {
+            ret_std_series[t] = ret_std_series[t - 1];
         }
-    };
+    }
     
     let shock_window = config.recent_shock_window;
     for t in shock_window..n {
         let recent = &returns[t - shock_window + 1..=t];
+        let ret_std = ret_std_series[t];
         let has_neg_shock = recent.iter()
             .any(|&r| r.is_finite() && r < -ret_std);
         features.leverage_active[t] = if has_neg_shock { 1.0 } else { 0.0 };
@@ -438,48 +436,46 @@ pub fn egarch_rolling_transform_full(
         }
     }
     
-    // Vol z-score
-    let valid_vol: Vec<f64> = features.vol.iter()
-        .filter(|&&v| v.is_finite() && v > 0.0)
-        .copied()
-        .collect();
-    
-    if !valid_vol.is_empty() {
-        let vol_mean: f64 = valid_vol.iter().sum::<f64>() / valid_vol.len() as f64;
-        let vol_std: f64 = (valid_vol.iter()
-            .map(|&v| (v - vol_mean).powi(2))
-            .sum::<f64>() / valid_vol.len() as f64)
-            .sqrt()
-            .max(1e-8);
-        
-        for t in 0..n {
-            if features.vol[t].is_finite() && features.vol[t] > 0.0 {
-                features.vol_zscore[t] = (features.vol[t] - vol_mean) / vol_std;
-            }
+    // Vol z-score (causal expanding, no look-ahead)
+    let mut count = 0.0;
+    let mut sum_v = 0.0;
+    let mut sum_sq = 0.0;
+    for t in 0..n {
+        let v = features.vol[t];
+        if v.is_finite() && v > 0.0 {
+            count += 1.0;
+            sum_v += v;
+            sum_sq += v * v;
+            let mean = sum_v / count;
+            let var = (sum_sq / count - mean * mean).max(1e-10);
+            let std = var.sqrt().max(1e-8);
+            features.vol_zscore[t] = (v - mean) / std;
         }
     }
     
-    // Leverage active
-    let ret_std: f64 = {
-        let valid_ret: Vec<f64> = returns.iter()
-            .filter(|&&r| r.is_finite())
-            .copied()
-            .collect();
-        if valid_ret.is_empty() {
-            1e-8
-        } else {
-            let mean: f64 = valid_ret.iter().sum::<f64>() / valid_ret.len() as f64;
-            (valid_ret.iter()
-                .map(|&r| (r - mean).powi(2))
-                .sum::<f64>() / valid_ret.len() as f64)
-                .sqrt()
-                .max(1e-8)
+    // Leverage active (use expanding ret std, no look-ahead)
+    let mut ret_std_series = vec![1e-8; n];
+    let mut r_count = 0.0;
+    let mut r_sum = 0.0;
+    let mut r_sum_sq = 0.0;
+    for t in 0..n {
+        let r = returns[t];
+        if r.is_finite() {
+            r_count += 1.0;
+            r_sum += r;
+            r_sum_sq += r * r;
+            let mean = r_sum / r_count;
+            let var = (r_sum_sq / r_count - mean * mean).max(1e-10);
+            ret_std_series[t] = var.sqrt().max(1e-8);
+        } else if t > 0 {
+            ret_std_series[t] = ret_std_series[t - 1];
         }
-    };
+    }
     
     let shock_window = config.recent_shock_window;
     for t in shock_window..n {
         let recent = &returns[t - shock_window + 1..=t];
+        let ret_std = ret_std_series[t];
         let has_neg_shock = recent.iter()
             .any(|&r| r.is_finite() && r < -ret_std);
         features.leverage_active[t] = if has_neg_shock { 1.0 } else { 0.0 };

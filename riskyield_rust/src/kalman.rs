@@ -337,22 +337,43 @@ pub fn kalman_transform(signal: &[f64], config: &KalmanConfig) -> KalmanFeatures
         innovation[i] = innov;
     }
 
-    // Compute z-score of innovations
-    let inn_mean: f64 = innovation.iter().copied().sum::<f64>() / n as f64;
-    let inn_var: f64 = innovation.iter().map(|&x| (x - inn_mean).powi(2)).sum::<f64>() / n as f64;
-    let inn_std = inn_var.sqrt().max(1e-10);
-
+    // Compute causal expanding z-score of innovations (no look-ahead)
+    let mut inn_sum = 0.0;
+    let mut inn_sum_sq = 0.0;
+    let mut inn_count = 0.0;
     for i in 0..n {
-        zscore[i] = (innovation[i] - inn_mean) / inn_std;
+        let v = innovation[i];
+        if v.is_finite() {
+            inn_count += 1.0;
+            inn_sum += v;
+            inn_sum_sq += v * v;
+            let mean = inn_sum / inn_count;
+            let var = (inn_sum_sq / inn_count - mean * mean).max(1e-10);
+            let std = var.sqrt();
+            zscore[i] = (v - mean) / std;
+        } else {
+            zscore[i] = 0.0;
+        }
     }
 
-    // Compute regime based on velocity
-    let vel_mean: f64 = velocity.iter().copied().sum::<f64>() / n as f64;
-    let vel_var: f64 = velocity.iter().map(|&x| (x - vel_mean).powi(2)).sum::<f64>() / n as f64;
-    let vel_std = vel_var.sqrt().max(1e-10);
-
+    // Compute regime based on velocity (causal expanding z-score)
+    let mut vel_sum = 0.0;
+    let mut vel_sum_sq = 0.0;
+    let mut vel_count = 0.0;
     for i in 0..n {
-        let vel_zscore = (velocity[i] - vel_mean) / vel_std;
+        let v = velocity[i];
+        let vel_zscore = if v.is_finite() {
+            vel_count += 1.0;
+            vel_sum += v;
+            vel_sum_sq += v * v;
+            let mean = vel_sum / vel_count;
+            let var = (vel_sum_sq / vel_count - mean * mean).max(1e-10);
+            let std = var.sqrt();
+            (v - mean) / std
+        } else {
+            0.0
+        };
+
         regime[i] = if vel_zscore > 1.0 {
             2.0 // Bullish
         } else if vel_zscore < -1.0 {

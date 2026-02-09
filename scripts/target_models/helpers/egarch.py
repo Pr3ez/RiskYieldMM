@@ -259,12 +259,21 @@ class EGARCHHelper(BaseHelper):
                     + self._gamma * std_resid
                 )
 
-        # Volatility z-score (rolling, fast vectorized)
-        vol_zscore_arr = np.zeros(n_samples)
-        vol_mean = np.nanmean(vol_series)
-        vol_std = np.nanstd(vol_series) + 1e-8
-        valid_mask = ~np.isnan(vol_series) & (vol_series > 0)
-        vol_zscore_arr[valid_mask] = (vol_series[valid_mask] - vol_mean) / vol_std
+        # Volatility z-score (causal expanding, no look-ahead)
+        vol_zscore_arr = np.full(n_samples, np.nan)
+        count = 0
+        sum_v = 0.0
+        sum_sq = 0.0
+        for i in range(n_samples):
+            v = vol_series[i]
+            if np.isnan(v) or v <= 0:
+                continue
+            count += 1
+            sum_v += v
+            sum_sq += v * v
+            mean = sum_v / count
+            var = max(sum_sq / count - mean * mean, 1e-10)
+            vol_zscore_arr[i] = (v - mean) / np.sqrt(var)
 
         # Vol regime classification using training thresholds
         vol_regime_arr = np.ones(n_samples)  # Default NORMAL
