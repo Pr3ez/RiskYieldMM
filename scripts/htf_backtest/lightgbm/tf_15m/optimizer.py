@@ -27,6 +27,8 @@ from ..utils import (
     balanced_resample_indices,
     compute_class_counts_up_to,
     compute_directional_accuracy,
+    compute_directional_precision,
+    compute_cross_direction_error_rate,
     compute_directional_macro_f1,
     compute_class_weights,
     drop_correlated_features,
@@ -263,6 +265,30 @@ class StepOptimizer15m:
                 "embargo_val_pred_batches",
                 int(window_plan.get("embargo_val_pred_batches", 0)),
             )
+            trial.set_user_attr(
+                "reference_distribution_mode",
+                str(window_plan.get("reference_distribution_mode", "all_history")),
+            )
+            trial.set_user_attr(
+                "recent_ref_batches",
+                int(window_plan.get("recent_ref_batches", 0)),
+            )
+            trial.set_user_attr(
+                "recent_ref_weight",
+                float(window_plan.get("recent_ref_weight", 0.0)),
+            )
+            trial.set_user_attr(
+                "active_class_min_frac",
+                float(window_plan.get("active_class_min_frac", 0.0)),
+            )
+            trial.set_user_attr(
+                "min_val_samples_per_active_class",
+                int(window_plan.get("min_val_samples_per_active_class", 0)),
+            )
+            trial.set_user_attr(
+                "active_class_ids",
+                window_plan.get("active_class_ids", []),
+            )
             trial.set_user_attr("window_distribution_score", float(window_plan["score"]))
             trial.set_user_attr(
                 "window_missing_classes_train",
@@ -297,8 +323,17 @@ class StepOptimizer15m:
             trial.set_user_attr("selected_features_count", int(len(kept_features)))
 
             # PHASE 3: CLASS WEIGHTING
+            weight_choices = list(
+                getattr(
+                    self.config,
+                    "class_weight_choices",
+                    ("none", "balanced", "sqrt"),
+                )
+            )
+            if not weight_choices:
+                raise optuna.TrialPruned("class_weight_choices is empty")
             weight_method = trial.suggest_categorical(
-                "class_weight_method", ["none", "balanced", "sqrt"]
+                "class_weight_method", weight_choices
             )
             class_weights = compute_class_weights(y_all, weight_method)
 
@@ -390,18 +425,41 @@ class StepOptimizer15m:
 
             raw_n_train = int(len(y_train))
             raw_n_val = int(len(y_val))
-            raw_total = max(1, int(len(y_all)))
+            # Split ratios should reflect the effective train/val rows used by
+            # this trial (same feature set), not the broader all-feature window.
+            raw_total = max(1, raw_n_train + raw_n_val)
             raw_train_ratio = float(raw_n_train / raw_total)
             raw_val_ratio = float(raw_n_val / raw_total)
 
             train_counts = np.bincount(y_train, minlength=self.config.n_classes)
             val_counts = np.bincount(y_val, minlength=self.config.n_classes)
-            if (train_counts == 0).any():
-                raise optuna.TrialPruned("missing class in train split")
-            if (val_counts == 0).any():
-                raise optuna.TrialPruned("missing class in val split")
+            active_class_ids = [
+                int(c)
+                for c in window_plan.get("active_class_ids", list(range(self.config.n_classes)))
+                if 0 <= int(c) < self.config.n_classes
+            ]
+            if not active_class_ids:
+                active_class_ids = list(range(self.config.n_classes))
+            min_val_active = max(
+                1, int(window_plan.get("min_val_samples_per_active_class", 1))
+            )
+            missing_train_active = [c for c in active_class_ids if int(train_counts[c]) <= 0]
+            missing_val_active = [
+                c for c in active_class_ids if int(val_counts[c]) < min_val_active
+            ]
+            if missing_train_active:
+                raise optuna.TrialPruned(
+                    f"missing active class in train split: {missing_train_active}"
+                )
+            if missing_val_active:
+                raise optuna.TrialPruned(
+                    "insufficient active class samples in val split: "
+                    f"{missing_val_active} (min={min_val_active})"
+                )
             trial.set_user_attr("train_class_counts", train_counts.tolist())
             trial.set_user_attr("val_class_counts", val_counts.tolist())
+            trial.set_user_attr("active_missing_train", missing_train_active)
+            trial.set_user_attr("active_missing_val", missing_val_active)
             trial.set_user_attr("leakage_guard", "pass")
 
             if getattr(self.config, "balance_strategy", "none") != "none":
@@ -502,13 +560,42 @@ class StepOptimizer15m:
                 score = compute_directional_accuracy(
                     y_val, y_pred, list(self.config.class_names)
                 )
+            elif metric == "directional_precision_up":
+                score = compute_directional_precision(
+                    y_val, y_pred, list(self.config.class_names), direction=1
+                )
+            elif metric == "directional_precision_down":
+                score = compute_directional_precision(
+                    y_val, y_pred, list(self.config.class_names), direction=0
+                )
+            elif metric == "cross_direction_error":
+                score = compute_cross_direction_error_rate(
+                    y_val, y_pred, list(self.config.class_names)
+                )
             else:
                 raise ValueError(f"Unknown optuna_metric: {metric}")
+
+            dir_acc = compute_directional_accuracy(
+                y_val, y_pred, list(self.config.class_names)
+            )
+            dir_prec_up = compute_directional_precision(
+                y_val, y_pred, list(self.config.class_names), direction=1
+            )
+            dir_prec_down = compute_directional_precision(
+                y_val, y_pred, list(self.config.class_names), direction=0
+            )
+            dir_cross_err = compute_cross_direction_error_rate(
+                y_val, y_pred, list(self.config.class_names)
+            )
 
             trial.set_user_attr("optuna_metric", metric)
             trial.set_user_attr("optuna_score", float(score))
             trial.set_user_attr("val_accuracy", float(accuracy))
             trial.set_user_attr("log_loss", val_log_loss)
+            trial.set_user_attr("directional_accuracy", float(dir_acc))
+            trial.set_user_attr("directional_precision_up", float(dir_prec_up))
+            trial.set_user_attr("directional_precision_down", float(dir_prec_down))
+            trial.set_user_attr("cross_direction_error", float(dir_cross_err))
             trial.set_user_attr("n_train_samples", len(y_train))
             trial.set_user_attr("n_val_samples", len(y_val))
             trial.set_user_attr("n_features_final", X_final.shape[1])
@@ -597,6 +684,11 @@ class StepOptimizer15m:
             embargo_train_val_batches=self.window_space.embargo_train_val_batches,
             embargo_val_pred_batches=self.window_space.embargo_val_pred_batches,
             solver_step_batches=self.window_space.solver_step_batches,
+            reference_distribution_mode=self.window_space.reference_distribution_mode,
+            recent_ref_batches=self.window_space.recent_ref_batches,
+            recent_ref_weight=self.window_space.recent_ref_weight,
+            active_class_min_frac=self.window_space.active_class_min_frac,
+            min_val_samples_per_active_class=self.window_space.min_val_samples_per_active_class,
         )
 
         objective = self.create_objective(
@@ -647,7 +739,10 @@ class StepOptimizer15m:
         # Reconstruct selected features with best params
         lookback_best = int(best_trial.user_attrs.get("lookback_batches", window_plan["lookback_batches"]))
         min_batch = int(best_trial.user_attrs.get("window_start_batch", window_plan["window_start_batch"]))
-        df_window = df_all.filter(pl.col("batch_id") >= min_batch)
+        max_batch = int(best_trial.user_attrs.get("window_end_batch", window_plan["window_end_batch"]))
+        df_window = df_all.filter(
+            (pl.col("batch_id") >= min_batch) & (pl.col("batch_id") <= max_batch)
+        )
         if getattr(self.config, "shuffle_batches", False):
             rng = np.random.default_rng(self.config.shuffle_batches_seed)
             ordered = df_window["batch_id"].unique().to_list()
@@ -713,6 +808,16 @@ class StepOptimizer15m:
             "optuna_metric": self.config.optuna_metric,
             "optuna_direction": self.config.optuna_direction(),
             "best_accuracy": best_trial.user_attrs.get("val_accuracy"),
+            "directional_accuracy": best_trial.user_attrs.get("directional_accuracy"),
+            "directional_precision_up": best_trial.user_attrs.get(
+                "directional_precision_up"
+            ),
+            "directional_precision_down": best_trial.user_attrs.get(
+                "directional_precision_down"
+            ),
+            "cross_direction_error": best_trial.user_attrs.get(
+                "cross_direction_error"
+            ),
             "lgb_params": lgb_params,
             "num_boost_round": best["num_boost_round"],
             "lookback_batches": lookback_best,
@@ -758,6 +863,62 @@ class StepOptimizer15m:
                     "embargo_val_pred_batches",
                     window_plan.get("embargo_val_pred_batches", 0),
                 )
+            ),
+            "reference_distribution_mode": str(
+                best_trial.user_attrs.get(
+                    "reference_distribution_mode",
+                    window_plan.get("reference_distribution_mode", "all_history"),
+                )
+            ),
+            "recent_ref_batches": int(
+                best_trial.user_attrs.get(
+                    "recent_ref_batches",
+                    window_plan.get("recent_ref_batches", 0),
+                )
+            ),
+            "recent_ref_weight": float(
+                best_trial.user_attrs.get(
+                    "recent_ref_weight",
+                    window_plan.get("recent_ref_weight", 0.0),
+                )
+            ),
+            "active_class_min_frac": float(
+                best_trial.user_attrs.get(
+                    "active_class_min_frac",
+                    window_plan.get("active_class_min_frac", 0.0),
+                )
+            ),
+            "min_val_samples_per_active_class": int(
+                best_trial.user_attrs.get(
+                    "min_val_samples_per_active_class",
+                    window_plan.get("min_val_samples_per_active_class", 0),
+                )
+            ),
+            "active_class_ids": list(
+                best_trial.user_attrs.get(
+                    "active_class_ids",
+                    window_plan.get("active_class_ids", []),
+                )
+            ),
+            "reference_distribution": list(
+                window_plan.get("reference_distribution", [])
+            ),
+            "recent_class_counts": list(window_plan.get("recent_class_counts", [])),
+            "window_class_counts": list(window_plan.get("window_class_counts", [])),
+            "train_class_counts": list(
+                best_trial.user_attrs.get(
+                    "train_class_counts",
+                    window_plan.get("train_class_counts", []),
+                )
+            ),
+            "val_class_counts": list(
+                best_trial.user_attrs.get(
+                    "val_class_counts",
+                    window_plan.get("val_class_counts", []),
+                )
+            ),
+            "total_class_counts": list(
+                best_trial.user_attrs.get("total_class_counts", [])
             ),
             "distribution_mse_train": float(
                 best_trial.user_attrs.get(
@@ -872,6 +1033,8 @@ class Optimizer15m:
 
     def train_model(self, train_end: int, opt_result: dict) -> lgb.Booster:
         """Train model with optimized parameters."""
+        X = None
+        y = None
         train_start = opt_result.get("train_start_batch")
         train_end_batch = opt_result.get("train_end_batch")
         val_start = opt_result.get("val_start_batch")
@@ -963,32 +1126,46 @@ class Optimizer15m:
 
         train_counts = np.bincount(y_train, minlength=self.config.n_classes)
         val_counts = np.bincount(y_val, minlength=self.config.n_classes)
-        missing_train = np.where(train_counts == 0)[0]
-        missing_val = np.where(val_counts == 0)[0]
+        required_classes = [
+            int(c)
+            for c in opt_result.get("active_class_ids", list(range(self.config.n_classes)))
+            if 0 <= int(c) < self.config.n_classes
+        ]
+        if not required_classes:
+            required_classes = list(range(self.config.n_classes))
+        min_val_active = max(
+            1, int(opt_result.get("min_val_samples_per_active_class", 1))
+        )
+        missing_train = [c for c in required_classes if int(train_counts[c]) <= 0]
+        missing_val = [c for c in required_classes if int(val_counts[c]) < min_val_active]
 
         # Final safety fallback: if shuffle split yields uncovered classes, retry
         # with chronological split before failing.
-        if (missing_train.size > 0 or missing_val.size > 0) and getattr(
+        if (len(missing_train) > 0 or len(missing_val) > 0) and getattr(
             self.config, "shuffle_split", False
-        ):
+        ) and X is not None:
             split_idx = int(len(X) * effective_train_split)
             split_idx = max(1, min(split_idx, len(X) - 1))
             X_train, X_val = X[:split_idx], X[split_idx:]
             y_train, y_val = y[:split_idx], y[split_idx:]
             train_counts = np.bincount(y_train, minlength=self.config.n_classes)
             val_counts = np.bincount(y_val, minlength=self.config.n_classes)
-            missing_train = np.where(train_counts == 0)[0]
-            missing_val = np.where(val_counts == 0)[0]
+            missing_train = [
+                c for c in required_classes if int(train_counts[c]) <= 0
+            ]
+            missing_val = [
+                c for c in required_classes if int(val_counts[c]) < min_val_active
+            ]
 
-        if missing_train.size > 0:
+        if len(missing_train) > 0:
             raise ValueError(
-                "missing class in train split for final training: "
-                f"{missing_train.tolist()}"
+                "missing required class in train split for final training: "
+                f"{missing_train}"
             )
-        if missing_val.size > 0:
+        if len(missing_val) > 0:
             raise ValueError(
-                "missing class in val split for final training: "
-                f"{missing_val.tolist()}"
+                "insufficient required class samples in val split for final training: "
+                f"{missing_val} (min={min_val_active})"
             )
 
         if getattr(self.config, "balance_strategy", "none") != "none":

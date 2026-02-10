@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import gc
 import json
+import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -75,6 +76,8 @@ class HTFOptimizationConfig:
     # Output control
     save_results: bool = True
     recompute: bool = False
+    incremental_update: bool = True
+    max_state_snapshots: int = 8
 
     @property
     def htf_features_dir(self) -> Path:
@@ -82,7 +85,7 @@ class HTFOptimizationConfig:
 
     @property
     def htf_labels_dir(self) -> Path:
-        return self.project_root / "data" / "htf_8class_labels"
+        return self.project_root / "data" / "htf_4class_labels"
 
     @property
     def htf_optimized_dir(self) -> Path:
@@ -96,7 +99,7 @@ def get_feature_cols(df: pl.DataFrame) -> list[str]:
         "batch_id",
         "target_long",
         "target_short",
-        "target_8class",
+        "target_4class",
         "target_name",
         "period_8h_start",
     }
@@ -106,6 +109,77 @@ def get_feature_cols(df: pl.DataFrame) -> list[str]:
         for c in df.columns
         if c not in meta_cols and df[c].dtype not in datetime_types
     ]
+
+
+def _batch_id_from_stem(stem: str) -> int:
+    """Extract batch ID from stem like 'batch_0123'."""
+    m = re.match(r"batch_(\d+)$", stem)
+    if not m:
+        raise ValueError(f"Invalid batch stem: {stem}")
+    return int(m.group(1))
+
+
+def _file_fingerprint(path: Path) -> dict:
+    """Lightweight fingerprint for incremental update detection."""
+    stat = path.stat()
+    return {
+        "mtime_ns": int(stat.st_mtime_ns),
+        "size_bytes": int(stat.st_size),
+    }
+
+
+def _state_snapshot_file(state_dir: Path, batch_id: int) -> Path:
+    return state_dir / f"state_after_batch_{batch_id:04d}.npz"
+
+
+def _save_transformer_state(
+    state: dict,
+    feature_cols: list[str],
+    window: int,
+    path: Path,
+) -> None:
+    """Persist rolling transformer state to compressed npz."""
+    if state is None:
+        return
+    buffers = np.stack([state["buffers"][c] for c in feature_cols], axis=0)
+    positions = np.array([int(state["positions"][c]) for c in feature_cols], dtype=np.int64)
+    counts = np.array([int(state["counts"][c]) for c in feature_cols], dtype=np.int64)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    np.savez_compressed(
+        path,
+        feature_cols=np.array(feature_cols, dtype=str),
+        window=np.array([int(window)], dtype=np.int64),
+        buffers=buffers,
+        positions=positions,
+        counts=counts,
+    )
+
+
+def _load_transformer_state(path: Path) -> tuple[dict, list[str], int]:
+    """Load rolling transformer state from npz."""
+    data = np.load(path, allow_pickle=False)
+    feature_cols = [str(x) for x in data["feature_cols"].tolist()]
+    buffers = data["buffers"]
+    positions = data["positions"]
+    counts = data["counts"]
+    window = int(data["window"][0])
+    state = {
+        "buffers": {c: buffers[i] for i, c in enumerate(feature_cols)},
+        "positions": {c: int(positions[i]) for i, c in enumerate(feature_cols)},
+        "counts": {c: int(counts[i]) for i, c in enumerate(feature_cols)},
+    }
+    return state, feature_cols, window
+
+
+def _trim_old_snapshots(state_dir: Path, keep_last: int) -> None:
+    """Keep only last N state snapshots."""
+    if keep_last <= 0 or not state_dir.exists():
+        return
+    files = sorted(state_dir.glob("state_after_batch_*.npz"))
+    if len(files) <= keep_last:
+        return
+    for p in files[: len(files) - keep_last]:
+        p.unlink(missing_ok=True)
 
 
 def load_early_batches(
@@ -166,8 +240,8 @@ def load_early_batches(
     # Convert to pandas
     X = merged.select(feature_cols).to_pandas()
 
-    # Handle categorical target (8-class) vs binary
-    if target in {"target_8class"}:
+    # Handle categorical target (4-class) vs binary
+    if target in {"target_4class"}:
         # For multiclass: convert to int, filter valid (-1 = invalid)
         y_raw = merged[target].to_pandas()
         valid_mask = y_raw >= 0
@@ -198,7 +272,7 @@ def walk_forward_validate(
     For each fold: train on earlier, validate on later.
 
     For binary targets: uses Spearman IC (rank correlation)
-    For 8-class targets: uses mutual information score
+    For 4-class targets: uses mutual information score
 
     Returns: (mean_score, std_score)
     """
@@ -289,13 +363,13 @@ def select_best_config(
 
     Score = mean(score) - lambda * std(score)
     For binary targets: score = IC (Spearman correlation)
-    For 8-class targets: score = normalized mutual information
+    For 4-class targets: score = normalized mutual information
     """
     candidates = get_winsorize_rank_candidates(tf)
 
     # Determine target type
     target_type = (
-        "multiclass" if target in {"target_8class"} else "binary"
+        "multiclass" if target in {"target_4class"} else "binary"
     )
 
     n_classes = int(np.nanmax(y)) + 1 if target_type == "multiclass" else None
@@ -306,6 +380,7 @@ def select_best_config(
     best_score = -float("inf")
     best_config = candidates[0]
     best_mean_ic = 0.0
+    best_std_ic = 0.0
 
     for i, cand in enumerate(candidates):
         transformer = RollingRankWinsorizeTransformer(
@@ -338,6 +413,7 @@ def select_best_config(
             best_score = score
             best_config = cand
             best_mean_ic = mean_ic
+            best_std_ic = std_ic
 
     print(
         f"\n  Best config: L={best_config['window']}, "
@@ -345,7 +421,20 @@ def select_best_config(
         f"post={best_config['post_transform']} (IC={best_mean_ic:.4f})"
     )
 
-    return best_config
+    return {
+        "config": best_config,
+        "best_mean_ic": float(best_mean_ic),
+        "best_std_ic": float(best_std_ic),
+        "best_score": float(best_score),
+        "target_type": target_type,
+        "n_classes": int(n_classes) if n_classes is not None else None,
+        "summary": (
+            f"L={best_config['window']}, "
+            f"clip=({best_config['p_min']:.2f},{best_config['p_max']:.2f}), "
+            f"post={best_config['post_transform']} "
+            f"(IC={best_mean_ic:.4f}, score={best_score:.4f})"
+        ),
+    }
 
 
 def apply_streaming_to_all_batches(
@@ -353,7 +442,8 @@ def apply_streaming_to_all_batches(
     target: str,
     best_config: dict,
     config: HTFOptimizationConfig,
-) -> int:
+    cached_meta: dict | None = None,
+) -> dict:
     """
     Apply transformer to ALL batches in streaming mode.
 
@@ -367,10 +457,47 @@ def apply_streaming_to_all_batches(
 
     feature_files = sorted(features_dir.glob("batch_*.parquet"))
     label_files = sorted(labels_dir.glob("batch_*.parquet"))
+    label_by_stem = {f.stem: f for f in label_files}
+    pairs: list[dict] = []
+    missing_label = 0
+    for feat_file in feature_files:
+        label_file = label_by_stem.get(feat_file.stem)
+        if label_file is None:
+            missing_label += 1
+            continue
+        batch_id = _batch_id_from_stem(feat_file.stem)
+        pairs.append(
+            {
+                "batch_id": batch_id,
+                "feature_file": feat_file,
+                "label_file": label_file,
+            }
+        )
+    pairs = sorted(pairs, key=lambda x: x["batch_id"])
+    extra_labels = max(0, len(label_files) - len(pairs))
 
     print(
-        f"  Applying to {len(feature_files)} batches (streaming, state carries over)..."
+        f"  Applying to {len(pairs)} matched batches "
+        f"(features={len(feature_files)}, labels={len(label_files)}, "
+        f"missing_labels={missing_label}, extra_labels={extra_labels}; "
+        "streaming, state carries over)..."
     )
+
+    if not pairs:
+        return {
+            "saved_batches": 0,
+            "skipped_batches": 0,
+            "reused_batches": 0,
+            "total_rows": 0,
+            "start_batch": None,
+            "end_batch": None,
+            "last_processed_batch": None,
+            "last_processed_timestamp": None,
+            "resume_reason": "no_pairs",
+            "batch_fingerprints": {},
+            "per_batch_rows": {},
+            "feature_cols": [],
+        }
 
     # Create transformer
     transformer = RollingRankWinsorizeTransformer(
@@ -380,12 +507,115 @@ def apply_streaming_to_all_batches(
         post_transform=best_config["post_transform"],
     )
 
-    state = None  # Will be initialized on first batch
-    total_rows = 0
-    feature_cols = None
-    prev_max_ts = None  # For chronological order verification
+    # Build current fingerprints
+    current_fingerprints: dict[str, dict] = {}
+    for rec in pairs:
+        bid = str(rec["batch_id"])
+        current_fingerprints[bid] = {
+            "feature": _file_fingerprint(rec["feature_file"]),
+            "label": _file_fingerprint(rec["label_file"]),
+        }
 
-    for i, (feat_file, label_file) in enumerate(zip(feature_files, label_files)):
+    output_files = {
+        _batch_id_from_stem(p.stem): p for p in sorted(output_dir.glob("batch_*.parquet"))
+    }
+    pair_batch_ids = [int(rec["batch_id"]) for rec in pairs]
+    first_batch = int(pair_batch_ids[0])
+    last_batch = int(pair_batch_ids[-1])
+
+    state_dir = output_dir / "_state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+
+    state = None  # Transformer state
+    state_feature_cols: list[str] | None = None
+    start_batch = first_batch
+    resume_reason = "full_recompute"
+
+    per_batch_rows: dict[str, int] = {}
+    per_batch_last_timestamp: dict[str, str | None] = {}
+    if cached_meta and isinstance(cached_meta.get("per_batch_rows"), dict):
+        per_batch_rows = {str(k): int(v) for k, v in cached_meta["per_batch_rows"].items()}
+    if cached_meta and isinstance(cached_meta.get("per_batch_last_timestamp"), dict):
+        per_batch_last_timestamp = {
+            str(k): (str(v) if v is not None else None)
+            for k, v in cached_meta["per_batch_last_timestamp"].items()
+        }
+
+    if config.incremental_update and not config.recompute and cached_meta:
+        prev_fps = cached_meta.get("batch_fingerprints", {})
+        first_diff = None
+        for rec in pairs:
+            bid = int(rec["batch_id"])
+            bid_key = str(bid)
+            out_ok = bid in output_files and output_files[bid].exists()
+            if (bid_key not in prev_fps) or (prev_fps[bid_key] != current_fingerprints[bid_key]) or (not out_ok):
+                first_diff = bid
+                break
+
+        if first_diff is None:
+            total_rows = sum(int(per_batch_rows.get(str(b), 0)) for b in pair_batch_ids)
+            return {
+                "saved_batches": 0,
+                "skipped_batches": 0,
+                "reused_batches": len(pair_batch_ids),
+                "total_rows": int(total_rows),
+                "start_batch": first_batch,
+                "end_batch": last_batch,
+                "last_processed_batch": None,
+                "last_processed_timestamp": cached_meta.get("last_processed_timestamp"),
+                "resume_reason": "already_up_to_date",
+                "batch_fingerprints": current_fingerprints,
+                "per_batch_rows": per_batch_rows,
+                "per_batch_last_timestamp": per_batch_last_timestamp,
+                "feature_cols": cached_meta.get("feature_cols", []),
+            }
+
+        # Try to load most recent snapshot strictly before the first changed batch
+        snapshot_candidates: list[tuple[int, Path]] = []
+        for p in sorted(state_dir.glob("state_after_batch_*.npz")):
+            try:
+                snap_bid = _batch_id_from_stem(p.stem.replace("state_after_", ""))
+            except Exception:
+                continue
+            if snap_bid < first_diff:
+                snapshot_candidates.append((snap_bid, p))
+        snapshot_candidates = sorted(snapshot_candidates, key=lambda x: x[0], reverse=True)
+
+        loaded_snapshot = False
+        for snap_bid, snap_path in snapshot_candidates:
+            try:
+                loaded_state, loaded_cols, loaded_window = _load_transformer_state(snap_path)
+                if int(loaded_window) != int(best_config["window"]):
+                    continue
+                state = loaded_state
+                state_feature_cols = loaded_cols
+                start_batch = snap_bid + 1
+                resume_reason = f"resume_from_snapshot_batch_{snap_bid}"
+                loaded_snapshot = True
+                break
+            except Exception:
+                continue
+
+        if not loaded_snapshot:
+            start_batch = first_batch
+            resume_reason = f"full_recompute_from_{first_batch}_first_diff_{first_diff}"
+
+    total_rows = 0
+    feature_cols = state_feature_cols
+    prev_max_ts = None  # For chronological order verification
+    saved_batches = 0
+    skipped_batches = 0
+    reused_batches = 0
+    last_processed_batch = None
+    last_processed_ts = None
+
+    pairs_to_process = [rec for rec in pairs if int(rec["batch_id"]) >= int(start_batch)]
+    reused_batches = len(pairs) - len(pairs_to_process)
+
+    for i, rec in enumerate(pairs_to_process):
+        feat_file = rec["feature_file"]
+        label_file = rec["label_file"]
+        batch_id_int = int(rec["batch_id"])
         # Load batch
         features = pl.read_parquet(feat_file)
         labels = pl.read_parquet(label_file)
@@ -399,9 +629,34 @@ def apply_streaming_to_all_batches(
         # CRITICAL: Sort by timestamp within batch to ensure causal ordering
         merged = merged.sort(["timestamp", "batch_id"])
 
+        # Keep only rows with valid labels for gated classification targets.
+        # This keeps htf_optimized row counts aligned with label-valid rows
+        # (first-4h policy), and avoids carrying unlabeled rows downstream.
+        if target in {"target_4class", "target_breakfree"} and target in merged.columns:
+            merged = merged.filter(pl.col(target) >= 0)
+
+        # Guard: some batches may have no overlapping rows after join.
+        # Skip safely (state is unchanged) instead of crashing on None timestamps.
+        if merged.is_empty():
+            skipped_batches += 1
+            print(
+                f"    Warning: {feat_file.stem} produced 0 joined rows "
+                f"for target '{target}' (skipping)"
+            )
+            del features, labels, merged
+            continue
+
         # CRITICAL: Verify chronological order across batches
         min_ts = merged["timestamp"].min()
         max_ts = merged["timestamp"].max()
+        if min_ts is None or max_ts is None:
+            skipped_batches += 1
+            print(
+                f"    Warning: {feat_file.stem} has null timestamp bounds "
+                f"for target '{target}' (skipping)"
+            )
+            del features, labels, merged
+            continue
         if prev_max_ts is not None and min_ts < prev_max_ts:
             raise ValueError(
                 f"Batch {feat_file.stem} has min_ts={min_ts} < prev_max_ts={prev_max_ts}. "
@@ -436,19 +691,78 @@ def apply_streaming_to_all_batches(
         del X_transformed, meta, meta_no_target
 
         # Save
-        batch_id = feat_file.stem.replace("batch_", "")
-        output_file = output_dir / f"batch_{batch_id}.parquet"
+        output_file = output_dir / f"batch_{batch_id_int:04d}.parquet"
         result.write_parquet(output_file, compression="zstd")
 
-        total_rows += len(result)
+        n_rows_batch = int(len(result))
+        per_batch_rows[str(batch_id_int)] = n_rows_batch
+        per_batch_last_timestamp[str(batch_id_int)] = (
+            str(result["timestamp"].max()) if result["timestamp"].max() is not None else None
+        )
+        total_rows += n_rows_batch
+        saved_batches += 1
+        last_processed_batch = batch_id_int
+        ts_max = result["timestamp"].max()
+        last_processed_ts = ts_max.isoformat() if ts_max is not None else last_processed_ts
+
+        # Persist rolling state snapshot for robust resume/live updates
+        if state is not None and feature_cols:
+            snapshot_path = _state_snapshot_file(state_dir, batch_id_int)
+            _save_transformer_state(
+                state=state,
+                feature_cols=feature_cols,
+                window=int(best_config["window"]),
+                path=snapshot_path,
+            )
+            _trim_old_snapshots(state_dir, keep_last=int(config.max_state_snapshots))
+
         del result
 
         if (i + 1) % 500 == 0:
-            print(f"    Processed {i + 1}/{len(feature_files)} batches...")
+            print(f"    Processed {i + 1}/{len(pairs_to_process)} batches...")
             gc.collect()
 
-    print(f"  ✓ Saved {len(feature_files)} batch files ({total_rows:,} rows)")
-    return total_rows
+    # Ensure total rows reflect all matched batches (reused + processed)
+    for bid in pair_batch_ids:
+        bid_key = str(bid)
+        if bid_key not in per_batch_rows:
+            out_path = output_dir / f"batch_{bid:04d}.parquet"
+            if out_path.exists():
+                try:
+                    out_df = pl.read_parquet(out_path, columns=["timestamp"])
+                    per_batch_rows[bid_key] = int(len(out_df))
+                    per_batch_last_timestamp[bid_key] = (
+                        str(out_df["timestamp"].max()) if len(out_df) > 0 else None
+                    )
+                except Exception:
+                    per_batch_rows[bid_key] = 0
+                    per_batch_last_timestamp[bid_key] = None
+            else:
+                per_batch_rows[bid_key] = 0
+                per_batch_last_timestamp[bid_key] = None
+    total_rows_all = sum(int(per_batch_rows.get(str(b), 0)) for b in pair_batch_ids)
+
+    print(
+        f"  ✓ Saved {saved_batches} batch files ({total_rows:,} rows processed), "
+        f"reused {reused_batches}, skipped {skipped_batches} empty/null batches"
+    )
+    return {
+        "saved_batches": int(saved_batches),
+        "skipped_batches": int(skipped_batches),
+        "reused_batches": int(reused_batches),
+        "total_rows": int(total_rows_all),
+        "start_batch": int(start_batch),
+        "end_batch": int(last_batch),
+        "last_processed_batch": (
+            int(last_processed_batch) if last_processed_batch is not None else None
+        ),
+        "last_processed_timestamp": last_processed_ts,
+        "resume_reason": resume_reason,
+        "batch_fingerprints": current_fingerprints,
+        "per_batch_rows": per_batch_rows,
+        "per_batch_last_timestamp": per_batch_last_timestamp,
+        "feature_cols": feature_cols or [],
+    }
 
 
 def optimize_single_tf_target(
@@ -482,39 +796,51 @@ def optimize_single_tf_target(
             cached_meta = None
             cached_config = None
 
+    selection_info = None
     if cached_config is not None:
-        # If outputs already cover all batches, skip heavy processing
-        if len(output_files) == len(feature_files) and len(feature_files) > 0:
-            print("  ✓ Cached best config found. Outputs already up to date - skipping.")
-            return {
-                "timeframe": tf,
-                "target": target,
-                "window": cached_config.get("window"),
-                "p_min": cached_config.get("p_min"),
-                "p_max": cached_config.get("p_max"),
-                "post_transform": cached_config.get("post_transform"),
-                "n_batches": len(feature_files),
-                "total_rows": cached_meta.get("total_rows", 0) if cached_meta else 0,
-            }
-
         print("  ✓ Cached best config found. Skipping grid search.")
-        if len(output_files) != len(feature_files):
-            print(
-                "  Outputs not complete - reprocessing all batches to preserve streaming state."
-            )
+        selection_info = {
+            "config": cached_config,
+            "best_mean_ic": (
+                float(cached_meta.get("best_mean_ic"))
+                if cached_meta and cached_meta.get("best_mean_ic") is not None
+                else None
+            ),
+            "best_std_ic": (
+                float(cached_meta.get("best_std_ic"))
+                if cached_meta and cached_meta.get("best_std_ic") is not None
+                else None
+            ),
+            "best_score": (
+                float(cached_meta.get("best_score"))
+                if cached_meta and cached_meta.get("best_score") is not None
+                else None
+            ),
+            "target_type": cached_meta.get("target_type", "unknown") if cached_meta else "unknown",
+            "n_classes": cached_meta.get("n_classes") if cached_meta else None,
+            "summary": cached_meta.get("best_config_summary") if cached_meta else None,
+        }
         best_config = cached_config
     else:
         # Step 1: Load EARLY batches for walk-forward validation
         X_sample, y_sample = load_early_batches(tf, target, config)
 
         # Step 2: Select best config using walk-forward validation
-        best_config = select_best_config(X_sample, y_sample, tf, target, config)
+        selection_info = select_best_config(X_sample, y_sample, tf, target, config)
+        best_config = selection_info["config"]
 
         del X_sample, y_sample
         gc.collect()
 
-    # Step 3: Apply to all batches in streaming mode
-    total_rows = apply_streaming_to_all_batches(tf, target, best_config, config)
+    # Step 3: Apply to all batches in streaming mode (incremental + resumable)
+    apply_info = apply_streaming_to_all_batches(
+        tf=tf,
+        target=target,
+        best_config=best_config,
+        config=config,
+        cached_meta=cached_meta,
+    )
+    total_rows = int(apply_info["total_rows"])
 
     # Re-count batches after processing
     feature_files = list((config.htf_features_dir / tf).glob("batch_*.parquet"))
@@ -522,19 +848,64 @@ def optimize_single_tf_target(
     # Save metadata
     if config.save_results:
         meta_file = config.htf_optimized_dir / tf / f"optimized_{target}_meta.json"
+        now_ts = datetime.now(timezone.utc).isoformat()
+        best_config_summary = (
+            selection_info.get("summary")
+            if selection_info is not None
+            else None
+        )
+        if not best_config_summary:
+            best_config_summary = (
+                f"L={best_config.get('window')}, "
+                f"clip=({float(best_config.get('p_min', 0.0)):.2f},{float(best_config.get('p_max', 1.0)):.2f}), "
+                f"post={best_config.get('post_transform')}"
+            )
         metadata = {
             "timeframe": tf,
             "target": target,
             "method": "rolling_rank_winsorize",
             "config": best_config,
+            "best_config_summary": best_config_summary,
+            "best_mean_ic": (
+                selection_info.get("best_mean_ic") if selection_info is not None else None
+            ),
+            "best_std_ic": (
+                selection_info.get("best_std_ic") if selection_info is not None else None
+            ),
+            "best_score": (
+                selection_info.get("best_score") if selection_info is not None else None
+            ),
+            "target_type": (
+                selection_info.get("target_type") if selection_info is not None else None
+            ),
+            "n_classes": (
+                selection_info.get("n_classes") if selection_info is not None else None
+            ),
             "n_batches": len(feature_files),
             "total_rows": total_rows,
+            "last_processed_batch": apply_info.get("last_processed_batch"),
+            "last_processed_timestamp": apply_info.get("last_processed_timestamp"),
+            "resume_reason": apply_info.get("resume_reason"),
+            "saved_batches": apply_info.get("saved_batches"),
+            "reused_batches": apply_info.get("reused_batches"),
+            "skipped_batches": apply_info.get("skipped_batches"),
+            "start_batch": apply_info.get("start_batch"),
+            "end_batch": apply_info.get("end_batch"),
+            "feature_cols": apply_info.get("feature_cols", []),
+            "batch_fingerprints": apply_info.get("batch_fingerprints", {}),
+            "per_batch_rows": apply_info.get("per_batch_rows", {}),
+            "per_batch_last_timestamp": apply_info.get("per_batch_last_timestamp", {}),
             "validation": {
                 "n_early_batches": config.n_early_batches,
                 "n_val_folds": config.n_val_folds,
                 "stability_lambda": config.stability_lambda,
             },
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "run_options": {
+                "recompute": bool(config.recompute),
+                "incremental_update": bool(config.incremental_update),
+                "max_state_snapshots": int(config.max_state_snapshots),
+            },
+            "timestamp": now_ts,
         }
         with open(meta_file, "w") as f:
             json.dump(metadata, f, indent=2)
@@ -548,6 +919,12 @@ def optimize_single_tf_target(
         "post_transform": best_config["post_transform"],
         "n_batches": len(feature_files),
         "total_rows": total_rows,
+        "best_config_summary": metadata.get("best_config_summary") if config.save_results else None,
+        "last_processed_batch": apply_info.get("last_processed_batch"),
+        "last_processed_timestamp": apply_info.get("last_processed_timestamp"),
+        "resume_reason": apply_info.get("resume_reason"),
+        "saved_batches": apply_info.get("saved_batches"),
+        "reused_batches": apply_info.get("reused_batches"),
     }
 
 

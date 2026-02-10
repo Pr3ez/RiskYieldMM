@@ -12,21 +12,22 @@ All logic has been moved to:
 
 Usage:
     # NEW way (preferred):
-    from scripts.htf_backtest.lightgbm.tf_1m import Optimizer1m
-    from scripts.htf_backtest.lightgbm.tf_5m import Optimizer5m
-    from scripts.htf_backtest.lightgbm.tf_15m import Optimizer15m
-    from scripts.htf_backtest.lightgbm.runner import run_walk_forward_backtest
+    from scripts.htf_backtest.catboost.tf_1m import Optimizer1m
+    from scripts.htf_backtest.catboost.tf_5m import Optimizer5m
+    from scripts.htf_backtest.catboost.tf_15m import Optimizer15m
+    from scripts.htf_backtest.catboost.runner import run_walk_forward_backtest
 
     # OLD way (still works):
-    from scripts.htf_backtest.lightgbm.base_optimizer import (
+    from scripts.htf_backtest.catboost.base_optimizer import (
         StepOptimizer,  # Alias to StepOptimizer5m
         run_walk_forward_backtest,
     )
 """
 
 # Re-export everything from utils for backwards compatibility
-# Re-export runner
+# Re-export runners
 from .runner import run_walk_forward_backtest
+from .stage1_runner import run_walk_forward_stage1_grid
 
 # Re-export timeframe-specific optimizers
 from .tf_1m import (
@@ -145,4 +146,5 @@ __all__ = [
     "train_with_optimized_params",
     # Runner
     "run_walk_forward_backtest",
+    "run_walk_forward_stage1_grid",
 ]

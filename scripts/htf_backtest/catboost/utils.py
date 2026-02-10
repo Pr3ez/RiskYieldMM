@@ -1,9 +1,9 @@
 """
-Shared Utilities for HTF LightGBM Backtest
+Shared Utilities for HTF CatBoost Backtest
 ==========================================
 
 Data loading, feature utilities, class weighting.
-Used by both 5m and 15m optimizers.
+Used by 1m/5m/15m CatBoost optimizers.
 """
 
 import json
@@ -13,7 +13,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-import lightgbm as lgb
 import numpy as np
 import polars as pl
 from sklearn.feature_selection import mutual_info_classif
@@ -77,26 +76,20 @@ class BaseOptimizerConfig:
     # Train/val split
     train_val_split: float = 0.85
 
-    # LightGBM base params (fixed)
-    lgb_base_params: dict = field(
+    # CatBoost base params (fixed)
+    cb_base_params: dict = field(
         default_factory=lambda: {
-            "objective": "multiclass",
-            "num_class": 4,
-            "metric": "multi_logloss",
-            "boosting_type": "gbdt",
-            "device": "gpu",
-            "gpu_platform_id": 0,
-            "gpu_device_id": 0,
-            "verbose": -1,
-            "seed": 42,
+            "loss_function": "MultiClass",
+            "eval_metric": "MultiClass",
+            "task_type": "GPU",
+            "devices": "0",
+            "random_seed": 42,
+            "allow_writing_files": False,
+            "verbose": False,
+            "thread_count": -1,
+            "bootstrap_type": "Bernoulli",
         }
     )
-
-    def __post_init__(self) -> None:
-        # Keep LightGBM num_class aligned with n_classes
-        if self.lgb_base_params.get("num_class") != self.n_classes:
-            self.lgb_base_params = dict(self.lgb_base_params)
-            self.lgb_base_params["num_class"] = self.n_classes
 
     # Optuna settings
     optuna_trials: int = 20
@@ -122,7 +115,11 @@ class WindowSearchSpace:
     # Window planner mode:
     # - legacy_grid: previous distribution-matching sweep over lookback + val ratio
     # - deterministic_solver: deterministic contiguous train/val windows
-    window_selection_mode: Literal["legacy_grid", "deterministic_solver"] = "legacy_grid"
+    # - stage1_fold_cv: rolling multi-fold validation where each fold validates
+    #   on one or more contiguous batches before prediction (leakage-safe)
+    window_selection_mode: Literal[
+        "legacy_grid", "deterministic_solver", "stage1_fold_cv"
+    ] = "legacy_grid"
     # Train share bounds used by deterministic solver
     train_share_min: float = 0.70
     train_share_max: float = 0.80
@@ -144,6 +141,35 @@ class WindowSearchSpace:
     embargo_val_pred_batches: int | None = None
     # Step size for deterministic lookback candidate sweep
     solver_step_batches: int = 1
+    # Stage-1 fold CV controls (used when window_selection_mode=stage1_fold_cv)
+    # Execution mode:
+    # - fast_grid: deterministic in-memory grid (recommended; no Optuna trial DB I/O)
+    # - optuna: legacy Optuna-backed full-grid evaluation
+    stage1_execution_mode: Literal["fast_grid", "optuna"] = "fast_grid"
+    stage1_folds_min: int = 3
+    stage1_folds_max: int = 12
+    # Validation window size (in contiguous batches) per fold.
+    # Can be set as fixed value (stage1_val_batches_per_fold) or searched as a grid.
+    stage1_val_batches_per_fold: int = 1
+    stage1_val_batches_min: int = 1
+    stage1_val_batches_max: int = 1
+    stage1_val_batches_grid: list[int] | None = None
+    # Train window controls per fold:
+    # - stage1_train_batches_grid: absolute train batch counts
+    # - stage1_train_multiplier_grid: multipliers relative to val batches
+    #   train_batches_per_fold = val_batches_per_fold * multiplier
+    stage1_train_batches_min: int = 8
+    stage1_train_batches_max: int = 40
+    stage1_train_batches_grid: list[int] | None = None
+    stage1_train_multiplier_grid: list[int] | None = None
+    stage1_stability_lambda: float = 0.25
+    # Stage-1 winner selection mode:
+    # - objective: pick best fold-CV objective (existing behavior)
+    # - prediction_batch: pick best by prediction-batch metric after all combos
+    stage1_trial_selection_mode: Literal["objective", "prediction_batch"] = "objective"
+    # If set, use this metric for prediction_batch selection.
+    # If None, fallback to config.optuna_metric.
+    stage1_prediction_metric: str | None = None
     decay_min: float = 0.95
     decay_max: float = 0.999
     min_samples_per_class: int = 50
@@ -163,7 +189,7 @@ class FeatureSearchSpace:
 
 @dataclass
 class ModelSearchSpace:
-    """Search space for LightGBM hyperparameters."""
+    """Search space for tree-boosting hyperparameters."""
 
     learning_rate_min: float = 0.01
     learning_rate_max: float = 0.2
@@ -1149,7 +1175,7 @@ def format_timestamp_for_folder(ts: str | datetime) -> str:
 
 def save_step_results(
     opt_result: dict,
-    model: lgb.Booster,
+    model,
     step_dir: Path,
     timeframe: str,
     step: int,
@@ -1176,8 +1202,16 @@ def save_step_results(
         "n_features": int(opt_result["n_features"]),
         "selected_features": opt_result["selected_features"],
         "lookback_batches": int(opt_result["lookback_batches"]),
-        "train_val_split": float(opt_result.get("train_val_split", 0.0)),
-        "val_ratio": float(opt_result.get("val_ratio", 0.0)),
+        "train_val_split": (
+            float(opt_result["train_val_split"])
+            if opt_result.get("train_val_split") is not None
+            else None
+        ),
+        "val_ratio": (
+            float(opt_result["val_ratio"])
+            if opt_result.get("val_ratio") is not None
+            else None
+        ),
         "window_selection_mode": opt_result.get("window_selection_mode"),
         "train_start_batch": (
             int(opt_result["train_start_batch"])
@@ -1209,14 +1243,243 @@ def save_step_results(
             if opt_result.get("embargo_val_pred_batches") is not None
             else None
         ),
-        "window_distribution_score": float(
-            opt_result.get("window_distribution_score", 0.0)
+        "window_distribution_score": (
+            float(opt_result["window_distribution_score"])
+            if opt_result.get("window_distribution_score") is not None
+            else None
         ),
         "distribution_mse_train": float(opt_result.get("distribution_mse_train", 0.0)),
         "distribution_mse_val": float(opt_result.get("distribution_mse_val", 0.0)),
         "distribution_mse_window": float(opt_result.get("distribution_mse_window", 0.0)),
         "distribution_mse_train_val": float(
             opt_result.get("distribution_mse_train_val", 0.0)
+        ),
+        "stage1_fold_count": (
+            int(opt_result["stage1_fold_count"])
+            if opt_result.get("stage1_fold_count") is not None
+            else None
+        ),
+        "stage1_val_batches_per_fold": (
+            int(opt_result["stage1_val_batches_per_fold"])
+            if opt_result.get("stage1_val_batches_per_fold") is not None
+            else None
+        ),
+        "stage1_train_batches_per_fold": (
+            int(opt_result["stage1_train_batches_per_fold"])
+            if opt_result.get("stage1_train_batches_per_fold") is not None
+            else None
+        ),
+        "stage1_fold_score_mean": (
+            float(opt_result["stage1_fold_score_mean"])
+            if opt_result.get("stage1_fold_score_mean") is not None
+            else None
+        ),
+        "stage1_fold_score_std": (
+            float(opt_result["stage1_fold_score_std"])
+            if opt_result.get("stage1_fold_score_std") is not None
+            else None
+        ),
+        "stage1_stability_lambda": (
+            float(opt_result["stage1_stability_lambda"])
+            if opt_result.get("stage1_stability_lambda") is not None
+            else None
+        ),
+        "stage1_fold_scores": [
+            float(v) for v in opt_result.get("stage1_fold_scores", [])
+        ],
+        "stage1_fold_windows": opt_result.get("stage1_fold_windows", []),
+        "stage1_pred_batch": (
+            int(opt_result["stage1_pred_batch"])
+            if opt_result.get("stage1_pred_batch") is not None
+            else None
+        ),
+        "stage1_pred_n": (
+            int(opt_result["stage1_pred_n"])
+            if opt_result.get("stage1_pred_n") is not None
+            else None
+        ),
+        "stage1_pred_accuracy": (
+            float(opt_result["stage1_pred_accuracy"])
+            if opt_result.get("stage1_pred_accuracy") is not None
+            else None
+        ),
+        "stage1_pred_macro_f1": (
+            float(opt_result["stage1_pred_macro_f1"])
+            if opt_result.get("stage1_pred_macro_f1") is not None
+            else None
+        ),
+        "stage1_pred_macro_f1_up": (
+            float(opt_result["stage1_pred_macro_f1_up"])
+            if opt_result.get("stage1_pred_macro_f1_up") is not None
+            else None
+        ),
+        "stage1_pred_macro_f1_down": (
+            float(opt_result["stage1_pred_macro_f1_down"])
+            if opt_result.get("stage1_pred_macro_f1_down") is not None
+            else None
+        ),
+        "stage1_pred_log_loss": (
+            float(opt_result["stage1_pred_log_loss"])
+            if opt_result.get("stage1_pred_log_loss") is not None
+            else None
+        ),
+        "stage1_pred_directional_accuracy": (
+            float(opt_result["stage1_pred_directional_accuracy"])
+            if opt_result.get("stage1_pred_directional_accuracy") is not None
+            else None
+        ),
+        "stage1_pred_directional_precision_up": (
+            float(opt_result["stage1_pred_directional_precision_up"])
+            if opt_result.get("stage1_pred_directional_precision_up") is not None
+            else None
+        ),
+        "stage1_pred_directional_precision_down": (
+            float(opt_result["stage1_pred_directional_precision_down"])
+            if opt_result.get("stage1_pred_directional_precision_down") is not None
+            else None
+        ),
+        "stage1_pred_cross_direction_error": (
+            float(opt_result["stage1_pred_cross_direction_error"])
+            if opt_result.get("stage1_pred_cross_direction_error") is not None
+            else None
+        ),
+        "stage1_combo_count_total": (
+            int(opt_result["stage1_combo_count_total"])
+            if opt_result.get("stage1_combo_count_total") is not None
+            else None
+        ),
+        "stage1_combo_count_completed": (
+            int(opt_result["stage1_combo_count_completed"])
+            if opt_result.get("stage1_combo_count_completed") is not None
+            else None
+        ),
+        "stage1_combo_count_missing": (
+            int(opt_result["stage1_combo_count_missing"])
+            if opt_result.get("stage1_combo_count_missing") is not None
+            else None
+        ),
+        "stage1_all_combos_evaluated": (
+            bool(opt_result["stage1_all_combos_evaluated"])
+            if opt_result.get("stage1_all_combos_evaluated") is not None
+            else None
+        ),
+        "stage1_execution_mode": opt_result.get("stage1_execution_mode"),
+        "stage1_trial_selection_mode": opt_result.get("stage1_trial_selection_mode"),
+        "stage1_prediction_metric": opt_result.get("stage1_prediction_metric"),
+        "stage1_selected_by": opt_result.get("stage1_selected_by"),
+        "stage1_selection_attr": opt_result.get("stage1_selection_attr"),
+        "stage1_selected_trial_number": (
+            int(opt_result["stage1_selected_trial_number"])
+            if opt_result.get("stage1_selected_trial_number") is not None
+            else None
+        ),
+        "stage1_selection_value": (
+            float(opt_result["stage1_selection_value"])
+            if opt_result.get("stage1_selection_value") is not None
+            else None
+        ),
+        "stage1_pred_confusion_flat": (
+            [int(v) for v in opt_result.get("stage1_pred_confusion_flat", [])]
+            if opt_result.get("stage1_pred_confusion_flat") is not None
+            else None
+        ),
+        "stage1_pred_nll_sum": (
+            float(opt_result["stage1_pred_nll_sum"])
+            if opt_result.get("stage1_pred_nll_sum") is not None
+            else None
+        ),
+        "stage1_fold_cache_hits": (
+            int(opt_result["stage1_fold_cache_hits"])
+            if opt_result.get("stage1_fold_cache_hits") is not None
+            else None
+        ),
+        "stage1_fold_cache_misses": (
+            int(opt_result["stage1_fold_cache_misses"])
+            if opt_result.get("stage1_fold_cache_misses") is not None
+            else None
+        ),
+        "stage1_fold_cache_unique_windows": (
+            int(opt_result["stage1_fold_cache_unique_windows"])
+            if opt_result.get("stage1_fold_cache_unique_windows") is not None
+            else None
+        ),
+        "stage1_fold_train_count": (
+            int(opt_result["stage1_fold_train_count"])
+            if opt_result.get("stage1_fold_train_count") is not None
+            else None
+        ),
+        "stage1_train_model_cache_hits": (
+            int(opt_result["stage1_train_model_cache_hits"])
+            if opt_result.get("stage1_train_model_cache_hits") is not None
+            else None
+        ),
+        "stage1_train_model_cache_misses": (
+            int(opt_result["stage1_train_model_cache_misses"])
+            if opt_result.get("stage1_train_model_cache_misses") is not None
+            else None
+        ),
+        "stage1_train_model_cache_unique": (
+            int(opt_result["stage1_train_model_cache_unique"])
+            if opt_result.get("stage1_train_model_cache_unique") is not None
+            else None
+        ),
+        "stage1_range_cache_hits": (
+            int(opt_result["stage1_range_cache_hits"])
+            if opt_result.get("stage1_range_cache_hits") is not None
+            else None
+        ),
+        "stage1_range_cache_misses": (
+            int(opt_result["stage1_range_cache_misses"])
+            if opt_result.get("stage1_range_cache_misses") is not None
+            else None
+        ),
+        "stage1_combo_processed": (
+            int(opt_result["stage1_combo_processed"])
+            if opt_result.get("stage1_combo_processed") is not None
+            else None
+        ),
+        "stage1_combo_failed": (
+            int(opt_result["stage1_combo_failed"])
+            if opt_result.get("stage1_combo_failed") is not None
+            else None
+        ),
+        "stage1_fold_windows_total": (
+            int(opt_result["stage1_fold_windows_total"])
+            if opt_result.get("stage1_fold_windows_total") is not None
+            else None
+        ),
+        "stage1_fold_windows_evaluated": (
+            int(opt_result["stage1_fold_windows_evaluated"])
+            if opt_result.get("stage1_fold_windows_evaluated") is not None
+            else None
+        ),
+        "stage1_runtime_s": (
+            float(opt_result["stage1_runtime_s"])
+            if opt_result.get("stage1_runtime_s") is not None
+            else None
+        ),
+        "stage1_combos_per_second": (
+            float(opt_result["stage1_combos_per_second"])
+            if opt_result.get("stage1_combos_per_second") is not None
+            else None
+        ),
+        "stage1_trains_per_second": (
+            float(opt_result["stage1_trains_per_second"])
+            if opt_result.get("stage1_trains_per_second") is not None
+            else None
+        ),
+        "stage1_timing": (
+            {
+                str(k): float(v)
+                for k, v in (opt_result.get("stage1_timing") or {}).items()
+            }
+            if opt_result.get("stage1_timing") is not None
+            else None
+        ),
+        "stage1_slowest_combos": (
+            list(opt_result.get("stage1_slowest_combos") or [])
+            if opt_result.get("stage1_slowest_combos") is not None
+            else []
         ),
         "missing_classes_train": int(opt_result.get("missing_classes_train", 0)),
         "missing_classes_val": int(opt_result.get("missing_classes_val", 0)),
@@ -1282,19 +1545,15 @@ def save_step_results(
         "decay_weight": float(opt_result["decay_weight"]),
         "class_weight_method": opt_result["class_weight_method"],
         "num_boost_round": int(opt_result["num_boost_round"]),
-        "lgb_params": {
-            k: float(v) if isinstance(v, (int, float)) else v
-            for k, v in opt_result["lgb_params"].items()
-        },
+    }
+    params_obj = opt_result.get("cb_params") or opt_result.get("lgb_params", {})
+    result_json["cb_params"] = {
+        k: float(v) if isinstance(v, (int, float)) else v
+        for k, v in params_obj.items()
     }
 
-    opt_path = step_dir / "optimization.json"
-    with open(opt_path, "w") as f:
-        json.dump(result_json, f, indent=2)
-    saved_files["optimization"] = opt_path
-
     # 2. Save model
-    model_path = step_dir / "model.txt"
+    model_path = step_dir / "model.cbm"
     model.save_model(str(model_path))
     saved_files["model"] = model_path
 
@@ -1321,6 +1580,86 @@ def save_step_results(
     metrics_path = step_dir / "class_metrics.parquet"
     metrics_df.write_parquet(metrics_path)
     saved_files["class_metrics"] = metrics_path
+
+    # 4. Save stage-1 fold metrics when stage1_fold_cv mode is used
+    fold_windows = opt_result.get("stage1_fold_windows") or []
+    fold_scores = opt_result.get("stage1_fold_scores") or []
+    if fold_windows:
+        fold_records = []
+        for i, w in enumerate(fold_windows):
+            val_start_batch = (
+                int(w["val_start_batch"])
+                if w.get("val_start_batch") is not None
+                else None
+            )
+            val_end_batch = (
+                int(w["val_end_batch"])
+                if w.get("val_end_batch") is not None
+                else None
+            )
+            legacy_val_batch = (
+                int(w["val_batch"])
+                if w.get("val_batch") is not None
+                else val_end_batch
+            )
+            fold_records.append(
+                {
+                    "fold_id": int(w.get("fold_id", i + 1)),
+                    "train_start_batch": (
+                        int(w["train_start_batch"])
+                        if w.get("train_start_batch") is not None
+                        else None
+                    ),
+                    "train_end_batch": (
+                        int(w["train_end_batch"])
+                        if w.get("train_end_batch") is not None
+                        else None
+                    ),
+                    "val_start_batch": val_start_batch,
+                    "val_end_batch": val_end_batch,
+                    # Backward-compatible single-batch alias.
+                    "val_batch": legacy_val_batch,
+                    "fold_score": (
+                        float(fold_scores[i]) if i < len(fold_scores) else None
+                    ),
+                }
+            )
+        result_json["stage1_fold_metrics"] = fold_records
+        fold_df = pl.DataFrame(fold_records)
+        fold_path = step_dir / "stage1_fold_metrics.parquet"
+        fold_df.write_parquet(fold_path)
+        saved_files["stage1_fold_metrics"] = fold_path
+
+    # 5. Save all stage-1 combination metrics (every fold/train-length combo)
+    combo_records = opt_result.get("stage1_combo_metrics") or []
+    if combo_records:
+        combo_df = pl.DataFrame(combo_records)
+        combo_path = step_dir / "stage1_combo_metrics.parquet"
+        combo_df.write_parquet(combo_path)
+        saved_files["stage1_combo_metrics"] = combo_path
+        combo_jsonl_path = step_dir / "stage1_combo_metrics.jsonl"
+        with open(combo_jsonl_path, "w") as f:
+            for row in combo_records:
+                f.write(json.dumps(row, default=str) + "\n")
+        saved_files["stage1_combo_metrics_jsonl"] = combo_jsonl_path
+
+    combo_fold_records = opt_result.get("stage1_combo_fold_metrics") or []
+    if combo_fold_records:
+        combo_fold_df = pl.DataFrame(combo_fold_records)
+        combo_fold_path = step_dir / "stage1_combo_fold_metrics.parquet"
+        combo_fold_df.write_parquet(combo_fold_path)
+        saved_files["stage1_combo_fold_metrics"] = combo_fold_path
+        combo_fold_jsonl_path = step_dir / "stage1_combo_fold_metrics.jsonl"
+        with open(combo_fold_jsonl_path, "w") as f:
+            for row in combo_fold_records:
+                f.write(json.dumps(row, default=str) + "\n")
+        saved_files["stage1_combo_fold_metrics_jsonl"] = combo_fold_jsonl_path
+
+    # Save optimization metadata last so stage-1 details added above are included.
+    opt_path = step_dir / "optimization.json"
+    with open(opt_path, "w") as f:
+        json.dump(result_json, f, indent=2)
+    saved_files["optimization"] = opt_path
 
     return saved_files
 

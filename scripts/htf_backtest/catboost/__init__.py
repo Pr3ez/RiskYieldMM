@@ -1,4 +1,4 @@
-# LightGBM HTF Backtest Optimization
+# CatBoost HTF Backtest Optimization
 # Separate modules for 1m, 5m and 15m timeframes
 
 from pathlib import Path
