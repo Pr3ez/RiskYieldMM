@@ -1,20 +1,35 @@
 # HTF Target Labeling Logic (from `notebooks/htf_pythonscript.py`)
 
-This document explains exactly how targets are computed in the notebook script, with direct code excerpts and file/line references.
+> IMPORTANT
+> This file is currently a legacy 8-class reference.
+> The active workflow has been migrated to `target_4class` (primary) and
+> `target_breakfree`. Use this document only as historical context until the
+> full 4-class rewrite is completed.
+
+This document explains target computation in the notebook script, with direct code excerpts and file/line references.
 
 File of record:
 - `notebooks/htf_pythonscript.py`
 
 ## Scope
 
-Targets covered:
+Historical targets covered in this legacy snapshot:
 - `target_8class` (multiclass, 8 labels)
-- `target_breakfree` (binary with neutral `-1`)
+- `target_breakfree` (multiclass, 4 position-aware labels, with neutral `-1`)
+
+Current active workflow targets:
+- `target_4class` (primary)
+- `target_breakfree` (3-class, non-overlapping):
+  - `0`: `UP_ABOVE_BREAKFREE`
+  - `1`: `DOWN_ABOVE_BREAKFREE`
+  - `2`: `IN_BETWEEN_BELOW_BREAKFREE`
+  - `-1`: unlabeled / invalid row
 
 Main labeling flow in the script:
 1. Cell 7: compute forward-looking distance metrics (current batch only)
 2. Cell 8: create 15m labels (`target_8class`, `target_breakfree`)
 3. Cell 9: create hybrid 5m labels (`target_8class`, `target_breakfree`) using 5m entry and 15m future bars
+4. Cell 9B: create hybrid 1m labels (`target_8class`, `target_breakfree`) using 1m entry and 15m future bars
 
 ## 1) Cell 7: Distance Metrics Base
 
@@ -219,15 +234,20 @@ Reference: `notebooks/htf_pythonscript.py:1852`
 
 ```python
 # end_return = (close_end - close_now) / close_now
-pl.when(pl.col("end_return") >= BREAKFREE_THRESHOLD).then(pl.lit(1))
- .when(pl.col("end_return") <= -BREAKFREE_THRESHOLD).then(pl.lit(0))
+pl.when(pl.col("target_8class") < 0).then(pl.lit(-1))
+ .when(pl.col("target_8class").is_in([3, 4, 5, 6]) & (pl.col("end_return") <= -BREAKFREE_THRESHOLD)).then(pl.lit(0))
+ .when(pl.col("target_8class").is_in([3, 4, 5, 6]) & (pl.col("end_return") >= BREAKFREE_THRESHOLD)).then(pl.lit(1))
+ .when(pl.col("target_8class").is_in([0, 1, 2, 7]) & (pl.col("end_return") <= -BREAKFREE_THRESHOLD)).then(pl.lit(2))
+ .when(pl.col("target_8class").is_in([0, 1, 2, 7]) & (pl.col("end_return") >= BREAKFREE_THRESHOLD)).then(pl.lit(3))
  .otherwise(pl.lit(-1))
  .alias("target_breakfree")
 ```
 
 Interpretation:
-- `1`: end-of-batch close is at least +0.10% above current close
-- `0`: end-of-batch close is at least -0.10% below current close
+- `0`: `LONG_BELOW_BREAKFREE` (long-side setup, end close <= -0.10%)
+- `1`: `LONG_ABOVE_BREAKFREE` (long-side setup, end close >= +0.10%)
+- `2`: `SHORT_BELOW_BREAKFREE` (short-side setup, end close <= -0.10%)
+- `3`: `SHORT_ABOVE_BREAKFREE` (short-side setup, end close >= +0.10%)
 - `-1`: neutral zone between -0.10% and +0.10%
 
 ### 2.5 Save path
@@ -294,7 +314,7 @@ References:
 
 Both formulas are the same structural logic as Cell 8:
 - same class decision tree
-- same breakfree style (`>= +0.10% => 1`, `<= -0.10% => 0`, else `-1`)
+- same 4-class position-aware breakfree mapping (plus neutral `-1`)
 
 ### 3.4 Save path
 
@@ -340,6 +360,7 @@ Current script intent is:
 Use this when validating outputs without opening the script:
 
 1. Confirm label files exist:
+- `data/htf_8class_labels/1m/batch_0001.parquet`
 - `data/htf_8class_labels/5m/batch_0001.parquet`
 - `data/htf_8class_labels/15m/batch_0001.parquet`
 
@@ -351,7 +372,10 @@ Use this when validating outputs without opening the script:
 - last rows per batch have `target_8class = -1` due to insufficient forward bars
 
 4. Confirm breakfree threshold behavior:
-- `end_return >= 0.001 => 1`
-- `end_return <= -0.001 => 0`
+- long-side classes (`target_8class` in `3,4,5,6`):
+  - `end_return <= -0.001 => 0 (LONG_BELOW_BREAKFREE)`
+  - `end_return >= +0.001 => 1 (LONG_ABOVE_BREAKFREE)`
+- short-side classes (`target_8class` in `0,1,2,7`):
+  - `end_return <= -0.001 => 2 (SHORT_BELOW_BREAKFREE)`
+  - `end_return >= +0.001 => 3 (SHORT_ABOVE_BREAKFREE)`
 - otherwise `-1`
-

@@ -2,7 +2,7 @@
 Walk-Forward Backtest Runner
 =============================
 
-Runs walk-forward backtest for HTF LightGBM classification targets.
+Runs walk-forward backtest for HTF CatBoost classification targets.
 Supports multiple targets per timeframe with isolated artifacts/studies.
 """
 
@@ -95,6 +95,16 @@ def _config_signature(obj: dict) -> str:
         return hashlib.md5(payload).hexdigest()
     except Exception:
         return ""
+
+
+def _safe_float(value, default=None):
+    """Convert value to float safely; return default for None/non-numeric."""
+    try:
+        if value is None:
+            return default
+        return float(value)
+    except (TypeError, ValueError):
+        return default
 
 
 def _update_run_model_index(
@@ -260,16 +270,38 @@ def _format_class_table(
     return _format_ascii_table(headers, rows, align=align, row_separators=True)
 
 
-def _to_class_proba_and_pred(raw_pred: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    """Normalize LightGBM prediction output to class probabilities + class ids."""
+def _to_class_proba_and_pred(
+    model,
+    raw_pred: np.ndarray,
+    n_classes: int,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Normalize prediction output to full class probabilities + class ids."""
     pred = np.asarray(raw_pred)
     if pred.ndim == 1:
         pred_pos = np.clip(pred, 1e-9, 1.0 - 1e-9)
-        proba = np.column_stack([1.0 - pred_pos, pred_pos])
-        y_pred = (pred_pos >= 0.5).astype(int)
-        return proba, y_pred
-    proba = pred
-    y_pred = proba.argmax(axis=1)
+        pred = np.column_stack([1.0 - pred_pos, pred_pos])
+
+    classes = getattr(model, "classes_", None)
+    if classes is None:
+        classes_arr = np.arange(pred.shape[1], dtype=int)
+    else:
+        classes_arr = np.asarray(classes)
+        if classes_arr.shape[0] != pred.shape[1]:
+            classes_arr = np.arange(pred.shape[1], dtype=int)
+
+    proba = np.full((pred.shape[0], n_classes), 1e-12, dtype=np.float64)
+    for src_idx, cls in enumerate(classes_arr):
+        try:
+            cls_idx = int(cls)
+        except Exception:
+            continue
+        if 0 <= cls_idx < n_classes:
+            proba[:, cls_idx] = np.clip(pred[:, src_idx], 1e-12, 1.0)
+
+    row_sum = proba.sum(axis=1, keepdims=True)
+    row_sum[row_sum <= 0] = 1.0
+    proba = proba / row_sum
+    y_pred = proba.argmax(axis=1).astype(int)
     return proba, y_pred
 
 
@@ -394,7 +426,7 @@ def _format_aligned_step_summary(
 def run_walk_forward_backtest(
     n_steps: int | None = None,
     timeframes: list[str] | None = None,
-    run_description: str = "Walk-forward optimization: multi-target LightGBM classification",
+    run_description: str = "Walk-forward optimization: multi-target CatBoost classification",
     verbose: bool = True,
     debug_batches: bool = False,
     optuna_overrides: dict | None = None,
@@ -402,7 +434,7 @@ def run_walk_forward_backtest(
     resume: bool = False,
     resume_mode: str = "continue",
     allow_override_mismatch: bool = False,
-    model_name: str = "lightgbm",
+    model_name: str = "catboost",
     optuna_overrides_by_model: dict | None = None,
     targets_by_model: dict | None = None,
     n_classes_by_model: dict | None = None,
@@ -545,6 +577,8 @@ def run_walk_forward_backtest(
         "shuffle_batches_seed",
         "balance_strategy",
         "balance_apply_to",
+        "class_weight_choices",
+        "cb_base_params",
         "window_space",
         "feature_space",
         "model_space",
@@ -778,12 +812,31 @@ def run_walk_forward_backtest(
                     cfg,
                     class_weight_choices=tuple(overrides["class_weight_choices"]),
                 )
+            if "cb_base_params" in overrides:
+                cb_params = overrides["cb_base_params"]
+                if not isinstance(cb_params, dict):
+                    raise TypeError(
+                        f"cb_base_params override must be dict, got {type(cb_params)}"
+                    )
+                merged_cb_params = dict(cfg.cb_base_params)
+                merged_cb_params.update(cb_params)
+                cfg = replace(cfg, cb_base_params=merged_cb_params)
             if "window_space" in overrides:
                 win = replace(win, **overrides["window_space"])
             if "feature_space" in overrides:
                 feat = replace(feat, **overrides["feature_space"])
             if "model_space" in overrides:
                 model = replace(model, **overrides["model_space"])
+
+            # Stage-1 fold CV is intentionally isolated in `stage1_runner.py`.
+            # Prevent mixed execution paths in the standard backtest runner.
+            if str(getattr(win, "window_selection_mode", "")) == "stage1_fold_cv":
+                raise ValueError(
+                    "window_selection_mode='stage1_fold_cv' is Stage-1-only and cannot run through "
+                    "scripts.htf_backtest.catboost.runner.run_walk_forward_backtest. "
+                    "Use scripts.htf_backtest.catboost.stage1_runner.run_walk_forward_stage1_grid (Cell 14). "
+                    f"Got tf={tf}, target={target_col}."
+                )
 
             feature_target_col = _resolve_feature_target(tf, target_col)
             task_type = "multiclass"
@@ -793,7 +846,7 @@ def run_walk_forward_backtest(
                 if task_type not in {"multiclass", "binary"}:
                     raise ValueError(
                         f"Unsupported task_type '{task_type}' for target '{target_col}'. "
-                        "This LightGBM pipeline currently supports classification only."
+                        "This CatBoost pipeline currently supports classification only."
                     )
                 n_classes = int(
                     target_def.get(
@@ -822,19 +875,17 @@ def run_walk_forward_backtest(
                 n_classes=n_classes,
                 class_names=tuple(class_names),
             )
-            cfg.lgb_base_params = cfg.lgb_base_params.copy()
+            cfg.cb_base_params = cfg.cb_base_params.copy()
             if task_type == "binary":
                 if cfg.n_classes != 2:
                     raise ValueError(
                         f"Binary target '{target_col}' must use n_classes=2, got {cfg.n_classes}"
                     )
-                cfg.lgb_base_params["objective"] = "binary"
-                cfg.lgb_base_params["metric"] = "binary_logloss"
-                cfg.lgb_base_params.pop("num_class", None)
+                cfg.cb_base_params["loss_function"] = "Logloss"
+                cfg.cb_base_params["eval_metric"] = "Logloss"
             else:
-                cfg.lgb_base_params["objective"] = "multiclass"
-                cfg.lgb_base_params["metric"] = "multi_logloss"
-                cfg.lgb_base_params["num_class"] = cfg.n_classes
+                cfg.cb_base_params["loss_function"] = "MultiClass"
+                cfg.cb_base_params["eval_metric"] = "MultiClass"
 
             optimizer = opt_cls(
                 config=cfg, window_space=win, feature_space=feat, model_space=model
@@ -852,6 +903,68 @@ def run_walk_forward_backtest(
 
     if not execution_units:
         raise ValueError("No execution units built. Check timeframes/targets configuration.")
+
+    def _stage1_val_values(win) -> list[int]:
+        """Resolve stage-1 validation-window candidates (batches per fold)."""
+        val_fixed = int(max(1, getattr(win, "stage1_val_batches_per_fold", 1)))
+        val_min = int(max(1, getattr(win, "stage1_val_batches_min", val_fixed)))
+        val_max = int(max(val_min, getattr(win, "stage1_val_batches_max", val_min)))
+        val_grid = getattr(win, "stage1_val_batches_grid", None)
+        if val_grid:
+            vals = sorted(
+                {
+                    int(v)
+                    for v in val_grid
+                    if val_min <= int(v) <= val_max and int(v) >= 1
+                }
+            )
+        else:
+            vals = list(range(val_min, val_max + 1))
+        return vals or [val_fixed]
+
+    def _stage1_val_train_pairs(win) -> list[tuple[int, int]]:
+        """Resolve stage-1 (val_batches_per_fold, train_batches_per_fold) pairs."""
+        train_min = int(max(1, getattr(win, "stage1_train_batches_min", 1)))
+        train_max = int(max(train_min, getattr(win, "stage1_train_batches_max", train_min)))
+        val_values = _stage1_val_values(win)
+
+        multiplier_grid = getattr(win, "stage1_train_multiplier_grid", None)
+        if multiplier_grid:
+            pairs = sorted(
+                {
+                    (int(v), int(v) * int(m))
+                    for v in val_values
+                    for m in multiplier_grid
+                    if int(m) >= 1
+                    and train_min <= int(v) * int(m) <= train_max
+                }
+            )
+            if pairs:
+                return pairs
+
+        grid = getattr(win, "stage1_train_batches_grid", None)
+        if grid:
+            train_values = sorted(
+                {
+                    int(v)
+                    for v in grid
+                    if train_min <= int(v) <= train_max
+                }
+            )
+        else:
+            train_values = list(range(train_min, train_max + 1))
+
+        return sorted(
+            {(int(v), int(t)) for v in val_values for t in train_values}
+        )
+
+    def _stage1_combo_count(win) -> int:
+        """Compute full stage-1 fold/val/train grid size for one step."""
+        folds_min = int(max(1, getattr(win, "stage1_folds_min", 1)))
+        folds_max = int(max(folds_min, getattr(win, "stage1_folds_max", folds_min)))
+        fold_values = list(range(folds_min, folds_max + 1))
+        pairs = _stage1_val_train_pairs(win)
+        return int(len(fold_values) * len(pairs))
 
     # Use first config as reference
     ref_config = execution_units[0]["optimizer"].config
@@ -876,7 +989,15 @@ def run_walk_forward_backtest(
             cfg = unit["optimizer"].config
             win = unit["optimizer"].window_space
             print(f"\n  {unit['tf']}/{unit['target_col']} config:")
-            print(f"    trials={cfg.optuna_trials}, timeout={cfg.optuna_timeout}s")
+            if win.window_selection_mode == "stage1_fold_cv":
+                combo_count = _stage1_combo_count(win)
+                print(
+                    "    stage1_optimization_budget: "
+                    f"{combo_count} full-grid combinations/step"
+                )
+                print("    stage1_trials_timeout: managed by stage1 grid coverage")
+            else:
+                print(f"    trials={cfg.optuna_trials}, timeout={cfg.optuna_timeout}s")
             print(
                 f"    lookback: {win.lookback_min}-{win.lookback_max}"
             )
@@ -885,6 +1006,50 @@ def run_walk_forward_backtest(
                 print(
                     "    train_share_bounds: "
                     f"{win.train_share_min:.0%}-{win.train_share_max:.0%}"
+                )
+                print(
+                    f"    embargo: mode={win.embargo_mode}, "
+                    f"train_val={win.embargo_train_val_batches}, "
+                    f"val_pred={win.embargo_val_pred_batches}"
+                )
+            elif win.window_selection_mode == "stage1_fold_cv":
+                val_values = _stage1_val_values(win)
+                if len(val_values) == 1:
+                    val_desc = f"{val_values[0]}"
+                else:
+                    val_desc = f"{val_values[0]}-{val_values[-1]}"
+                print(
+                    "    stage1_fold_cv: "
+                    f"folds={win.stage1_folds_min}-{win.stage1_folds_max}, "
+                    "val_batches_per_fold="
+                    f"{val_desc}, "
+                    "train_batches_per_fold="
+                    f"{win.stage1_train_batches_min}-{win.stage1_train_batches_max}"
+                )
+                print(
+                    "    stage1_execution_mode: "
+                    f"{getattr(win, 'stage1_execution_mode', 'fast_grid')}"
+                )
+                if win.stage1_train_batches_grid:
+                    print(
+                        "    stage1_train_batches_grid: "
+                        f"{list(win.stage1_train_batches_grid)}"
+                    )
+                if getattr(win, "stage1_val_batches_grid", None):
+                    print(
+                        "    stage1_val_batches_grid: "
+                        f"{list(win.stage1_val_batches_grid)}"
+                    )
+                if getattr(win, "stage1_train_multiplier_grid", None):
+                    print(
+                        "    stage1_train_multiplier_grid: "
+                        f"{list(win.stage1_train_multiplier_grid)}"
+                    )
+                print(
+                    "    stage1_selection: "
+                    f"mode={getattr(win, 'stage1_trial_selection_mode', 'objective')}, "
+                    "metric="
+                    f"{getattr(win, 'stage1_prediction_metric', None) or unit['optimizer'].config.optuna_metric}"
                 )
                 print(
                     f"    embargo: mode={win.embargo_mode}, "
@@ -1195,7 +1360,7 @@ def run_walk_forward_backtest(
 
                 if resume and resume_mode == "skip_completed":
                     prediction_done = (step_dir / "prediction_metrics.json").exists()
-                    model_done = (step_dir / "model.txt").exists()
+                    model_done = (step_dir / "model.cbm").exists()
                     if prediction_done and model_done:
                         if verbose:
                             print(
@@ -1236,56 +1401,180 @@ def run_walk_forward_backtest(
 
                 # Optimization
                 cfg = optimizer.config
+                win = optimizer.window_space
+                opt_trials = cfg.optuna_trials
+                opt_timeout = cfg.optuna_timeout
+                if win.window_selection_mode == "stage1_fold_cv":
+                    opt_trials = _stage1_combo_count(win)
+                    opt_timeout = None
                 if verbose:
-                    print(
-                        f"    Running optimization (trials={cfg.optuna_trials}, timeout={cfg.optuna_timeout}s)..."
-                    )
+                    if win.window_selection_mode == "stage1_fold_cv":
+                        print(
+                            "    Running stage1 full-grid optimization "
+                            f"(combinations={opt_trials}, timeout=managed_by_grid)..."
+                        )
+                    else:
+                        print(
+                            f"    Running optimization (trials={opt_trials}, timeout={opt_timeout}s)..."
+                        )
 
                 opt_start = time.time()
                 opt_result = optimizer.optimize_step(
                     train_end=train_end,
+                    n_trials=opt_trials,
+                    timeout=opt_timeout,
                     study_storage_path=study_path,
                     study_name=study_name,
                 )
 
                 opt_results[model_key] = opt_result
                 if verbose:
+                    is_stage1 = win.window_selection_mode == "stage1_fold_cv"
                     try:
                         study = opt_result.get("study")
-                        n_complete = (
-                            len([t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE])
-                            if study is not None
-                            else "?"
-                        )
+                        if study is not None:
+                            n_complete = len(
+                                [
+                                    t
+                                    for t in study.trials
+                                    if t.state == optuna.trial.TrialState.COMPLETE
+                                ]
+                            )
+                        elif opt_result.get("stage1_combo_count_completed") is not None:
+                            n_complete = int(opt_result["stage1_combo_count_completed"])
+                        else:
+                            n_complete = "?"
                     except Exception:
                         n_complete = "?"
                     print(
                         f"    Optimization completed in {time.time() - opt_start:.1f}s"
                     )
-                    print(f"    Completed trials: {n_complete}")
-                    metric_name = opt_result.get("optuna_metric", "accuracy")
-                    best_score = opt_result.get("best_score", opt_result.get("best_accuracy"))
-                    if metric_name == "log_loss":
-                        print(f"    Best {metric_name}: {best_score:.4f}")
-                    else:
-                        print(f"    Best {metric_name}: {best_score:.1%}")
-                    if opt_result.get("best_accuracy") is not None:
-                        print(f"    Best val accuracy: {opt_result['best_accuracy']:.1%}")
-                    if opt_result.get("directional_accuracy") is not None:
+                    if is_stage1:
                         print(
-                            "    Best val directional: "
-                            f"Acc={float(opt_result.get('directional_accuracy', 0.0)):.1%}, "
-                            f"Prec(up/down)="
-                            f"{float(opt_result.get('directional_precision_up', 0.0)):.1%}/"
-                            f"{float(opt_result.get('directional_precision_down', 0.0)):.1%}, "
-                            f"CrossErr={float(opt_result.get('cross_direction_error', 0.0)):.1%}"
+                            "    Stage1 completed combinations: "
+                            f"{int(opt_result.get('stage1_combo_count_completed', 0))}/"
+                            f"{int(opt_result.get('stage1_combo_count_total', 0))} "
+                            f"(missing={int(opt_result.get('stage1_combo_count_missing', 0))})"
                         )
+                        if opt_result.get("stage1_fold_cache_unique_windows") is not None:
+                            print(
+                                "    Stage1 fold cache: "
+                                f"unique={int(opt_result.get('stage1_fold_cache_unique_windows', 0))}, "
+                                f"trains={int(opt_result.get('stage1_fold_train_count', 0))}, "
+                                f"hits={int(opt_result.get('stage1_fold_cache_hits', 0))}, "
+                                f"misses={int(opt_result.get('stage1_fold_cache_misses', 0))}"
+                            )
+                        if opt_result.get("stage1_train_model_cache_unique") is not None:
+                            print(
+                                "    Stage1 train-model cache: "
+                                f"unique={int(opt_result.get('stage1_train_model_cache_unique', 0))}, "
+                                f"hits={int(opt_result.get('stage1_train_model_cache_hits', 0))}, "
+                                f"misses={int(opt_result.get('stage1_train_model_cache_misses', 0))}"
+                            )
+                        if opt_result.get("stage1_range_cache_hits") is not None:
+                            print(
+                                "    Stage1 range cache: "
+                                f"hits={int(opt_result.get('stage1_range_cache_hits', 0))}, "
+                                f"misses={int(opt_result.get('stage1_range_cache_misses', 0))}"
+                            )
+                        if opt_result.get("stage1_timing") is not None:
+                            t = opt_result.get("stage1_timing") or {}
+                            print(
+                                "    Stage1 timing (s): "
+                                f"total={_safe_float(t.get('total_s'), 0.0):.1f}, "
+                                f"cache={_safe_float(t.get('batch_cache_build_s'), 0.0):.1f}, "
+                                f"compact={_safe_float(t.get('compact_build_s'), 0.0):.1f}, "
+                                f"pred_load={_safe_float(t.get('pred_batch_load_s'), 0.0):.1f}, "
+                                f"combo_loop={_safe_float(t.get('combo_loop_s'), 0.0):.1f}"
+                            )
+                            print(
+                                "    Stage1 fold timing (s): "
+                                f"slice={_safe_float(t.get('fold_slice_s'), 0.0):.1f}, "
+                                f"train={_safe_float(t.get('fold_train_s'), 0.0):.1f}, "
+                                f"val_pred={_safe_float(t.get('fold_val_predict_s'), 0.0):.1f}, "
+                                f"metrics={_safe_float(t.get('fold_metric_s'), 0.0):.1f}, "
+                                f"pred_diag={_safe_float(t.get('fold_pred_diag_s'), 0.0):.1f}"
+                            )
+                        if opt_result.get("stage1_combos_per_second") is not None:
+                            print(
+                                "    Stage1 throughput: "
+                                f"combos/s={_safe_float(opt_result.get('stage1_combos_per_second'), 0.0):.2f}, "
+                                f"trains/s={_safe_float(opt_result.get('stage1_trains_per_second'), 0.0):.2f}, "
+                                f"folds={int(opt_result.get('stage1_fold_windows_evaluated', 0))}/"
+                                f"{int(opt_result.get('stage1_fold_windows_total', 0))}"
+                            )
+                        metric_name = opt_result.get("optuna_metric", "accuracy")
+                        best_objective = _safe_float(
+                            opt_result.get("best_objective_score", opt_result.get("best_score")),
+                            0.0,
+                        )
+                        if metric_name == "log_loss":
+                            print(f"    Stage1 best objective ({metric_name}): {best_objective:.4f}")
+                        else:
+                            print(f"    Stage1 best objective ({metric_name}): {best_objective:.1%}")
+                        print(
+                            "    Stage1 selected combo: "
+                            f"trial={int(opt_result.get('stage1_selected_trial_number', -1))}, "
+                            f"folds={int(opt_result.get('stage1_fold_count', 0))}, "
+                            "val_batches_per_fold="
+                            f"{int(opt_result.get('stage1_val_batches_per_fold', 1))}, "
+                            "train_batches_per_fold="
+                            f"{int(opt_result.get('stage1_train_batches_per_fold', 0))}"
+                        )
+                        print(
+                            "    Stage1 fold-CV mean±std: "
+                            f"{_safe_float(opt_result.get('stage1_fold_score_mean'), 0.0):.4f}"
+                            "±"
+                            f"{_safe_float(opt_result.get('stage1_fold_score_std'), 0.0):.4f}"
+                        )
+                        if opt_result.get("stage1_execution_mode") is not None:
+                            print(
+                                "    Stage1 backend: "
+                                f"{opt_result.get('stage1_execution_mode')}"
+                            )
+                        if opt_result.get("stage1_selected_by") is not None:
+                            print(
+                                "    Stage1 selection: "
+                                f"mode={opt_result.get('stage1_trial_selection_mode')}, "
+                                f"by={opt_result.get('stage1_selected_by')}, "
+                                f"metric={opt_result.get('stage1_prediction_metric')}, "
+                                f"value={opt_result.get('stage1_selection_value')}"
+                            )
+                        if opt_result.get("stage1_pred_accuracy") is not None:
+                            print(
+                                "    Stage1 selected-combo pred diagnostics: "
+                                f"Acc={_safe_float(opt_result.get('stage1_pred_accuracy'), 0.0):.1%}, "
+                                f"MacroF1={_safe_float(opt_result.get('stage1_pred_macro_f1'), 0.0):.1%}, "
+                                f"CrossErr={_safe_float(opt_result.get('stage1_pred_cross_direction_error'), 0.0):.1%}"
+                            )
+                    else:
+                        print(f"    Completed trials: {n_complete}")
+                        metric_name = opt_result.get("optuna_metric", "accuracy")
+                        best_score = _safe_float(
+                            opt_result.get("best_score", opt_result.get("best_accuracy")),
+                            0.0,
+                        )
+                        if metric_name == "log_loss":
+                            print(f"    Best {metric_name}: {best_score:.4f}")
+                        else:
+                            print(f"    Best {metric_name}: {best_score:.1%}")
+                        if opt_result.get("best_accuracy") is not None:
+                            print(f"    Best val accuracy: {opt_result['best_accuracy']:.1%}")
+                        if opt_result.get("directional_accuracy") is not None:
+                            print(
+                                "    Best val directional: "
+                                f"Acc={_safe_float(opt_result.get('directional_accuracy'), 0.0):.1%}, "
+                                f"Prec(up/down)="
+                                f"{_safe_float(opt_result.get('directional_precision_up'), 0.0):.1%}/"
+                                f"{_safe_float(opt_result.get('directional_precision_down'), 0.0):.1%}, "
+                                f"CrossErr={_safe_float(opt_result.get('cross_direction_error'), 0.0):.1%}"
+                            )
                     print(f"    Lookback: {opt_result['lookback_batches']} batches")
                     if opt_result.get("train_val_split") is not None:
                         print(
                             "    Estimated split: "
-                            f"train={float(opt_result['train_val_split']):.1%}, "
-                            f"val={float(opt_result.get('val_ratio', 1.0 - opt_result['train_val_split'])):.1%}"
+                            f"train={_safe_float(opt_result['train_val_split'], 0.0):.1%}, "
+                            f"val={_safe_float(opt_result.get('val_ratio', 1.0 - opt_result['train_val_split']), 0.0):.1%}"
                         )
                     if opt_result.get("window_selection_mode"):
                         print(
@@ -1296,7 +1585,7 @@ def run_walk_forward_backtest(
                             "    Reference dist: "
                             f"mode={opt_result.get('reference_distribution_mode')}, "
                             f"recent_batches={opt_result.get('recent_ref_batches')}, "
-                            f"recent_weight={float(opt_result.get('recent_ref_weight', 0.0)):.2f}, "
+                            f"recent_weight={_safe_float(opt_result.get('recent_ref_weight'), 0.0):.2f}, "
                             f"active_classes={opt_result.get('active_class_ids', [])}"
                         )
                     if opt_result.get("train_start_batch") is not None:
@@ -1363,7 +1652,11 @@ def run_walk_forward_backtest(
 
                 X_pred = np.nan_to_num(X_pred, nan=0.0, posinf=0.0, neginf=0.0)
 
-                proba, y_pred = _to_class_proba_and_pred(model.predict(X_pred))
+                proba, y_pred = _to_class_proba_and_pred(
+                    model,
+                    model.predict_proba(X_pred),
+                    n_classes,
+                )
 
                 acc = accuracy_score(y_actual, y_pred)
                 loss = log_loss(y_actual, proba, labels=list(range(n_classes)))
@@ -1466,15 +1759,16 @@ def run_walk_forward_backtest(
                     "log_loss": float(loss),
                     "n_predictions": len(y_pred),
                     "optuna_metric": opt_result.get("optuna_metric", "accuracy"),
-                    "opt_val_score": float(
-                        opt_result.get("best_score", opt_result.get("best_accuracy", 0))
+                    "opt_val_score": _safe_float(
+                        opt_result.get("best_score", opt_result.get("best_accuracy")),
+                        None,
                     ),
                     "opt_val_accuracy": (
                         float(opt_result["best_accuracy"])
                         if opt_result.get("best_accuracy") is not None
                         else None
                     ),
-                    "opt_val_log_loss": float(opt_result.get("log_loss", 0)),
+                    "opt_val_log_loss": _safe_float(opt_result.get("log_loss"), None),
                     "accuracy_gap": (
                         float(acc - opt_result["best_accuracy"])
                         if opt_result.get("best_accuracy") is not None
@@ -1525,6 +1819,7 @@ def run_walk_forward_backtest(
                         else None
                     ),
                     "window_selection_mode": opt_result.get("window_selection_mode"),
+                    "stage1_execution_mode": opt_result.get("stage1_execution_mode"),
                     "train_start_batch": (
                         int(opt_result["train_start_batch"])
                         if opt_result.get("train_start_batch") is not None
@@ -1573,6 +1868,137 @@ def run_walk_forward_backtest(
                     "distribution_mse_train_val": (
                         float(opt_result["distribution_mse_train_val"])
                         if opt_result.get("distribution_mse_train_val") is not None
+                        else None
+                    ),
+                    "stage1_fold_count": (
+                        int(opt_result["stage1_fold_count"])
+                        if opt_result.get("stage1_fold_count") is not None
+                        else None
+                    ),
+                    "stage1_val_batches_per_fold": (
+                        int(opt_result["stage1_val_batches_per_fold"])
+                        if opt_result.get("stage1_val_batches_per_fold") is not None
+                        else None
+                    ),
+                    "stage1_train_batches_per_fold": (
+                        int(opt_result["stage1_train_batches_per_fold"])
+                        if opt_result.get("stage1_train_batches_per_fold") is not None
+                        else None
+                    ),
+                    "stage1_fold_score_mean": (
+                        float(opt_result["stage1_fold_score_mean"])
+                        if opt_result.get("stage1_fold_score_mean") is not None
+                        else None
+                    ),
+                    "stage1_fold_score_std": (
+                        float(opt_result["stage1_fold_score_std"])
+                        if opt_result.get("stage1_fold_score_std") is not None
+                        else None
+                    ),
+                    "stage1_stability_lambda": (
+                        float(opt_result["stage1_stability_lambda"])
+                        if opt_result.get("stage1_stability_lambda") is not None
+                        else None
+                    ),
+                    "stage1_fold_scores": [
+                        float(v) for v in opt_result.get("stage1_fold_scores", [])
+                    ],
+                    "stage1_fold_windows": opt_result.get("stage1_fold_windows", []),
+                    "stage1_pred_batch": (
+                        int(opt_result["stage1_pred_batch"])
+                        if opt_result.get("stage1_pred_batch") is not None
+                        else None
+                    ),
+                    "stage1_pred_n": (
+                        int(opt_result["stage1_pred_n"])
+                        if opt_result.get("stage1_pred_n") is not None
+                        else None
+                    ),
+                    "stage1_pred_accuracy": (
+                        float(opt_result["stage1_pred_accuracy"])
+                        if opt_result.get("stage1_pred_accuracy") is not None
+                        else None
+                    ),
+                    "stage1_pred_macro_f1": (
+                        float(opt_result["stage1_pred_macro_f1"])
+                        if opt_result.get("stage1_pred_macro_f1") is not None
+                        else None
+                    ),
+                    "stage1_pred_macro_f1_up": (
+                        float(opt_result["stage1_pred_macro_f1_up"])
+                        if opt_result.get("stage1_pred_macro_f1_up") is not None
+                        else None
+                    ),
+                    "stage1_pred_macro_f1_down": (
+                        float(opt_result["stage1_pred_macro_f1_down"])
+                        if opt_result.get("stage1_pred_macro_f1_down") is not None
+                        else None
+                    ),
+                    "stage1_pred_log_loss": (
+                        float(opt_result["stage1_pred_log_loss"])
+                        if opt_result.get("stage1_pred_log_loss") is not None
+                        else None
+                    ),
+                    "stage1_pred_directional_accuracy": (
+                        float(opt_result["stage1_pred_directional_accuracy"])
+                        if opt_result.get("stage1_pred_directional_accuracy")
+                        is not None
+                        else None
+                    ),
+                    "stage1_pred_directional_precision_up": (
+                        float(opt_result["stage1_pred_directional_precision_up"])
+                        if opt_result.get("stage1_pred_directional_precision_up")
+                        is not None
+                        else None
+                    ),
+                    "stage1_pred_directional_precision_down": (
+                        float(opt_result["stage1_pred_directional_precision_down"])
+                        if opt_result.get("stage1_pred_directional_precision_down")
+                        is not None
+                        else None
+                    ),
+                    "stage1_pred_cross_direction_error": (
+                        float(opt_result["stage1_pred_cross_direction_error"])
+                        if opt_result.get("stage1_pred_cross_direction_error")
+                        is not None
+                        else None
+                    ),
+                    "stage1_combo_count_total": (
+                        int(opt_result["stage1_combo_count_total"])
+                        if opt_result.get("stage1_combo_count_total") is not None
+                        else None
+                    ),
+                    "stage1_combo_count_completed": (
+                        int(opt_result["stage1_combo_count_completed"])
+                        if opt_result.get("stage1_combo_count_completed") is not None
+                        else None
+                    ),
+                    "stage1_combo_count_missing": (
+                        int(opt_result["stage1_combo_count_missing"])
+                        if opt_result.get("stage1_combo_count_missing") is not None
+                        else None
+                    ),
+                    "stage1_all_combos_evaluated": (
+                        bool(opt_result["stage1_all_combos_evaluated"])
+                        if opt_result.get("stage1_all_combos_evaluated") is not None
+                        else None
+                    ),
+                    "stage1_trial_selection_mode": opt_result.get(
+                        "stage1_trial_selection_mode"
+                    ),
+                    "stage1_prediction_metric": opt_result.get(
+                        "stage1_prediction_metric"
+                    ),
+                    "stage1_selected_by": opt_result.get("stage1_selected_by"),
+                    "stage1_selection_attr": opt_result.get("stage1_selection_attr"),
+                    "stage1_selected_trial_number": (
+                        int(opt_result["stage1_selected_trial_number"])
+                        if opt_result.get("stage1_selected_trial_number") is not None
+                        else None
+                    ),
+                    "stage1_selection_value": (
+                        float(opt_result["stage1_selection_value"])
+                        if opt_result.get("stage1_selection_value") is not None
                         else None
                     ),
                     "reference_distribution_mode": opt_result.get(
@@ -1682,7 +2108,7 @@ def run_walk_forward_backtest(
 
                 artifacts = {
                     "optimization": "optimization.json",
-                    "model": "model.txt",
+                    "model": "model.cbm",
                     "class_metrics": "class_metrics.parquet",
                     "prediction_metrics": "prediction_metrics.json",
                     "predictions": "predictions.parquet",
@@ -1690,6 +2116,20 @@ def run_walk_forward_backtest(
                     "trials_parquet": "trials.parquet",
                     "trials_jsonl": "trials.jsonl",
                 }
+                if (step_dir / "stage1_fold_metrics.parquet").exists():
+                    artifacts["stage1_fold_metrics"] = "stage1_fold_metrics.parquet"
+                if (step_dir / "stage1_combo_metrics.parquet").exists():
+                    artifacts["stage1_combo_metrics"] = "stage1_combo_metrics.parquet"
+                if (step_dir / "stage1_combo_metrics.jsonl").exists():
+                    artifacts["stage1_combo_metrics_jsonl"] = "stage1_combo_metrics.jsonl"
+                if (step_dir / "stage1_combo_fold_metrics.parquet").exists():
+                    artifacts["stage1_combo_fold_metrics"] = (
+                        "stage1_combo_fold_metrics.parquet"
+                    )
+                if (step_dir / "stage1_combo_fold_metrics.jsonl").exists():
+                    artifacts["stage1_combo_fold_metrics_jsonl"] = (
+                        "stage1_combo_fold_metrics.jsonl"
+                    )
                 metrics = {
                     "accuracy": float(acc),
                     "log_loss": float(loss),
@@ -1711,6 +2151,7 @@ def run_walk_forward_backtest(
                     "confusion_matrix": pred_metrics["confusion_matrix"],
                     "class_names": pred_metrics["class_names"],
                     "window_selection_mode": pred_metrics["window_selection_mode"],
+                    "stage1_execution_mode": pred_metrics.get("stage1_execution_mode"),
                     "train_start_batch": pred_metrics["train_start_batch"],
                     "train_end_batch": pred_metrics["train_end_batch"],
                     "val_start_batch": pred_metrics["val_start_batch"],
@@ -1729,6 +2170,64 @@ def run_walk_forward_backtest(
                     "distribution_mse_train_val": pred_metrics[
                         "distribution_mse_train_val"
                     ],
+                    "stage1_fold_count": pred_metrics["stage1_fold_count"],
+                    "stage1_val_batches_per_fold": pred_metrics[
+                        "stage1_val_batches_per_fold"
+                    ],
+                    "stage1_train_batches_per_fold": pred_metrics[
+                        "stage1_train_batches_per_fold"
+                    ],
+                    "stage1_fold_score_mean": pred_metrics["stage1_fold_score_mean"],
+                    "stage1_fold_score_std": pred_metrics["stage1_fold_score_std"],
+                    "stage1_stability_lambda": pred_metrics["stage1_stability_lambda"],
+                    "stage1_fold_windows": pred_metrics["stage1_fold_windows"],
+                    "stage1_pred_batch": pred_metrics["stage1_pred_batch"],
+                    "stage1_pred_n": pred_metrics["stage1_pred_n"],
+                    "stage1_pred_accuracy": pred_metrics["stage1_pred_accuracy"],
+                    "stage1_pred_macro_f1": pred_metrics["stage1_pred_macro_f1"],
+                    "stage1_pred_macro_f1_up": pred_metrics[
+                        "stage1_pred_macro_f1_up"
+                    ],
+                    "stage1_pred_macro_f1_down": pred_metrics[
+                        "stage1_pred_macro_f1_down"
+                    ],
+                    "stage1_pred_log_loss": pred_metrics["stage1_pred_log_loss"],
+                    "stage1_pred_directional_accuracy": pred_metrics[
+                        "stage1_pred_directional_accuracy"
+                    ],
+                    "stage1_pred_directional_precision_up": pred_metrics[
+                        "stage1_pred_directional_precision_up"
+                    ],
+                    "stage1_pred_directional_precision_down": pred_metrics[
+                        "stage1_pred_directional_precision_down"
+                    ],
+                    "stage1_pred_cross_direction_error": pred_metrics[
+                        "stage1_pred_cross_direction_error"
+                    ],
+                    "stage1_combo_count_total": pred_metrics[
+                        "stage1_combo_count_total"
+                    ],
+                    "stage1_combo_count_completed": pred_metrics[
+                        "stage1_combo_count_completed"
+                    ],
+                    "stage1_combo_count_missing": pred_metrics[
+                        "stage1_combo_count_missing"
+                    ],
+                    "stage1_all_combos_evaluated": pred_metrics[
+                        "stage1_all_combos_evaluated"
+                    ],
+                    "stage1_trial_selection_mode": pred_metrics[
+                        "stage1_trial_selection_mode"
+                    ],
+                    "stage1_prediction_metric": pred_metrics[
+                        "stage1_prediction_metric"
+                    ],
+                    "stage1_selected_by": pred_metrics["stage1_selected_by"],
+                    "stage1_selection_attr": pred_metrics["stage1_selection_attr"],
+                    "stage1_selected_trial_number": pred_metrics[
+                        "stage1_selected_trial_number"
+                    ],
+                    "stage1_selection_value": pred_metrics["stage1_selection_value"],
                     "directional_accuracy": pred_metrics["directional_accuracy"],
                     "directional_precision_up": pred_metrics["directional_precision_up"],
                     "directional_precision_down": pred_metrics[
