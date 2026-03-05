@@ -1,0 +1,7 @@
+interface:
+  display_name: "Research Continuity Orchestrator"
+  short_description: "Validate Linear/Notion task continuity"
+  default_prompt: "Use $research-continuity-orchestrator to validate substantial-task tracking state before and after research runs."
+
+policy:
+  allow_implicit_invocation: false

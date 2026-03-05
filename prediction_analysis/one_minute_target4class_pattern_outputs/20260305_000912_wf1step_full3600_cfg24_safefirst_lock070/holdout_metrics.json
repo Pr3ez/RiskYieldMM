@@ -1,0 +1,4 @@
+{
+  "pass_production_gate": false,
+  "reason": "no_holdout_batches"
+}

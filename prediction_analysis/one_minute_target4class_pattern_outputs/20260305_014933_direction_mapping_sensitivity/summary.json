@@ -1,0 +1,8 @@
+{
+  "output_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260305_014933_direction_mapping_sensitivity",
+  "rows_total": 20736000,
+  "batches": 3600,
+  "configs": 24,
+  "row_level_metrics_csv": "prediction_analysis/one_minute_target4class_pattern_outputs/20260305_014933_direction_mapping_sensitivity/row_level_metrics.csv",
+  "config_batch_summary_csv": "prediction_analysis/one_minute_target4class_pattern_outputs/20260305_014933_direction_mapping_sensitivity/config_batch_summary.csv"
+}

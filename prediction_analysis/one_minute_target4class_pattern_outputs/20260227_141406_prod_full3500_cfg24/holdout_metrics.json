@@ -1,0 +1,20 @@
+{
+  "batch_count": 500,
+  "active_batches": 19,
+  "coverage": 0.038,
+  "batches_per_signal": 26.31578947368421,
+  "cadence_target_hit": false,
+  "directional_active_safe_accuracy": 0.3684210526315789,
+  "opposite_fp_rate_active": 0.631578947368421,
+  "opposite_fp_rate_covered": 0.024,
+  "opposite_fp_count": 12,
+  "pass_production_gate": false,
+  "violation_score": 3.2754385964912283,
+  "viol_opp_active": 0.381578947368421,
+  "viol_opp_covered": 0.0,
+  "viol_safe_acc": 0.33157894736842103,
+  "viol_cadence": 0.7543859649122806,
+  "activation_threshold": 0.6,
+  "router_model": "gbm",
+  "router_lookback": 768
+}

@@ -1,0 +1,132 @@
+{
+  "status": "not_production_ready",
+  "inputs": {
+    "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+    "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class",
+    "analysis_8h_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/analysis_8h.parquet",
+    "batches_tail": 3600,
+    "holdout_batches": 500,
+    "trend_horizon_steps": 21,
+    "wf_gap_steps": 0,
+    "effective_gap_steps": 21,
+    "wf_retrain_every": 25,
+    "lookback_grid": [
+      21,
+      90,
+      270,
+      540,
+      -1
+    ],
+    "methods": [
+      "rule_threshold_v1",
+      "gmm3_state_mapper",
+      "hmm3_state_mapper",
+      "supervised_3class_v1",
+      "two_head_bull_bear_v1"
+    ],
+    "direction_threshold_grid": [
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "min_safe_accuracy": 0.7,
+    "min_active_coverage": 0.04,
+    "min_regime_coverage": 0.1,
+    "seed": 42
+  },
+  "dataset_contract": {
+    "pass": true,
+    "missing_required_columns": [],
+    "payload_files": 3600,
+    "batch_count": 3600,
+    "batch_id_first": 1972,
+    "batch_id_last": 5571,
+    "bad_cfg_count_batches": [],
+    "bad_row_count_batches": [],
+    "required_cfg_per_batch": 24,
+    "required_rows_per_batch_config": 240,
+    "batch_monotonic": true
+  },
+  "join_report": {
+    "rows": 3600,
+    "missing_join_rows": 0,
+    "missing_join_batches": [],
+    "exact_timestamp_join": true,
+    "trend_horizon_steps": 21
+  },
+  "holdout_metrics": {
+    "holdout_batches": 500,
+    "active_batches": 284,
+    "coverage": 0.568,
+    "directional_active_safe_accuracy": 0.5528169014084507,
+    "opposite_fp_count": 127,
+    "opposite_fp_rate_active": 0.4471830985915493,
+    "opposite_fp_rate_covered": 0.254,
+    "batches_per_signal": 1.7605633802816902,
+    "p_up_given_bull": 0.5104895104895105,
+    "p_down_given_bear": 0.5549132947976878,
+    "chop_up_share": 0.5271739130434783,
+    "chop_down_share": 0.47282608695652173,
+    "chop_neutrality_balance": 0.05434782608695654,
+    "regime_coverage_bull": 0.286,
+    "regime_coverage_bear": 0.346,
+    "regime_coverage_chop": 0.368,
+    "feasible": false,
+    "unstable_regimes": "",
+    "unstable_regime_count": 0,
+    "method": "hmm3_state_mapper",
+    "lookback": 90,
+    "threshold": 0.9,
+    "trend_horizon_steps": 21,
+    "effective_gap_steps": 21,
+    "truth_label_col": "future_dir_bin",
+    "status": "not_production_ready"
+  },
+  "final_operating_point": {
+    "selected": {
+      "method": "hmm3_state_mapper",
+      "lookback": 90,
+      "threshold": 0.9,
+      "feasible": false
+    },
+    "best_safe": {
+      "method": "hmm3_state_mapper",
+      "lookback": 90,
+      "threshold": 0.9,
+      "directional_active_safe_accuracy": 0.5528169014084507,
+      "coverage": 0.568
+    },
+    "best_coverage": {
+      "method": "two_head_bull_bear_v1",
+      "lookback": 21,
+      "threshold": 0.5,
+      "directional_active_safe_accuracy": 0.4688995215311005,
+      "coverage": 0.836
+    },
+    "status": "not_production_ready",
+    "failure_reasons": [
+      "selected_feasible=False",
+      "selected_safe_accuracy=0.5528 (min=0.7000)",
+      "selected_coverage=0.5680 (min=0.0400)"
+    ]
+  },
+  "artifact_paths": {
+    "dataset_contract_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/dataset_contract.json",
+    "feature_manifest_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/feature_manifest.json",
+    "aligned_batch_dataset_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/aligned_batch_dataset.parquet",
+    "method_grid_results_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/method_grid_results.csv",
+    "regime_predictions_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/regime_predictions_by_batch.parquet",
+    "regime_mapping_by_window_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/regime_mapping_by_window.csv",
+    "regime_gate_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/regime_gate_by_batch.parquet",
+    "holdout_metrics_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/holdout_metrics.json",
+    "final_operating_point_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/final_operating_point.json",
+    "leakage_guard_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/leakage_guard_report.json",
+    "tracking_context_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_outputs/20260305_140251_full3600_h21_gapauto_ris106/tracking_context.json"
+  }
+}

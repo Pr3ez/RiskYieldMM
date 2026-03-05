@@ -1,0 +1,27 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "input_ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260219_235802_aligncmp3",
+  "args": {
+    "alignment_modes": [
+      "same_period_close",
+      "anchor_mean"
+    ],
+    "weight_methods": [
+      "uniform",
+      "winner_weighted",
+      "history_acc_ewma",
+      "history_logloss_ewma",
+      "diversity_weighted"
+    ],
+    "final_rules": [
+      "agreement_hold",
+      "weighted_band"
+    ],
+    "hold_band_grid": "0.00:0.20:0.01",
+    "wf_warmup_batches": 120,
+    "wf_recalibrate_every": 5,
+    "candidate_pool_mode": "hybrid_staged",
+    "min_candidates_per_unit": 4,
+    "max_prune_iterations": 200
+  }
+}

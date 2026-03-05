@@ -1,0 +1,22 @@
+{
+  "selected_config_ids": [
+    "diversity_weighted||dual_ova_thresholds",
+    "winner_history_blend||dual_ova_thresholds",
+    "ewaf_brier_share||dual_ova_thresholds"
+  ],
+  "selected_configs": [
+    {
+      "weight_method": "diversity_weighted",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "ewaf_brier_share",
+      "final_rule": "dual_ova_thresholds"
+    }
+  ],
+  "min_votes": 1
+}

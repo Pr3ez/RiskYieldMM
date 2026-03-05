@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "riskyieldmm/research-continuity/task_state.schema.json",
+  "title": "ResearchTaskState",
+  "type": "object",
+  "required": [
+    "task_name",
+    "linear_issue",
+    "notion_page",
+    "events"
+  ],
+  "properties": {
+    "task_name": {
+      "type": "string",
+      "minLength": 3
+    },
+    "linear_issue": {
+      "type": "string",
+      "minLength": 3
+    },
+    "notion_page": {
+      "type": "string",
+      "minLength": 3
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["status", "timestamp_utc"],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["START", "IN_PROGRESS", "BLOCKER", "DONE"]
+          },
+          "timestamp_utc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": ["string", "object", "null"]
+          },
+          "artifacts": {
+            "type": ["array", "null"],
+            "items": { "type": "string" }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

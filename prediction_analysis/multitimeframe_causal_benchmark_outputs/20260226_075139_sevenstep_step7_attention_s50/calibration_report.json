@@ -1,0 +1,17 @@
+{
+  "rows": 136,
+  "by_method_head": {
+    "causal_attention_gate_small::dir4": {
+      "temperature_mean": 1.9977941176470588,
+      "val_nll_before_mean": 0.6931625385494793,
+      "val_nll_after_mean": 0.6915711602743935,
+      "fallback_share": 0.0
+    },
+    "causal_attention_gate_small::breakfree": {
+      "temperature_mean": 1.0014705882352941,
+      "val_nll_before_mean": 1.0793738908627455,
+      "val_nll_after_mean": 1.0782121244598837,
+      "fallback_share": 0.0
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "created_at_utc": "2026-03-05T13:51:30.893400+00:00",
+  "run_command": "python /media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_8h_regime_pipeline.py --project-root /media/przem/linux_data/RiskYieldMM (Copy) --batches-tail 3600 --holdout-batches 500 --trend-horizon-steps 6 --wf-gap-steps 0 --lookback-grid 21,90,270,540,all --wf-retrain-every 25 --methods rule_threshold_v1,gmm3_state_mapper,hmm3_state_mapper,supervised_3class_v1,two_head_bull_bear_v1 --direction-threshold-grid 0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90 --output-tag full3600_h6_gapauto_ris106 --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-106/run-full-8h-horizon-sweep-on-refactored-no-lookahead-regime-pipeline --notion-page-url https://www.notion.so/31a105246d4a81aabc58f12751763826 --verbose",
+  "git_commit": "9592c4a1a6f2055a7343fee2ea9f688b9f90f7c3",
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-106/run-full-8h-horizon-sweep-on-refactored-no-lookahead-regime-pipeline",
+  "notion_page_url": "https://www.notion.so/31a105246d4a81aabc58f12751763826"
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "TS Rolling Eval"
+  short_description: "Run leak-safe rolling baselines"
+  default_prompt: "Use $ts-rolling-eval to run leak-safe walk-forward baseline evaluation."
+
+policy:
+  allow_implicit_invocation: false

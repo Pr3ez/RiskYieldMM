@@ -1,0 +1,33 @@
+{
+  "completed_combos": 18,
+  "total_declared": 242,
+  "best_dir_acc_combo": {
+    "combo_index": 4,
+    "combo_total": 242,
+    "breakfree_weight_method": "uniform",
+    "dir4_weight_method": "winner_weighted",
+    "final_rule": "dual_ova_thresholds",
+    "directional_active_accuracy": 0.785,
+    "opposite_fp_rate_active": 0.215,
+    "directional_active_coverage": 0.002,
+    "elapsed_s": 225.7,
+    "eta_s": 35442.5,
+    "source": "done_line"
+  },
+  "best_low_opp_combo": {
+    "combo_index": 4,
+    "combo_total": 242,
+    "breakfree_weight_method": "uniform",
+    "dir4_weight_method": "winner_weighted",
+    "final_rule": "dual_ova_thresholds",
+    "directional_active_accuracy": 0.785,
+    "opposite_fp_rate_active": 0.215,
+    "directional_active_coverage": 0.002,
+    "elapsed_s": 225.7,
+    "eta_s": 35442.5,
+    "source": "done_line"
+  },
+  "median_dir_acc": 0.6347,
+  "median_coverage": 0.0394,
+  "median_opp_active": 0.36529999999999996
+}

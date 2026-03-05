@@ -1,0 +1,10 @@
+{
+  "generated_utc": "2026-02-21T12:58:42.944174+00:00",
+  "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_search_20260221_125840",
+  "set_files": {
+    "fullsupport_risk": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_search_20260221_125840/candidate_sets_fullsupport_risk.json",
+    "fullsupport_stability": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_search_20260221_125840/candidate_sets_fullsupport_stability.json",
+    "fullsupport_diverse_risk": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_search_20260221_125840/candidate_sets_fullsupport_diverse_risk.json"
+  },
+  "summary_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_search_20260221_125840/candidate_set_quality_summary.csv"
+}

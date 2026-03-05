@@ -1,0 +1,19 @@
+{
+  "configs": 24,
+  "best_up_precision": {
+    "action_key": "f1_v1_t6",
+    "up_precision": 0.5224780807399557,
+    "up_coverage": 0.43245833333333333,
+    "up_active_rows": 51895
+  },
+  "best_down_precision": {
+    "action_key": "f1_v1_t6",
+    "down_precision": 0.5268776154467366,
+    "down_coverage": 0.5675416666666667,
+    "down_active_rows": 68105
+  },
+  "mean_up_precision": 0.5105714235571666,
+  "mean_down_precision": 0.51840462214467,
+  "configs_with_up_precision_ge_0_70": 0,
+  "configs_with_down_precision_ge_0_70": 0
+}

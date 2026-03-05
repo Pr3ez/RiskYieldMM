@@ -1,0 +1,1276 @@
+{
+  "all_candidate_features": [
+    "M_P_logReturn_pct_N",
+    "M_P_roc_3_pct_N",
+    "M_P_V_momAtr_3_rat_N",
+    "M_P_roc_6_pct_N",
+    "M_P_V_momAtr_6_rat_N",
+    "M_P_roc_12_pct_N",
+    "M_P_V_momAtr_12_rat_N",
+    "M_P_roc_21_pct_N",
+    "M_P_V_momAtr_21_rat_N",
+    "V_atrPct_3_pct_N",
+    "V_returnStd_3_pct_N",
+    "V_atrPct_6_pct_N",
+    "V_returnStd_6_pct_N",
+    "V_atrPct_12_pct_N",
+    "V_returnStd_12_pct_N",
+    "V_atrPct_21_pct_N",
+    "V_returnStd_21_pct_N",
+    "N_V_bollingerBandwidth_21_pct_N",
+    "N_V_bollingerBandwidth_42_pct_N",
+    "N_P_V_pctB_3_bnd_N",
+    "N_P_V_pctB_6_bnd_N",
+    "N_P_V_pctB_12_bnd_N",
+    "N_P_V_pctB_21_bnd_N",
+    "M_T_ppo_8_21_pct_N",
+    "M_T_ppo_12_26_pct_N",
+    "N_P_T_priceSmaDeviation_3_pct_N",
+    "N_P_T_priceEmaDeviation_3_pct_N",
+    "N_P_T_priceSmaDeviation_6_pct_N",
+    "N_P_T_priceEmaDeviation_6_pct_N",
+    "N_P_T_priceSmaDeviation_12_pct_N",
+    "N_P_T_priceEmaDeviation_12_pct_N",
+    "N_P_T_priceSmaDeviation_21_pct_N",
+    "N_P_T_priceEmaDeviation_21_pct_N",
+    "F_I_fundingCumulative_3_pct_N",
+    "F_I_T_fundingMa_3_pct_N",
+    "F_I_fundingCumulative_7_pct_N",
+    "F_I_T_fundingMa_7_pct_N",
+    "F_I_fundingCumulative_21_pct_N",
+    "F_I_T_fundingMa_21_pct_N",
+    "F_I_M_fundingMaDiff_3_7_pct_N",
+    "F_I_M_fundingMaDiff_3_21_pct_N",
+    "F_I_M_fundingMaDiff_7_21_pct_N",
+    "F_I_N_S_fundingZscore_21_zsc_N",
+    "F_I_N_S_fundingZscore_42_zsc_N",
+    "D_F_T_premiumMa_3_pct_N",
+    "D_F_T_premiumMa_7_pct_N",
+    "D_F_T_premiumMa_21_pct_N",
+    "D_F_N_S_premiumZscore_21_zsc_N",
+    "D_F_N_S_premiumZscore_42_zsc_N",
+    "D_F_basis_pct_N",
+    "D_markIndexSpread_pct_N",
+    "L_M_N_S_oiPctChange_pct_N",
+    "L_N_volOiRatio_rat_N",
+    "L_M_N_S_oiRoc_3_pct_N",
+    "L_M_N_S_oiRoc_6_pct_N",
+    "L_M_N_S_oiRoc_12_pct_N",
+    "L_N_S_oiRatio_6_rat_N",
+    "L_N_S_oiRatio_12_rat_N",
+    "L_N_S_oiRatio_21_rat_N",
+    "C_N_bodySize_bnd_N",
+    "C_N_upperShadow_bnd_N",
+    "C_N_lowerShadow_bnd_N",
+    "B_C_candleDirection_bin",
+    "M_N_rsi_6_bnd_N",
+    "M_N_rsi_12_bnd_N",
+    "M_N_rsi_21_bnd_N",
+    "M_N_stochasticK_6_bnd_N",
+    "M_N_T_stochasticD_6_bnd_N",
+    "M_N_stochasticK_12_bnd_N",
+    "M_N_T_stochasticD_12_bnd_N",
+    "L_M_N_volumeRoc_3_pct_N",
+    "L_M_N_volumeRoc_6_pct_N",
+    "L_M_N_volumeRoc_12_pct_N",
+    "L_N_volumeRatio_6_rat_N",
+    "L_N_volumeRatio_12_rat_N",
+    "L_N_volumeRatio_21_rat_N",
+    "M_N_rocAccel_3_dif_N",
+    "M_N_rocAccel_6_dif_N",
+    "N_P_L_vwapDeviation_pct_N",
+    "M_P_L_vwapReturn_pct_N",
+    "M_D_F_S_premiumChange_pct_N",
+    "V_D_F_S_premiumRange_pct_N",
+    "M_P_S_W_oiWeightedReturn_pct_N",
+    "F_TM_fundingCyclePosition_bin",
+    "B_TM_dayOfWeek_bin",
+    "D_N_markCloseDeviation_pct_N",
+    "D_N_V_markCloseRange_rat_N",
+    "M_P_D_markReturnDiff_pct_N",
+    "D_N_V_markAtrRatio_6_rat_N",
+    "D_N_closeVsMarkVol_6_pct_N",
+    "D_N_V_markAtrRatio_12_rat_N",
+    "D_N_closeVsMarkVol_12_pct_N",
+    "D_N_V_markAtrRatio_21_rat_N",
+    "D_N_closeVsMarkVol_21_pct_N",
+    "N_V_atrPercentile_21_rnk_N",
+    "N_V_atrPercentile_42_rnk_N",
+    "M_N_V_rangeExpansion_6_rat_N",
+    "V_volOfVol_6_pct_N",
+    "M_N_V_rangeExpansion_12_rat_N",
+    "V_volOfVol_12_pct_N",
+    "M_N_V_rangeExpansion_21_rat_N",
+    "V_volOfVol_21_pct_N",
+    "D_N_premiumRange_rat_N",
+    "V_skew_12_rat_N",
+    "V_kurtosis_12_rat_N",
+    "V_skew_21_rat_N",
+    "V_kurtosis_21_rat_N",
+    "V_skew_42_rat_N",
+    "V_kurtosis_42_rat_N",
+    "V_maxDrawdown_21_pct_N",
+    "M_V_sharpe_21_rat_N",
+    "M_V_sortino_21_rat_N",
+    "M_V_calmar_21_rat_N",
+    "V_maxDrawdown_42_pct_N",
+    "M_V_sharpe_42_rat_N",
+    "M_V_sortino_42_rat_N",
+    "M_V_calmar_42_rat_N",
+    "V_autocorr_12_bnd_N",
+    "V_autocorr_21_bnd_N",
+    "N_P_zScore_12_zsc_N",
+    "N_P_zScore_21_zsc_N",
+    "N_P_zScore_42_zsc_N",
+    "V_volMomentum_6_pct_N",
+    "V_volMomentum_12_pct_N",
+    "V_volMomentum_21_pct_N",
+    "B_consecutiveUp_bnd_N",
+    "B_consecutiveDown_bnd_N",
+    "M_winRate_6_bnd_N",
+    "M_winRate_12_bnd_N",
+    "M_winRate_21_bnd_N",
+    "L_M_S_obv_21_zsc_N",
+    "L_M_S_obv_42_zsc_N",
+    "L_M_S_mfi_6_bnd_N",
+    "L_M_S_cmf_6_bnd_N",
+    "L_M_S_mfi_12_bnd_N",
+    "L_M_S_cmf_12_bnd_N",
+    "L_M_S_mfi_21_bnd_N",
+    "L_M_S_cmf_21_bnd_N",
+    "M_T_V_adx_6_bnd_N",
+    "M_T_V_diDiff_6_bnd_N",
+    "M_T_V_adx_12_bnd_N",
+    "M_T_V_diDiff_12_bnd_N",
+    "N_M_cci_6_zsc_N",
+    "N_M_cci_12_zsc_N",
+    "N_M_cci_21_zsc_N",
+    "L_S_oiVolumeRatio_6_rat_N",
+    "L_S_oiVolumeRatio_12_rat_N",
+    "L_S_oiVolumeRatio_21_rat_N",
+    "S_longShortRatio_rat_N",
+    "S_N_longShortZscore_21_zsc_N",
+    "S_N_longShortZscore_63_zsc_N",
+    "S_M_longShortChange_3_pct_N",
+    "S_M_longShortChange_12_pct_N",
+    "L_V_amihudIlliquidity_12_rat_N",
+    "L_V_amihudIlliquidity_21_rat_N",
+    "L_V_amihudIlliquidity_63_rat_N",
+    "V_parkinson_12_pct_N",
+    "V_parkinson_21_pct_N",
+    "V_garmanKlass_12_pct_N",
+    "V_garmanKlass_21_pct_N",
+    "V_rogersSatchell_12_pct_N",
+    "V_rogersSatchell_21_pct_N",
+    "V_hurstExponent_63_rat_N",
+    "V_hurstExponent_126_rat_N",
+    "V_yangZhang_12_pct_N",
+    "V_yangZhang_21_pct_N",
+    "M_P_close_fracdiff_0.3_pct_N",
+    "M_P_close_fracdiff_0.5_pct_N",
+    "M_P_close_fracdiff_0.7_pct_N",
+    "L_V_volume_fracdiff_0.5_N"
+  ],
+  "used_features": [
+    "B_C_candleDirection_bin",
+    "B_TM_dayOfWeek_bin",
+    "B_consecutiveDown_bnd_N",
+    "B_consecutiveUp_bnd_N",
+    "C_N_bodySize_bnd_N",
+    "C_N_lowerShadow_bnd_N",
+    "C_N_upperShadow_bnd_N",
+    "D_F_N_S_premiumZscore_21_zsc_N",
+    "D_F_N_S_premiumZscore_42_zsc_N",
+    "D_F_T_premiumMa_21_pct_N",
+    "D_F_T_premiumMa_3_pct_N",
+    "D_F_T_premiumMa_7_pct_N",
+    "D_F_basis_pct_N",
+    "D_N_V_markAtrRatio_12_rat_N",
+    "D_N_V_markAtrRatio_21_rat_N",
+    "D_N_V_markAtrRatio_6_rat_N",
+    "D_N_V_markCloseRange_rat_N",
+    "D_N_closeVsMarkVol_12_pct_N",
+    "D_N_closeVsMarkVol_21_pct_N",
+    "D_N_closeVsMarkVol_6_pct_N",
+    "D_N_markCloseDeviation_pct_N",
+    "D_N_premiumRange_rat_N",
+    "D_markIndexSpread_pct_N",
+    "F_I_M_fundingMaDiff_3_21_pct_N",
+    "F_I_M_fundingMaDiff_3_7_pct_N",
+    "F_I_M_fundingMaDiff_7_21_pct_N",
+    "F_I_N_S_fundingZscore_21_zsc_N",
+    "F_I_N_S_fundingZscore_42_zsc_N",
+    "F_I_T_fundingMa_21_pct_N",
+    "F_I_T_fundingMa_3_pct_N",
+    "F_I_T_fundingMa_7_pct_N",
+    "F_I_fundingCumulative_21_pct_N",
+    "F_I_fundingCumulative_3_pct_N",
+    "F_I_fundingCumulative_7_pct_N",
+    "F_TM_fundingCyclePosition_bin",
+    "L_M_N_S_oiPctChange_pct_N",
+    "L_M_N_S_oiRoc_12_pct_N",
+    "L_M_N_S_oiRoc_3_pct_N",
+    "L_M_N_S_oiRoc_6_pct_N",
+    "L_M_N_volumeRoc_12_pct_N",
+    "L_M_N_volumeRoc_3_pct_N",
+    "L_M_N_volumeRoc_6_pct_N",
+    "L_M_S_cmf_12_bnd_N",
+    "L_M_S_cmf_21_bnd_N",
+    "L_M_S_cmf_6_bnd_N",
+    "L_M_S_mfi_12_bnd_N",
+    "L_M_S_mfi_21_bnd_N",
+    "L_M_S_mfi_6_bnd_N",
+    "L_M_S_obv_21_zsc_N",
+    "L_M_S_obv_42_zsc_N",
+    "L_N_S_oiRatio_12_rat_N",
+    "L_N_S_oiRatio_21_rat_N",
+    "L_N_S_oiRatio_6_rat_N",
+    "L_N_volOiRatio_rat_N",
+    "L_N_volumeRatio_12_rat_N",
+    "L_N_volumeRatio_21_rat_N",
+    "L_N_volumeRatio_6_rat_N",
+    "L_S_oiVolumeRatio_12_rat_N",
+    "L_S_oiVolumeRatio_21_rat_N",
+    "L_S_oiVolumeRatio_6_rat_N",
+    "L_V_amihudIlliquidity_12_rat_N",
+    "L_V_amihudIlliquidity_21_rat_N",
+    "L_V_amihudIlliquidity_63_rat_N",
+    "L_V_volume_fracdiff_0.5_N",
+    "M_D_F_S_premiumChange_pct_N",
+    "M_N_T_stochasticD_12_bnd_N",
+    "M_N_T_stochasticD_6_bnd_N",
+    "M_N_V_rangeExpansion_12_rat_N",
+    "M_N_V_rangeExpansion_21_rat_N",
+    "M_N_V_rangeExpansion_6_rat_N",
+    "M_N_rocAccel_3_dif_N",
+    "M_N_rocAccel_6_dif_N",
+    "M_N_rsi_12_bnd_N",
+    "M_N_rsi_21_bnd_N",
+    "M_N_rsi_6_bnd_N",
+    "M_N_stochasticK_12_bnd_N",
+    "M_N_stochasticK_6_bnd_N",
+    "M_P_D_markReturnDiff_pct_N",
+    "M_P_L_vwapReturn_pct_N",
+    "M_P_S_W_oiWeightedReturn_pct_N",
+    "M_P_V_momAtr_12_rat_N",
+    "M_P_V_momAtr_21_rat_N",
+    "M_P_V_momAtr_3_rat_N",
+    "M_P_V_momAtr_6_rat_N",
+    "M_P_close_fracdiff_0.3_pct_N",
+    "M_P_close_fracdiff_0.5_pct_N",
+    "M_P_close_fracdiff_0.7_pct_N",
+    "M_P_logReturn_pct_N",
+    "M_P_roc_12_pct_N",
+    "M_P_roc_21_pct_N",
+    "M_P_roc_3_pct_N",
+    "M_P_roc_6_pct_N",
+    "M_T_V_adx_12_bnd_N",
+    "M_T_V_adx_6_bnd_N",
+    "M_T_V_diDiff_12_bnd_N",
+    "M_T_V_diDiff_6_bnd_N",
+    "M_T_ppo_12_26_pct_N",
+    "M_T_ppo_8_21_pct_N",
+    "M_V_calmar_21_rat_N",
+    "M_V_calmar_42_rat_N",
+    "M_V_sharpe_21_rat_N",
+    "M_V_sharpe_42_rat_N",
+    "M_V_sortino_21_rat_N",
+    "M_V_sortino_42_rat_N",
+    "M_winRate_12_bnd_N",
+    "M_winRate_21_bnd_N",
+    "M_winRate_6_bnd_N",
+    "N_M_cci_12_zsc_N",
+    "N_M_cci_21_zsc_N",
+    "N_M_cci_6_zsc_N",
+    "N_P_L_vwapDeviation_pct_N",
+    "N_P_T_priceEmaDeviation_12_pct_N",
+    "N_P_T_priceEmaDeviation_21_pct_N",
+    "N_P_T_priceEmaDeviation_3_pct_N",
+    "N_P_T_priceEmaDeviation_6_pct_N",
+    "N_P_T_priceSmaDeviation_12_pct_N",
+    "N_P_T_priceSmaDeviation_21_pct_N",
+    "N_P_T_priceSmaDeviation_3_pct_N",
+    "N_P_T_priceSmaDeviation_6_pct_N",
+    "N_P_V_pctB_12_bnd_N",
+    "N_P_V_pctB_21_bnd_N",
+    "N_P_V_pctB_3_bnd_N",
+    "N_P_V_pctB_6_bnd_N",
+    "N_P_zScore_12_zsc_N",
+    "N_P_zScore_21_zsc_N",
+    "N_P_zScore_42_zsc_N",
+    "N_V_atrPercentile_21_rnk_N",
+    "N_V_atrPercentile_42_rnk_N",
+    "N_V_bollingerBandwidth_21_pct_N",
+    "N_V_bollingerBandwidth_42_pct_N",
+    "S_M_longShortChange_12_pct_N",
+    "S_M_longShortChange_3_pct_N",
+    "S_N_longShortZscore_21_zsc_N",
+    "S_N_longShortZscore_63_zsc_N",
+    "S_longShortRatio_rat_N",
+    "V_D_F_S_premiumRange_pct_N",
+    "V_atrPct_12_pct_N",
+    "V_atrPct_21_pct_N",
+    "V_atrPct_3_pct_N",
+    "V_atrPct_6_pct_N",
+    "V_autocorr_12_bnd_N",
+    "V_autocorr_21_bnd_N",
+    "V_garmanKlass_12_pct_N",
+    "V_garmanKlass_21_pct_N",
+    "V_hurstExponent_126_rat_N",
+    "V_hurstExponent_63_rat_N",
+    "V_kurtosis_12_rat_N",
+    "V_kurtosis_21_rat_N",
+    "V_kurtosis_42_rat_N",
+    "V_maxDrawdown_21_pct_N",
+    "V_maxDrawdown_42_pct_N",
+    "V_parkinson_12_pct_N",
+    "V_parkinson_21_pct_N",
+    "V_returnStd_12_pct_N",
+    "V_returnStd_21_pct_N",
+    "V_returnStd_3_pct_N",
+    "V_returnStd_6_pct_N",
+    "V_rogersSatchell_12_pct_N",
+    "V_rogersSatchell_21_pct_N",
+    "V_skew_12_rat_N",
+    "V_skew_21_rat_N",
+    "V_skew_42_rat_N",
+    "V_volMomentum_12_pct_N",
+    "V_volMomentum_21_pct_N",
+    "V_volMomentum_6_pct_N",
+    "V_volOfVol_12_pct_N",
+    "V_volOfVol_21_pct_N",
+    "V_volOfVol_6_pct_N",
+    "V_yangZhang_12_pct_N",
+    "V_yangZhang_21_pct_N"
+  ],
+  "dropped_features": [
+    {
+      "feature": "timestamp",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_forward_return_1",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_forward_return_3",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_forward_return_6",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_forward_return_12",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_direction",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_volatility",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_direction_strength",
+      "reason": "leaky"
+    },
+    {
+      "feature": "rolling_vol_21",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_trend_regime",
+      "reason": "leaky"
+    },
+    {
+      "feature": "RAW_close",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_volatility_regime",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_tb_direction",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_tb_barrier",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_tb_bars",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_tb_return",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_signal_3c",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_signal_5c",
+      "reason": "leaky"
+    },
+    {
+      "feature": "y_signal_4c",
+      "reason": "leaky"
+    },
+    {
+      "feature": "M_P_logReturn_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_roc_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_V_momAtr_3_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_roc_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_V_momAtr_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_roc_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_V_momAtr_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_roc_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_V_momAtr_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_atrPct_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_returnStd_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_atrPct_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_returnStd_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_atrPct_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_returnStd_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_atrPct_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_returnStd_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_V_bollingerBandwidth_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_V_bollingerBandwidth_42_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_V_pctB_3_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_V_pctB_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_V_pctB_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_V_pctB_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_ppo_8_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_ppo_12_26_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceSmaDeviation_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceEmaDeviation_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceSmaDeviation_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceEmaDeviation_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceSmaDeviation_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceEmaDeviation_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceSmaDeviation_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_T_priceEmaDeviation_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "F_I_fundingCumulative_3_pct_N",
+      "reason": "constant",
+      "count": 40
+    },
+    {
+      "feature": "F_I_T_fundingMa_3_pct_N",
+      "reason": "constant",
+      "count": 40
+    },
+    {
+      "feature": "F_I_fundingCumulative_7_pct_N",
+      "reason": "constant",
+      "count": 40
+    },
+    {
+      "feature": "F_I_T_fundingMa_7_pct_N",
+      "reason": "constant",
+      "count": 40
+    },
+    {
+      "feature": "F_I_fundingCumulative_21_pct_N",
+      "reason": "constant",
+      "count": 32
+    },
+    {
+      "feature": "F_I_T_fundingMa_21_pct_N",
+      "reason": "constant",
+      "count": 32
+    },
+    {
+      "feature": "F_I_M_fundingMaDiff_3_7_pct_N",
+      "reason": "constant",
+      "count": 40
+    },
+    {
+      "feature": "F_I_M_fundingMaDiff_3_21_pct_N",
+      "reason": "constant",
+      "count": 32
+    },
+    {
+      "feature": "F_I_M_fundingMaDiff_7_21_pct_N",
+      "reason": "constant",
+      "count": 32
+    },
+    {
+      "feature": "F_I_N_S_fundingZscore_21_zsc_N",
+      "reason": "constant",
+      "count": 32
+    },
+    {
+      "feature": "F_I_N_S_fundingZscore_42_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_T_premiumMa_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_T_premiumMa_7_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_T_premiumMa_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_N_S_premiumZscore_21_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_N_S_premiumZscore_42_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_F_basis_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_markIndexSpread_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_S_oiPctChange_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_volOiRatio_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_S_oiRoc_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_S_oiRoc_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_S_oiRoc_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_S_oiRatio_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_S_oiRatio_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_S_oiRatio_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "C_N_bodySize_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "C_N_upperShadow_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "C_N_lowerShadow_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "B_C_candleDirection_bin",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_rsi_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_rsi_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_rsi_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_stochasticK_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_T_stochasticD_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_stochasticK_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_T_stochasticD_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_volumeRoc_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_volumeRoc_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_N_volumeRoc_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_volumeRatio_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_volumeRatio_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_N_volumeRatio_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_rocAccel_3_dif_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_rocAccel_6_dif_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_L_vwapDeviation_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_L_vwapReturn_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_D_F_S_premiumChange_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_D_F_S_premiumRange_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_S_W_oiWeightedReturn_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "F_TM_fundingCyclePosition_bin",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "B_TM_dayOfWeek_bin",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_markCloseDeviation_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_V_markCloseRange_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_D_markReturnDiff_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_V_markAtrRatio_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_closeVsMarkVol_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_V_markAtrRatio_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_closeVsMarkVol_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_V_markAtrRatio_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_closeVsMarkVol_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_V_atrPercentile_21_rnk_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_V_atrPercentile_42_rnk_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_V_rangeExpansion_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volOfVol_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_V_rangeExpansion_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volOfVol_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_N_V_rangeExpansion_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volOfVol_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "D_N_premiumRange_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_skew_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_kurtosis_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_skew_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_kurtosis_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_skew_42_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_kurtosis_42_rat_N",
+      "reason": "constant",
+      "count": 28
+    },
+    {
+      "feature": "V_maxDrawdown_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_V_sharpe_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_V_sortino_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_V_calmar_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_maxDrawdown_42_pct_N",
+      "reason": "constant",
+      "count": 56
+    },
+    {
+      "feature": "M_V_sharpe_42_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_V_sortino_42_rat_N",
+      "reason": "constant",
+      "count": 24
+    },
+    {
+      "feature": "M_V_calmar_42_rat_N",
+      "reason": "constant",
+      "count": 24
+    },
+    {
+      "feature": "V_autocorr_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_autocorr_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_zScore_12_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_zScore_21_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_P_zScore_42_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volMomentum_6_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volMomentum_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_volMomentum_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "B_consecutiveUp_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "B_consecutiveDown_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_winRate_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_winRate_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_winRate_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_obv_21_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_obv_42_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_mfi_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_cmf_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_mfi_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_cmf_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_mfi_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_M_S_cmf_21_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_V_adx_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_V_diDiff_6_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_V_adx_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_T_V_diDiff_12_bnd_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_M_cci_6_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_M_cci_12_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "N_M_cci_21_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_S_oiVolumeRatio_6_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_S_oiVolumeRatio_12_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_S_oiVolumeRatio_21_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "S_longShortRatio_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "S_N_longShortZscore_21_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "S_N_longShortZscore_63_zsc_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "S_M_longShortChange_3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "S_M_longShortChange_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_V_amihudIlliquidity_12_rat_N",
+      "reason": "constant",
+      "count": 1348
+    },
+    {
+      "feature": "L_V_amihudIlliquidity_21_rat_N",
+      "reason": "constant",
+      "count": 1908
+    },
+    {
+      "feature": "L_V_amihudIlliquidity_63_rat_N",
+      "reason": "constant",
+      "count": 2104
+    },
+    {
+      "feature": "V_parkinson_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_parkinson_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_garmanKlass_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_garmanKlass_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_rogersSatchell_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_rogersSatchell_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_hurstExponent_63_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_hurstExponent_126_rat_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_yangZhang_12_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "V_yangZhang_21_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_close_fracdiff_0.3_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_close_fracdiff_0.5_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "M_P_close_fracdiff_0.7_pct_N",
+      "reason": "constant",
+      "count": 20
+    },
+    {
+      "feature": "L_V_volume_fracdiff_0.5_N",
+      "reason": "constant",
+      "count": 20
+    }
+  ],
+  "feature_count_all": 170,
+  "feature_count_used": 170
+}

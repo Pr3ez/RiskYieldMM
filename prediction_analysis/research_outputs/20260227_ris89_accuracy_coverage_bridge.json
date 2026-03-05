@@ -1,0 +1,526 @@
+{
+  "run_summary_table": [
+    {
+      "run": "20260227_213816_prod_full3500_cfg24_shift_reject_covreg_v1",
+      "status": "not_production_ready",
+      "safe_acc": 0.5555555555555556,
+      "coverage": 0.036,
+      "bps": 27.77777777777778,
+      "opp_active": 0.4444444444444444,
+      "opp_cov": 0.016,
+      "active_batches": 18,
+      "router_model": "gbm",
+      "router_lb": 128,
+      "thr": 0.85
+    },
+    {
+      "run": "20260227_215602_prod_full3500_cfg24_shift_reject_rollingq_covcon_v1",
+      "status": "not_production_ready",
+      "safe_acc": 0.7037037037037037,
+      "coverage": 0.054,
+      "bps": 18.51851851851852,
+      "opp_active": 0.2962962962962963,
+      "opp_cov": 0.016,
+      "active_batches": 27,
+      "router_model": "gbm",
+      "router_lb": 128,
+      "thr": 0.95
+    },
+    {
+      "run": "20260227_221935_prod_full3500_cfg24_shift_reject_rollingq_primaldual_v1",
+      "status": "not_production_ready",
+      "safe_acc": 0.5365853658536586,
+      "coverage": 0.164,
+      "bps": 6.097560975609756,
+      "opp_active": 0.4634146341463415,
+      "opp_cov": 0.076,
+      "active_batches": 82,
+      "router_model": "gbm",
+      "router_lb": 128,
+      "thr": 0.85
+    },
+    {
+      "run": "20260227_223004_prod_full3500_cfg24_shift_reject_rollingq_primaldual_tuned1",
+      "status": "not_production_ready",
+      "safe_acc": 0.5333333333333333,
+      "coverage": 0.06,
+      "bps": 16.666666666666668,
+      "opp_active": 0.4666666666666667,
+      "opp_cov": 0.028,
+      "active_batches": 30,
+      "router_model": "gbm",
+      "router_lb": 128,
+      "thr": 0.95
+    },
+    {
+      "run": "20260227_225312_prod_full3500_cfg24_p0_dual_head_constrained_v1",
+      "status": "not_production_ready",
+      "safe_acc": 0.4358974358974359,
+      "coverage": 0.078,
+      "bps": 12.820512820512821,
+      "opp_active": 0.5641025641025641,
+      "opp_cov": 0.044,
+      "active_batches": 39,
+      "router_model": "logit",
+      "router_lb": 768,
+      "thr": 0.92
+    },
+    {
+      "run": "20260227_232028_prod_full3500_cfg24_step1_pairwise_rank_v1",
+      "status": "not_production_ready",
+      "safe_acc": 0.42857142857142855,
+      "coverage": 0.042,
+      "bps": 23.80952380952381,
+      "opp_active": 0.5238095238095238,
+      "opp_cov": 0.022,
+      "active_batches": 21,
+      "router_model": "gbm",
+      "router_lb": 256,
+      "thr": 0.94
+    }
+  ],
+  "ranking_diagnostics": {
+    "run": "20260227_215602_prod_full3500_cfg24_shift_reject_rollingq_covcon_v1",
+    "holdout_batches": 500,
+    "top1_hit_rate": 0.304,
+    "top1_p_hit_mean": 0.51239947106955,
+    "top1_roc_auc_actual_hit": 0.5297754083484574,
+    "top1_avg_precision_actual_hit": 0.3636956794251477
+  },
+  "oracle_ceiling": {
+    "batches_with_any_hit70": 413,
+    "fraction_with_any_hit70": 0.826,
+    "mean_num_hit70": 6.886,
+    "median_num_hit70": 5.0,
+    "p90_num_hit70": 17.0,
+    "mean_best_dir_acc": 0.8256583333333334
+  },
+  "topk_any_hit": [
+    {
+      "k": 1,
+      "any_hit_rate": 0.304
+    },
+    {
+      "k": 2,
+      "any_hit_rate": 0.352
+    },
+    {
+      "k": 3,
+      "any_hit_rate": 0.424
+    },
+    {
+      "k": 5,
+      "any_hit_rate": 0.56
+    },
+    {
+      "k": 8,
+      "any_hit_rate": 0.656
+    },
+    {
+      "k": 12,
+      "any_hit_rate": 0.748
+    }
+  ],
+  "top1_threshold_frontier": [
+    {
+      "threshold": 0.5,
+      "active_batches": 237,
+      "coverage": 0.474,
+      "batches_per_signal": 2.109704641350211,
+      "dir_match_rate": 0.46835443037974683,
+      "opposite_fp_rate_active": 0.5316455696202531
+    },
+    {
+      "threshold": 0.51,
+      "active_batches": 227,
+      "coverage": 0.454,
+      "batches_per_signal": 2.202643171806167,
+      "dir_match_rate": 0.4845814977973568,
+      "opposite_fp_rate_active": 0.5154185022026432
+    },
+    {
+      "threshold": 0.52,
+      "active_batches": 211,
+      "coverage": 0.422,
+      "batches_per_signal": 2.3696682464454977,
+      "dir_match_rate": 0.4834123222748815,
+      "opposite_fp_rate_active": 0.5165876777251185
+    },
+    {
+      "threshold": 0.53,
+      "active_batches": 195,
+      "coverage": 0.39,
+      "batches_per_signal": 2.564102564102564,
+      "dir_match_rate": 0.48205128205128206,
+      "opposite_fp_rate_active": 0.517948717948718
+    },
+    {
+      "threshold": 0.54,
+      "active_batches": 186,
+      "coverage": 0.372,
+      "batches_per_signal": 2.6881720430107525,
+      "dir_match_rate": 0.4838709677419355,
+      "opposite_fp_rate_active": 0.5161290322580645
+    },
+    {
+      "threshold": 0.55,
+      "active_batches": 176,
+      "coverage": 0.352,
+      "batches_per_signal": 2.8409090909090913,
+      "dir_match_rate": 0.5,
+      "opposite_fp_rate_active": 0.5
+    },
+    {
+      "threshold": 0.56,
+      "active_batches": 161,
+      "coverage": 0.322,
+      "batches_per_signal": 3.1055900621118013,
+      "dir_match_rate": 0.515527950310559,
+      "opposite_fp_rate_active": 0.484472049689441
+    },
+    {
+      "threshold": 0.57,
+      "active_batches": 150,
+      "coverage": 0.3,
+      "batches_per_signal": 3.3333333333333335,
+      "dir_match_rate": 0.5133333333333333,
+      "opposite_fp_rate_active": 0.4866666666666667
+    },
+    {
+      "threshold": 0.58,
+      "active_batches": 134,
+      "coverage": 0.268,
+      "batches_per_signal": 3.731343283582089,
+      "dir_match_rate": 0.5074626865671642,
+      "opposite_fp_rate_active": 0.4925373134328358
+    },
+    {
+      "threshold": 0.59,
+      "active_batches": 127,
+      "coverage": 0.254,
+      "batches_per_signal": 3.937007874015748,
+      "dir_match_rate": 0.49606299212598426,
+      "opposite_fp_rate_active": 0.5039370078740157
+    },
+    {
+      "threshold": 0.6,
+      "active_batches": 117,
+      "coverage": 0.234,
+      "batches_per_signal": 4.273504273504273,
+      "dir_match_rate": 0.5042735042735043,
+      "opposite_fp_rate_active": 0.49572649572649574
+    },
+    {
+      "threshold": 0.61,
+      "active_batches": 109,
+      "coverage": 0.218,
+      "batches_per_signal": 4.587155963302752,
+      "dir_match_rate": 0.5137614678899083,
+      "opposite_fp_rate_active": 0.48623853211009177
+    },
+    {
+      "threshold": 0.62,
+      "active_batches": 101,
+      "coverage": 0.202,
+      "batches_per_signal": 4.9504950495049505,
+      "dir_match_rate": 0.504950495049505,
+      "opposite_fp_rate_active": 0.49504950495049505
+    },
+    {
+      "threshold": 0.63,
+      "active_batches": 95,
+      "coverage": 0.19,
+      "batches_per_signal": 5.2631578947368425,
+      "dir_match_rate": 0.4842105263157895,
+      "opposite_fp_rate_active": 0.5157894736842106
+    },
+    {
+      "threshold": 0.64,
+      "active_batches": 90,
+      "coverage": 0.18,
+      "batches_per_signal": 5.555555555555555,
+      "dir_match_rate": 0.4666666666666667,
+      "opposite_fp_rate_active": 0.5333333333333333
+    },
+    {
+      "threshold": 0.65,
+      "active_batches": 82,
+      "coverage": 0.164,
+      "batches_per_signal": 6.097560975609756,
+      "dir_match_rate": 0.45121951219512196,
+      "opposite_fp_rate_active": 0.5487804878048781
+    },
+    {
+      "threshold": 0.66,
+      "active_batches": 79,
+      "coverage": 0.158,
+      "batches_per_signal": 6.329113924050633,
+      "dir_match_rate": 0.45569620253164556,
+      "opposite_fp_rate_active": 0.5443037974683544
+    },
+    {
+      "threshold": 0.67,
+      "active_batches": 72,
+      "coverage": 0.144,
+      "batches_per_signal": 6.944444444444445,
+      "dir_match_rate": 0.4722222222222222,
+      "opposite_fp_rate_active": 0.5277777777777778
+    },
+    {
+      "threshold": 0.68,
+      "active_batches": 67,
+      "coverage": 0.134,
+      "batches_per_signal": 7.462686567164178,
+      "dir_match_rate": 0.4925373134328358,
+      "opposite_fp_rate_active": 0.5074626865671642
+    },
+    {
+      "threshold": 0.69,
+      "active_batches": 64,
+      "coverage": 0.128,
+      "batches_per_signal": 7.8125,
+      "dir_match_rate": 0.515625,
+      "opposite_fp_rate_active": 0.484375
+    },
+    {
+      "threshold": 0.7,
+      "active_batches": 58,
+      "coverage": 0.116,
+      "batches_per_signal": 8.620689655172413,
+      "dir_match_rate": 0.5344827586206896,
+      "opposite_fp_rate_active": 0.46551724137931033
+    },
+    {
+      "threshold": 0.71,
+      "active_batches": 54,
+      "coverage": 0.108,
+      "batches_per_signal": 9.25925925925926,
+      "dir_match_rate": 0.5185185185185185,
+      "opposite_fp_rate_active": 0.48148148148148145
+    },
+    {
+      "threshold": 0.72,
+      "active_batches": 49,
+      "coverage": 0.098,
+      "batches_per_signal": 10.204081632653061,
+      "dir_match_rate": 0.5510204081632653,
+      "opposite_fp_rate_active": 0.4489795918367347
+    },
+    {
+      "threshold": 0.73,
+      "active_batches": 44,
+      "coverage": 0.088,
+      "batches_per_signal": 11.363636363636365,
+      "dir_match_rate": 0.5909090909090909,
+      "opposite_fp_rate_active": 0.4090909090909091
+    },
+    {
+      "threshold": 0.74,
+      "active_batches": 40,
+      "coverage": 0.08,
+      "batches_per_signal": 12.5,
+      "dir_match_rate": 0.6,
+      "opposite_fp_rate_active": 0.4
+    },
+    {
+      "threshold": 0.75,
+      "active_batches": 37,
+      "coverage": 0.074,
+      "batches_per_signal": 13.513513513513514,
+      "dir_match_rate": 0.5945945945945946,
+      "opposite_fp_rate_active": 0.40540540540540543
+    },
+    {
+      "threshold": 0.76,
+      "active_batches": 32,
+      "coverage": 0.064,
+      "batches_per_signal": 15.625,
+      "dir_match_rate": 0.65625,
+      "opposite_fp_rate_active": 0.34375
+    },
+    {
+      "threshold": 0.77,
+      "active_batches": 31,
+      "coverage": 0.062,
+      "batches_per_signal": 16.129032258064516,
+      "dir_match_rate": 0.6451612903225806,
+      "opposite_fp_rate_active": 0.3548387096774194
+    },
+    {
+      "threshold": 0.78,
+      "active_batches": 26,
+      "coverage": 0.052,
+      "batches_per_signal": 19.23076923076923,
+      "dir_match_rate": 0.6923076923076923,
+      "opposite_fp_rate_active": 0.3076923076923077
+    },
+    {
+      "threshold": 0.79,
+      "active_batches": 24,
+      "coverage": 0.048,
+      "batches_per_signal": 20.833333333333332,
+      "dir_match_rate": 0.7083333333333334,
+      "opposite_fp_rate_active": 0.2916666666666667
+    },
+    {
+      "threshold": 0.8,
+      "active_batches": 21,
+      "coverage": 0.042,
+      "batches_per_signal": 23.809523809523807,
+      "dir_match_rate": 0.6666666666666666,
+      "opposite_fp_rate_active": 0.3333333333333333
+    },
+    {
+      "threshold": 0.81,
+      "active_batches": 21,
+      "coverage": 0.042,
+      "batches_per_signal": 23.809523809523807,
+      "dir_match_rate": 0.6666666666666666,
+      "opposite_fp_rate_active": 0.3333333333333333
+    },
+    {
+      "threshold": 0.82,
+      "active_batches": 21,
+      "coverage": 0.042,
+      "batches_per_signal": 23.809523809523807,
+      "dir_match_rate": 0.6666666666666666,
+      "opposite_fp_rate_active": 0.3333333333333333
+    },
+    {
+      "threshold": 0.83,
+      "active_batches": 21,
+      "coverage": 0.042,
+      "batches_per_signal": 23.809523809523807,
+      "dir_match_rate": 0.6666666666666666,
+      "opposite_fp_rate_active": 0.3333333333333333
+    },
+    {
+      "threshold": 0.84,
+      "active_batches": 18,
+      "coverage": 0.036,
+      "batches_per_signal": 27.77777777777778,
+      "dir_match_rate": 0.6111111111111112,
+      "opposite_fp_rate_active": 0.3888888888888889
+    },
+    {
+      "threshold": 0.85,
+      "active_batches": 15,
+      "coverage": 0.03,
+      "batches_per_signal": 33.333333333333336,
+      "dir_match_rate": 0.7333333333333333,
+      "opposite_fp_rate_active": 0.26666666666666666
+    },
+    {
+      "threshold": 0.86,
+      "active_batches": 11,
+      "coverage": 0.022,
+      "batches_per_signal": 45.45454545454546,
+      "dir_match_rate": 0.7272727272727273,
+      "opposite_fp_rate_active": 0.2727272727272727
+    },
+    {
+      "threshold": 0.87,
+      "active_batches": 11,
+      "coverage": 0.022,
+      "batches_per_signal": 45.45454545454546,
+      "dir_match_rate": 0.7272727272727273,
+      "opposite_fp_rate_active": 0.2727272727272727
+    },
+    {
+      "threshold": 0.88,
+      "active_batches": 10,
+      "coverage": 0.02,
+      "batches_per_signal": 50.0,
+      "dir_match_rate": 0.7,
+      "opposite_fp_rate_active": 0.3
+    },
+    {
+      "threshold": 0.89,
+      "active_batches": 8,
+      "coverage": 0.016,
+      "batches_per_signal": 62.5,
+      "dir_match_rate": 0.75,
+      "opposite_fp_rate_active": 0.25
+    },
+    {
+      "threshold": 0.9,
+      "active_batches": 8,
+      "coverage": 0.016,
+      "batches_per_signal": 62.5,
+      "dir_match_rate": 0.75,
+      "opposite_fp_rate_active": 0.25
+    },
+    {
+      "threshold": 0.91,
+      "active_batches": 7,
+      "coverage": 0.014,
+      "batches_per_signal": 71.42857142857143,
+      "dir_match_rate": 0.8571428571428571,
+      "opposite_fp_rate_active": 0.14285714285714285
+    },
+    {
+      "threshold": 0.92,
+      "active_batches": 7,
+      "coverage": 0.014,
+      "batches_per_signal": 71.42857142857143,
+      "dir_match_rate": 0.8571428571428571,
+      "opposite_fp_rate_active": 0.14285714285714285
+    },
+    {
+      "threshold": 0.93,
+      "active_batches": 6,
+      "coverage": 0.012,
+      "batches_per_signal": 83.33333333333333,
+      "dir_match_rate": 0.8333333333333334,
+      "opposite_fp_rate_active": 0.16666666666666666
+    },
+    {
+      "threshold": 0.94,
+      "active_batches": 6,
+      "coverage": 0.012,
+      "batches_per_signal": 83.33333333333333,
+      "dir_match_rate": 0.8333333333333334,
+      "opposite_fp_rate_active": 0.16666666666666666
+    },
+    {
+      "threshold": 0.95,
+      "active_batches": 6,
+      "coverage": 0.012,
+      "batches_per_signal": 83.33333333333333,
+      "dir_match_rate": 0.8333333333333334,
+      "opposite_fp_rate_active": 0.16666666666666666
+    },
+    {
+      "threshold": 0.96,
+      "active_batches": 5,
+      "coverage": 0.01,
+      "batches_per_signal": 100.0,
+      "dir_match_rate": 0.8,
+      "opposite_fp_rate_active": 0.2
+    },
+    {
+      "threshold": 0.97,
+      "active_batches": 5,
+      "coverage": 0.01,
+      "batches_per_signal": 100.0,
+      "dir_match_rate": 0.8,
+      "opposite_fp_rate_active": 0.2
+    },
+    {
+      "threshold": 0.98,
+      "active_batches": 4,
+      "coverage": 0.008,
+      "batches_per_signal": 125.0,
+      "dir_match_rate": 1.0,
+      "opposite_fp_rate_active": 0.0
+    },
+    {
+      "threshold": 0.99,
+      "active_batches": 4,
+      "coverage": 0.008,
+      "batches_per_signal": 125.0,
+      "dir_match_rate": 1.0,
+      "opposite_fp_rate_active": 0.0
+    }
+  ]
+}

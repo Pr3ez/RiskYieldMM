@@ -1,0 +1,15 @@
+{
+  "global": {
+    "checks": 8000,
+    "violations": 0,
+    "pass": true,
+    "min_gap_steps": 1,
+    "first_violations": []
+  },
+  "checks": {
+    "holdout_batches": 120,
+    "total_batches": 800,
+    "eligible_holdout_batches": 796,
+    "effective_gap_steps": 1
+  }
+}

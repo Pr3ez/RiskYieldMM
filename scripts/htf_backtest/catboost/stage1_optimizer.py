@@ -80,15 +80,115 @@ def _stage1_train_values(window_space: Any, val_batches_per_fold: int) -> list[i
     return list(range(train_min, train_max + 1))
 
 
+def _stage1_pair_values(window_space: Any) -> list[tuple[int, int]]:
+    raw_pairs = getattr(window_space, "stage1_pair_grid", None)
+    if not raw_pairs:
+        return []
+
+    fixed_val = int(max(1, getattr(window_space, "stage1_val_batches_per_fold", 1)))
+    val_min = int(max(1, getattr(window_space, "stage1_val_batches_min", fixed_val)))
+    val_max = int(max(val_min, getattr(window_space, "stage1_val_batches_max", val_min)))
+    train_min = int(max(1, getattr(window_space, "stage1_train_batches_min", 1)))
+    train_max = int(max(train_min, getattr(window_space, "stage1_train_batches_max", train_min)))
+
+    pairs: set[tuple[int, int]] = set()
+    for item in raw_pairs:
+        val_batches = None
+        train_batches = None
+        if isinstance(item, dict):
+            val_batches = item.get("val_batches_per_fold", item.get("val"))
+            train_batches = item.get("train_batches_per_fold", item.get("train"))
+        elif isinstance(item, (list, tuple)) and len(item) >= 2:
+            val_batches = item[0]
+            train_batches = item[1]
+
+        if val_batches is None or train_batches is None:
+            continue
+
+        v = int(val_batches)
+        t = int(train_batches)
+        if v < val_min or v > val_max:
+            continue
+        if t < train_min or t > train_max:
+            continue
+        pairs.add((v, t))
+
+    return sorted(pairs)
+
+
+def _stage1_triplet_values(window_space: Any) -> list[tuple[int, int, int]]:
+    raw_triplets = getattr(window_space, "stage1_triplet_grid", None)
+    if not raw_triplets:
+        return []
+
+    folds_min = int(max(1, getattr(window_space, "stage1_folds_min", 1)))
+    folds_max = int(max(folds_min, getattr(window_space, "stage1_folds_max", folds_min)))
+    fixed_val = int(max(1, getattr(window_space, "stage1_val_batches_per_fold", 1)))
+    val_min = int(max(1, getattr(window_space, "stage1_val_batches_min", fixed_val)))
+    val_max = int(max(val_min, getattr(window_space, "stage1_val_batches_max", val_min)))
+    train_min = int(max(1, getattr(window_space, "stage1_train_batches_min", 1)))
+    train_max = int(max(train_min, getattr(window_space, "stage1_train_batches_max", train_min)))
+
+    triplets: set[tuple[int, int, int]] = set()
+    for item in raw_triplets:
+        fold_count = None
+        val_batches = None
+        train_batches = None
+
+        if isinstance(item, dict):
+            fold_count = item.get("fold_count", item.get("fold"))
+            val_batches = item.get("val_batches_per_fold", item.get("val"))
+            train_batches = item.get("train_batches_per_fold", item.get("train"))
+        elif isinstance(item, (list, tuple)) and len(item) >= 3:
+            fold_count = item[0]
+            val_batches = item[1]
+            train_batches = item[2]
+
+        if fold_count is None or val_batches is None or train_batches is None:
+            continue
+
+        f = int(fold_count)
+        v = int(val_batches)
+        t = int(train_batches)
+        if f < folds_min or f > folds_max:
+            continue
+        if v < val_min or v > val_max:
+            continue
+        if t < train_min or t > train_max:
+            continue
+        triplets.add((f, v, t))
+
+    return sorted(triplets)
+
+
 def build_stage1_combo_grid(window_space: Any) -> list[dict[str, int]]:
     folds_min = int(max(1, getattr(window_space, "stage1_folds_min", 1)))
     folds_max = int(max(folds_min, getattr(window_space, "stage1_folds_max", folds_min)))
-    fold_values = list(range(folds_min, folds_max + 1))
+    fold_grid = getattr(window_space, "stage1_fold_grid", None)
+    if fold_grid:
+        fold_values = sorted({int(v) for v in fold_grid if int(v) >= 1})
+        if not fold_values:
+            fold_values = list(range(folds_min, folds_max + 1))
+    else:
+        fold_values = list(range(folds_min, folds_max + 1))
+    triplet_values = _stage1_triplet_values(window_space)
+    pair_values = _stage1_pair_values(window_space)
     combos: list[dict[str, int]] = []
     combo_id = 0
-    for fold_count in fold_values:
-        for val_batches in _stage1_val_values(window_space):
-            for train_batches in _stage1_train_values(window_space, val_batches):
+    if triplet_values:
+        for fold_count, val_batches, train_batches in triplet_values:
+            combos.append(
+                {
+                    "combo_id": int(combo_id),
+                    "fold_count": int(fold_count),
+                    "val_batches_per_fold": int(val_batches),
+                    "train_batches_per_fold": int(train_batches),
+                }
+            )
+            combo_id += 1
+    elif pair_values:
+        for fold_count in fold_values:
+            for val_batches, train_batches in pair_values:
                 combos.append(
                     {
                         "combo_id": int(combo_id),
@@ -98,7 +198,89 @@ def build_stage1_combo_grid(window_space: Any) -> list[dict[str, int]]:
                     }
                 )
                 combo_id += 1
+    else:
+        for fold_count in fold_values:
+            for val_batches in _stage1_val_values(window_space):
+                for train_batches in _stage1_train_values(window_space, val_batches):
+                    combos.append(
+                        {
+                            "combo_id": int(combo_id),
+                            "fold_count": int(fold_count),
+                            "val_batches_per_fold": int(val_batches),
+                            "train_batches_per_fold": int(train_batches),
+                        }
+                    )
+                    combo_id += 1
     return combos
+
+
+def fit_catboost_with_fallback_stage1(
+    *,
+    params: dict[str, Any],
+    iterations: int,
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_val: np.ndarray,
+    y_val: np.ndarray,
+) -> tuple[Any, bool]:
+    """
+    Stage-1 CatBoost fit with the same fallback semantics used in Step-1:
+    - GPU first with eval_set/use_best_model
+    - if eval contains unseen classes, retry without eval_set
+    - if GPU fails, fallback to CPU (same retry behavior)
+    """
+    try:
+        from catboost import CatBoostClassifier
+    except Exception as e:  # pragma: no cover
+        raise RuntimeError("CatBoost is required for Stage-1") from e
+
+    def _is_unseen_val_class_error(exc: Exception) -> bool:
+        msg = str(exc)
+        return (
+            "contains class label" in msg
+            and "not present in the learn dataset" in msg
+        )
+
+    def _fit_once(fit_params: dict[str, Any], use_eval: bool) -> Any:
+        model = CatBoostClassifier(**fit_params, iterations=int(iterations))
+        if use_eval:
+            model.fit(
+                X_train,
+                y_train,
+                eval_set=(X_val, y_val),
+                use_best_model=True,
+                early_stopping_rounds=50,
+                verbose=False,
+            )
+        else:
+            # Fallback for folds where validation has unseen classes.
+            model.fit(
+                X_train,
+                y_train,
+                use_best_model=False,
+                verbose=False,
+            )
+        return model
+
+    try:
+        return _fit_once(params, use_eval=True), False
+    except Exception as gpu_err:
+        if _is_unseen_val_class_error(gpu_err):
+            try:
+                return _fit_once(params, use_eval=False), False
+            except Exception:
+                pass
+
+        params_cpu = dict(params)
+        params_cpu["task_type"] = "CPU"
+        params_cpu.pop("devices", None)
+
+        try:
+            return _fit_once(params_cpu, use_eval=True), True
+        except Exception as cpu_err:
+            if _is_unseen_val_class_error(cpu_err):
+                return _fit_once(params_cpu, use_eval=False), True
+            raise
 
 
 class _PayloadWriter:
@@ -118,6 +300,10 @@ class _PayloadWriter:
         combo_id: int,
         fold_id: int,
         scope: str,
+        action_key: str,
+        candidate_source: str | None = None,
+        probe_tier: int | None = None,
+        discovered_from: str | None = None,
         timestamps: np.ndarray,
         batch_ids: np.ndarray,
         y_true: np.ndarray,
@@ -133,6 +319,22 @@ class _PayloadWriter:
             "combo_id": np.full(n, int(combo_id), dtype=np.int32),
             "fold_id": np.full(n, int(fold_id), dtype=np.int16),
             "scope": np.full(n, str(scope), dtype=object),
+            "action_key": np.full(n, str(action_key), dtype=object),
+            "candidate_source": np.full(
+                n,
+                str(candidate_source or "base_grid"),
+                dtype=object,
+            ),
+            "probe_tier": np.full(
+                n,
+                int(probe_tier if probe_tier is not None else -1),
+                dtype=np.int16,
+            ),
+            "discovered_from": np.full(
+                n,
+                str(discovered_from or ""),
+                dtype=object,
+            ),
             "timestamp": timestamps[:n],
             "batch_id": np.asarray(batch_ids[:n], dtype=np.int32),
             "y_true": np.asarray(y_true[:n], dtype=np.int16),
@@ -169,6 +371,10 @@ class _PayloadWriter:
             "combo_id": [],
             "fold_id": [],
             "scope": [],
+            "action_key": [],
+            "candidate_source": [],
+            "probe_tier": [],
+            "discovered_from": [],
             "timestamp": [],
             "batch_id": [],
             "y_true": [],
@@ -190,6 +396,11 @@ def evaluate_stage1_grid(
     train_end: int,
     pred_batch: int,
     step_stage1_dir: Path,
+    combo_grid_override: list[dict[str, Any]] | None = None,
+    append_mode: bool = False,
+    candidate_source: str = "base_grid",
+    probe_tier: int | None = None,
+    discovered_from: str | None = None,
 ) -> dict[str, Any]:
     """
     Evaluate full stage-1 fold grid and persist raw payload artifacts.
@@ -279,6 +490,60 @@ def evaluate_stage1_grid(
     available_batch_set = set(batch_bounds.keys())
     range_cache: dict[tuple[int, int], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
 
+    # Pre-decision context snapshot for downstream meta-learning.
+    def _class_dist(arr: np.ndarray, n_classes: int) -> tuple[list[int], list[float]]:
+        if arr is None or len(arr) == 0:
+            return [0] * int(n_classes), [0.0] * int(n_classes)
+        counts = np.bincount(arr.astype(np.int32), minlength=int(n_classes))[: int(n_classes)]
+        total = float(np.sum(counts))
+        if total <= 0:
+            return [int(v) for v in counts.tolist()], [0.0] * int(n_classes)
+        return [int(v) for v in counts.tolist()], [float(v / total) for v in counts.tolist()]
+
+    rows_per_batch = [int(end - start) for (start, end) in batch_bounds.values()]
+    recent_n = int(max(1, getattr(win, "recent_ref_batches", 96)))
+    recent_batches = sorted(batch_bounds.keys())[-recent_n:]
+    if recent_batches:
+        recent_batch_set = set(recent_batches)
+        recent_mask = np.array([int(b) in recent_batch_set for b in bid_compact], dtype=bool)
+        y_recent = y_compact[recent_mask]
+    else:
+        y_recent = np.array([], dtype=np.int32)
+
+    lookback_counts, lookback_pct = _class_dist(y_compact, cfg.n_classes)
+    recent_counts, recent_pct = _class_dist(y_recent, cfg.n_classes)
+
+    predecision_context = {
+        "train_end_batch": int(train_end),
+        "pred_batch": int(pred_batch),
+        "target": str(cfg.target),
+        "feature_target": str(cfg.feature_target or cfg.target),
+        "n_classes": int(cfg.n_classes),
+        "lookback_range_start_batch": int(range_start),
+        "lookback_range_end_batch": int(train_end),
+        "available_batches": int(len(batch_bounds)),
+        "lookback_rows": int(len(y_compact)),
+        "rows_per_batch_min": int(min(rows_per_batch)) if rows_per_batch else 0,
+        "rows_per_batch_median": int(np.median(rows_per_batch)) if rows_per_batch else 0,
+        "rows_per_batch_max": int(max(rows_per_batch)) if rows_per_batch else 0,
+        "recent_batches_n": int(min(recent_n, len(batch_bounds))),
+        "recent_batches_start": int(recent_batches[0]) if recent_batches else None,
+        "recent_batches_end": int(recent_batches[-1]) if recent_batches else None,
+        "recent_rows": int(len(y_recent)),
+        "class_counts_lookback": {
+            str(c): int(lookback_counts[c]) for c in range(int(cfg.n_classes))
+        },
+        "class_pct_lookback": {
+            str(c): float(lookback_pct[c]) for c in range(int(cfg.n_classes))
+        },
+        "class_counts_recent": {
+            str(c): int(recent_counts[c]) for c in range(int(cfg.n_classes))
+        },
+        "class_pct_recent": {
+            str(c): float(recent_pct[c]) for c in range(int(cfg.n_classes))
+        },
+    }
+
     def _slice_batch_range(start_batch: int, end_batch: int):
         key = (int(start_batch), int(end_batch))
         cached = range_cache.get(key)
@@ -319,18 +584,90 @@ def evaluate_stage1_grid(
             pred_X = np.nan_to_num(pred_X, nan=0.0, posinf=0.0, neginf=0.0)
             pred_ts = np.asarray(pred_df["timestamp"].to_numpy())
             pred_bids = np.asarray(pred_df["batch_id"].to_numpy(), dtype=np.int32)
+            predecision_context["pred_rows"] = int(len(pred_y))
+            predecision_context["pred_timestamp_start"] = (
+                str(pred_ts[0]) if len(pred_ts) > 0 else None
+            )
+            predecision_context["pred_timestamp_end"] = (
+                str(pred_ts[-1]) if len(pred_ts) > 0 else None
+            )
     except Exception:
         pred_X = None
         pred_y = None
         pred_ts = None
         pred_bids = None
+        predecision_context["pred_rows"] = 0
+        predecision_context["pred_timestamp_start"] = None
+        predecision_context["pred_timestamp_end"] = None
 
-    combos = build_stage1_combo_grid(win)
-    val_writer = _PayloadWriter(step_stage1_dir / "stage1_val_predictions.parquet", cfg.n_classes)
-    pred_writer = _PayloadWriter(
-        step_stage1_dir / "stage1_pred_batch_predictions.parquet",
-        cfg.n_classes,
+    combo_index_path = step_stage1_dir / "stage1_combo_index.parquet"
+    fold_windows_path = step_stage1_dir / "stage1_fold_windows.parquet"
+    val_payload_path = step_stage1_dir / "stage1_val_predictions.parquet"
+    pred_payload_path = step_stage1_dir / "stage1_pred_batch_predictions.parquet"
+
+    existing_combo_df = (
+        pl.read_parquet(combo_index_path)
+        if append_mode and combo_index_path.exists()
+        else pl.DataFrame()
     )
+    existing_action_keys: set[str] = set()
+    existing_max_combo_id = -1
+    if not existing_combo_df.is_empty():
+        if "action_key" in existing_combo_df.columns:
+            existing_action_keys = {
+                str(v)
+                for v in existing_combo_df["action_key"].to_list()
+                if v is not None and str(v) != ""
+            }
+        else:
+            for row in existing_combo_df.select(
+                ["fold_count", "val_batches_per_fold", "train_batches_per_fold"]
+            ).iter_rows(named=True):
+                existing_action_keys.add(
+                    f"f{int(row['fold_count'])}_v{int(row['val_batches_per_fold'])}_t{int(row['train_batches_per_fold'])}"
+                )
+        if "combo_id" in existing_combo_df.columns:
+            existing_max_combo_id = int(existing_combo_df["combo_id"].max())
+
+    raw_combos = combo_grid_override if combo_grid_override is not None else build_stage1_combo_grid(win)
+    next_combo_id = existing_max_combo_id + 1 if append_mode else 0
+    combos: list[dict[str, int]] = []
+    for raw in raw_combos:
+        fold_count = int(raw.get("fold_count", 0))
+        val_batches = int(raw.get("val_batches_per_fold", 0))
+        train_batches = int(raw.get("train_batches_per_fold", 0))
+        if fold_count <= 0 or val_batches <= 0 or train_batches <= 0:
+            continue
+        action_key = str(
+            raw.get("action_key")
+            or f"f{int(fold_count)}_v{int(val_batches)}_t{int(train_batches)}"
+        )
+        if append_mode and action_key in existing_action_keys:
+            continue
+        combos.append(
+            {
+                "combo_id": int(next_combo_id),
+                "fold_count": int(fold_count),
+                "val_batches_per_fold": int(val_batches),
+                "train_batches_per_fold": int(train_batches),
+                "action_key": action_key,
+            }
+        )
+        next_combo_id += 1
+
+    val_new_path = (
+        step_stage1_dir / "stage1_val_predictions.__append_new__.parquet"
+        if append_mode
+        else val_payload_path
+    )
+    pred_new_path = (
+        step_stage1_dir / "stage1_pred_batch_predictions.__append_new__.parquet"
+        if append_mode
+        else pred_payload_path
+    )
+
+    val_writer = _PayloadWriter(val_new_path, cfg.n_classes)
+    pred_writer = _PayloadWriter(pred_new_path, cfg.n_classes)
 
     combo_records: list[dict[str, Any]] = []
     fold_window_records: list[dict[str, Any]] = []
@@ -350,6 +687,10 @@ def evaluate_stage1_grid(
         fold_count = int(combo["fold_count"])
         val_batches = int(combo["val_batches_per_fold"])
         train_batches = int(combo["train_batches_per_fold"])
+        action_key = str(
+            combo.get("action_key")
+            or f"f{int(fold_count)}_v{int(val_batches)}_t{int(train_batches)}"
+        )
         combo_t0 = time.perf_counter()
 
         windows = step_optimizer._build_stage1_fold_windows(
@@ -363,12 +704,16 @@ def evaluate_stage1_grid(
             fold_window_records.append(
                 {
                     "combo_id": combo_id,
+                    "action_key": action_key,
                     "fold_id": int(w["fold_id"]),
                     "train_start_batch": int(w["train_start_batch"]),
                     "train_end_batch": int(w["train_end_batch"]),
                     "val_start_batch": int(w["val_start_batch"]),
                     "val_end_batch": int(w["val_end_batch"]),
                     "val_batch": int(w["val_batch"]),
+                    "candidate_source": str(candidate_source or "base_grid"),
+                    "probe_tier": int(probe_tier if probe_tier is not None else -1),
+                    "discovered_from": str(discovered_from or ""),
                 }
             )
 
@@ -378,6 +723,7 @@ def evaluate_stage1_grid(
             combo_records.append(
                 {
                     "combo_id": combo_id,
+                    "action_key": action_key,
                     "fold_count": fold_count,
                     "val_batches_per_fold": val_batches,
                     "train_batches_per_fold": train_batches,
@@ -439,7 +785,7 @@ def evaluate_stage1_grid(
             if model is None:
                 train_model_cache_misses += 1
                 try:
-                    model, _ = step_optimizer._fit_catboost_with_fallback(
+                    model, _ = fit_catboost_with_fallback_stage1(
                         params=base_params,
                         iterations=baseline_iterations,
                         X_train=X_train,
@@ -465,6 +811,10 @@ def evaluate_stage1_grid(
                 combo_id=combo_id,
                 fold_id=int(w["fold_id"]),
                 scope="val_fold",
+                action_key=action_key,
+                candidate_source=candidate_source,
+                probe_tier=probe_tier,
+                discovered_from=discovered_from,
                 timestamps=ts_val,
                 batch_ids=bid_val,
                 y_true=y_val,
@@ -483,6 +833,10 @@ def evaluate_stage1_grid(
                 combo_id=combo_id,
                 fold_id=0,
                 scope="pred_batch",
+                action_key=action_key,
+                candidate_source=candidate_source,
+                probe_tier=probe_tier,
+                discovered_from=discovered_from,
                 timestamps=pred_ts if pred_ts is not None else np.array([], dtype="datetime64[ns]"),
                 batch_ids=pred_bids if pred_bids is not None else np.array([], dtype=np.int32),
                 y_true=pred_y,
@@ -500,6 +854,7 @@ def evaluate_stage1_grid(
         combo_records.append(
             {
                 "combo_id": combo_id,
+                "action_key": action_key,
                 "fold_count": fold_count,
                 "val_batches_per_fold": val_batches,
                 "train_batches_per_fold": train_batches,
@@ -508,21 +863,153 @@ def evaluate_stage1_grid(
                 "folds_expected": fold_count,
                 "folds_completed": int(folds_completed),
                 "runtime_s": float(time.perf_counter() - combo_t0),
+                "candidate_source": str(candidate_source or "base_grid"),
+                "probe_tier": int(probe_tier if probe_tier is not None else -1),
+                "discovered_from": str(discovered_from or ""),
             }
         )
 
     val_writer.close()
     pred_writer.close()
 
-    combo_index_df = pl.DataFrame(combo_records)
-    combo_index_path = step_stage1_dir / "stage1_combo_index.parquet"
+    if combo_records:
+        new_combo_df = pl.DataFrame(combo_records)
+    else:
+        new_combo_df = pl.DataFrame(
+            {
+                "combo_id": pl.Series([], dtype=pl.Int32),
+                "action_key": pl.Series([], dtype=pl.Utf8),
+                "fold_count": pl.Series([], dtype=pl.Int32),
+                "val_batches_per_fold": pl.Series([], dtype=pl.Int32),
+                "train_batches_per_fold": pl.Series([], dtype=pl.Int32),
+                "status": pl.Series([], dtype=pl.Utf8),
+                "fail_reason": pl.Series([], dtype=pl.Utf8),
+                "folds_expected": pl.Series([], dtype=pl.Int32),
+                "folds_completed": pl.Series([], dtype=pl.Int32),
+                "runtime_s": pl.Series([], dtype=pl.Float64),
+                "candidate_source": pl.Series([], dtype=pl.Utf8),
+                "probe_tier": pl.Series([], dtype=pl.Int16),
+                "discovered_from": pl.Series([], dtype=pl.Utf8),
+            }
+        )
+    if append_mode and combo_index_path.exists():
+        merged_combo_df = pl.concat(
+            [pl.read_parquet(combo_index_path), new_combo_df],
+            how="diagonal_relaxed",
+        ).unique(subset=["action_key"], keep="first")
+        combo_index_df = merged_combo_df.sort("combo_id")
+    else:
+        combo_index_df = new_combo_df
     combo_index_df.write_parquet(combo_index_path)
 
-    fold_windows_df = pl.DataFrame(fold_window_records)
-    fold_windows_path = step_stage1_dir / "stage1_fold_windows.parquet"
+    if fold_window_records:
+        new_fold_windows_df = pl.DataFrame(fold_window_records)
+    else:
+        new_fold_windows_df = pl.DataFrame(
+            {
+                "combo_id": pl.Series([], dtype=pl.Int32),
+                "action_key": pl.Series([], dtype=pl.Utf8),
+                "fold_id": pl.Series([], dtype=pl.Int16),
+                "train_start_batch": pl.Series([], dtype=pl.Int32),
+                "train_end_batch": pl.Series([], dtype=pl.Int32),
+                "val_start_batch": pl.Series([], dtype=pl.Int32),
+                "val_end_batch": pl.Series([], dtype=pl.Int32),
+                "val_batch": pl.Series([], dtype=pl.Int32),
+                "candidate_source": pl.Series([], dtype=pl.Utf8),
+                "probe_tier": pl.Series([], dtype=pl.Int16),
+                "discovered_from": pl.Series([], dtype=pl.Utf8),
+            }
+        )
+    if append_mode and fold_windows_path.exists():
+        merged_fold_df = pl.concat(
+            [pl.read_parquet(fold_windows_path), new_fold_windows_df],
+            how="diagonal_relaxed",
+        ).unique(
+            subset=[
+                "action_key",
+                "fold_id",
+                "train_start_batch",
+                "train_end_batch",
+                "val_start_batch",
+                "val_end_batch",
+            ],
+            keep="first",
+        )
+        fold_windows_df = merged_fold_df.sort(["combo_id", "fold_id"])
+    else:
+        fold_windows_df = new_fold_windows_df
     fold_windows_df.write_parquet(fold_windows_path)
 
-    combo_total = int(len(combos))
+    if append_mode:
+        def _merge_payload(old_path: Path, new_path: Path) -> int:
+            if not new_path.exists():
+                return 0
+            new_df = pl.read_parquet(new_path)
+            if old_path.exists():
+                old_df = pl.read_parquet(old_path)
+                merged = pl.concat([old_df, new_df], how="diagonal_relaxed").unique(
+                    subset=["combo_id", "fold_id", "scope", "timestamp", "batch_id"],
+                    keep="last",
+                )
+            else:
+                merged = new_df
+            merged.write_parquet(old_path)
+            try:
+                new_path.unlink()
+            except Exception:
+                pass
+            return int(len(merged))
+
+        val_rows_after_merge = _merge_payload(val_payload_path, val_new_path)
+        pred_rows_after_merge = _merge_payload(pred_payload_path, pred_new_path)
+    else:
+        val_rows_after_merge = int(val_writer.row_count)
+        pred_rows_after_merge = int(pred_writer.row_count)
+
+    # Write pre-decision context in both json and parquet forms for easy
+    # sequence-model dataset assembly.
+    context_json_path = step_stage1_dir / "stage1_predecision_context.json"
+    with open(context_json_path, "w") as f:
+        json.dump(predecision_context, f, indent=2)
+
+    context_row = {
+        "train_end_batch": int(predecision_context["train_end_batch"]),
+        "pred_batch": int(predecision_context["pred_batch"]),
+        "target": str(predecision_context["target"]),
+        "feature_target": str(predecision_context["feature_target"]),
+        "n_classes": int(predecision_context["n_classes"]),
+        "lookback_range_start_batch": int(predecision_context["lookback_range_start_batch"]),
+        "lookback_range_end_batch": int(predecision_context["lookback_range_end_batch"]),
+        "available_batches": int(predecision_context["available_batches"]),
+        "lookback_rows": int(predecision_context["lookback_rows"]),
+        "rows_per_batch_min": int(predecision_context["rows_per_batch_min"]),
+        "rows_per_batch_median": int(predecision_context["rows_per_batch_median"]),
+        "rows_per_batch_max": int(predecision_context["rows_per_batch_max"]),
+        "recent_batches_n": int(predecision_context["recent_batches_n"]),
+        "recent_batches_start": (
+            int(predecision_context["recent_batches_start"])
+            if predecision_context["recent_batches_start"] is not None
+            else None
+        ),
+        "recent_batches_end": (
+            int(predecision_context["recent_batches_end"])
+            if predecision_context["recent_batches_end"] is not None
+            else None
+        ),
+        "recent_rows": int(predecision_context["recent_rows"]),
+        "pred_rows": int(predecision_context["pred_rows"]),
+        "pred_timestamp_start": predecision_context["pred_timestamp_start"],
+        "pred_timestamp_end": predecision_context["pred_timestamp_end"],
+    }
+    for c in range(int(cfg.n_classes)):
+        context_row[f"lookback_class_count_{c}"] = int(predecision_context["class_counts_lookback"][str(c)])
+        context_row[f"lookback_class_pct_{c}"] = float(predecision_context["class_pct_lookback"][str(c)])
+        context_row[f"recent_class_count_{c}"] = int(predecision_context["class_counts_recent"][str(c)])
+        context_row[f"recent_class_pct_{c}"] = float(predecision_context["class_pct_recent"][str(c)])
+    context_parquet_path = step_stage1_dir / "stage1_predecision_context.parquet"
+    pl.DataFrame([context_row]).write_parquet(context_parquet_path)
+
+    combo_total = int(len(combo_index_df)) if len(combo_index_df) else int(len(combos))
     combo_completed = int((combo_index_df["status"] == "complete").sum()) if len(combo_index_df) else 0
     combo_failed = combo_total - combo_completed
 
@@ -537,10 +1024,15 @@ def evaluate_stage1_grid(
         "combo_count_total": combo_total,
         "combo_count_completed": combo_completed,
         "combo_count_failed": combo_failed,
+        "combo_count_new_this_run": int(len(new_combo_df)),
+        "append_mode": bool(append_mode),
+        "candidate_source": str(candidate_source or "base_grid"),
+        "probe_tier": int(probe_tier if probe_tier is not None else -1),
+        "discovered_from": str(discovered_from or ""),
         "fold_windows_total": int(fold_count_total),
         "fold_windows_completed": int(fold_count_completed),
-        "val_payload_rows": int(val_writer.row_count),
-        "pred_payload_rows": int(pred_writer.row_count),
+        "val_payload_rows": int(val_rows_after_merge),
+        "pred_payload_rows": int(pred_rows_after_merge),
         "train_model_cache_hits": int(train_model_cache_hits),
         "train_model_cache_misses": int(train_model_cache_misses),
         "train_model_cache_unique": int(len(train_model_cache)),
@@ -549,7 +1041,25 @@ def evaluate_stage1_grid(
         "stage1_grid": {
             "folds_min": int(getattr(win, "stage1_folds_min", 1)),
             "folds_max": int(getattr(win, "stage1_folds_max", 1)),
+            "fold_grid": (
+                sorted({int(v) for v in (getattr(win, "stage1_fold_grid", []) or [])})
+            ),
             "val_batches_grid": _stage1_val_values(win),
+            "triplet_grid": [
+                {
+                    "fold_count": int(f),
+                    "val_batches_per_fold": int(v),
+                    "train_batches_per_fold": int(t),
+                }
+                for (f, v, t) in _stage1_triplet_values(win)
+            ],
+            "pair_grid": [
+                {
+                    "val_batches_per_fold": int(v),
+                    "train_batches_per_fold": int(t),
+                }
+                for (v, t) in _stage1_pair_values(win)
+            ],
             "train_multiplier_grid": list(getattr(win, "stage1_train_multiplier_grid", []) or []),
             "train_batches_grid": list(getattr(win, "stage1_train_batches_grid", []) or []),
         },
@@ -588,6 +1098,8 @@ def evaluate_stage1_grid(
             "stage1_fold_windows": str(fold_windows_path),
             "stage1_val_predictions": str(step_stage1_dir / "stage1_val_predictions.parquet"),
             "stage1_pred_batch_predictions": str(step_stage1_dir / "stage1_pred_batch_predictions.parquet"),
+            "stage1_predecision_context": str(context_json_path),
+            "stage1_predecision_context_parquet": str(context_parquet_path),
             "stage1_runtime_profile": str(runtime_profile_path),
         },
         "config_snapshot": {
@@ -597,4 +1109,3 @@ def evaluate_stage1_grid(
             "model_space": asdict(step_optimizer.model_space),
         },
     }
-

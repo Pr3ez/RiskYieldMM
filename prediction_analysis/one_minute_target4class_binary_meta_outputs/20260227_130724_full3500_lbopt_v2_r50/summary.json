@@ -1,0 +1,55 @@
+{
+  "created_utc": "2026-02-27T13:07:24.054025+00:00",
+  "unit": "1m/target_4class",
+  "run_id": "stage1_catboost_live",
+  "model_name": "catboost",
+  "lookback_grid": [
+    120,
+    180,
+    240,
+    300,
+    500,
+    1000,
+    "all"
+  ],
+  "wf_warmup_batches": 500,
+  "wf_retrain_every": 50,
+  "meta_c": 0.5,
+  "meta_max_iter": 300,
+  "seed": 42,
+  "dataset": {
+    "batches_total": 3500,
+    "rows_per_batch": 240,
+    "features_per_row": 72,
+    "configs_total": 24
+  },
+  "best": {
+    "rank": 1,
+    "lookback_requested_batches": -1,
+    "lookback_requested_label": "all",
+    "lookback_effective_batches_mean": 1999.5,
+    "lookback_effective_batches_min": 500,
+    "lookback_effective_batches_max": 3499,
+    "wf_warmup_batches": 500,
+    "wf_retrain_every": 50,
+    "rows_evaluated": 720000,
+    "rows": 720000,
+    "directional_accuracy": 0.5162805555555555,
+    "directional_active_safe_accuracy": 0.5162805555555555,
+    "balanced_accuracy": 0.5162932495957735,
+    "precision_up": 0.5299843328110937,
+    "precision_down": 0.5025776918547159,
+    "recall_up": 0.5158300573721294,
+    "recall_down": 0.5167564418194177,
+    "opposite_fp_rate_active": 0.4837194444444445,
+    "opposite_fp_rate_covered": 0.4837194444444445
+  },
+  "artifacts": {
+    "method_comparison_table_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/method_comparison_table.parquet",
+    "method_comparison_table_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/method_comparison_table.csv",
+    "evaluation_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/evaluation_by_batch.parquet",
+    "evaluation_by_batch_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/evaluation_by_batch.csv",
+    "feature_manifest_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/feature_manifest.json",
+    "tracking_context_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50/tracking_context.json"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "report_dir": "prediction_analysis/reports/production_selection_final_20260221_151050",
+  "rows_total": 133,
+  "accepted_cov15_opp08_rows": 32,
+  "accepted_cov10_opp08_rows": 42,
+  "best_recommendation": {
+    "rank": 1,
+    "alignment_mode": "same_period_close",
+    "weight_method": "history_brier_ewma",
+    "final_rule": "strict_agreement_margin",
+    "macro_f1": 0.5503802281368821,
+    "custom_mean_cost": 0.14144736842105263,
+    "directional_active_accuracy": 0.5503802281368821,
+    "directional_active_coverage": 0.15729665071770335,
+    "opposite_fp_rate_covered": 0.07072368421052631,
+    "opposite_fp_rate_active": 0.44961977186311786,
+    "directional_fp_risk_score": 0.16073564593301434,
+    "hold_side_cross_error_rate_covered": 0.019288277511961723,
+    "directional_balanced_recall": 0.5503802281368821,
+    "coverage": 1.0,
+    "run_name": "strict_brier_single"
+  }
+}

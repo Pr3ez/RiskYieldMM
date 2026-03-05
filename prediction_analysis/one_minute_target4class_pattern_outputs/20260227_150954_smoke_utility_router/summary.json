@@ -1,0 +1,208 @@
+{
+  "created_at_utc": "2026-02-27T15:10:29.919845+00:00",
+  "status": "not_production_ready",
+  "mode": "full_pipeline",
+  "inputs": {
+    "mode": "full_pipeline",
+    "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class",
+    "batches_tail": 3500,
+    "max_batches": 800,
+    "holdout_batches": 200,
+    "lookback_grid": [
+      64,
+      128,
+      256
+    ],
+    "router_lookback_grid": [
+      128,
+      256
+    ],
+    "router_models": [
+      "logit",
+      "gbm"
+    ],
+    "router_target": "utility",
+    "router_cost_opposite_penalty": 2.0,
+    "utility_correct_reward": 1.0,
+    "utility_opposite_penalty": 2.0,
+    "objective": "brier",
+    "activation_threshold_grid": [
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.6666666666666666,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "constraints": {
+      "target_cadence_min": 10.0,
+      "target_cadence_max": 15.0,
+      "max_opposite_fp_active": 0.25,
+      "max_opposite_fp_covered": 0.03,
+      "min_safe_accuracy": 0.7
+    }
+  },
+  "dataset_contract": {
+    "pass": true,
+    "missing_required_columns": [],
+    "batch_monotonic": true,
+    "batch_count": 800,
+    "batch_id_first": 4772,
+    "batch_id_last": 5571,
+    "config_count_unique": 24,
+    "bad_cfg_count_batches": [],
+    "bad_row_count_batches": [],
+    "required_cfg_per_batch": 24,
+    "required_rows_per_batch_config": 240,
+    "payload_files": 3500
+  },
+  "counts": {
+    "batches_total": 800,
+    "batches_train": 600,
+    "batches_holdout": 200,
+    "configs": 24,
+    "router_train_rows_scored": 14328,
+    "router_holdout_rows_scored": 4800
+  },
+  "selected_router_candidate": {
+    "model": "gbm",
+    "router_target": "utility",
+    "router_cost_opposite_penalty": 2.0,
+    "utility_correct_reward": 1.0,
+    "utility_opposite_penalty": 2.0,
+    "lookback": 128,
+    "rows_scored": 14328,
+    "brier": 0.2987682329667075,
+    "logloss": 0.48588085619680227,
+    "auc": NaN,
+    "batch_count_scored": 597
+  },
+  "final_operating_point": {
+    "activation_threshold": 0.85,
+    "batch_count": 597,
+    "active_batches": 69,
+    "coverage": 0.11557788944723618,
+    "batches_per_signal": 8.652173913043478,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.43478260869565216,
+    "opposite_fp_rate_active": 0.5507246376811594,
+    "opposite_fp_rate_covered": 0.06365159128978225,
+    "opposite_fp_count": 38,
+    "feasible": false,
+    "violation_score": 2.23428810720268,
+    "viol_opp_active": 0.3007246376811594,
+    "viol_opp_covered": 0.03365159128978225,
+    "viol_safe_acc": 0.2652173913043478,
+    "viol_cadence": 0.13478260869565215,
+    "selection_status": "best_near_feasible"
+  },
+  "holdout_metrics": {
+    "batch_count": 200,
+    "active_batches": 6,
+    "coverage": 0.03,
+    "batches_per_signal": 33.333333333333336,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.5,
+    "opposite_fp_rate_active": 0.5,
+    "opposite_fp_rate_covered": 0.015,
+    "opposite_fp_count": 3,
+    "pass_production_gate": false,
+    "violation_score": 2.822222222222222,
+    "viol_opp_active": 0.25,
+    "viol_opp_covered": 0.0,
+    "viol_safe_acc": 0.19999999999999996,
+    "viol_cadence": 1.2222222222222223,
+    "activation_threshold": 0.85,
+    "router_model": "gbm",
+    "router_lookback": 128
+  },
+  "baseline_fixed_best_config": {
+    "batch_count": 200,
+    "active_batches": 200,
+    "coverage": 1.0,
+    "batches_per_signal": 1.0,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.455,
+    "opposite_fp_rate_active": 0.54,
+    "opposite_fp_rate_covered": 0.54,
+    "opposite_fp_count": 108,
+    "selected_action_key": "f1_v1_t4"
+  },
+  "baseline_per_config_router": {
+    "batch_count": 200,
+    "active_batches": 9,
+    "coverage": 0.045,
+    "batches_per_signal": 22.22222222222222,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.4444444444444444,
+    "opposite_fp_rate_active": 0.5555555555555556,
+    "opposite_fp_rate_covered": 0.025,
+    "opposite_fp_count": 5,
+    "activation_threshold": 0.85
+  },
+  "comparison_deltas": {
+    "vs_fixed_best_config": {
+      "safe_accuracy_delta": 0.044999999999999984,
+      "opposite_fp_active_delta": -0.040000000000000036,
+      "opposite_fp_covered_delta": -0.525,
+      "cadence_delta": 32.333333333333336,
+      "active_batches_delta": -194
+    },
+    "vs_per_config_router": {
+      "safe_accuracy_delta": 0.05555555555555558,
+      "opposite_fp_active_delta": -0.05555555555555558,
+      "opposite_fp_covered_delta": -0.010000000000000002,
+      "cadence_delta": 11.111111111111114,
+      "active_batches_delta": -3
+    }
+  },
+  "context_reference": {
+    "strict_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260225_203425_full3500_strict_winner_011059_live/summary.json",
+      "opposite_fp_rate_active": 0.46492307692307694,
+      "opposite_fp_rate_covered": 0.02794008875739645,
+      "directional_active_coverage": 0.06009615384615385,
+      "custom_mean_cost": 0.0558801775147929
+    },
+    "dual_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_011654_full3500_dual_diversity_141257_live/summary.json",
+      "opposite_fp_rate_active": 0.47635040582143856,
+      "opposite_fp_rate_covered": 0.06294378698224852,
+      "directional_active_coverage": 0.13213757396449705,
+      "custom_mean_cost": 0.12588757396449704
+    }
+  },
+  "leakage_checks": {
+    "per_config": {
+      "checks": 37248,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "global_router": {
+      "checks": 2588,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "pass": true
+  },
+  "artifacts": {
+    "dataset_contract_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/dataset_contract.json",
+    "per_config_lookback_scores_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/per_config_lookback_scores.csv",
+    "selected_lookback_by_config_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/selected_lookback_by_config.csv",
+    "global_router_model_selection_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/global_router_model_selection.csv",
+    "router_selection_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/router_selection_by_batch.parquet",
+    "router_threshold_sweep_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/router_threshold_sweep.csv",
+    "final_operating_point_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/final_operating_point.json",
+    "holdout_metrics_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/holdout_metrics.json",
+    "leakage_guard_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/leakage_guard_report.json",
+    "summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_150954_smoke_utility_router/summary.json"
+  }
+}

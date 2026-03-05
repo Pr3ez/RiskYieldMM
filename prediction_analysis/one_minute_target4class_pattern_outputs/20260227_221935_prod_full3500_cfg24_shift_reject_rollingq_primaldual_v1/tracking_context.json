@@ -1,0 +1,7 @@
+{
+  "created_at_utc": "2026-02-27T22:26:49.865477+00:00",
+  "linear_issue_url": "",
+  "notion_page_url": "",
+  "run_command": "prediction_analysis/one_minute_target4class_config_activation_meta.py --mode full_pipeline --batches-tail 3500 --holdout-batches 500 --lookback-grid 32,64,128,256,512 --router-lookback-grid 128,256,512,768 --router-models logit,gbm --router-target shift_reject_utility --router-shift-weighting exp_recent_similarity --router-shift-halflife-batches 250 --coverage-regularization-target 0.08 --coverage-regularization-weight 1.0 --anti-collapse-min-active-coverage 0.05 --retrain-every 25 --router-retrain-every 25 --objective brier --gate-method rolling_quantile --rolling-quantile-grid 0.85,0.88,0.90,0.92,0.95 --rolling-quantile-lookback 300 --rolling-quantile-min-history 80 --selection-objective primal_dual --primal-dual-iters 700 --primal-dual-step 0.35 --primal-dual-utility-mode coverage_safe --activation-threshold-grid 0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90 --target-cadence-min 10 --target-cadence-max 15 --max-opposite-fp-active 0.25 --max-opposite-fp-covered 0.03 --min-safe-accuracy 0.70 --output-tag prod_full3500_cfg24_shift_reject_rollingq_primaldual_v1 --verbose",
+  "git_commit_hash": "9592c4a1a6f2055a7343fee2ea9f688b9f90f7c3"
+}

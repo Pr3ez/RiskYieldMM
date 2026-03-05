@@ -28,6 +28,7 @@ Usage:
 # Re-export runners
 from .runner import run_walk_forward_backtest
 from .stage1_runner import run_walk_forward_stage1_grid
+from .stage1_step2 import run_stage1_step2_feature_pruning
 
 # Re-export timeframe-specific optimizers
 from .tf_1m import (
@@ -147,4 +148,5 @@ __all__ = [
     # Runner
     "run_walk_forward_backtest",
     "run_walk_forward_stage1_grid",
+    "run_stage1_step2_feature_pruning",
 ]

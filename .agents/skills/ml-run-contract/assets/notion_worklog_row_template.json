@@ -1,0 +1,10 @@
+{
+  "Name": "<task-name>",
+  "Date": "<YYYY-MM-DD>",
+  "Status": "DONE",
+  "Scope": "Substantial",
+  "Linear Issue": "<linear-url>",
+  "Summary": "<summary>",
+  "Artifacts": "<artifacts>",
+  "Next Actions": "<next-actions>"
+}

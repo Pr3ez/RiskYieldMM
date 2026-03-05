@@ -1,0 +1,39 @@
+{
+  "report_dir": "prediction_analysis/reports/production_selection_final_20260221_152516_with_finetune",
+  "rows_total": 161,
+  "rows_accepted_cov12_opp08": 69,
+  "best_macro_under_filters": {
+    "rank": 1,
+    "alignment_mode": "same_period_close",
+    "weight_method": "diversity_weighted",
+    "final_rule": "dual_ova_thresholds",
+    "macro_f1": 0.5704918032786885,
+    "custom_mean_cost": 0.11752392344497607,
+    "directional_active_accuracy": 0.5704918032786885,
+    "directional_active_coverage": 0.1368122009569378,
+    "opposite_fp_rate_covered": 0.058761961722488036,
+    "opposite_fp_rate_active": 0.42950819672131146,
+    "directional_fp_risk_score": 0.13516746411483252,
+    "hold_side_cross_error_rate_covered": 0.017643540669856458,
+    "directional_balanced_recall": 0.5704918032786885,
+    "coverage": 1.0,
+    "run_name": "grid_riskaware_finetune_cov12"
+  },
+  "best_risk_under_filters": {
+    "rank": 2,
+    "alignment_mode": "same_period_close",
+    "weight_method": "winner_history_blend",
+    "final_rule": "dual_ova_thresholds",
+    "macro_f1": 0.5563549160671463,
+    "custom_mean_cost": 0.11064593301435406,
+    "directional_active_accuracy": 0.5563549160671463,
+    "directional_active_coverage": 0.12470095693779905,
+    "opposite_fp_rate_covered": 0.05532296650717703,
+    "opposite_fp_rate_active": 0.44364508393285373,
+    "directional_fp_risk_score": 0.12664473684210525,
+    "hold_side_cross_error_rate_covered": 0.015998803827751196,
+    "directional_balanced_recall": 0.5563549160671463,
+    "coverage": 1.0,
+    "run_name": "grid_riskaware_finetune_cov12"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "selected": {
+    "method": "hmm3_state_mapper",
+    "lookback": -1,
+    "threshold": 0.8,
+    "feasible": true
+  },
+  "best_safe": {
+    "method": "supervised_3class_v1",
+    "lookback": 540,
+    "threshold": 0.6,
+    "directional_active_safe_accuracy": 1.0,
+    "coverage": 0.002
+  },
+  "best_coverage": {
+    "method": "gmm3_state_mapper",
+    "lookback": -1,
+    "threshold": 0.5,
+    "directional_active_safe_accuracy": 0.5121951219512195,
+    "coverage": 0.82
+  },
+  "status": "not_production_ready",
+  "failure_reasons": [
+    "selected_feasible=True",
+    "selected_safe_accuracy=0.5985 (min=0.7000)",
+    "selected_coverage=0.2640 (min=0.0400)"
+  ]
+}

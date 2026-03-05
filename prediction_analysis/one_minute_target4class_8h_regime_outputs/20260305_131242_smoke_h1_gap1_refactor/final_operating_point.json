@@ -1,0 +1,28 @@
+{
+  "selected": {
+    "method": "supervised_3class_v1",
+    "lookback": 21,
+    "threshold": 0.6,
+    "feasible": false
+  },
+  "best_safe": {
+    "method": "supervised_3class_v1",
+    "lookback": 21,
+    "threshold": 0.6,
+    "directional_active_safe_accuracy": 0.5714285714285714,
+    "coverage": 0.7
+  },
+  "best_coverage": {
+    "method": "supervised_3class_v1",
+    "lookback": 21,
+    "threshold": 0.55,
+    "directional_active_safe_accuracy": 0.5568181818181818,
+    "coverage": 0.7333333333333333
+  },
+  "status": "not_production_ready",
+  "failure_reasons": [
+    "selected_feasible=False",
+    "selected_safe_accuracy=0.5714 (min=0.7000)",
+    "selected_coverage=0.7000 (min=0.0400)"
+  ]
+}

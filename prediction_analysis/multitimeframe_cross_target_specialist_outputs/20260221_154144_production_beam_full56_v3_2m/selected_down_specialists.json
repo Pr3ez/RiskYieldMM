@@ -1,0 +1,37 @@
+{
+  "selected_config_ids": [
+    "history_logloss_ewma||weighted_band",
+    "history_logloss_ewma||breakfree_gate_weighted",
+    "acc_logloss_blend||dual_ova_thresholds",
+    "history_logloss_ewma||dual_ova_thresholds",
+    "diversity_weighted||dual_ova_thresholds",
+    "ewaf_brier_share||dual_ova_thresholds"
+  ],
+  "selected_configs": [
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "breakfree_gate_weighted"
+    },
+    {
+      "weight_method": "acc_logloss_blend",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "diversity_weighted",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "ewaf_brier_share",
+      "final_rule": "dual_ova_thresholds"
+    }
+  ],
+  "min_votes": 5
+}

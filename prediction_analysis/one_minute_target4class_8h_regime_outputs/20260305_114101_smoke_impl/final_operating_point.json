@@ -1,0 +1,24 @@
+{
+  "selected": {
+    "method": "rule_threshold_v1",
+    "lookback": -1,
+    "threshold": 0.65,
+    "feasible": false
+  },
+  "best_safe": {
+    "method": "rule_threshold_v1",
+    "lookback": -1,
+    "threshold": 0.65,
+    "directional_active_safe_accuracy": 1.0,
+    "coverage": 0.005025125628140704
+  },
+  "best_coverage": {
+    "method": "gmm3_state_mapper",
+    "lookback": 256,
+    "threshold": 0.55,
+    "directional_active_safe_accuracy": 0.47,
+    "coverage": 0.5025125628140703
+  },
+  "status": "production_ready",
+  "failure_reasons": []
+}

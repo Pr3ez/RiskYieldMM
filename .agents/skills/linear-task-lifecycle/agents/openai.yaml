@@ -1,0 +1,7 @@
+interface:
+  display_name: "Linear Task Lifecycle"
+  short_description: "Track START/BLOCKER/DONE milestones"
+  default_prompt: "Use $linear-task-lifecycle to manage a substantial task in Linear."
+
+policy:
+  allow_implicit_invocation: false

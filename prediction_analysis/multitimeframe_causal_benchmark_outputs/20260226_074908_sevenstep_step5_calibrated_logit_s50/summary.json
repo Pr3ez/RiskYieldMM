@@ -1,0 +1,49 @@
+{
+  "run_timestamp_utc": "2026-02-26T07:51:29.451082+00:00",
+  "config": {
+    "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+    "ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260225_173235_all6_3500_current_periodclose_nolive_ram",
+    "candidate_search_run_dir": "/tmp/candidate_search_proxy_20260225_173235_all6_3500",
+    "alignment_mode": "same_period_close",
+    "wf_warmup_batches": 120,
+    "wf_step_size": 50,
+    "purge_batches": 2,
+    "embargo_batches": 2,
+    "methods": [
+      "regularized_stacker_logit"
+    ],
+    "risk_objective": "risk_first",
+    "seed": 42
+  },
+  "counts": {
+    "anchor_rows": 56000,
+    "batches": 3500,
+    "breakfree_experts": 36,
+    "dir4_experts": 36,
+    "methods_evaluated": 1
+  },
+  "best_method_risk_first": {
+    "method_name": "regularized_stacker_logit",
+    "rank": 1,
+    "macro_f1": 0.2963708661933438,
+    "directional_active_safe_accuracy": 0.5111103817244887,
+    "directional_active_coverage": 0.5633690828402367,
+    "opposite_fp_rate_covered": 0.2095414201183432,
+    "opposite_fp_rate_active": 0.3719434141858404,
+    "hold_side_cross_error_rate_covered": 0.06588387573964496,
+    "custom_mean_cost": 0.8853735207100591
+  },
+  "artifacts": {
+    "method_comparison_table_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/method_comparison_table.parquet",
+    "method_comparison_table_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/method_comparison_table.csv",
+    "evaluation_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/evaluation_by_batch.parquet",
+    "evaluation_by_batch_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/evaluation_by_batch.csv",
+    "final_predictions_walkforward_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/final_predictions_walkforward.parquet",
+    "prediction_distribution_by_window_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/prediction_distribution_by_window.parquet",
+    "prediction_distribution_by_window_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/prediction_distribution_by_window.csv",
+    "final_confusion_standard_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/final_confusion_standard.parquet",
+    "calibration_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/calibration_report.json",
+    "leakage_guard_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/leakage_guard_report.json",
+    "tracking_context_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50/tracking_context.json"
+  }
+}

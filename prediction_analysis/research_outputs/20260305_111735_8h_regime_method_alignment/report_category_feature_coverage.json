@@ -1,0 +1,67 @@
+[
+  {
+    "category": "trend_direction",
+    "feature_count": 31,
+    "examples": [
+      "M_P_roc_3_pct_N",
+      "M_P_V_momAtr_3_rat_N",
+      "M_P_roc_6_pct_N",
+      "M_P_V_momAtr_6_rat_N",
+      "M_P_roc_12_pct_N",
+      "M_P_V_momAtr_12_rat_N",
+      "M_P_roc_21_pct_N",
+      "M_P_V_momAtr_21_rat_N",
+      "N_P_T_priceSmaDeviation_3_pct_N",
+      "N_P_T_priceEmaDeviation_3_pct_N"
+    ]
+  },
+  {
+    "category": "volatility",
+    "feature_count": 32,
+    "examples": [
+      "M_P_V_momAtr_3_rat_N",
+      "M_P_V_momAtr_6_rat_N",
+      "M_P_V_momAtr_12_rat_N",
+      "M_P_V_momAtr_21_rat_N",
+      "V_atrPct_3_pct_N",
+      "V_returnStd_3_pct_N",
+      "V_atrPct_6_pct_N",
+      "V_returnStd_6_pct_N",
+      "V_atrPct_12_pct_N",
+      "V_returnStd_12_pct_N"
+    ]
+  },
+  {
+    "category": "dependence_correlation",
+    "feature_count": 2,
+    "examples": [
+      "V_autocorr_12_bnd_N",
+      "V_autocorr_21_bnd_N"
+    ]
+  },
+  {
+    "category": "liquidity_microstructure",
+    "feature_count": 42,
+    "examples": [
+      "F_I_fundingCumulative_3_pct_N",
+      "F_I_T_fundingMa_3_pct_N",
+      "F_I_fundingCumulative_7_pct_N",
+      "F_I_T_fundingMa_7_pct_N",
+      "F_I_fundingCumulative_21_pct_N",
+      "F_I_T_fundingMa_21_pct_N",
+      "F_I_M_fundingMaDiff_3_7_pct_N",
+      "F_I_M_fundingMaDiff_3_21_pct_N",
+      "F_I_M_fundingMaDiff_7_21_pct_N",
+      "F_I_N_S_fundingZscore_21_zsc_N"
+    ]
+  },
+  {
+    "category": "macro_rates",
+    "feature_count": 3,
+    "examples": [
+      "M_winRate_6_bnd_N",
+      "M_winRate_12_bnd_N",
+      "M_winRate_21_bnd_N"
+    ]
+  }
+]

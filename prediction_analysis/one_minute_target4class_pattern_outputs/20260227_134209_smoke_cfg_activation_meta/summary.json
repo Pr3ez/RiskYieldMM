@@ -1,0 +1,41 @@
+{
+  "created_at_utc": "2026-02-27T13:42:13.711317+00:00",
+  "inputs": {
+    "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class",
+    "batches_tail": 3500,
+    "max_batches": 300,
+    "target_diracc_threshold": 0.7,
+    "lookback_grid": [
+      32,
+      64
+    ],
+    "retrain_every": 50,
+    "min_train_rows": 64,
+    "objective": "brier",
+    "activation_threshold": 0.55,
+    "seed": 42
+  },
+  "dataset": {
+    "payload_files": 3500,
+    "batches_used": 300,
+    "configs_used": 24,
+    "batch_id_first": 5272,
+    "batch_id_last": 5571
+  },
+  "router_at_default_threshold": {
+    "activation_threshold": 0.55,
+    "coverage": 0.9957627118644068,
+    "selected_hit_rate": 0.3021276595744681,
+    "selected_mean_dir_acc": 0.5101063829787233,
+    "selected_oracle_capture": 0.3021276595744681,
+    "signals": 235,
+    "batches": 236
+  },
+  "artifacts": {
+    "per_config_lookback_scores_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_134209_smoke_cfg_activation_meta/per_config_lookback_scores.csv",
+    "selected_lookback_by_config_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_134209_smoke_cfg_activation_meta/selected_lookback_by_config.csv",
+    "per_config_best_probabilities_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_134209_smoke_cfg_activation_meta/per_config_best_probabilities.parquet",
+    "router_selection_by_batch_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_134209_smoke_cfg_activation_meta/router_selection_by_batch.csv",
+    "router_threshold_sweep_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_134209_smoke_cfg_activation_meta/router_threshold_sweep.csv"
+  }
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "run": "20260227_215602_prod_full3500_cfg24_shift_reject_rollingq_covcon_v1",
+    "base_safe": 0.7037037037037037,
+    "base_cov": 0.054,
+    "best_safe>=0.7_cov": 0.062,
+    "best_safe": 0.7096774193548387,
+    "best_active": 31,
+    "best_opp_active": 0.2903225806451613,
+    "best_opp_covered": 0.018,
+    "method": "rq",
+    "k": 1,
+    "th_up": 0.94,
+    "th_down": 0.94,
+    "feasible_count": 318
+  },
+  {
+    "run": "20260228_040511_prod_full3500_cfg24_compat_legacy_safefirst_v1",
+    "base_safe": 0.7272727272727273,
+    "base_cov": 0.022,
+    "best_safe>=0.7_cov": 0.036,
+    "best_safe": 0.7222222222222222,
+    "best_active": 18,
+    "best_opp_active": 0.2777777777777778,
+    "best_opp_covered": 0.01,
+    "method": "dir_abs",
+    "k": 1,
+    "th_up": 0.85,
+    "th_down": 0.88,
+    "feasible_count": 269
+  }
+]

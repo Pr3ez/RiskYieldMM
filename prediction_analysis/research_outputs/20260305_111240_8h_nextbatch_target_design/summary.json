@@ -1,0 +1,6 @@
+{
+  "note": "These are label definitions for predicting next 8h-step batch direction from 8h features.",
+  "rows_eval": 3599,
+  "recommended_primary": "next_batch_label_up_60_40 (tri-state with neutral zone)",
+  "recommended_binary_fallback": "next_batch_label_up_50"
+}

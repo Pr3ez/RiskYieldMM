@@ -1,0 +1,11 @@
+{
+  "selected_batches": 3600,
+  "expected_configs_per_batch": 24,
+  "expected_rows_per_pair": 240,
+  "rows_per_pair_unique": [
+    240
+  ],
+  "bad_pairs_count": 0,
+  "min_batch_id": 1972,
+  "max_batch_id": 5571
+}
