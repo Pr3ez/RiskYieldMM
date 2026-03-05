@@ -1,0 +1,28 @@
+{
+  "rows_evaluated_per_config": 120000,
+  "directions_tested": [
+    "UP",
+    "DOWN"
+  ],
+  "precision70_feasible_count": 12,
+  "best_feasible_by_direction": [
+    {
+      "direction": "DOWN",
+      "action_key": "f1_v4_t8",
+      "quantile": 0.96,
+      "threshold": 0.8284344673156738,
+      "active_rows": 2205,
+      "coverage": 0.018375,
+      "precision": 0.7473922902494331,
+      "opp_rate": 0.2526077097505669
+    }
+  ],
+  "global_best_precision": {
+    "action_key": "f1_v6_t12",
+    "direction": "DOWN",
+    "quantile": 0.99,
+    "coverage": 0.004866666666666667,
+    "precision": 0.8904109589041096,
+    "active_rows": 584
+  }
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "ML Run Contract"
+  short_description: "Validate run artifact contracts"
+  default_prompt: "Use $ml-run-contract to validate experiment artifact contracts."
+
+policy:
+  allow_implicit_invocation: false

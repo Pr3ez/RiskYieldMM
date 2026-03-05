@@ -1,0 +1,31 @@
+{
+  "status": "passed",
+  "validations": {
+    "pre_batch_row_count_match": true,
+    "anchor_rows_per_batch_is_16": true,
+    "anchor_total_matches_expected": true,
+    "aligned_row_count_match": true,
+    "anchor_candidate_completeness": true,
+    "feature_core_probs_no_nan": true,
+    "candidate_count_is_72": true,
+    "feature_count_base_is_252": true
+  },
+  "counts": {
+    "unit_rows_filtered": 3648000,
+    "precheck_rows": 36000,
+    "precheck_bad_rows": 0,
+    "anchor_rows": 8000,
+    "anchor_batches": 500,
+    "anchor_bad_batches": 0,
+    "anchor_rows_expected": 8000,
+    "aligned_rows": 576000,
+    "aligned_bad_row_count": 0,
+    "expected_anchor_candidate_rows": 576000,
+    "missing_anchor_candidate_rows": 0,
+    "candidate_count": 72,
+    "feature_count_total": 468,
+    "feature_count_base": 252,
+    "feature_count_derived": 216
+  },
+  "samples": {}
+}

@@ -1,0 +1,15 @@
+{
+  "per_config": {
+    "checks": 39456,
+    "violations": 0,
+    "pass": true,
+    "first_violations": []
+  },
+  "global_router": {
+    "checks": 2488,
+    "violations": 0,
+    "pass": true,
+    "first_violations": []
+  },
+  "pass": true
+}

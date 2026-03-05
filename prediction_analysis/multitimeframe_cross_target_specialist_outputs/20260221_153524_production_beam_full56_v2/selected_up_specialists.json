@@ -1,0 +1,62 @@
+{
+  "selected_config_ids": [
+    "winner_history_blend||dual_ova_thresholds",
+    "ewaf_brier_share||dual_ova_thresholds",
+    "winner_history_blend||strict_agreement_margin",
+    "history_logloss_ewma||strict_agreement_margin",
+    "history_logloss_ewma||weighted_band",
+    "acc_logloss_blend||weighted_band",
+    "history_brier_ewma||weighted_band",
+    "dma_logscore||strict_agreement_margin",
+    "winner_history_blend||weighted_band",
+    "history_logloss_ewma||dual_ova_thresholds",
+    "acc_logloss_blend||dual_ova_thresholds"
+  ],
+  "selected_configs": [
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "ewaf_brier_share",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "strict_agreement_margin"
+    },
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "strict_agreement_margin"
+    },
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "acc_logloss_blend",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "history_brier_ewma",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "dma_logscore",
+      "final_rule": "strict_agreement_margin"
+    },
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "history_logloss_ewma",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "acc_logloss_blend",
+      "final_rule": "dual_ova_thresholds"
+    }
+  ],
+  "min_votes": 7
+}

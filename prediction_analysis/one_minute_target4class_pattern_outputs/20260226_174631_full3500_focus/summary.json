@@ -1,0 +1,15 @@
+{
+  "unit": "1m/target_4class",
+  "ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260225_173235_all6_3500_current_periodclose_nolive_ram",
+  "rows_path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260225_173235_all6_3500_current_periodclose_nolive_ram/unit_prediction_rows_dedup.parquet",
+  "batches": 3500,
+  "configs": 12,
+  "batch_config_rows": 42000,
+  "high_accuracy_threshold": 0.7,
+  "rolling_window_short": 25,
+  "rolling_window_long": 100,
+  "global_directional_accuracy_mean": 0.507573115079365,
+  "global_opposite_rate_mean": 0.49242688492063497,
+  "top_config_by_mean_accuracy": "f3_v2_t4",
+  "timestamp_utc": "2026-02-26T17:46:33.591444+00:00"
+}

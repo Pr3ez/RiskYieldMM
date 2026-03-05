@@ -1,0 +1,15 @@
+{
+  "timestamp_utc": "2026-02-23T15:27:17.268028+00:00",
+  "passed": true,
+  "checks": {
+    "asof_violation_count": 0,
+    "anchor_count_bad": 0,
+    "anchor_count_min": 72,
+    "anchor_count_max": 72,
+    "missing_anchor_candidate_rows": 0,
+    "anchor_rows": 8000,
+    "breakfree_experts": 36,
+    "dir4_experts": 36
+  },
+  "samples": {}
+}

@@ -1,0 +1,318 @@
+{
+  "created_at_utc": "2026-02-27T21:38:01.608729+00:00",
+  "status": "not_production_ready",
+  "mode": "full_pipeline",
+  "inputs": {
+    "mode": "full_pipeline",
+    "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class",
+    "batches_tail": 800,
+    "max_batches": 0,
+    "holdout_batches": 200,
+    "lookback_grid": [
+      32,
+      64,
+      128
+    ],
+    "router_lookback_grid": [
+      128,
+      256
+    ],
+    "router_models": [
+      "logit",
+      "gbm"
+    ],
+    "consensus_k_grid": [
+      1
+    ],
+    "gate_selection_mode": "empirical",
+    "conformal_delta": 0.1,
+    "conformal_calibration_batches": 500,
+    "conformal_class_conditional": false,
+    "conformal_shift_weighting": "none",
+    "conformal_decay_halflife_batches": 250,
+    "router_target": "shift_reject_utility",
+    "router_cost_opposite_penalty": 0.0,
+    "rank_positive_weight": 8.0,
+    "utility_correct_reward": 1.0,
+    "utility_opposite_penalty": 2.0,
+    "selective_hold_cost": 0.1,
+    "safety_margin_opposite_weight": 2.0,
+    "router_shift_weighting": "exp_recent_similarity",
+    "router_shift_halflife_batches": 250,
+    "coverage_regularization_target": 0.08,
+    "coverage_regularization_weight": 0.75,
+    "anti_collapse_min_active_coverage": 0.05,
+    "use_online_policy_pool": false,
+    "online_policy_eta_grid": [
+      0.25,
+      0.5,
+      1.0,
+      2.0
+    ],
+    "online_policy_hold_loss_grid": [
+      0.05,
+      0.1,
+      0.2
+    ],
+    "online_policy_topn_grid": [
+      6,
+      12,
+      24
+    ],
+    "online_policy_warmup_frac": 0.6,
+    "online_policy_min_warmup_batches": 120,
+    "objective": "brier",
+    "activation_threshold_grid": [
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "use_directional_thresholds": false,
+    "directional_threshold_grid": [
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65
+    ],
+    "constraints": {
+      "target_cadence_min": 10.0,
+      "target_cadence_max": 15.0,
+      "max_opposite_fp_active": 0.25,
+      "max_opposite_fp_covered": 0.03,
+      "min_safe_accuracy": 0.7
+    }
+  },
+  "dataset_contract": {
+    "pass": true,
+    "missing_required_columns": [],
+    "batch_monotonic": true,
+    "batch_count": 800,
+    "batch_id_first": 4772,
+    "batch_id_last": 5571,
+    "config_count_unique": 24,
+    "bad_cfg_count_batches": [],
+    "bad_row_count_batches": [],
+    "required_cfg_per_batch": 24,
+    "required_rows_per_batch_config": 240,
+    "payload_files": 3500
+  },
+  "counts": {
+    "batches_total": 800,
+    "batches_train": 600,
+    "batches_holdout": 200,
+    "configs": 24,
+    "router_train_rows_scored": 14328,
+    "router_holdout_rows_scored": 4800
+  },
+  "selected_router_candidate": {
+    "model": "gbm",
+    "router_target": "shift_reject_utility",
+    "router_cost_opposite_penalty": 0.0,
+    "utility_correct_reward": 1.0,
+    "utility_opposite_penalty": 2.0,
+    "router_shift_weighting": "exp_recent_similarity",
+    "router_shift_halflife_batches": 250,
+    "lookback": 128,
+    "rows_scored": 14328,
+    "brier": 0.3170019523579631,
+    "logloss": 0.4835270603450474,
+    "auc": NaN,
+    "batch_count_scored": 597,
+    "base_objective_score": 0.3170019523579631,
+    "coverage_shortfall": 0.0,
+    "coverage_regularization_penalty": 0.0,
+    "coverage_regularization_target": 0.08,
+    "coverage_regularization_weight": 0.75,
+    "selection_score": 0.3170019523579631,
+    "anti_collapse_max_active_coverage": 0.7420435510887772,
+    "anti_collapse_max_active_batches": 443,
+    "anti_collapse_min_active_coverage_required": 0.05,
+    "anti_collapse_pass": true
+  },
+  "router_candidate_selection": {
+    "anti_collapse_constraint_enforced": true,
+    "anti_collapse_min_active_coverage": 0.05,
+    "anti_collapse_candidates_passing": 4,
+    "anti_collapse_candidates_total": 4,
+    "coverage_regularization_target": 0.08,
+    "coverage_regularization_weight": 0.75
+  },
+  "final_operating_point": {
+    "consensus_k": 1,
+    "activation_threshold": 0.6,
+    "activation_threshold_up": 0.6,
+    "activation_threshold_down": 0.6,
+    "selection_mode": "empirical",
+    "selection_batches": 597,
+    "batch_count": 597,
+    "active_batches": 240,
+    "coverage": 0.4020100502512563,
+    "batches_per_signal": 2.4875,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.44166666666666665,
+    "opposite_fp_rate_active": 0.5541666666666667,
+    "opposite_fp_rate_covered": 0.22278056951423786,
+    "opposite_fp_count": 133,
+    "opp_active_ucb": 0.6234274223445463,
+    "opp_covered_ucb": 0.26669484085013945,
+    "safe_acc_lcb": 0.37240591098878706,
+    "opp_active_weighted_hat": 0.5541666666666667,
+    "opp_covered_weighted_hat": 0.22278056951423786,
+    "safe_acc_weighted_hat": 0.44166666666666665,
+    "n_eff_total": 597.0,
+    "n_eff_active": 240.0,
+    "n_eff_up": 128.0,
+    "n_eff_down": 112.0,
+    "class_up_opp_ucb": 0.6026516955865716,
+    "class_down_opp_ucb": 0.7085302219206269,
+    "class_up_cov_ucb": 0.15279199327895016,
+    "class_down_cov_ucb": 0.15781711890709085,
+    "conformal_delta": 0.1,
+    "conformal_class_conditional": false,
+    "conformal_shift_weighting": "none",
+    "feasible": false,
+    "violation_score": 3.3212583752093803,
+    "viol_opp_active": 0.3041666666666667,
+    "viol_opp_covered": 0.19278056951423786,
+    "viol_safe_acc": 0.2583333333333333,
+    "viol_cadence": 0.75125,
+    "selection_status": "best_near_feasible"
+  },
+  "holdout_metrics": {
+    "batch_count": 200,
+    "active_batches": 47,
+    "coverage": 0.235,
+    "batches_per_signal": 4.25531914893617,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.5106382978723404,
+    "opposite_fp_rate_active": 0.48936170212765956,
+    "opposite_fp_rate_covered": 0.115,
+    "opposite_fp_count": 23,
+    "pass_production_gate": false,
+    "violation_score": 2.3550000000000004,
+    "viol_opp_active": 0.23936170212765956,
+    "viol_opp_covered": 0.085,
+    "viol_safe_acc": 0.18936170212765957,
+    "viol_cadence": 0.574468085106383,
+    "opp_active_ucb": 0.6458723602173927,
+    "opp_covered_ucb": 0.19087135646925732,
+    "safe_acc_lcb": 0.3541276397826073,
+    "opp_active_weighted_hat": 0.48936170212765956,
+    "opp_covered_weighted_hat": 0.115,
+    "safe_acc_weighted_hat": 0.5106382978723404,
+    "n_eff_total": 200.0,
+    "n_eff_active": 47.0,
+    "n_eff_up": 20.0,
+    "n_eff_down": 27.0,
+    "activation_threshold": 0.6,
+    "activation_threshold_up": 0.6,
+    "activation_threshold_down": 0.6,
+    "consensus_k": 1,
+    "router_model": "gbm",
+    "router_lookback": 128,
+    "gate_selection_mode": "empirical",
+    "conformal_delta": 0.1,
+    "conformal_class_conditional": false,
+    "conformal_shift_weighting": "none",
+    "selection_mode": "empirical"
+  },
+  "baseline_fixed_best_config": {
+    "batch_count": 200,
+    "active_batches": 200,
+    "coverage": 1.0,
+    "batches_per_signal": 1.0,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.455,
+    "opposite_fp_rate_active": 0.54,
+    "opposite_fp_rate_covered": 0.54,
+    "opposite_fp_count": 108,
+    "selected_action_key": "f1_v1_t4"
+  },
+  "baseline_per_config_router": {
+    "batch_count": 200,
+    "active_batches": 166,
+    "coverage": 0.83,
+    "batches_per_signal": 1.2048192771084338,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.463855421686747,
+    "opposite_fp_rate_active": 0.5301204819277109,
+    "opposite_fp_rate_covered": 0.44,
+    "opposite_fp_count": 88,
+    "activation_threshold": 0.65,
+    "consensus_k": 1
+  },
+  "comparison_deltas": {
+    "vs_fixed_best_config": {
+      "safe_accuracy_delta": 0.05563829787234037,
+      "opposite_fp_active_delta": -0.050638297872340476,
+      "opposite_fp_covered_delta": -0.42500000000000004,
+      "cadence_delta": 3.25531914893617,
+      "active_batches_delta": -153
+    },
+    "vs_per_config_router": {
+      "safe_accuracy_delta": 0.0467828761855934,
+      "opposite_fp_active_delta": -0.040758779800051326,
+      "opposite_fp_covered_delta": -0.325,
+      "cadence_delta": 3.0504998718277365,
+      "active_batches_delta": -119
+    }
+  },
+  "context_reference": {
+    "strict_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260225_203425_full3500_strict_winner_011059_live/summary.json",
+      "opposite_fp_rate_active": 0.46492307692307694,
+      "opposite_fp_rate_covered": 0.02794008875739645,
+      "directional_active_coverage": 0.06009615384615385,
+      "custom_mean_cost": 0.0558801775147929
+    },
+    "dual_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_011654_full3500_dual_diversity_141257_live/summary.json",
+      "opposite_fp_rate_active": 0.47635040582143856,
+      "opposite_fp_rate_covered": 0.06294378698224852,
+      "directional_active_coverage": 0.13213757396449705,
+      "custom_mean_cost": 0.12588757396449704
+    }
+  },
+  "leakage_checks": {
+    "per_config": {
+      "checks": 41856,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "global_router": {
+      "checks": 2588,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "online_policy_pool": {
+      "checks": 0,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "pass": true
+  },
+  "artifacts": {
+    "dataset_contract_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/dataset_contract.json",
+    "per_config_lookback_scores_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/per_config_lookback_scores.csv",
+    "selected_lookback_by_config_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/selected_lookback_by_config.csv",
+    "global_router_model_selection_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/global_router_model_selection.csv",
+    "router_selection_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/router_selection_by_batch.parquet",
+    "router_threshold_sweep_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/router_threshold_sweep.csv",
+    "online_policy_pool_grid_csv": null,
+    "online_policy_pool_holdout_selection_csv": null,
+    "conformal_gate_calibration_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/conformal_gate_calibration.json",
+    "conformal_calibration_weights_csv": null,
+    "final_operating_point_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/final_operating_point.json",
+    "holdout_metrics_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/holdout_metrics.json",
+    "leakage_guard_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/leakage_guard_report.json",
+    "summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_213723_smoke_shift_reject_covreg/summary.json"
+  }
+}

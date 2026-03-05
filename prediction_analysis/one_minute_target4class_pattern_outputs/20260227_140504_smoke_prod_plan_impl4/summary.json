@@ -1,0 +1,193 @@
+{
+  "created_at_utc": "2026-02-27T14:05:31.895806+00:00",
+  "status": "not_production_ready",
+  "mode": "full_pipeline",
+  "inputs": {
+    "mode": "full_pipeline",
+    "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class",
+    "batches_tail": 3500,
+    "max_batches": 700,
+    "holdout_batches": 120,
+    "lookback_grid": [
+      32,
+      64
+    ],
+    "router_lookback_grid": [
+      128,
+      256
+    ],
+    "router_models": [
+      "logit",
+      "gbm"
+    ],
+    "objective": "brier",
+    "activation_threshold_grid": [
+      0.55,
+      0.65,
+      0.75,
+      0.85
+    ],
+    "constraints": {
+      "target_cadence_min": 10.0,
+      "target_cadence_max": 15.0,
+      "max_opposite_fp_active": 0.25,
+      "max_opposite_fp_covered": 0.03,
+      "min_safe_accuracy": 0.7
+    }
+  },
+  "dataset_contract": {
+    "pass": true,
+    "missing_required_columns": [],
+    "batch_monotonic": true,
+    "batch_count": 700,
+    "batch_id_first": 4872,
+    "batch_id_last": 5571,
+    "config_count_unique": 24,
+    "bad_cfg_count_batches": [],
+    "bad_row_count_batches": [],
+    "required_cfg_per_batch": 24,
+    "required_rows_per_batch_config": 240,
+    "payload_files": 3500
+  },
+  "counts": {
+    "batches_total": 700,
+    "batches_train": 580,
+    "batches_holdout": 120,
+    "configs": 24,
+    "router_train_rows_scored": 13848,
+    "router_holdout_rows_scored": 2880
+  },
+  "selected_router_candidate": {
+    "model": "gbm",
+    "lookback": 256,
+    "rows_scored": 13848,
+    "brier": 0.23301242512659337,
+    "logloss": 0.7471073472051096,
+    "auc": 0.5568402439793032,
+    "batch_count_scored": 577
+  },
+  "final_operating_point": {
+    "activation_threshold": 0.85,
+    "batch_count": 577,
+    "active_batches": 58,
+    "coverage": 0.10051993067590988,
+    "batches_per_signal": 9.948275862068966,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.5344827586206896,
+    "opposite_fp_rate_active": 0.4482758620689655,
+    "opposite_fp_rate_covered": 0.045060658578856154,
+    "opposite_fp_count": 26,
+    "feasible": false,
+    "violation_score": 1.3400095619434649,
+    "viol_opp_active": 0.19827586206896552,
+    "viol_opp_covered": 0.015060658578856155,
+    "viol_safe_acc": 0.16551724137931034,
+    "viol_cadence": 0.0051724137931033805,
+    "selection_status": "best_near_feasible"
+  },
+  "holdout_metrics": {
+    "batch_count": 120,
+    "active_batches": 0,
+    "coverage": 0.0,
+    "batches_per_signal": Infinity,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.0,
+    "opposite_fp_rate_active": 0.0,
+    "opposite_fp_rate_covered": 0.0,
+    "opposite_fp_count": 0,
+    "pass_production_gate": false,
+    "violation_score": 3.0999999999999996,
+    "viol_opp_active": 0.0,
+    "viol_opp_covered": 0.0,
+    "viol_safe_acc": 0.7,
+    "viol_cadence": 1.0,
+    "activation_threshold": 0.85,
+    "router_model": "gbm",
+    "router_lookback": 256
+  },
+  "baseline_fixed_best_config": {
+    "batch_count": 120,
+    "active_batches": 120,
+    "coverage": 1.0,
+    "batches_per_signal": 1.0,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.475,
+    "opposite_fp_rate_active": 0.525,
+    "opposite_fp_rate_covered": 0.525,
+    "opposite_fp_count": 63,
+    "selected_action_key": "f1_v1_t4"
+  },
+  "baseline_per_config_router": {
+    "batch_count": 120,
+    "active_batches": 53,
+    "coverage": 0.44166666666666665,
+    "batches_per_signal": 2.2641509433962264,
+    "cadence_target_hit": false,
+    "directional_active_safe_accuracy": 0.5094339622641509,
+    "opposite_fp_rate_active": 0.49056603773584906,
+    "opposite_fp_rate_covered": 0.21666666666666667,
+    "opposite_fp_count": 26,
+    "activation_threshold": 0.85
+  },
+  "comparison_deltas": {
+    "vs_fixed_best_config": {
+      "safe_accuracy_delta": -0.475,
+      "opposite_fp_active_delta": -0.525,
+      "opposite_fp_covered_delta": -0.525,
+      "cadence_delta": Infinity,
+      "active_batches_delta": -120
+    },
+    "vs_per_config_router": {
+      "safe_accuracy_delta": -0.5094339622641509,
+      "opposite_fp_active_delta": -0.49056603773584906,
+      "opposite_fp_covered_delta": -0.21666666666666667,
+      "cadence_delta": Infinity,
+      "active_batches_delta": -53
+    }
+  },
+  "context_reference": {
+    "strict_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260225_203425_full3500_strict_winner_011059_live/summary.json",
+      "opposite_fp_rate_active": 0.46492307692307694,
+      "opposite_fp_rate_covered": 0.02794008875739645,
+      "directional_active_coverage": 0.06009615384615385,
+      "custom_mean_cost": 0.0558801775147929
+    },
+    "dual_summary": {
+      "available": true,
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_011654_full3500_dual_diversity_141257_live/summary.json",
+      "opposite_fp_rate_active": 0.47635040582143856,
+      "opposite_fp_rate_covered": 0.06294378698224852,
+      "directional_active_coverage": 0.13213757396449705,
+      "custom_mean_cost": 0.12588757396449704
+    }
+  },
+  "leakage_checks": {
+    "per_config": {
+      "checks": 27648,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "global_router": {
+      "checks": 2428,
+      "violations": 0,
+      "pass": true,
+      "first_violations": []
+    },
+    "pass": true
+  },
+  "artifacts": {
+    "dataset_contract_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/dataset_contract.json",
+    "per_config_lookback_scores_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/per_config_lookback_scores.csv",
+    "selected_lookback_by_config_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/selected_lookback_by_config.csv",
+    "global_router_model_selection_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/global_router_model_selection.csv",
+    "router_selection_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/router_selection_by_batch.parquet",
+    "router_threshold_sweep_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/router_threshold_sweep.csv",
+    "final_operating_point_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/final_operating_point.json",
+    "holdout_metrics_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/holdout_metrics.json",
+    "leakage_guard_report_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/leakage_guard_report.json",
+    "summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_140504_smoke_prod_plan_impl4/summary.json"
+  }
+}

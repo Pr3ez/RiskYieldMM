@@ -1,0 +1,69 @@
+{
+  "timestamp_utc": "2026-02-26T08:22:19.420884+00:00",
+  "input_predictions": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_081743_sweep_sparse_k2_eta4p0/final_predictions_walkforward.parquet",
+  "method_name": "online_sparse_ewaf_brier",
+  "config": {
+    "lookbacks": [
+      120,
+      240,
+      480,
+      960,
+      -1
+    ],
+    "theta_up_grid": [
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "theta_down_grid": [
+      0.3,
+      0.35,
+      0.4,
+      0.45,
+      0.5,
+      0.55,
+      0.6,
+      0.65,
+      0.7,
+      0.75,
+      0.8,
+      0.85,
+      0.9
+    ],
+    "recalibrate_every_batches": 25,
+    "val_tail_ratio": 0.2,
+    "min_history_rows": 640,
+    "weights": {
+      "opp_active": 4.0,
+      "opp_covered": 2.0,
+      "safe": 1.0,
+      "cadence": 2.0
+    },
+    "cadence_target": [
+      10.0,
+      15.0
+    ]
+  },
+  "metrics": {
+    "opposite_fp_rate_active": 0.36894824707846413,
+    "opposite_fp_rate_covered": 0.012259615384615384,
+    "directional_active_safe_accuracy": 0.5453533667223149,
+    "batches_per_signal": 8.366336633663366,
+    "active_batch_rate": 0.11952662721893491,
+    "cadence_target_hit": false
+  },
+  "artifacts": {
+    "gated_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_082219_sweep_gated_k2_eta4p0/gated_predictions.parquet",
+    "threshold_selection_by_batch_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_082219_sweep_gated_k2_eta4p0/threshold_selection_by_batch.parquet"
+  }
+}

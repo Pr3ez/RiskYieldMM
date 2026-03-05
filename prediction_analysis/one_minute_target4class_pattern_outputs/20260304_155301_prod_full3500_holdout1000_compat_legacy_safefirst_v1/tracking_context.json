@@ -1,0 +1,7 @@
+{
+  "created_at_utc": "2026-03-04T15:55:51.284318+00:00",
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-100/evaluate-1m-router-on-larger-holdout-sample-1000-batches",
+  "notion_page_url": "",
+  "run_command": "prediction_analysis/one_minute_target4class_config_activation_meta.py --mode full_pipeline --batches-tail 3500 --holdout-batches 1000 --lookback-grid 32,64,128,256,512 --router-lookback-grid 128 --router-models gbm --router-target shift_reject_utility --router-shift-weighting exp_recent_similarity --router-shift-halflife-batches 250 --coverage-regularization-target 0.02 --coverage-regularization-weight 0.0 --anti-collapse-min-active-coverage 0.01 --retrain-every 25 --router-retrain-every 25 --objective brier --gate-method absolute --activation-threshold-grid 0.85,0.88,0.90,0.93,0.95,0.97,0.98,0.99 --use-directional-thresholds --directional-threshold-grid 0.85,0.88,0.90,0.93,0.95,0.97,0.98,0.99 --consensus-k-grid 1 --compat-mode legacy_safe_first --target-cadence-min 10 --target-cadence-max 120 --coverage-selection-min 0.005 --coverage-selection-max 0.20 --max-opposite-fp-active 0.50 --max-opposite-fp-covered 0.03 --min-safe-accuracy 0.70 --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-100/evaluate-1m-router-on-larger-holdout-sample-1000-batches --notion-page-url  --output-tag prod_full3500_holdout1000_compat_legacy_safefirst_v1 --verbose",
+  "git_commit_hash": "9592c4a1a6f2055a7343fee2ea9f688b9f90f7c3"
+}

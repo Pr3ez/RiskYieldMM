@@ -1,0 +1,39 @@
+{
+  "run_timestamp_utc": "2026-02-23T15:26:17.791791+00:00",
+  "config": {
+    "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+    "candidate_search_run_dir": "/tmp/candidate_search_proxy_20260220_082046_backfill_fix",
+    "units": [
+      "1m/target_4class",
+      "1m/target_breakfree",
+      "5m/target_4class",
+      "5m/target_breakfree",
+      "15m/target_4class",
+      "15m/target_breakfree"
+    ],
+    "rolling_window_batches": 100,
+    "high_acc_threshold": 0.6,
+    "risk_core_k": 18,
+    "coverage_extension_k": 18,
+    "max_overlap": 0.85,
+    "min_rows_per_candidate": 5000
+  },
+  "counts": {
+    "risk_rows": 134,
+    "rolling_rows": 131,
+    "diversity_rows": 396,
+    "risk_core_count": 18,
+    "coverage_extension_count": 18
+  },
+  "artifacts": {
+    "per_unit_directional_risk_table_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/per_unit_directional_risk_table.parquet",
+    "per_unit_directional_risk_table_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/per_unit_directional_risk_table.csv",
+    "rolling_stability_report_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/rolling_stability_report.parquet",
+    "rolling_stability_report_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/rolling_stability_report.csv",
+    "diversity_matrix_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/diversity_matrix.parquet",
+    "diversity_matrix_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/diversity_matrix.csv",
+    "risk_core_shortlist_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/risk_core_shortlist.json",
+    "coverage_extension_shortlist_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/coverage_extension_shortlist.json",
+    "tracking_context_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/candidate_directional_quality_outputs/20260223_152529_ris49_readydata/tracking_context.json"
+  }
+}

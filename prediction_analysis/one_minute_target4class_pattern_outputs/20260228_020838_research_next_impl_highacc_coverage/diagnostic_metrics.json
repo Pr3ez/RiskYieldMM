@@ -1,0 +1,8 @@
+{
+  "holdout_batches": 500,
+  "batches_with_any_config_diracc_ge_0_7": 413,
+  "batches_with_any_config_diracc_ge_0_7_rate": 0.826,
+  "oracle_top_diracc_accuracy_all_batches": 0.874,
+  "oracle_top_diracc_accuracy_when_top_ge_0_7": 0.9346246973365617,
+  "oracle_top_diracc_coverage_when_top_ge_0_7": 0.826
+}

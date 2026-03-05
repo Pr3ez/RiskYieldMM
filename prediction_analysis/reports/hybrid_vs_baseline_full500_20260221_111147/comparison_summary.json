@@ -1,0 +1,72 @@
+{
+  "generated_utc": "2026-02-21T11:11:47.828960+00:00",
+  "baseline_cross_target_output": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260221_110140_full500_baseline_strict_brier",
+  "hybrid_cross_target_output": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260221_110720_full500_hybrid_strict_brier",
+  "baseline_ensemble_output": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260221_103952_full500_baseline_prod_cmp",
+  "hybrid_ensemble_output": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260221_104148_full500_hybrid_prod_cmp",
+  "baseline_anchor_universe": 8608,
+  "hybrid_anchor_universe": 5472,
+  "baseline_final_prediction_rows": 6688,
+  "hybrid_final_prediction_rows": 3552,
+  "common_rows": 3552,
+  "common_batches": 222,
+  "baseline_best_metrics_full": {
+    "macro_f1": 0.5052631578947369,
+    "directional_active_accuracy": 0.5052631578947369,
+    "directional_active_coverage": 0.17045454545454544,
+    "directional_safe_accuracy": 0.9156698564593302,
+    "opposite_fp_rate_covered": 0.08433014354066985,
+    "opposite_fp_rate_active": 0.49473684210526314,
+    "custom_mean_cost": 0.1686602870813397,
+    "custom_utility": 0.9156698564593302,
+    "fp_risk_score": null
+  },
+  "hybrid_best_metrics_full": {
+    "macro_f1": 0.5145038167938931,
+    "directional_active_accuracy": 0.5145038167938931,
+    "directional_active_coverage": 0.18440315315315314,
+    "directional_safe_accuracy": 0.910472972972973,
+    "opposite_fp_rate_covered": 0.08952702702702703,
+    "opposite_fp_rate_active": 0.4854961832061069,
+    "custom_mean_cost": 0.17905405405405406,
+    "custom_utility": 0.910472972972973,
+    "fp_risk_score": null
+  },
+  "baseline_metrics_common_rows": {
+    "rows": 3552,
+    "macro_f1": 0.5580357142857143,
+    "directional_active_accuracy": 0.5580357142857143,
+    "directional_active_coverage": 0.12612612612612611,
+    "directional_safe_accuracy": 0.9442567567567568,
+    "opposite_fp_rate_covered": 0.05574324324324324,
+    "opposite_fp_rate_active": 0.4419642857142857,
+    "custom_mean_cost": 0.11148648648648649,
+    "custom_utility": 0.9442567567567568,
+    "fp_risk_score": 0.12697072072072071
+  },
+  "hybrid_metrics_common_rows": {
+    "rows": 3552,
+    "macro_f1": 0.5145038167938931,
+    "directional_active_accuracy": 0.5145038167938931,
+    "directional_active_coverage": 0.18440315315315314,
+    "directional_safe_accuracy": 0.910472972972973,
+    "opposite_fp_rate_covered": 0.08952702702702703,
+    "opposite_fp_rate_active": 0.4854961832061069,
+    "custom_mean_cost": 0.17905405405405406,
+    "custom_utility": 0.910472972972973,
+    "fp_risk_score": 0.21255630630630631
+  },
+  "baseline_exclusive_rows": 3136,
+  "baseline_exclusive_metrics": {
+    "rows": 3136,
+    "macro_f1": 0.47109826589595377,
+    "directional_active_accuracy": 0.47109826589595377,
+    "directional_active_coverage": 0.22066326530612246,
+    "directional_safe_accuracy": 0.8832908163265306,
+    "opposite_fp_rate_covered": 0.11670918367346939,
+    "opposite_fp_rate_active": 0.5289017341040463,
+    "custom_mean_cost": 0.23341836734693877,
+    "custom_utility": 0.8832908163265306,
+    "fp_risk_score": 0.25605867346938777
+  }
+}

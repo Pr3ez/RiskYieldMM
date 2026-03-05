@@ -1,0 +1,40 @@
+[
+  {
+    "tag": "shiftrej_anchor_dirthr_abs",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_023731_shiftrej_anchor_dirthr_abs",
+    "safe_acc": 0.7,
+    "coverage": 0.02,
+    "active_batches": 10,
+    "batches_per_signal": 50.0,
+    "opp_active": 0.3,
+    "opp_covered": 0.006,
+    "activation_threshold": 0.89,
+    "activation_threshold_up": 0.93,
+    "activation_threshold_down": 0.85,
+    "rolling_quantile": null,
+    "consensus_k": 1,
+    "router_model": "gbm",
+    "router_lookback": 128,
+    "gate_method": "absolute",
+    "pass_gate": false
+  },
+  {
+    "tag": "shiftrej_anchor_k12",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_024449_shiftrej_anchor_k12",
+    "safe_acc": 0.5945945945945946,
+    "coverage": 0.074,
+    "active_batches": 37,
+    "batches_per_signal": 13.513513513513514,
+    "opp_active": 0.40540540540540543,
+    "opp_covered": 0.03,
+    "activation_threshold": 0.92,
+    "activation_threshold_up": 0.92,
+    "activation_threshold_down": 0.92,
+    "rolling_quantile": 0.92,
+    "consensus_k": 2,
+    "router_model": "gbm",
+    "router_lookback": 128,
+    "gate_method": "rolling_quantile",
+    "pass_gate": false
+  }
+]

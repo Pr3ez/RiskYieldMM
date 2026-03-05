@@ -1,0 +1,54 @@
+{
+  "run_id": "stage1_catboost_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "source": {
+    "analysis_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_probability_outputs/2026-02-19_16-32-01",
+    "combo_metrics_path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_probability_outputs/2026-02-19_16-32-01/winner12_combo_batch_probability_metrics.parquet",
+    "winners_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class/winners_all_steps.parquet",
+    "transitions_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class/winners_transition_stats.csv"
+  },
+  "heuristic_config": {
+    "prior_blend": 0.8,
+    "softmax_temperature": 0.15,
+    "weights": {
+      "mean_prob_pred_class": 0.45,
+      "mean_prob_max": 0.35,
+      "inverse_entropy": 0.15,
+      "std_prob_penalty": 0.05
+    },
+    "confidence_bin_width": 0.05,
+    "min_history_for_expectation": 40
+  },
+  "combos": [
+    "f2_v1_t3",
+    "f2_v1_t4",
+    "f2_v1_t5",
+    "f2_v1_t6",
+    "f2_v2_t10",
+    "f2_v2_t4",
+    "f2_v2_t6",
+    "f2_v2_t8",
+    "f2_v3_t9",
+    "f3_v1_t3",
+    "f3_v2_t4",
+    "f7_v1_t4"
+  ],
+  "overall": {
+    "batches": 500,
+    "top1_hit_rate": 0.096,
+    "top3_hit_rate": 0.284,
+    "mean_realized_accuracy_predicted_combo": 0.2954583333333333,
+    "mean_true_winner_accuracy": 0.537925,
+    "mean_posterior_max": 0.22039385047406632
+  },
+  "artifacts": {
+    "winner12_heuristic_probability_matrix_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_probability_matrix.parquet",
+    "winner12_heuristic_probability_matrix_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_probability_matrix.csv",
+    "winner12_heuristic_batch_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_batch_predictions.parquet",
+    "winner12_heuristic_batch_predictions_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_batch_predictions.csv",
+    "winner12_heuristic_confidence_calibration_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_confidence_calibration.parquet",
+    "winner12_heuristic_confidence_calibration_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_confidence_calibration.csv",
+    "winner12_heuristic_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_live_probability_outputs/2026-02-19_16-48-29/winner12_heuristic_summary.json"
+  }
+}

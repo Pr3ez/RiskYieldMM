@@ -1,0 +1,41 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "input_ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260221_004022_p0p1_eval",
+  "args": {
+    "alignment_modes": [
+      "same_period_close"
+    ],
+    "weight_methods": [
+      "winner_history_blend"
+    ],
+    "final_rules": [
+      "strict_agreement_margin"
+    ],
+    "hold_band_grid": "0.00:0.20:0.01",
+    "ova_threshold_grid": "0.45:0.80:0.02",
+    "wf_warmup_batches": 300,
+    "wf_recalibrate_every": 5,
+    "candidate_pool_mode": "hybrid_staged",
+    "min_candidates_per_unit": 4,
+    "max_prune_iterations": 60,
+    "selection_lookback_grid": [
+      -1
+    ],
+    "selection_validation_tail_ratio": 0.2,
+    "selection_min_history": 64,
+    "tau_objective": "macro_f1",
+    "tau_fp_penalty": 0.75,
+    "tau_opposite_fp_penalty": 1.5,
+    "tau_hold_side_penalty": 1.0,
+    "tau_opposite_active_penalty": 0.0,
+    "tau_min_active_coverage": 0.0,
+    "rank_min_active_coverage": 0.0,
+    "specialist_min_support": 20,
+    "specialist_min_safe_accuracy": 0.65,
+    "specialist_max_opposite_rate": 0.15,
+    "specialist_min_votes": 2,
+    "specialist_recency_decay": 0.995,
+    "kalman_process_noise": 0.005,
+    "kalman_measurement_noise": 0.05
+  }
+}

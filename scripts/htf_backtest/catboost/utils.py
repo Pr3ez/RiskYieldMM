@@ -148,6 +148,8 @@ class WindowSearchSpace:
     stage1_execution_mode: Literal["fast_grid", "optuna"] = "fast_grid"
     stage1_folds_min: int = 3
     stage1_folds_max: int = 12
+    # Optional explicit fold values; when set, overrides folds_min/folds_max range.
+    stage1_fold_grid: list[int] | None = None
     # Validation window size (in contiguous batches) per fold.
     # Can be set as fixed value (stage1_val_batches_per_fold) or searched as a grid.
     stage1_val_batches_per_fold: int = 1
@@ -162,6 +164,21 @@ class WindowSearchSpace:
     stage1_train_batches_max: int = 40
     stage1_train_batches_grid: list[int] | None = None
     stage1_train_multiplier_grid: list[int] | None = None
+    # Explicit (val_batches_per_fold, train_batches_per_fold) pairs.
+    # When provided, stage1 grid uses only these pairs (filtered by min/max bounds).
+    # Accepts entries like:
+    # - {"val_batches_per_fold": 2, "train_batches_per_fold": 4}
+    # - {"val": 2, "train": 4}
+    # - (2, 4) or [2, 4]
+    stage1_pair_grid: list[dict | list | tuple] | None = None
+    # Explicit stage-1 triplets:
+    # (fold_count, val_batches_per_fold, train_batches_per_fold)
+    # Accepts entries like:
+    # - {"fold_count": 3, "val_batches_per_fold": 2, "train_batches_per_fold": 6}
+    # - {"fold": 3, "val": 2, "train": 6}
+    # - (3, 2, 6) or [3, 2, 6]
+    # When provided, this has highest priority and defines exact combos.
+    stage1_triplet_grid: list[dict | list | tuple] | None = None
     stage1_stability_lambda: float = 0.25
     # Stage-1 winner selection mode:
     # - objective: pick best fold-CV objective (existing behavior)

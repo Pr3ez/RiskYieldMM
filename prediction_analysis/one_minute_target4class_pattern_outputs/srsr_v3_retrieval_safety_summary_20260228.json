@@ -1,0 +1,65 @@
+{
+  "runs": [
+    {
+      "run": "20260228_015635_srsr_v3_retrieval_safeA",
+      "safe_acc": 0.5625,
+      "coverage": 0.032,
+      "opp_active": 0.4375,
+      "opp_covered": 0.014,
+      "active_batches": 16,
+      "batches_per_signal": 31.25
+    },
+    {
+      "run": "20260228_020116_srsr_v3_retrieval_safeB",
+      "safe_acc": 0.5217391304347826,
+      "coverage": 0.046,
+      "opp_active": 0.4782608695652174,
+      "opp_covered": 0.022,
+      "active_batches": 23,
+      "batches_per_signal": 21.73913043478261
+    }
+  ],
+  "best": {
+    "run": "20260228_015635_srsr_v3_retrieval_safeA",
+    "safe_acc": 0.5625,
+    "coverage": 0.032,
+    "opp_active": 0.4375,
+    "opp_covered": 0.014,
+    "active_batches": 16,
+    "batches_per_signal": 31.25
+  },
+  "delta_vs_baselines": [
+    {
+      "baseline": "20260228_014057_srsr_v2_safeA",
+      "delta_safe_acc": 0.0625,
+      "delta_coverage": 0.012,
+      "delta_opp_active": -0.0625,
+      "delta_opp_covered": 0.004,
+      "delta_active_batches": 6
+    },
+    {
+      "baseline": "20260228_011726_prod_full3500_cfg24_srsr_v1",
+      "delta_safe_acc": 0.11088709677419356,
+      "delta_coverage": -0.03,
+      "delta_opp_active": -0.1108870967741935,
+      "delta_opp_covered": -0.020000000000000004,
+      "delta_active_batches": -15
+    },
+    {
+      "baseline": "20260228_004427_prod_full3500_cfg24_step1_groupwise_ltr_v2",
+      "delta_safe_acc": -0.015277777777777724,
+      "delta_coverage": -0.057999999999999996,
+      "delta_opp_active": 0.015277777777777779,
+      "delta_opp_covered": -0.024,
+      "delta_active_batches": -29
+    },
+    {
+      "baseline": "20260227_215602_prod_full3500_cfg24_shift_reject_rollingq_covcon_v1",
+      "delta_safe_acc": -0.14120370370370372,
+      "delta_coverage": -0.022,
+      "delta_opp_active": 0.14120370370370372,
+      "delta_opp_covered": -0.002,
+      "delta_active_batches": -11
+    }
+  ]
+}

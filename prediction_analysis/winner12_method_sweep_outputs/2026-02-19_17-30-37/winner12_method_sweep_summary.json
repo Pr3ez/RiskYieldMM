@@ -1,0 +1,24 @@
+{
+  "run_id": "stage1_catboost_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "grid_counts": {
+    "dynamic_topk": 6,
+    "hedge_online": 5,
+    "regime_router": 3,
+    "diversity_subset": 4,
+    "per_class_specialist": 4
+  },
+  "total_runs": 22,
+  "ok_runs": 22,
+  "error_runs": 0,
+  "artifacts": {
+    "winner12_method_sweep_results_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_results.parquet",
+    "winner12_method_sweep_results_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_results.csv",
+    "winner12_method_sweep_best_per_method_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_best_per_method.parquet",
+    "winner12_method_sweep_best_per_method_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_best_per_method.csv",
+    "winner12_method_sweep_leaderboard_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_leaderboard.parquet",
+    "winner12_method_sweep_leaderboard_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_leaderboard.csv",
+    "winner12_method_sweep_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_method_sweep_outputs/2026-02-19_17-30-37/winner12_method_sweep_summary.json"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "global": {
+    "checks": 1200,
+    "violations": 0,
+    "pass": true,
+    "first_violations": []
+  },
+  "checks": {
+    "holdout_batches": 120,
+    "total_batches": 600
+  }
+}

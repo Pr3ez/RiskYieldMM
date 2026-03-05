@@ -1,0 +1,32 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "input_ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260220_082046_backfill_fix",
+  "feature_policy": "all_72_candidates_same_period_close",
+  "truth_policy": "force_hold_on_cross_target_mismatch",
+  "final_rule": "agreement_hold_locked",
+  "gpu_only": true,
+  "args": {
+    "wf_warmup_batches": 499,
+    "optuna_trials": 1,
+    "expected_batches": 500,
+    "lookback_grid": [
+      120,
+      180,
+      240,
+      300,
+      -1
+    ],
+    "val_tail_ratio": 0.2,
+    "strict_label_domain": true,
+    "feature_select_methods": [
+      "none",
+      "l1_nonzero",
+      "mi_topk",
+      "tree_topk"
+    ],
+    "trial_failure_policy": "prune_fallback",
+    "selector_warning_policy": "prune_on_convergence_warning",
+    "gpu_devices": "0",
+    "seed": 42
+  }
+}

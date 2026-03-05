@@ -1,0 +1,28 @@
+{
+  "selected": {
+    "method": "two_head_bull_bear_v1",
+    "lookback": 270,
+    "threshold": 0.5,
+    "feasible": false
+  },
+  "best_safe": {
+    "method": "two_head_bull_bear_v1",
+    "lookback": 270,
+    "threshold": 0.5,
+    "directional_active_safe_accuracy": 0.5853658536585366,
+    "coverage": 0.082
+  },
+  "best_coverage": {
+    "method": "two_head_bull_bear_v1",
+    "lookback": 21,
+    "threshold": 0.5,
+    "directional_active_safe_accuracy": 0.5012468827930174,
+    "coverage": 0.802
+  },
+  "status": "not_production_ready",
+  "failure_reasons": [
+    "selected_feasible=False",
+    "selected_safe_accuracy=0.5854 (min=0.7000)",
+    "selected_coverage=0.0820 (min=0.0400)"
+  ]
+}

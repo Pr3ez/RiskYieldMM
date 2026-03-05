@@ -1,0 +1,12 @@
+{
+  "methods_total": 576,
+  "holdout_batches": 500,
+  "methods_with_any_signal": 576,
+  "cadence_min": 1.3297872340425532,
+  "cadence_median": 7.6923076923076925,
+  "cadence_max": 166.66666666666666,
+  "up_methods_with_signals": 288,
+  "down_methods_with_signals": 288,
+  "methods_in_target_cadence_10_15": 71,
+  "methods_in_target_cadence_10_15_with_precision_ge_0_70": 2
+}

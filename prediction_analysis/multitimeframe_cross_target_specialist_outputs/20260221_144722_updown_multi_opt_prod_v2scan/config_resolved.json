@@ -1,0 +1,47 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "input_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260221_141257_fullprod_fullsupport_risk_riskaware_finetune_cov12_20260221_1513",
+  "alignment_mode": "same_period_close",
+  "min_signal_rate_up": 0.06,
+  "min_signal_rate_down": 0.08,
+  "min_safe_precision_up": 0.52,
+  "min_safe_precision_down": 0.52,
+  "objective_opposite_penalty": 2.0,
+  "objective_hold_side_penalty": 1.0,
+  "objective_signal_rate_weight": 0.2,
+  "max_up_specialists": 6,
+  "max_down_specialists": 6,
+  "specialist_k_grid_up": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "specialist_k_grid_down": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+  ],
+  "min_up_votes_grid": [
+    1,
+    2,
+    3
+  ],
+  "min_down_votes_grid": [
+    1,
+    2,
+    3
+  ],
+  "max_overlap_same_side": 0.75,
+  "final_objective_opposite_penalty": 3.0,
+  "final_objective_hold_side_penalty": 1.5,
+  "final_objective_coverage_weight": 0.4,
+  "final_min_active_coverage": 0.12,
+  "final_max_opposite_rate": 0.05,
+  "final_max_hold_side_rate": 0.02
+}

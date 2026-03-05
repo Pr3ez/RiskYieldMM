@@ -1,0 +1,7 @@
+{
+  "created_utc": "2026-02-27T13:07:24.054025+00:00",
+  "run_command": "python prediction_analysis/one_minute_target4class_binary_meta_search.py --run-id stage1_catboost_live --model-name catboost --unit 1m/target_4class --lookback-grid 120,180,240,300,500,1000,all --wf-warmup-batches 500 --wf-retrain-every 50 --meta-c 0.5 --meta-max-iter 300 --output-tag full3500_lbopt_v2_r50 --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-56/build-binary-1mtarget-4class-walk-forward-meta-learner-with-lookback --notion-page-url https://www.notion.so/314105246d4a81389419f8f4bb582bfa --verbose --progress-every-batches 100",
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-56/build-binary-1mtarget-4class-walk-forward-meta-learner-with-lookback",
+  "notion_page_url": "https://www.notion.so/314105246d4a81389419f8f4bb582bfa",
+  "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_binary_meta_outputs/20260227_130724_full3500_lbopt_v2_r50"
+}

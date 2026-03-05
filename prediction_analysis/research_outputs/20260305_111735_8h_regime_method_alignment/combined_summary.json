@@ -1,0 +1,60 @@
+{
+  "best_overall": {
+    "method": "wf_hmm4_conf0.55",
+    "coverage": 0.124,
+    "accuracy": 0.532258064516129,
+    "balanced_acc": 0.5,
+    "active": 62,
+    "cadence": 8.064516129032258
+  },
+  "best_coverage_ge_0p1": {
+    "method": "wf_hmm4_conf0.55",
+    "coverage": 0.124,
+    "accuracy": 0.532258064516129,
+    "balanced_acc": 0.5,
+    "active": 62,
+    "cadence": 8.064516129032258
+  },
+  "top5_coverage_ge_0p1": [
+    {
+      "method": "wf_hmm4_conf0.55",
+      "coverage": 0.124,
+      "accuracy": 0.532258064516129,
+      "balanced_acc": 0.5,
+      "active": 62,
+      "cadence": 8.064516129032258
+    },
+    {
+      "method": "wf_logit_core_conf0.55",
+      "coverage": 0.318,
+      "accuracy": 0.5220125786163522,
+      "balanced_acc": 0.5084732340829902,
+      "active": 159,
+      "cadence": 3.1446540880503147
+    },
+    {
+      "method": "wf_hmm4_p50",
+      "coverage": 1.0,
+      "accuracy": 0.51,
+      "balanced_acc": 0.5130888376856119,
+      "active": 500,
+      "cadence": 1.0
+    },
+    {
+      "method": "wf_hgb_core_p50",
+      "coverage": 1.0,
+      "accuracy": 0.508,
+      "balanced_acc": 0.5090245775729647,
+      "active": 500,
+      "cadence": 1.0
+    },
+    {
+      "method": "rule_ema21dev_sign",
+      "coverage": 1.0,
+      "accuracy": 0.508,
+      "balanced_acc": 0.5072644649257553,
+      "active": 500,
+      "cadence": 1.0
+    }
+  ]
+}

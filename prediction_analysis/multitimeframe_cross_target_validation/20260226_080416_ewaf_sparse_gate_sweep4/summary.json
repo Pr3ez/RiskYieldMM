@@ -1,0 +1,106 @@
+{
+  "timestamp_utc": "2026-02-26T08:22:19.461306+00:00",
+  "combos": [
+    {
+      "topk": 1,
+      "eta": 2.0
+    },
+    {
+      "topk": 2,
+      "eta": 2.0
+    },
+    {
+      "topk": 3,
+      "eta": 2.0
+    },
+    {
+      "topk": 2,
+      "eta": 4.0
+    }
+  ],
+  "rows": [
+    {
+      "combo": "k1_eta2p0",
+      "topk": 1,
+      "eta": 2.0,
+      "base_opposite_fp_rate_active": 0.3549721716002561,
+      "base_opposite_fp_rate_covered": 0.1332655325443787,
+      "base_directional_active_safe_accuracy": 0.5271634733783185,
+      "base_directional_active_coverage": 0.3754252958579882,
+      "gated_opposite_fp_rate_active": 0.3458602466236054,
+      "gated_opposite_fp_rate_covered": 0.010891272189349113,
+      "gated_directional_active_safe_accuracy": 0.5366999412800939,
+      "gated_batches_per_signal": 10.73015873015873,
+      "gated_cadence_target_hit": true,
+      "benchmark_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_080417_sweep_sparse_k1_eta2p0",
+      "gate_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_080846_sweep_gated_k1_eta2p0"
+    },
+    {
+      "combo": "k2_eta2p0",
+      "topk": 2,
+      "eta": 2.0,
+      "base_opposite_fp_rate_active": 0.3517277687374366,
+      "base_opposite_fp_rate_covered": 0.1358912721893491,
+      "base_directional_active_safe_accuracy": 0.5293864267253757,
+      "base_directional_active_coverage": 0.386353550295858,
+      "gated_opposite_fp_rate_active": 0.35374554102259215,
+      "gated_opposite_fp_rate_covered": 0.011002218934911243,
+      "gated_directional_active_safe_accuracy": 0.5249702734839476,
+      "gated_batches_per_signal": 10.93851132686084,
+      "gated_cadence_target_hit": true,
+      "benchmark_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_080847_sweep_sparse_k2_eta2p0",
+      "gate_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_081312_sweep_gated_k2_eta2p0"
+    },
+    {
+      "combo": "k3_eta2p0",
+      "topk": 3,
+      "eta": 2.0,
+      "base_opposite_fp_rate_active": 0.35271427227396746,
+      "base_opposite_fp_rate_covered": 0.138646449704142,
+      "base_directional_active_safe_accuracy": 0.5279894627904789,
+      "base_directional_active_coverage": 0.3930843195266272,
+      "gated_opposite_fp_rate_active": 0.3557692307692308,
+      "gated_opposite_fp_rate_covered": 0.010946745562130178,
+      "gated_directional_active_safe_accuracy": 0.5216346153846154,
+      "gated_batches_per_signal": 11.304347826086957,
+      "gated_cadence_target_hit": true,
+      "benchmark_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_081313_sweep_sparse_k3_eta2p0",
+      "gate_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_081742_sweep_gated_k3_eta2p0"
+    },
+    {
+      "combo": "k2_eta4p0",
+      "topk": 2,
+      "eta": 4.0,
+      "base_opposite_fp_rate_active": 0.367433110367893,
+      "base_opposite_fp_rate_covered": 0.16251849112426037,
+      "base_directional_active_safe_accuracy": 0.5150501672240803,
+      "base_directional_active_coverage": 0.4423076923076923,
+      "gated_opposite_fp_rate_active": 0.36894824707846413,
+      "gated_opposite_fp_rate_covered": 0.012259615384615384,
+      "gated_directional_active_safe_accuracy": 0.5453533667223149,
+      "gated_batches_per_signal": 8.366336633663366,
+      "gated_cadence_target_hit": false,
+      "benchmark_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_081743_sweep_sparse_k2_eta4p0",
+      "gate_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_082219_sweep_gated_k2_eta4p0"
+    }
+  ],
+  "best": {
+    "combo": "k1_eta2p0",
+    "topk": 1,
+    "eta": 2.0,
+    "base_opposite_fp_rate_active": 0.3549721716002561,
+    "base_opposite_fp_rate_covered": 0.1332655325443787,
+    "base_directional_active_safe_accuracy": 0.5271634733783185,
+    "base_directional_active_coverage": 0.3754252958579882,
+    "gated_opposite_fp_rate_active": 0.3458602466236054,
+    "gated_opposite_fp_rate_covered": 0.010891272189349113,
+    "gated_directional_active_safe_accuracy": 0.5366999412800939,
+    "gated_batches_per_signal": 10.73015873015873,
+    "gated_cadence_target_hit": true,
+    "benchmark_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_080417_sweep_sparse_k1_eta2p0",
+    "gate_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_080846_sweep_gated_k1_eta2p0"
+  },
+  "artifacts": {
+    "sweep_results_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_080416_ewaf_sparse_gate_sweep4/sweep_results.csv"
+  }
+}

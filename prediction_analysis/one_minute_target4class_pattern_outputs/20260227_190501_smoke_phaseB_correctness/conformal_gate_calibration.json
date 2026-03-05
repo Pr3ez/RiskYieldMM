@@ -1,0 +1,11 @@
+{
+  "gate_selection_mode": "conformal_risk",
+  "conformal_delta": 0.1,
+  "conformal_calibration_batches_requested": 200,
+  "conformal_calibration_batches_used": 200,
+  "conformal_calibration_batch_id_first": 5272,
+  "conformal_calibration_batch_id_last": 5471,
+  "conformal_class_conditional": true,
+  "conformal_shift_weighting": "exp_recent",
+  "conformal_decay_halflife_batches": 200
+}

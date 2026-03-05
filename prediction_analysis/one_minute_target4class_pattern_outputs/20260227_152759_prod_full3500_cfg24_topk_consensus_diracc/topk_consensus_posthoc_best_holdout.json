@@ -1,0 +1,13 @@
+{
+  "split": "holdout",
+  "k": 4,
+  "threshold": 0.5625,
+  "batch_count": 500,
+  "active_batches": 42,
+  "coverage": 0.084,
+  "batches_per_signal": 11.904761904761905,
+  "directional_active_safe_accuracy": 0.6428571428571429,
+  "opposite_fp_rate_active": 0.35714285714285715,
+  "opposite_fp_rate_covered": 0.03,
+  "opposite_fp_count": 15
+}

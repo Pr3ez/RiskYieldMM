@@ -1,0 +1,7 @@
+{
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-54/test-diversity-pruned-1mtarget-4class-ensemble-history-only-top-k",
+  "notion_page_url": "https://www.notion.so/313105246d4a8109a812f31f7b7b0cd4",
+  "run_command": "python prediction_analysis/one_minute_target4class_diversity_test.py --ensemble-run-dir prediction_analysis/multitimeframe_ensemble_outputs/20260225_173235_all6_3500_current_periodclose_nolive_ram --output-tag full3500_test1_fix --warmup-batches 500 --duplicate-corr-threshold 0.995 --lookback-grid 50,100,200,400,all --topk-grid 2,3,4,5 --weight-methods equal,history_softmax --gate-grid 0.00,0.05,0.10,0.15 --softmax-temp 0.05 --rank-min-coverage 0.10 --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-54/test-diversity-pruned-1mtarget-4class-ensemble-history-only-top-k --notion-page-url https://www.notion.so/313105246d4a8109a812f31f7b7b0cd4 --verbose",
+  "cwd": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "timestamp_utc": "2026-02-26T17:57:00.758802+00:00"
+}
