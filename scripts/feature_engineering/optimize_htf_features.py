@@ -59,6 +59,9 @@ class HTFOptimizationConfig:
     project_root: Path = field(
         default_factory=lambda: Path(__file__).parent.parent.parent
     )
+    htf_features_dir_override: Path | None = None
+    htf_labels_dir_override: Path | None = None
+    htf_optimized_dir_override: Path | None = None
 
     # Timeframes to process
     timeframes: list[str] = field(default_factory=lambda: ["5m", "15m", "1h"])
@@ -81,15 +84,15 @@ class HTFOptimizationConfig:
 
     @property
     def htf_features_dir(self) -> Path:
-        return self.project_root / "data" / "htf_features"
+        return self.htf_features_dir_override or (self.project_root / "data" / "htf_features")
 
     @property
     def htf_labels_dir(self) -> Path:
-        return self.project_root / "data" / "htf_4class_labels"
+        return self.htf_labels_dir_override or (self.project_root / "data" / "htf_4class_labels")
 
     @property
     def htf_optimized_dir(self) -> Path:
-        return self.project_root / "data" / "htf_optimized"
+        return self.htf_optimized_dir_override or (self.project_root / "data" / "htf_optimized")
 
 
 def get_feature_cols(df: pl.DataFrame) -> list[str]:
@@ -100,8 +103,18 @@ def get_feature_cols(df: pl.DataFrame) -> list[str]:
         "target_long",
         "target_short",
         "target_4class",
+        "target_breakfree",
         "target_name",
         "period_8h_start",
+        "batch_family",
+        "family_batch_id",
+        "family_period_start",
+        "family_period_end",
+        "family_bar_pos",
+        "source_base_batch_id",
+        "source_base_period_start",
+        "source_half_in_base",
+        "is_label_half",
     }
     datetime_types = {pl.Datetime, pl.Date, pl.Time}
     return [
@@ -520,8 +533,20 @@ def apply_streaming_to_all_batches(
         _batch_id_from_stem(p.stem): p for p in sorted(output_dir.glob("batch_*.parquet"))
     }
     pair_batch_ids = [int(rec["batch_id"]) for rec in pairs]
+    pair_batch_id_set = set(pair_batch_ids)
     first_batch = int(pair_batch_ids[0])
     last_batch = int(pair_batch_ids[-1])
+
+    orphan_output_ids = sorted(set(output_files) - pair_batch_id_set)
+    if orphan_output_ids:
+        print(
+            f"  Removing {len(orphan_output_ids)} orphan optimized batches: "
+            f"{orphan_output_ids[:5]}"
+        )
+        for orphan_batch_id in orphan_output_ids:
+            orphan_path = output_files.pop(orphan_batch_id, None)
+            if orphan_path is not None:
+                orphan_path.unlink(missing_ok=True)
 
     state_dir = output_dir / "_state"
     state_dir.mkdir(parents=True, exist_ok=True)
@@ -540,6 +565,14 @@ def apply_streaming_to_all_batches(
             str(k): (str(v) if v is not None else None)
             for k, v in cached_meta["per_batch_last_timestamp"].items()
         }
+    per_batch_rows = {
+        bid: n_rows for bid, n_rows in per_batch_rows.items() if int(bid) in pair_batch_id_set
+    }
+    per_batch_last_timestamp = {
+        bid: ts
+        for bid, ts in per_batch_last_timestamp.items()
+        if int(bid) in pair_batch_id_set
+    }
 
     if config.incremental_update and not config.recompute and cached_meta:
         prev_fps = cached_meta.get("batch_fingerprints", {})
@@ -672,7 +705,8 @@ def apply_streaming_to_all_batches(
 
         # Convert to pandas
         X_pd = merged.select(feature_cols).to_pandas()
-        meta = merged.select(["timestamp", "batch_id", target])
+        meta_cols = [c for c in merged.columns if c not in feature_cols]
+        meta = merged.select(meta_cols)
 
         del merged
 
@@ -683,9 +717,12 @@ def apply_streaming_to_all_batches(
 
         del X_pd
 
-        # Convert back to Polars and add metadata (EXCLUDING target - that's in labels dir)
+        # Convert back to Polars and preserve all non-feature metadata
         result = pl.from_pandas(X_transformed)
-        meta_no_target = meta.select(["timestamp", "batch_id"])  # Drop target column!
+        meta_cols_to_preserve = [
+            c for c in meta.columns if c not in {target}
+        ]
+        meta_no_target = meta.select(meta_cols_to_preserve)
         result = pl.concat([result, meta_no_target], how="horizontal")
 
         del X_transformed, meta, meta_no_target
