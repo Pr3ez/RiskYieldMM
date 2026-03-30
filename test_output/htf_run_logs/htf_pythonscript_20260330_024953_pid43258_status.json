@@ -1,0 +1,13 @@
+{
+  "reason": "shutdown",
+  "run_id": "htf_pythonscript_20260330_024953_pid43258",
+  "pid": 43258,
+  "stage": "CELL 14 / all/-/validation",
+  "detail": "all/-/validation | regime=all, family=None, tf=None, elapsed_seconds=159.966, summary=rows=552",
+  "run_elapsed_seconds": 17737.618,
+  "stage_elapsed_seconds": 160.068,
+  "silence_seconds": 0.102,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260330_024953_pid43258.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260330_024953_pid43258_status.json",
+  "updated_at": "2026-03-30T07:45:31"
+}

@@ -1,0 +1,230 @@
+{
+  "8h/B/helpers": {
+    "rows": 1360635,
+    "model_columns": 173,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 1115068,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "D_dist_bot5_low_w120",
+        "nulls": 680356,
+        "rows": 1360635,
+        "null_rate": 0.5000282956119753
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651121,
+        "rows": 1360635,
+        "null_rate": 0.4785420042847641
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651121,
+        "rows": 1360635,
+        "null_rate": 0.4785420042847641
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 403844,
+        "rows": 1360635,
+        "null_rate": 0.2968055356506337
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 399841,
+        "rows": 1360635,
+        "null_rate": 0.29386352695616386
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  },
+  "8h/C/helpers": {
+    "rows": 1360560,
+    "model_columns": 175,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 866927,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651121,
+        "rows": 1360560,
+        "null_rate": 0.47856838360675014
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651121,
+        "rows": 1360560,
+        "null_rate": 0.47856838360675014
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 403844,
+        "rows": 1360560,
+        "null_rate": 0.29682189686599636
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  },
+  "24h/B/helpers": {
+    "rows": 1360800,
+    "model_columns": 176,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 1198268,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 719803,
+        "rows": 1360800,
+        "null_rate": 0.5289557613168724
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651207,
+        "rows": 1360800,
+        "null_rate": 0.47854717813051145
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651127,
+        "rows": 1360800,
+        "null_rate": 0.47848838918283365
+      },
+      {
+        "column": "D_dist_avg_high_w240",
+        "nulls": 453601,
+        "rows": 1360800,
+        "null_rate": 0.3333340681951793
+      },
+      {
+        "column": "D_dist_avg_low_w240",
+        "nulls": 453601,
+        "rows": 1360800,
+        "null_rate": 0.3333340681951793
+      },
+      {
+        "column": "D_dist_top5_high_w240",
+        "nulls": 453601,
+        "rows": 1360800,
+        "null_rate": 0.3333340681951793
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 393515,
+        "rows": 1360800,
+        "null_rate": 0.2891791593180482
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  },
+  "24h/C/helpers": {
+    "rows": 1360395,
+    "model_columns": 176,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 1198340,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 1044602,
+        "rows": 1360395,
+        "null_rate": 0.7678666857787628
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651115,
+        "rows": 1360395,
+        "null_rate": 0.47862201786980985
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651035,
+        "rows": 1360395,
+        "null_rate": 0.4785632114202125
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 410170,
+        "rows": 1360395,
+        "null_rate": 0.30150801789186227
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  },
+  "7d/B/helpers": {
+    "rows": 1360800,
+    "model_columns": 176,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 1125685,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 856272,
+        "rows": 1360800,
+        "null_rate": 0.6292416225749559
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 650981,
+        "rows": 1360800,
+        "null_rate": 0.47838109935332157
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 650979,
+        "rows": 1360800,
+        "null_rate": 0.47837962962962965
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 397193,
+        "rows": 1360800,
+        "null_rate": 0.2918819811875367
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  },
+  "7d/C/helpers": {
+    "rows": 1356075,
+    "model_columns": 176,
+    "helper_columns": 43,
+    "rows_with_any_model_null": 1121983,
+    "all_null_model_columns": [],
+    "high_null_model_columns_top12": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 905486,
+        "rows": 1356075,
+        "null_rate": 0.6677256051472079
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 649027,
+        "rows": 1356075,
+        "null_rate": 0.4786070091993437
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 649025,
+        "rows": 1356075,
+        "null_rate": 0.4786055343546633
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 405525,
+        "rows": 1356075,
+        "null_rate": 0.2990431945135778
+      }
+    ],
+    "all_null_helper_columns": [],
+    "high_null_helper_columns_top12": []
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "rows": 2000,
+  "nb_columns": [
+    "dist_avg_high",
+    "dist_avg_low",
+    "dist_top5_high",
+    "dist_bot5_low",
+    "batch_id_check",
+    "target_4class",
+    "target_name"
+  ],
+  "sh_columns": [
+    "dist_avg_high",
+    "dist_avg_low",
+    "dist_top5_high",
+    "dist_bot5_low",
+    "target_4class",
+    "target_name"
+  ],
+  "target_equal": true,
+  "name_equal": true,
+  "nb_has_batch_id_check": true,
+  "sh_has_batch_id_check": false
+}

@@ -25,15 +25,28 @@ from scripts.target_models.helpers.cusum import create_cusum_helper
 from scripts.target_models.helpers.egarch import create_egarch_helper
 from scripts.target_models.helpers.evt_pot import create_evt_pot_helper
 from scripts.target_models.helpers.garch import create_garch_helper
-from scripts.target_models.helpers.hmm import (
-    create_market_regime_hmm,
-    create_volatility_regime_hmm,
-)
 from scripts.target_models.helpers.isolation_forest import (
     create_isolation_forest_helper,
 )
-from scripts.target_models.helpers.kalman import create_kalman_helper
 from scripts.target_models.helpers.ou import create_ou_helper
+
+try:
+    from scripts.target_models.helpers.hmm import (
+        create_market_regime_hmm,
+        create_volatility_regime_hmm,
+    )
+except ModuleNotFoundError as exc:
+    if exc.name != "hmmlearn":
+        raise
+    create_market_regime_hmm = None
+    create_volatility_regime_hmm = None
+
+try:
+    from scripts.target_models.helpers.kalman import create_kalman_helper
+except ModuleNotFoundError as exc:
+    if exc.name != "filterpy":
+        raise
+    create_kalman_helper = None
 
 if TYPE_CHECKING:
     from scripts.target_models.helpers.icir_config import ICIRConfig
@@ -157,14 +170,21 @@ class HelperEnsemble:
                     self.target, self.horizon, self.random_state
                 )
             elif name == "hmm4":
+                if create_market_regime_hmm is None:
+                    raise ModuleNotFoundError("hmmlearn is required for helper 'hmm4'")
                 self._helpers["hmm4"] = create_market_regime_hmm(
                     self.target, self.horizon, self.random_state
                 )
             elif name == "hmm5":
+                if create_volatility_regime_hmm is None:
+                    raise ModuleNotFoundError("hmmlearn is required for helper 'hmm5'")
                 self._helpers["hmm5"] = create_volatility_regime_hmm(
                     self.target, self.horizon, self.random_state
                 )
             elif name == "kalman":
+                if create_kalman_helper is None:
+                    print("Warning: skipping helper 'kalman' because filterpy is not installed")
+                    continue
                 self._helpers["kalman"] = create_kalman_helper(
                     self.target, self.horizon, random_state=self.random_state
                 )

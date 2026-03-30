@@ -1,0 +1,142 @@
+======================================================================
+[HTF] MULTI-REGIME PIPELINE START
+[HTF] build_regimes=('8h',) | validate_regimes=('8h',) | run_optimization=False | run_helpers=False | run_validation=False
+======================================================================
+
+======================================================================
+[HTF] REGIME START: 8h
+======================================================================
+[HTF][START] regime=8h | family=B | tf=1m | stage=combined
+[HTF][DONE ] regime=8h | family=B | tf=1m | stage=combined | elapsed=0s | status=current, run_mode=current, rows=11520, batches=24
+[HTF][START] regime=8h | family=C | tf=1m | stage=combined
+[HTF][DONE ] regime=8h | family=C | tf=1m | stage=combined | elapsed=0s | status=current, run_mode=current, rows=11280, batches=24
+[HTF][START] regime=8h | family=B | tf=15m | stage=combined
+[HTF][DONE ] regime=8h | family=B | tf=15m | stage=combined | elapsed=0s | status=current, run_mode=current, rows=768, batches=24
+[HTF][START] regime=8h | family=C | tf=15m | stage=combined
+[HTF][DONE ] regime=8h | family=C | tf=15m | stage=combined | elapsed=0s | status=current, run_mode=current, rows=752, batches=24
+
+[HTF] FAMILY START: regime=8h family=B
+[HTF][START] regime=8h | family=B | tf=1m | stage=features
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:892: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"F_I_N_S_fundingZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:892: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"F_I_N_S_fundingZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:901: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["S_longShortRatio_rat"] = _compute_long_short_ratio(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:903: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_M_longShortChange_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:903: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_M_longShortChange_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:907: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_N_longShortZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:907: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_N_longShortZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:916: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["D_F_basis_pct"] = _compute_basis(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:920: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["D_N_markCloseDeviation_pct"] = _compute_mark_close_deviation(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:927: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_N_S_premiumZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:927: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_N_S_premiumZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:957: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_fundingBasisPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:957: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_fundingBasisPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:965: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_longShortRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:965: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_longShortRetPressure_{label}_pct"] = (
+[HTF][DONE ] regime=8h | family=B | tf=1m | stage=features | elapsed=0s | status=current, run_mode=current, rows=11520, batches=24
+[HTF][START] regime=8h | family=B | tf=15m | stage=features
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:892: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"F_I_N_S_fundingZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:892: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"F_I_N_S_fundingZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:901: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["S_longShortRatio_rat"] = _compute_long_short_ratio(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:903: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_M_longShortChange_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:903: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_M_longShortChange_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:907: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_N_longShortZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:907: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"S_N_longShortZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:916: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["D_F_basis_pct"] = _compute_basis(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:920: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features["D_N_markCloseDeviation_pct"] = _compute_mark_close_deviation(df)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:925: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_T_premiumMa_{label}_pct"] = _compute_premium_ma(df, n)
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:927: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_N_S_premiumZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:927: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"D_F_N_S_premiumZscore_{label}_zsc"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:941: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:949: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_basisRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:957: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_fundingBasisPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:957: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_fundingBasisPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:965: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_longShortRetPressure_{label}_pct"] = (
+/media/przem/linux_data/RiskYieldMM (Copy)/scripts/feature_engineering/compute_htf_features.py:965: PerformanceWarning: DataFrame is highly fragmented.  This is usually the result of calling `frame.insert` many times, which has poor performance.  Consider joining all columns at once using pd.concat(axis=1) instead. To get a de-fragmented frame, use `newframe = frame.copy()`
+  features[f"X_D_longShortRetPressure_{label}_pct"] = (
+[HTF][DONE ] regime=8h | family=B | tf=15m | stage=features | elapsed=0s | status=current, run_mode=current, rows=768, batches=24
+[HTF][START] regime=8h | family=B | tf=15m | stage=distance_metrics
+[HTF][DONE ] regime=8h | family=B | tf=15m | stage=distance_metrics | elapsed=0s | status=current, run_mode=current, rows=768, batches=24
+[HTF][START] regime=8h | family=B | tf=1m | stage=labels
+[HTF][DONE ] regime=8h | family=B | tf=1m | stage=labels | elapsed=0s | status=current, run_mode=current, rows=11520, batches=24, valid_labels=5760
+
+[HTF] FAMILY START: regime=8h family=C
+[HTF][START] regime=8h | family=C | tf=1m | stage=features
+  8h/C/1m shifted feature batches: 1/24 (  4.2%) | elapsed=0s | eta~0s
+  8h/C/1m shifted feature batches: 24/24 (100.0%) | elapsed=0s | eta~0s
+[HTF][DONE ] regime=8h | family=C | tf=1m | stage=features | elapsed=0s | status=current, run_mode=current, rows=11280, batches=24, written=0, skipped=24
+[HTF][START] regime=8h | family=C | tf=15m | stage=features
+  8h/C/15m shifted feature batches: 1/24 (  4.2%) | elapsed=0s | eta~0s
+  8h/C/15m shifted feature batches: 24/24 (100.0%) | elapsed=0s | eta~0s
+[HTF][DONE ] regime=8h | family=C | tf=15m | stage=features | elapsed=0s | status=current, run_mode=current, rows=752, batches=24, written=0, skipped=24
+[HTF][START] regime=8h | family=C | tf=15m | stage=distance_metrics
+[HTF][DONE ] regime=8h | family=C | tf=15m | stage=distance_metrics | elapsed=0s | status=current, run_mode=current, rows=752, batches=24
+[HTF][START] regime=8h | family=C | tf=1m | stage=labels
+[HTF][DONE ] regime=8h | family=C | tf=1m | stage=labels | elapsed=0s | status=current, run_mode=current, rows=11280, batches=24, valid_labels=5745
+======================================================================
+[HTF] MULTI-REGIME PIPELINE DONE | elapsed=0s
+======================================================================
+dict
+['build', 'validation']
+{"build": [{"regime": "8h", "families": {"B": {"features": {"1m": {"rows": 11520, "batches": 24, "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_features/1m", "status": "current", "run_mode": "current"}, "15m": {"rows": 768, "batches": 24, "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_features/15m", "status": "current", "run_mode": "current"}}, "metrics_15m": {"rows": 768, "batches": 24, "status": "current", "run_mode": "current"}, "labels_1m": {"rows": 11520, "batches": 24, "valid_labels": 5760, "label_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_4class_labels/1m", "status": "current", "run_mode": "current"}}, "C": {"features": {"1m": {"rows": 11280, "batches": 24, "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_features_shift4h/1m", "written": 0, "skipped": 24, "status": "current", "run_mode": "current"}, "15m": {"rows": 752, "batches": 24, "output_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_features_shift4h/15m", "written": 0, "skipped": 24, "status": "current", "run_mode": "current"}}, "metrics_15m": {"rows": 752, "batches": 24, "status": "current", "run_mode": "current"}, "labels_1m": {"rows": 11280, "batches": 24, "valid_labels": 5745, "label_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_4class_labels_shift4h/1m", "status": "current", "run_mode": "current"}}}, "combined": {"1m": {"B": {"exists": true, "path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest/1m_HTF_combined.parquet", "total_rows": 11520, "min_ts": "2021-01-04 00:00:00+00:00", "max_ts": "2021-01-11 23:59:00+00:00", "max_batch": 24, "meta_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest/1m_HTF_combined_meta.json", "status": "current", "run_mode": "current", "update_reason": "up_to_date", "rows": 11520, "batches": 24}, "C": {"exists": true, "path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest_shift4h/1m_HTF_combined.parquet", "total_rows": 11280, "min_ts": "2021-01-04 04:00:00+00:00", "max_ts": "2021-01-11 23:59:00+00:00", "max_batch": 24, "meta_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest_shift4h/1m_HTF_combined_meta.json", "status": "current", "run_mode": "current", "update_reason": "up_to_date", "rows": 11280, "batches": 24}}, "15m": {"B": {"exists": true, "path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest/15m_HTF_combined.parquet", "total_rows": 768, "min_ts": "2021-01-04 00:00:00+00:00", "max_ts": "2021-01-11 23:45:00+00:00", "max_batch": 24, "meta_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest/15m_HTF_combined_meta.json", "status": "current", "run_mode": "current", "update_reason": "up_to_date", "rows": 768, "batches": 24}, "C": {"exists": true, "path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest_shift4h/15m_HTF_combined.parquet", "total_rows": 752, "min_ts": "2021-01-04 04:00:00+00:00", "max_ts": "2021-01-11 23:45:00+00:00", "max_batch": 24, "meta_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/resume_logic_smoke/data/htf_backtest_shift4h/15m_HTF_combined_meta.json", "status": "current", "run_mode": "current", "update_reason": "up_to_date", "rows": 752, "batches": 24}}}}], "validation": null}

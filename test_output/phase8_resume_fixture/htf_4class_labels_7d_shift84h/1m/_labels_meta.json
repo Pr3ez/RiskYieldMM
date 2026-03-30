@@ -1,0 +1,84 @@
+{
+  "artifact_version": "2026-03-06-repair-01-labels-c-v1",
+  "family": "C",
+  "timeframe": "1m",
+  "source_fingerprint": {
+    "combined_1m": {
+      "count": 1,
+      "digest": "23362c9a8fb04c12e12cc3f5ef4bd14f9eea290da4acf06934a5c117008e8c42",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_7d_shift84h/1m_HTF_combined.parquet"
+      ]
+    },
+    "combined_15m": {
+      "count": 1,
+      "digest": "44e23f2f75129a201df7ac07ada78da3eaf79012dca00152aa321736a0c27c25",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_7d_shift84h/15m_HTF_combined.parquet"
+      ]
+    }
+  },
+  "schema_columns": [
+    "timestamp",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "batch_id",
+    "bar_pos_1m",
+    "bar_pos_15m",
+    "remaining_bars",
+    "bb_upper",
+    "bb_lower",
+    "bb_middle",
+    "bb_position_pct",
+    "segment_2h",
+    "dist_avg_high",
+    "dist_avg_low",
+    "dist_top5_high",
+    "dist_bot5_low",
+    "close_end",
+    "end_return",
+    "target_4class",
+    "target_name",
+    "target_breakfree",
+    "period_8h_start",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "bar_in_batch_norm",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours"
+  ],
+  "rebuild_mode": "full",
+  "updated_at": "2026-03-18T10:00:23.541289+00:00",
+  "stage": "labels",
+  "batch_regime": "7d",
+  "batch_duration_hours": 168,
+  "family_shift_hours": 84,
+  "anchor_utc": "1970-01-05T00:00:00+00:00",
+  "entry_window_hours": 84,
+  "rebuild_reasons": [
+    "missing_meta"
+  ],
+  "rows": 15120,
+  "valid_labels": 10065,
+  "updated_batches": [
+    1,
+    2
+  ],
+  "updated_batches_count": 2,
+  "missing_backfill_count": 0,
+  "expected_valid_rows_per_full_batch": 5040,
+  "run_mode": "full_first_build"
+}

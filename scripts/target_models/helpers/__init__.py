@@ -51,18 +51,6 @@ from scripts.target_models.helpers.ensemble import (
 )
 from scripts.target_models.helpers.evt_pot import EVTPOTHelper, create_evt_pot_helper
 from scripts.target_models.helpers.garch import GARCHHelper, create_garch_helper
-from scripts.target_models.helpers.helper_selection import (
-    get_helper_summary,
-    get_helpers_for_target,
-    get_incremental_helpers,
-)
-from scripts.target_models.helpers.hmm import (
-    HMMHelper,
-    MarketRegimeHMM,
-    VolatilityRegimeHMM,
-    create_market_regime_hmm,
-    create_volatility_regime_hmm,
-)
 from scripts.target_models.helpers.icir_config import (
     DEFAULT_ICIR_CONFIG,
     ICIR_CONFIG_DISABLED,
@@ -80,7 +68,6 @@ from scripts.target_models.helpers.isolation_forest import (
     IsolationForestHelper,
     create_isolation_forest_helper,
 )
-from scripts.target_models.helpers.kalman import KalmanHelper, create_kalman_helper
 from scripts.target_models.helpers.optimized_config_loader import (
     IMPROVED_CONFIGS,
     OptimizedL2Params,
@@ -92,6 +79,44 @@ from scripts.target_models.helpers.optimized_config_loader import (
     is_config_optimized,
 )
 from scripts.target_models.helpers.ou import OUHelper, create_ou_helper
+
+try:
+    from scripts.target_models.helpers.hmm import (
+        HMMHelper,
+        MarketRegimeHMM,
+        VolatilityRegimeHMM,
+        create_market_regime_hmm,
+        create_volatility_regime_hmm,
+    )
+except ModuleNotFoundError as exc:
+    if exc.name != "hmmlearn":
+        raise
+    HMMHelper = None
+    MarketRegimeHMM = None
+    VolatilityRegimeHMM = None
+    create_market_regime_hmm = None
+    create_volatility_regime_hmm = None
+
+try:
+    from scripts.target_models.helpers.helper_selection import (
+        get_helper_summary,
+        get_helpers_for_target,
+        get_incremental_helpers,
+    )
+except ModuleNotFoundError as exc:
+    if exc.name != "hmmlearn":
+        raise
+    get_helper_summary = None
+    get_helpers_for_target = None
+    get_incremental_helpers = None
+
+try:
+    from scripts.target_models.helpers.kalman import KalmanHelper, create_kalman_helper
+except ModuleNotFoundError as exc:
+    if exc.name != "filterpy":
+        raise
+    KalmanHelper = None
+    create_kalman_helper = None
 
 __all__ = [
     # Base classes

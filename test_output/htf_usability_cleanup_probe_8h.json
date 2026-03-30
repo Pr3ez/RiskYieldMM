@@ -1,0 +1,124 @@
+{
+  "helpers_model_facing_audit_8h": {
+    "8h/B/helpers": {
+      "rows": 1360635,
+      "columns": 176,
+      "all_null_columns": [
+        "D_dist_avg_high_w240",
+        "D_dist_avg_low_w240",
+        "D_dist_top5_high_w240"
+      ],
+      "high_null_columns_top10": [
+        {
+          "column": "D_dist_avg_high_w240",
+          "nulls": 1360635,
+          "rows": 1360635,
+          "null_rate": 1.0
+        },
+        {
+          "column": "D_dist_avg_low_w240",
+          "nulls": 1360635,
+          "rows": 1360635,
+          "null_rate": 1.0
+        },
+        {
+          "column": "D_dist_top5_high_w240",
+          "nulls": 1360635,
+          "rows": 1360635,
+          "null_rate": 1.0
+        },
+        {
+          "column": "D_dist_bot5_low_w120",
+          "nulls": 680356,
+          "rows": 1360635,
+          "null_rate": 0.5000282956119753
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 651121,
+          "rows": 1360635,
+          "null_rate": 0.4785420042847641
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 651121,
+          "rows": 1360635,
+          "null_rate": 0.4785420042847641
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 403844,
+          "rows": 1360635,
+          "null_rate": 0.2968055356506337
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 399841,
+          "rows": 1360635,
+          "null_rate": 0.29386352695616386
+        }
+      ]
+    },
+    "8h/C/helpers": {
+      "rows": 1360560,
+      "columns": 176,
+      "all_null_columns": [
+        "F_I_N_S_fundingZscore_long_zsc"
+      ],
+      "high_null_columns_top10": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 1360560,
+          "rows": 1360560,
+          "null_rate": 1.0
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 651121,
+          "rows": 1360560,
+          "null_rate": 0.47856838360675014
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 651121,
+          "rows": 1360560,
+          "null_rate": 0.47856838360675014
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 403844,
+          "rows": 1360560,
+          "null_rate": 0.29682189686599636
+        }
+      ]
+    }
+  },
+  "optimizer_selection_probe_8h": {
+    "8h/B/optimizer_input": {
+      "rows": 1920,
+      "numeric_candidates": 134,
+      "selected": 131,
+      "dropped_all_null_candidates": [
+        "D_dist_avg_high_w240",
+        "D_dist_avg_low_w240",
+        "D_dist_top5_high_w240"
+      ],
+      "expected_drop_present": {
+        "D_dist_avg_high_w240": true,
+        "D_dist_avg_low_w240": true,
+        "D_dist_top5_high_w240": true
+      }
+    },
+    "8h/C/optimizer_input": {
+      "rows": 1920,
+      "numeric_candidates": 134,
+      "selected": 133,
+      "dropped_all_null_candidates": [
+        "F_I_N_S_fundingZscore_long_zsc"
+      ],
+      "expected_drop_present": {
+        "F_I_N_S_fundingZscore_long_zsc": true
+      }
+    }
+  }
+}

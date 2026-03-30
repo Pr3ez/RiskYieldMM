@@ -1,0 +1,239 @@
+{
+  "timeframe": "1m",
+  "target": "target_4class",
+  "method": "rolling_rank_winsorize",
+  "config": {
+    "window": 960,
+    "p_min": 0.01,
+    "p_max": 0.99,
+    "post_transform": "uniform"
+  },
+  "best_config_summary": "L=960, clip=(0.01,0.99), post=uniform (IC=0.1651, score=0.1490)",
+  "best_mean_ic": 0.1651237963613178,
+  "best_std_ic": 0.03222039435619929,
+  "best_score": 0.14901359918321816,
+  "target_type": "multiclass",
+  "n_classes": 4,
+  "n_batches": 8,
+  "total_rows": 1920,
+  "last_processed_batch": 8,
+  "last_processed_timestamp": "2021-01-03T11:59:00+00:00",
+  "resume_reason": "full_recompute",
+  "saved_batches": 8,
+  "reused_batches": 0,
+  "skipped_batches": 0,
+  "start_batch": 1,
+  "end_batch": 8,
+  "feature_cols": [
+    "M_P_logReturn_pct",
+    "M_P_roc_short_pct",
+    "M_P_V_momAtr_short_rat",
+    "M_P_roc_med_pct",
+    "M_P_V_momAtr_med_rat",
+    "V_atrPct_short_pct",
+    "V_returnStd_short_pct",
+    "V_parkinson_short_pct",
+    "V_garmanKlass_short_pct",
+    "V_yangZhang_short_pct",
+    "V_atrPct_med_pct",
+    "V_returnStd_med_pct",
+    "V_parkinson_med_pct",
+    "V_garmanKlass_med_pct",
+    "V_yangZhang_med_pct",
+    "V_atrPct_long_pct",
+    "V_parkinson_long_pct",
+    "V_garmanKlass_long_pct",
+    "N_V_bollingerBW_long_pct",
+    "N_P_V_pctB_short_bnd",
+    "N_P_V_pctB_med_bnd",
+    "N_P_V_pctB_long_bnd",
+    "M_T_ppo_short_long_pct",
+    "M_T_ppo_med_xlong_pct",
+    "N_P_T_priceSmaDeviation_short_pct",
+    "N_P_T_priceEmaDeviation_short_pct",
+    "N_P_T_priceSmaDeviation_med_pct",
+    "N_P_T_priceEmaDeviation_med_pct",
+    "N_P_T_priceSmaDeviation_long_pct",
+    "N_P_T_priceEmaDeviation_long_pct",
+    "M_N_rsi_short_bnd",
+    "M_N_stochasticK_short_bnd",
+    "M_N_T_stochasticD_short_bnd",
+    "M_N_rsi_med_bnd",
+    "M_N_stochasticK_med_bnd",
+    "M_N_T_stochasticD_med_bnd",
+    "M_N_rsi_long_bnd",
+    "M_N_stochasticK_long_bnd",
+    "L_M_N_volumeRoc_short_pct",
+    "L_N_volumeRatio_short_rat",
+    "L_M_N_volumeRoc_med_pct",
+    "L_N_volumeRatio_med_rat",
+    "L_N_volumeRatio_long_rat",
+    "L_M_S_mfi_long_bnd",
+    "L_M_S_cmf_long_bnd",
+    "M_T_V_adx_short_bnd",
+    "M_T_V_diDiff_short_bnd",
+    "N_M_cci_short_zsc",
+    "M_T_V_adx_med_bnd",
+    "M_T_V_diDiff_med_bnd",
+    "N_M_cci_med_zsc",
+    "V_autocorr_med_bnd",
+    "N_P_zScore_med_zsc",
+    "V_volMomentum_med_pct",
+    "N_P_zScore_long_zsc",
+    "V_skew_med_rat",
+    "V_kurtosis_med_rat",
+    "V_maxDrawdown_long_pct",
+    "C_N_bodySize_bnd",
+    "C_N_upperShadow_bnd",
+    "C_N_lowerShadow_bnd",
+    "B_C_candleDirection_bin",
+    "B_consecutiveUp_bnd",
+    "B_consecutiveDown_bnd",
+    "M_winRate_short_bnd",
+    "M_winRate_med_bnd",
+    "M_winRate_long_bnd",
+    "L_M_N_S_oiPctChange_pct",
+    "L_N_volOiRatio_rat",
+    "L_M_N_S_oiRoc_short_pct",
+    "L_M_N_S_oiRoc_med_pct",
+    "F_I_fundingCumulative_short_pct",
+    "F_I_T_fundingMa_short_pct",
+    "F_I_fundingCumulative_med_pct",
+    "F_I_T_fundingMa_med_pct",
+    "F_I_fundingCumulative_long_pct",
+    "F_I_T_fundingMa_long_pct",
+    "S_longShortRatio_rat",
+    "S_M_longShortChange_short_pct",
+    "S_M_longShortChange_med_pct",
+    "S_N_longShortZscore_long_zsc",
+    "D_F_basis_pct",
+    "D_N_markCloseDeviation_pct",
+    "D_F_T_premiumMa_short_pct",
+    "D_F_T_premiumMa_med_pct",
+    "D_F_T_premiumMa_long_pct",
+    "X_D_oiRetPressure_short_pct",
+    "X_D_oiRetPressure_med_pct",
+    "X_D_basisRetPressure_short_pct",
+    "X_D_basisRetPressure_med_pct",
+    "D_dist_bot5_low_w120",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "bar_in_batch_norm"
+  ],
+  "batch_fingerprints": {
+    "1": {
+      "feature": {
+        "mtime_ns": 1774615291547384034,
+        "size_bytes": 303050
+      },
+      "label": {
+        "mtime_ns": 1774615497556343787,
+        "size_bytes": 53641
+      }
+    },
+    "2": {
+      "feature": {
+        "mtime_ns": 1774615291568383622,
+        "size_bytes": 436489
+      },
+      "label": {
+        "mtime_ns": 1774615497559343729,
+        "size_bytes": 54583
+      }
+    },
+    "3": {
+      "feature": {
+        "mtime_ns": 1774615291574383504,
+        "size_bytes": 406177
+      },
+      "label": {
+        "mtime_ns": 1774615497561343689,
+        "size_bytes": 54168
+      }
+    },
+    "4": {
+      "feature": {
+        "mtime_ns": 1774615291581383367,
+        "size_bytes": 433286
+      },
+      "label": {
+        "mtime_ns": 1774615497563343650,
+        "size_bytes": 54290
+      }
+    },
+    "5": {
+      "feature": {
+        "mtime_ns": 1774615291587383250,
+        "size_bytes": 418438
+      },
+      "label": {
+        "mtime_ns": 1774615497565343611,
+        "size_bytes": 55205
+      }
+    },
+    "6": {
+      "feature": {
+        "mtime_ns": 1774615291593383132,
+        "size_bytes": 441049
+      },
+      "label": {
+        "mtime_ns": 1774615497567343572,
+        "size_bytes": 57208
+      }
+    },
+    "7": {
+      "feature": {
+        "mtime_ns": 1774615291601382975,
+        "size_bytes": 425632
+      },
+      "label": {
+        "mtime_ns": 1774615497568343552,
+        "size_bytes": 55882
+      }
+    },
+    "8": {
+      "feature": {
+        "mtime_ns": 1774615291607382857,
+        "size_bytes": 440464
+      },
+      "label": {
+        "mtime_ns": 1774615497570343513,
+        "size_bytes": 56069
+      }
+    }
+  },
+  "per_batch_rows": {
+    "1": 240,
+    "2": 240,
+    "3": 240,
+    "4": 240,
+    "5": 240,
+    "6": 240,
+    "7": 240,
+    "8": 240
+  },
+  "per_batch_last_timestamp": {
+    "1": "2021-01-01 03:59:00+00:00",
+    "2": "2021-01-01 11:59:00+00:00",
+    "3": "2021-01-01 19:59:00+00:00",
+    "4": "2021-01-02 03:59:00+00:00",
+    "5": "2021-01-02 11:59:00+00:00",
+    "6": "2021-01-02 19:59:00+00:00",
+    "7": "2021-01-03 03:59:00+00:00",
+    "8": "2021-01-03 11:59:00+00:00"
+  },
+  "validation": {
+    "n_early_batches": 8,
+    "n_val_folds": 3,
+    "stability_lambda": 0.5
+  },
+  "run_options": {
+    "recompute": true,
+    "incremental_update": false,
+    "max_state_snapshots": 8
+  },
+  "timestamp": "2026-03-28T00:27:50.900953+00:00"
+}

@@ -1,0 +1,238 @@
+{
+  "htf_optimized": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/1m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/1m/target_4class/batch_0001.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/1m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/1m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    },
+    "15m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/15m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/15m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    },
+    "15m/target_8class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/15m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/15m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    },
+    "5m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/5m/target_4class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/5m/target_4class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    },
+    "5m/target_8class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized/5m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized/5m/target_8class/batch_0001.parquet",
+        "total_columns": 101,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    }
+  },
+  "htf_optimized_shift4h": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_shift4h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_shift4h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_shift4h/15m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_shift4h/15m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      }
+    },
+    "15m/target_8class": {
+      "backup": null,
+      "current": null
+    }
+  },
+  "htf_optimized_24h": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_24h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_24h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_4class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_8class": {
+      "backup": null,
+      "current": null
+    }
+  },
+  "htf_optimized_24h_shift12h": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_24h_shift12h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_24h_shift12h/1m/target_4class/batch_0001.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_4class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_8class": {
+      "backup": null,
+      "current": null
+    }
+  },
+  "htf_optimized_7d": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_7d/1m/target_4class/batch_0002.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_7d/1m/target_4class/batch_0002.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_4class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_8class": {
+      "backup": null,
+      "current": null
+    }
+  },
+  "htf_optimized_7d_shift84h": {
+    "1m/target_4class": {
+      "backup": {
+        "file": "backups/htf_production_snapshot_pre_phase9_20260318_131026/data/htf_optimized_7d_shift84h/1m/target_4class/batch_0002.parquet",
+        "total_columns": 116,
+        "feature_columns": 93,
+        "helper_columns": 0
+      },
+      "current": {
+        "file": "data/htf_optimized_7d_shift84h/1m/target_4class/batch_0002.parquet",
+        "total_columns": 151,
+        "feature_columns": 128,
+        "helper_columns": 0
+      }
+    },
+    "1m/target_8class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_4class": {
+      "backup": null,
+      "current": null
+    },
+    "15m/target_8class": {
+      "backup": null,
+      "current": null
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "artifact_version": "2026-03-06-repair-01-combined-c-v1",
+  "family": "C",
+  "timeframe": "15m",
+  "source_fingerprint": {
+    "base_combined": {
+      "count": 2,
+      "digest": "e1f6847354bb7faff8205aff6f5804f395ca7fd88aca0fa69ccb543253b28bf5",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest/15m_HTF_combined.parquet",
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest/15m_HTF_combined_meta.json"
+      ]
+    }
+  },
+  "schema_columns": [
+    "timestamp",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "period_8h_start",
+    "batch_id",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "bar_in_batch_norm",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours"
+  ],
+  "rebuild_mode": "full",
+  "updated_at": "2026-03-18T09:59:28.176618+00:00",
+  "stage": "combined",
+  "batch_regime": "8h",
+  "batch_duration_hours": 8,
+  "family_shift_hours": 4,
+  "anchor_utc": "1970-01-01T00:00:00+00:00",
+  "entry_window_hours": 4,
+  "status": "created",
+  "update_reason": "source_refresh",
+  "rebuild_reasons": [
+    "missing_meta"
+  ],
+  "rows": 1328,
+  "batches": 42,
+  "rows_per_batch": 32,
+  "output_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_shift4h/15m_HTF_combined.parquet",
+  "min_ts": "2021-02-01 04:00:00+00:00",
+  "max_ts": "2021-02-14 23:45:00+00:00"
+}

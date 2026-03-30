@@ -1,0 +1,155 @@
+{
+  "fingerprint_paths": {
+    "notebook": {
+      "count": 1,
+      "latest_mtime_ns": 1773815816563996317,
+      "total_size_bytes": 5,
+      "digest": "cd517a42d13d093c8f07319c8df8d0dda89af755a673f947c36183f291d2a48a"
+    },
+    "shared": {
+      "count": 1,
+      "digest": "25cc21fe412336881c4952e6d82c84c9155f2ec79d51293f21a63c50f812d8ee",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/todo03_control_plane_tmp/source.txt"
+      ]
+    },
+    "same_shape": false
+  },
+  "fingerprint_batch_dir": {
+    "notebook": {
+      "count": 1,
+      "latest_mtime_ns": 1773815816562762971,
+      "total_size_bytes": 1205,
+      "digest": "34b3ac658f28017e3c73c3c01c9d4901b4c0152e0b4ea7a28de57d8b5f80a53a"
+    },
+    "shared": {
+      "count": 1,
+      "digest": "e8f47fb9a7742f7355c1bf9198d9800afb59d155260100938f984bd1459c496f",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/todo03_control_plane_tmp/batches/batch_0001.parquet"
+      ]
+    }
+  },
+  "schema_columns_for_batch_dir": {
+    "equal": true,
+    "value": [
+      "timestamp",
+      "batch_id",
+      "close"
+    ]
+  },
+  "find_batch_missing_required_columns": {
+    "notebook": {
+      "path": "test_output/todo03_control_plane_tmp/batches/batch_0001.parquet",
+      "missing": [
+        "missing_col"
+      ]
+    },
+    "shared": {
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/todo03_control_plane_tmp/batches/batch_0001.parquet",
+      "missing": [
+        "missing_col"
+      ]
+    }
+  },
+  "artifact_meta_payload": {
+    "notebook_keys": [
+      "artifact_version",
+      "family",
+      "rebuild_mode",
+      "schema_columns",
+      "source_fingerprint",
+      "stage",
+      "timeframe",
+      "updated_at"
+    ],
+    "shared_keys": [
+      "artifact_version",
+      "family",
+      "rebuild_mode",
+      "schema_columns",
+      "source_fingerprint",
+      "stage",
+      "timeframe",
+      "updated_at"
+    ],
+    "notebook_updated_at": "2026-03-18T06:36:56.648579Z",
+    "shared_updated_at": "2026-03-18T06:36:56.648587+00:00"
+  },
+  "artifact_rebuild_reasons": {
+    "match": {
+      "notebook": [],
+      "shared": []
+    },
+    "schema_drift": {
+      "notebook": [
+        "schema_columns"
+      ],
+      "shared": [
+        "schema_columns"
+      ]
+    },
+    "source_drift": {
+      "notebook": [
+        "source_fingerprint"
+      ],
+      "shared": [
+        "source_fingerprint"
+      ]
+    }
+  },
+  "prepare_stage_rebuild": {
+    "match": {
+      "notebook": [
+        [],
+        "incremental_tail"
+      ],
+      "shared": [
+        [],
+        "incremental_tail"
+      ],
+      "nb_kept": [
+        "keep.txt"
+      ],
+      "sh_kept": [
+        "keep.txt"
+      ]
+    },
+    "incremental_source_drift": {
+      "notebook": [
+        [
+          "source_fingerprint"
+        ],
+        "incremental_tail"
+      ],
+      "shared": [
+        [
+          "source_fingerprint"
+        ],
+        "incremental_tail"
+      ],
+      "nb_kept": [
+        "keep.txt"
+      ],
+      "sh_kept": [
+        "keep.txt"
+      ]
+    },
+    "legacy_schema_full": {
+      "notebook": [
+        [
+          "legacy_schema:test_output/todo03_control_plane_tmp/batches/batch_0001.parquet missing=missing_col"
+        ],
+        "full"
+      ],
+      "shared": [
+        [
+          "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/test_output/todo03_control_plane_tmp/batches/batch_0001.parquet missing=missing_col"
+        ],
+        "full"
+      ],
+      "nb_remaining": [],
+      "sh_remaining": []
+    }
+  }
+}

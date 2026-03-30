@@ -35,9 +35,24 @@ import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import numba
 import numpy as np
 import pandas as pd
+
+try:
+    import numba
+except ImportError:  # pragma: no cover - allows lightweight runtime verification
+    class _NumbaFallback:
+        @staticmethod
+        def njit(*args, **kwargs):
+            if args and callable(args[0]) and len(args) == 1 and not kwargs:
+                return args[0]
+
+            def decorator(func):
+                return func
+
+            return decorator
+
+    numba = _NumbaFallback()
 
 # =============================================================================
 # TIMEFRAME UTILITIES
@@ -421,6 +436,209 @@ class HTFFeatureEngine:
 
         return df
 
+    def get_source_paths_for_timeframe(
+        self,
+        target_tf: str,
+        *,
+        extra_sources: list[str] | None = None,
+    ) -> list[Path]:
+        """
+        Return the concrete source files used to augment features for `target_tf`.
+
+        This lets downstream stages fingerprint the true fetched-source inputs
+        instead of only the already-combined OHLCV parquet.
+        """
+        plan = self.get_source_resolution_plan(target_tf)
+        source_names = extra_sources or [
+            "mark_price",
+            "index_price",
+            "premium_price",
+            "open_interest",
+            "long_short_ratio",
+            "funding_rate",
+        ]
+
+        resolved_paths: list[Path] = []
+        for data_type in source_names:
+            source_plan = plan.get(data_type, {})
+            source_tf = source_plan.get("source_tf")
+            if source_tf is None:
+                continue
+
+            config = DATA_SOURCE_PATTERNS[data_type]
+            if config.get("is_fixed_tf"):
+                dir_path = self.data_dir / config["dir_pattern"]
+            else:
+                dir_path = self.data_dir / config["dir_pattern"].format(tf=source_tf)
+
+            files, _ = self._find_files_for_source(config, dir_path, source_tf)
+            resolved_paths.extend(files)
+
+        return sorted({path.resolve() for path in resolved_paths}, key=lambda path: str(path))
+
+    def estimate_feature_output_columns(
+        self,
+        target_tf: str,
+        *,
+        include_auxiliary_sources: bool = False,
+        extra_sources: list[str] | None = None,
+        include_ohlcv: bool = True,
+        distance_windows: dict[str, int] | None = None,
+    ) -> list[str]:
+        """
+        Estimate the current feature-output schema for `target_tf`.
+
+        The resume logic uses this to detect code-driven schema changes such as
+        adding new fetched-source features or new composites. It deliberately
+        avoids reading the full production history and instead uses a small
+        synthetic preview frame plus the currently available source-resolution
+        plan.
+        """
+        windows = self.get_window_scaling(target_tf)
+        n_rows = max(32, windows["xlong"] + 4)
+        freq = f"{parse_timeframe(target_tf)}min"
+        timestamps = pd.date_range(
+            "2000-01-01 00:00:00",
+            periods=n_rows,
+            freq=freq,
+            tz="UTC",
+        )
+        close = pd.Series(np.linspace(100.0, 100.0 + n_rows - 1, n_rows))
+        preview = pd.DataFrame(
+            {
+                "timestamp": timestamps,
+                "open": close - 0.25,
+                "high": close + 0.50,
+                "low": close - 0.50,
+                "close": close,
+                "volume": np.linspace(1_000.0, 1_000.0 + n_rows - 1, n_rows),
+            }
+        )
+
+        if include_auxiliary_sources:
+            plan = self.get_source_resolution_plan(target_tf)
+            source_names = extra_sources or [
+                "mark_price",
+                "index_price",
+                "premium_price",
+                "open_interest",
+                "long_short_ratio",
+                "funding_rate",
+            ]
+            for data_type in source_names:
+                source_plan = plan.get(data_type, {})
+                if source_plan.get("source_tf") is None:
+                    continue
+
+                if data_type == "mark_price":
+                    preview["markClose"] = preview["close"] * 1.0003
+                elif data_type == "index_price":
+                    preview["indexClose"] = preview["close"] * 0.9997
+                elif data_type == "premium_price":
+                    preview["premiumClose"] = preview["close"] * 0.0006
+                elif data_type == "open_interest":
+                    preview["openInterest"] = np.linspace(
+                        10_000.0, 10_000.0 + n_rows - 1, n_rows
+                    )
+                elif data_type == "long_short_ratio":
+                    preview["longShortRatio"] = np.linspace(1.2, 1.4, n_rows)
+                elif data_type == "funding_rate":
+                    preview["fundingRate"] = np.linspace(0.0001, 0.0002, n_rows)
+
+        feature_preview = self.compute_features(preview, target_tf)
+        output_columns = list(feature_preview.columns)
+        if include_ohlcv:
+            output_columns.extend(["open", "high", "low", "close", "volume"])
+
+        for key, window in (distance_windows or {}).items():
+            if key == "dist_avg_high":
+                output_columns.append(f"D_dist_avg_high_w{window}")
+            elif key == "dist_avg_low":
+                output_columns.append(f"D_dist_avg_low_w{window}")
+            elif key == "dist_top5_high":
+                output_columns.append(f"D_dist_top5_high_w{window}")
+            elif key == "dist_bot5_low":
+                output_columns.append(f"D_dist_bot5_low_w{window}")
+
+        # Keep the first occurrence order stable.
+        return list(dict.fromkeys(output_columns))
+
+    def augment_dataframe_for_timeframe(
+        self,
+        df_base: pd.DataFrame,
+        target_tf: str,
+        *,
+        extra_sources: list[str] | None = None,
+    ) -> pd.DataFrame:
+        """
+        Merge available fetched auxiliary sources onto an existing OHLCV frame.
+
+        This keeps the caller's timestamp range/order while reusing the same
+        native/broadcast resolution logic as `load_data_for_timeframe()`.
+        """
+        plan = self.get_source_resolution_plan(target_tf)
+        df = df_base.copy().sort_values("timestamp").reset_index(drop=True)
+        source_names = extra_sources or [
+            "mark_price",
+            "index_price",
+            "premium_price",
+            "open_interest",
+            "long_short_ratio",
+            "funding_rate",
+        ]
+
+        for data_type in source_names:
+            source_plan = plan.get(data_type, {})
+            source_tf = source_plan.get("source_tf")
+            method = source_plan.get("method")
+
+            if source_tf is None:
+                self.log(f"✗ {data_type}: NOT AVAILABLE")
+                continue
+
+            df_source = self.load_single_source(data_type, source_tf)
+            if df_source is None:
+                self.log(f"✗ {data_type}: LOAD FAILED")
+                continue
+
+            cols_to_merge: list[str] = []
+            for col in df_source.columns:
+                if col != "timestamp" and col not in [
+                    "buyRatio",
+                    "sellRatio",
+                    "open",
+                    "high",
+                    "low",
+                ]:
+                    cols_to_merge.append(col)
+
+            if not cols_to_merge:
+                continue
+
+            existing_cols = [col for col in cols_to_merge if col in df.columns]
+            if existing_cols:
+                df = df.drop(columns=existing_cols, errors="ignore")
+
+            if method == "native":
+                df = df.merge(
+                    df_source[["timestamp"] + cols_to_merge],
+                    on="timestamp",
+                    how="left",
+                )
+                self.log(f"✓ {data_type} ({source_tf}): {len(df_source):,} rows")
+            elif method == "broadcast":
+                df = self.broadcast_higher_tf(df, df_source, cols_to_merge, source_tf)
+                self.log(
+                    f"✓ {data_type} ({source_tf} → {target_tf}): "
+                    f"{len(df_source):,} rows (broadcast)"
+                )
+
+        for col in ["openInterest", "longShortRatio", "fundingRate"]:
+            if col in df.columns:
+                df[col] = df[col].ffill()
+
+        return df
+
     def broadcast_higher_tf(
         self,
         df_base: pd.DataFrame,
@@ -437,16 +655,22 @@ class HTFFeatureEngine:
         df_base = df_base.copy()
         df_high = df_high.copy()
 
-        # Normalize timestamps
-        if df_base["timestamp"].dt.tz is not None:
-            df_base["timestamp"] = df_base["timestamp"].dt.tz_localize(None)
-        if df_high["timestamp"].dt.tz is not None:
-            df_high["timestamp"] = df_high["timestamp"].dt.tz_localize(None)
+        # Normalize merge keys while preserving the original base timestamp dtype.
+        base_ts = df_base["timestamp"]
+        high_ts = df_high["timestamp"]
+        if base_ts.dt.tz is not None:
+            base_merge_ts = base_ts.dt.tz_localize(None)
+        else:
+            base_merge_ts = base_ts
+        if high_ts.dt.tz is not None:
+            high_merge_ts = high_ts.dt.tz_localize(None)
+        else:
+            high_merge_ts = high_ts
 
         # Floor base timestamps to higher TF period start
         high_mins = parse_timeframe(high_tf)
-        df_base["_merge_ts"] = df_base["timestamp"].dt.floor(f"{high_mins}min")
-        df_high["_merge_ts"] = df_high["timestamp"]
+        df_base["_merge_ts"] = base_merge_ts.dt.floor(f"{high_mins}min")
+        df_high["_merge_ts"] = high_merge_ts
 
         # Select only merge key + requested columns
         cols_to_merge = ["_merge_ts"] + [c for c in columns if c in df_high.columns]
@@ -485,61 +709,8 @@ class HTFFeatureEngine:
         df = df.sort_values("timestamp").reset_index(drop=True)
         self.log(f"✓ OHLCV ({target_tf}): {len(df):,} rows")
 
-        # 2. Load each additional source
-        for data_type in [
-            "mark_price",
-            "index_price",
-            "premium_price",
-            "open_interest",
-            "long_short_ratio",
-            "funding_rate",
-        ]:
-            source_plan = plan.get(data_type, {})
-            source_tf = source_plan.get("source_tf")
-            method = source_plan.get("method")
-
-            if source_tf is None:
-                self.log(f"✗ {data_type}: NOT AVAILABLE")
-                continue
-
-            df_source = self.load_single_source(data_type, source_tf)
-            if df_source is None:
-                self.log(f"✗ {data_type}: LOAD FAILED")
-                continue
-
-            # Determine columns to merge
-            cols_to_merge = []
-            for col in df_source.columns:
-                if col != "timestamp" and col not in [
-                    "buyRatio",
-                    "sellRatio",
-                    "open",
-                    "high",
-                    "low",
-                ]:
-                    cols_to_merge.append(col)
-
-            if method == "native":
-                # Direct merge
-                df = df.merge(
-                    df_source[["timestamp"] + cols_to_merge],
-                    on="timestamp",
-                    how="left",
-                )
-                self.log(f"✓ {data_type} ({source_tf}): {len(df_source):,} rows")
-            elif method == "broadcast":
-                # Broadcast from higher TF
-                df = self.broadcast_higher_tf(df, df_source, cols_to_merge, source_tf)
-                self.log(
-                    f"✓ {data_type} ({source_tf} → {target_tf}): "
-                    f"{len(df_source):,} rows (broadcast)"
-                )
-
-        # Forward fill broadcast columns
-        broadcast_cols = ["openInterest", "longShortRatio", "fundingRate"]
-        for col in broadcast_cols:
-            if col in df.columns:
-                df[col] = df[col].ffill()
+        # 2. Load each additional source onto the native OHLCV frame
+        df = self.augment_dataframe_for_timeframe(df, target_tf)
 
         self.log(f"\n→ Final: {len(df):,} rows × {len(df.columns)} columns")
         return df
@@ -757,6 +928,47 @@ class HTFFeatureEngine:
                     _compute_premium_zscore(df, n)
                 )
             self.log("  + Premium features")
+
+        # =====================================================================
+        # COMPOSITE DERIVATIVES PRESSURE (if available)
+        # =====================================================================
+        composite_count = 0
+        returns = features["M_P_logReturn_pct"]
+
+        if "L_M_N_S_oiPctChange_pct" in features.columns:
+            doi = features["L_M_N_S_oiPctChange_pct"]
+            for n, label in [(w_short, "short"), (w_med, "med"), (w_long, "long")]:
+                features[f"X_D_oiRetPressure_{label}_pct"] = _rolling_mean_product(
+                    doi, returns, n
+                )
+                composite_count += 1
+
+        if "D_F_basis_pct" in features.columns:
+            basis = features["D_F_basis_pct"]
+            for n, label in [(w_short, "short"), (w_med, "med"), (w_long, "long")]:
+                features[f"X_D_basisRetPressure_{label}_pct"] = (
+                    _rolling_mean_product(basis, returns, n)
+                )
+                composite_count += 1
+
+            if "fundingRate" in df.columns and df["fundingRate"].notna().any():
+                funding_rate = df["fundingRate"]
+                for n, label in [(w_long, "long"), (w_xlong, "xlong")]:
+                    features[f"X_D_fundingBasisPressure_{label}_pct"] = (
+                        _rolling_mean_product(funding_rate, basis, n)
+                    )
+                    composite_count += 1
+
+        if "longShortRatio" in df.columns and df["longShortRatio"].notna().any():
+            dls = _compute_long_short_pct_change(df)
+            for n, label in [(w_long, "long"), (w_xlong, "xlong")]:
+                features[f"X_D_longShortRetPressure_{label}_pct"] = (
+                    _rolling_mean_product(dls, returns, n)
+                )
+                composite_count += 1
+
+        if composite_count:
+            self.log(f"  + Composite derivatives pressure features ({composite_count})")
 
         # =====================================================================
         # SUMMARY
@@ -1438,6 +1650,18 @@ def _compute_premium_zscore(df: pd.DataFrame, n: int) -> pd.Series:
     mu = df["premiumClose"].rolling(n).mean()
     sigma = df["premiumClose"].rolling(n).std()
     return ((df["premiumClose"] - mu) / sigma.replace(0, np.nan)).clip(-5, 5)
+
+
+def _rolling_mean_product(lhs: pd.Series, rhs: pd.Series, n: int) -> pd.Series:
+    """Rolling mean of a causal elementwise product."""
+    return (lhs * rhs).rolling(n).mean()
+
+
+def _compute_long_short_pct_change(df: pd.DataFrame) -> pd.Series:
+    """One-step percentage change on the broadcast-aligned long/short ratio."""
+    if "longShortRatio" not in df.columns:
+        return pd.Series(np.nan, index=df.index)
+    return df["longShortRatio"].pct_change().replace([np.inf, -np.inf], np.nan)
 
 
 # =============================================================================

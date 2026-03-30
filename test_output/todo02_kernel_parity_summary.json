@@ -1,0 +1,97 @@
+{
+  "functions": {
+    "compute_distance_metrics": {
+      "equal": true,
+      "max_abs_diff": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "compute_hybrid_distance_metrics": {
+      "equal": true,
+      "max_abs_diff": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "_compute_past_distance_metrics": {
+      "equal": true,
+      "max_abs_diff": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "compute_4class_labels": {
+      "same_columns": false,
+      "equal": false,
+      "nb_columns": [
+        "dist_avg_high",
+        "dist_avg_low",
+        "dist_top5_high",
+        "dist_bot5_low",
+        "batch_id_check",
+        "target_4class",
+        "target_name"
+      ],
+      "sh_columns": [
+        "dist_avg_high",
+        "dist_avg_low",
+        "dist_top5_high",
+        "dist_bot5_low",
+        "target_4class",
+        "target_name"
+      ],
+      "nb_targets": [
+        -1,
+        0,
+        2,
+        1,
+        3,
+        3,
+        1
+      ],
+      "sh_targets": [
+        -1,
+        0,
+        2,
+        1,
+        3,
+        3,
+        1
+      ],
+      "nb_names": [
+        "INVALID",
+        "DOWN_BALANCED",
+        "UP_BALANCED",
+        "DOWN_EXPANSION",
+        "UP_EXPANSION",
+        "UP_EXPANSION",
+        "DOWN_EXPANSION"
+      ],
+      "sh_names": [
+        "INVALID",
+        "DOWN_BALANCED",
+        "UP_BALANCED",
+        "DOWN_EXPANSION",
+        "UP_EXPANSION",
+        "UP_EXPANSION",
+        "DOWN_EXPANSION"
+      ]
+    }
+  },
+  "source_notes": {
+    "notebook_has_is_oscillation": true,
+    "shared_has_is_oscillation": false,
+    "notebook_main_has_batch_id_check_drop": false,
+    "shared_has_batch_id_check_drop": true,
+    "notebook_has_second_compute_4class_labels_guard": true
+  }
+}

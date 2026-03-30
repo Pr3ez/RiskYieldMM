@@ -1,0 +1,187 @@
+{
+  "stage_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/fetchingByBit_aux_stage_20260330_182045",
+  "live_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/fetchingByBit",
+  "entry_count": 15,
+  "entries": [
+    {
+      "rel_path": "index-price-15m-bybit-linear/btcusdt_index.parquet",
+      "before": {
+        "size": 3577578,
+        "mtime_ns": 1772731624260632063
+      },
+      "after": {
+        "size": 3627389,
+        "mtime_ns": 1774891813737575529
+      },
+      "stage_size": 3627389
+    },
+    {
+      "rel_path": "index-price-1h-bybit-linear/btcusdt_index.parquet",
+      "before": {
+        "size": 913156,
+        "mtime_ns": 1772731624730020663
+      },
+      "after": {
+        "size": 925767,
+        "mtime_ns": 1774891838852007835
+      },
+      "stage_size": 925767
+    },
+    {
+      "rel_path": "index-price-1m-bybit-linear/btcusdt_index.parquet",
+      "before": {
+        "size": 52091518,
+        "mtime_ns": 1772731622925024955
+      },
+      "after": {
+        "size": 52837916,
+        "mtime_ns": 1774891409285717867
+      },
+      "stage_size": 52837916
+    },
+    {
+      "rel_path": "index-price-4h-bybit-linear/btcusdt_index.parquet",
+      "before": {
+        "size": 242478,
+        "mtime_ns": 1772731625187778406
+      },
+      "after": {
+        "size": 245751,
+        "mtime_ns": 1774891845282862470
+      },
+      "stage_size": 245751
+    },
+    {
+      "rel_path": "index-price-5m-bybit-linear/btcusdt_index.parquet",
+      "before": {
+        "size": 10599207,
+        "mtime_ns": 1772731623671613297
+      },
+      "after": {
+        "size": 10752468,
+        "mtime_ns": 1774891707933967141
+      },
+      "stage_size": 10752468
+    },
+    {
+      "rel_path": "mark-price-15m-bybit-linear/btcusdt_mark.parquet",
+      "before": {
+        "size": 3537169,
+        "mtime_ns": 1772731619646044675
+      },
+      "after": {
+        "size": 3587051,
+        "mtime_ns": 1774889833162409518
+      },
+      "stage_size": 3587051
+    },
+    {
+      "rel_path": "mark-price-1h-bybit-linear/btcusdt_mark.parquet",
+      "before": {
+        "size": 906067,
+        "mtime_ns": 1772731620087018193
+      },
+      "after": {
+        "size": 918641,
+        "mtime_ns": 1774889858498841224
+      },
+      "stage_size": 918641
+    },
+    {
+      "rel_path": "mark-price-1m-bybit-linear/btcusdt_mark.parquet",
+      "before": {
+        "size": 50951125,
+        "mtime_ns": 1772731618204731590
+      },
+      "after": {
+        "size": 51683040,
+        "mtime_ns": 1774889411446868559
+      },
+      "stage_size": 51683040
+    },
+    {
+      "rel_path": "mark-price-4h-bybit-linear/btcusdt_mark.parquet",
+      "before": {
+        "size": 239628,
+        "mtime_ns": 1772731620517477534
+      },
+      "after": {
+        "size": 242877,
+        "mtime_ns": 1774889864825699313
+      },
+      "stage_size": 242877
+    },
+    {
+      "rel_path": "mark-price-5m-bybit-linear/btcusdt_mark.parquet",
+      "before": {
+        "size": 10422993,
+        "mtime_ns": 1772731619088013639
+      },
+      "after": {
+        "size": 10569514,
+        "mtime_ns": 1774889725852816463
+      },
+      "stage_size": 10569514
+    },
+    {
+      "rel_path": "premium-price-15m-bybit-linear/btcusdt_premium.parquet",
+      "before": {
+        "size": 5287504,
+        "mtime_ns": 1772731658643403571
+      },
+      "after": {
+        "size": 5380047,
+        "mtime_ns": 1774893818581009704
+      },
+      "stage_size": 5380047
+    },
+    {
+      "rel_path": "premium-price-1h-bybit-linear/btcusdt_premium.parquet",
+      "before": {
+        "size": 1384948,
+        "mtime_ns": 1772731659063163925
+      },
+      "after": {
+        "size": 1401808,
+        "mtime_ns": 1774893846455352114
+      },
+      "stage_size": 1401808
+    },
+    {
+      "rel_path": "premium-price-1m-bybit-linear/btcusdt_premium.parquet",
+      "before": {
+        "size": 67654340,
+        "mtime_ns": 1772731651844248675
+      },
+      "after": {
+        "size": 68595508,
+        "mtime_ns": 1774893391757079008
+      },
+      "stage_size": 68595508
+    },
+    {
+      "rel_path": "premium-price-4h-bybit-linear/btcusdt_premium.parquet",
+      "before": {
+        "size": 389577,
+        "mtime_ns": 1772731659470307419
+      },
+      "after": {
+        "size": 394118,
+        "mtime_ns": 1774893852876200638
+      },
+      "stage_size": 394118
+    },
+    {
+      "rel_path": "premium-price-5m-bybit-linear/btcusdt_premium.parquet",
+      "before": {
+        "size": 15555622,
+        "mtime_ns": 1772731656790952920
+      },
+      "after": {
+        "size": 15767124,
+        "mtime_ns": 1774893708310611119
+      },
+      "stage_size": 15767124
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "b": {
+    "sample_feature_cols": 131,
+    "rows": 240,
+    "col_count": 148,
+    "contains_bad": {
+      "D_dist_avg_high_w240": false,
+      "D_dist_avg_low_w240": false,
+      "D_dist_top5_high_w240": false
+    },
+    "output_file": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_optimizer_first_batch_b_samplewide.parquet"
+  },
+  "c": {
+    "sample_feature_cols": 133,
+    "rows": 240,
+    "col_count": 150,
+    "contains_bad": {
+      "F_I_N_S_fundingZscore_long_zsc": false
+    },
+    "output_file": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_optimizer_first_batch_c_samplewide.parquet"
+  }
+}

@@ -1,0 +1,723 @@
+{
+  "generated_at": "2026-03-18T12:50:03",
+  "current_disk": {
+    "combined": {
+      "8h/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "8h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      },
+      "24h/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "24h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      },
+      "7d/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "7d/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      }
+    },
+    "features": {
+      "8h/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "8h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        },
+        "15m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        }
+      },
+      "24h/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_24h/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_24h/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "24h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        },
+        "15m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        }
+      },
+      "7d/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_7d/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_7d/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "7d/C": {
+        "1m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        },
+        "15m": {
+          "status": "current",
+          "reasons": [],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 116
+        }
+      }
+    },
+    "labels": {
+      "8h/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 5670
+      },
+      "8h/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 5669
+      },
+      "24h/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 1890
+      },
+      "24h/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 1890
+      },
+      "7d/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 270
+      },
+      "7d/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 270
+      }
+    },
+    "optimized": {
+      "8h/B": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      },
+      "8h/C": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      },
+      "24h/B": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      },
+      "24h/C": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      },
+      "7d/B": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      },
+      "7d/C": {
+        "status": "current",
+        "reason": "already_up_to_date"
+      }
+    },
+    "helper_cache": {
+      "8h/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "8h/C": {
+        "status": "current",
+        "namespace": "shift4h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "24h/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "24h/C": {
+        "status": "current",
+        "namespace": "shift12h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "7d/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "7d/C": {
+        "status": "current",
+        "namespace": "shift84h",
+        "reasons": [],
+        "affected_batches": 0
+      }
+    },
+    "helpers": {
+      "8h/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "8h/C": {
+        "status": "current",
+        "namespace": "shift4h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "24h/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "24h/C": {
+        "status": "current",
+        "namespace": "shift12h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "7d/B": {
+        "status": "current",
+        "namespace": "base_0h",
+        "reasons": [],
+        "affected_batches": 0
+      },
+      "7d/C": {
+        "status": "current",
+        "namespace": "shift84h",
+        "reasons": [],
+        "affected_batches": 0
+      }
+    }
+  },
+  "expected_run": {
+    "combined": {
+      "8h/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "8h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      },
+      "24h/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "24h/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      },
+      "7d/B": {
+        "1m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        },
+        "15m": {
+          "status": "current",
+          "reason": "up_to_date",
+          "required_schema_ok": true
+        }
+      },
+      "7d/C": {
+        "1m": {
+          "status": "current",
+          "reasons": []
+        },
+        "15m": {
+          "status": "current",
+          "reasons": []
+        }
+      }
+    },
+    "features": {
+      "8h/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "8h/C": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "24h/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_24h/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_24h/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "24h/C": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "7d/B": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_7d/1m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "source_fingerprint",
+            "schema_columns",
+            "legacy_schema:/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_7d/15m/batch_0001.parquet missing=D_F_N_S_premiumZscore_long_zsc,D_F_N_S_premiumZscore_xlong_zsc,D_F_T_premiumMa_long_pct,D_F_T_premiumMa_med_pct,D_F_T_premiumMa_short_pct,D_F_basis_pct,D_N_markCloseDeviation_pct,F_I_N_S_fundingZscore_long_zsc,F_I_N_S_fundingZscore_xlong_zsc,F_I_T_fundingMa_long_pct,F_I_T_fundingMa_med_pct,F_I_T_fundingMa_short_pct,F_I_fundingCumulative_long_pct,F_I_fundingCumulative_med_pct,F_I_fundingCumulative_short_pct,L_M_N_S_oiPctChange_pct,L_M_N_S_oiRoc_long_pct,L_M_N_S_oiRoc_med_pct,L_M_N_S_oiRoc_short_pct,L_N_volOiRatio_rat,S_M_longShortChange_med_pct,S_M_longShortChange_short_pct,S_N_longShortZscore_long_zsc,S_N_longShortZscore_xlong_zsc,S_longShortRatio_rat,X_D_basisRetPressure_long_pct,X_D_basisRetPressure_med_pct,X_D_basisRetPressure_short_pct,X_D_fundingBasisPressure_long_pct,X_D_fundingBasisPressure_xlong_pct,X_D_longShortRetPressure_long_pct,X_D_longShortRetPressure_xlong_pct,X_D_oiRetPressure_long_pct,X_D_oiRetPressure_med_pct,X_D_oiRetPressure_short_pct"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      },
+      "7d/C": {
+        "1m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        },
+        "15m": {
+          "status": "full_recompute",
+          "reasons": [
+            "upstream_base_feature_refresh"
+          ],
+          "missing_batches": 0,
+          "current_schema_count": 116,
+          "expected_schema_count": 151
+        }
+      }
+    },
+    "labels": {
+      "8h/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 5670
+      },
+      "8h/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 5669
+      },
+      "24h/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 1890
+      },
+      "24h/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 1890
+      },
+      "7d/B": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 270
+      },
+      "7d/C": {
+        "status": "current",
+        "reasons": [],
+        "stale_batches": 0,
+        "expected_batches": 270
+      }
+    },
+    "optimized": {
+      "8h/B": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      },
+      "8h/C": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      },
+      "24h/B": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      },
+      "24h/C": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      },
+      "7d/B": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      },
+      "7d/C": {
+        "status": "incremental_tail",
+        "reason": "upstream_feature_or_label_refresh"
+      }
+    },
+    "helper_cache": {
+      "8h/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "8h/C": {
+        "status": "incremental_tail",
+        "namespace": "shift4h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "24h/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "24h/C": {
+        "status": "incremental_tail",
+        "namespace": "shift12h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "7d/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "7d/C": {
+        "status": "incremental_tail",
+        "namespace": "shift84h",
+        "reasons": [
+          "upstream_feature_refresh"
+        ],
+        "affected_batches": 0
+      }
+    },
+    "helpers": {
+      "8h/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "8h/C": {
+        "status": "incremental_tail",
+        "namespace": "shift4h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "24h/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "24h/C": {
+        "status": "incremental_tail",
+        "namespace": "shift12h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "7d/B": {
+        "status": "incremental_tail",
+        "namespace": "base_0h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      },
+      "7d/C": {
+        "status": "incremental_tail",
+        "namespace": "shift84h",
+        "reasons": [
+          "upstream_optimized_or_cache_refresh"
+        ],
+        "affected_batches": 0
+      }
+    }
+  },
+  "counts": {
+    "combined": {
+      "current": 12
+    },
+    "features": {
+      "full_recompute": 12
+    },
+    "labels": {
+      "current": 6
+    },
+    "optimized": {
+      "incremental_tail": 6
+    },
+    "helper_cache": {
+      "incremental_tail": 6
+    },
+    "helpers": {
+      "incremental_tail": 6
+    }
+  }
+}

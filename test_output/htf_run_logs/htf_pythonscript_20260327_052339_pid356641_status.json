@@ -1,0 +1,13 @@
+{
+  "reason": "heartbeat",
+  "run_id": "htf_pythonscript_20260327_052339_pid356641",
+  "pid": 356641,
+  "stage": "CELL 14 / 8h/C/1m/helpers",
+  "detail": "8h/C/1m/helpers/cache | cache_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_helper_cache/shift4h/1m/target_4class, canonical_raw_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_shift4h/1m",
+  "run_elapsed_seconds": 59695.048,
+  "stage_elapsed_seconds": 13698.911,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260327_052339_pid356641.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260327_052339_pid356641_status.json",
+  "updated_at": "2026-03-27T21:58:34"
+}

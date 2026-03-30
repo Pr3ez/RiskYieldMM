@@ -1,0 +1,83 @@
+{
+  "artifact_version": "2026-03-06-repair-01-distance_metrics-c-v1",
+  "family": "C",
+  "timeframe": "15m",
+  "source_fingerprint": {
+    "combined": {
+      "count": 1,
+      "digest": "92a5e9fd616eb3b62738d0e3f3b1bc603eef9520b578cf0e8bef2f671f5e6a0a",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_24h_shift12h/15m_HTF_combined.parquet"
+      ]
+    }
+  },
+  "schema_columns": [
+    "timestamp",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "period_8h_start",
+    "batch_id",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "bar_in_batch_norm",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours",
+    "bar_pos",
+    "bb_middle",
+    "bb_std",
+    "bb_upper",
+    "bb_lower",
+    "bb_position_pct",
+    "segment_2h",
+    "dist_avg_high",
+    "dist_avg_low",
+    "dist_top5_high",
+    "dist_bot5_low",
+    "remaining_bars"
+  ],
+  "rebuild_mode": "full_first_build",
+  "updated_at": "2026-03-18T09:59:59.612978+00:00",
+  "stage": "distance_metrics",
+  "batch_regime": "24h",
+  "batch_duration_hours": 24,
+  "family_shift_hours": 12,
+  "anchor_utc": "1970-01-01T00:00:00+00:00",
+  "entry_window_hours": 12,
+  "rows": 1296,
+  "batches": 14,
+  "rows_per_batch": 96,
+  "output_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_24h_shift12h/15m_distance_metrics.parquet",
+  "rebuild_reasons": [
+    "missing_meta"
+  ],
+  "updated_batches": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "updated_batches_count": 14
+}

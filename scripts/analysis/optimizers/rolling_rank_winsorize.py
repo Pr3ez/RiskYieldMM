@@ -36,8 +36,20 @@ from typing import Literal
 
 import numpy as np
 import pandas as pd
-from numba import njit, prange
 from scipy.stats import norm
+
+try:
+    from numba import njit, prange
+except ModuleNotFoundError:
+    # Keep the optimizer functional in environments where numba is absent.
+    def njit(*args, **kwargs):
+        def wrap(func):
+            return func
+
+        return wrap
+
+    def prange(*args):
+        return range(*args)
 
 
 @njit(cache=True)

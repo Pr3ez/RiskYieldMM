@@ -1,0 +1,507 @@
+{
+  "created_at": "2026-03-18T13:19:23",
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "backup_root": "/media/przem/linux_data/RiskYieldMM (Copy)/backups/htf_production_snapshot_pre_phase9_20260318_131026",
+  "purpose": "Pre-Phase-9 snapshot of production HTF artifacts before richer-feature schema promotion.",
+  "source_roots": [
+    "data/htf_backtest",
+    "data/htf_backtest_shift4h",
+    "data/htf_backtest_24h",
+    "data/htf_backtest_24h_shift12h",
+    "data/htf_backtest_7d",
+    "data/htf_backtest_7d_shift84h",
+    "data/htf_features",
+    "data/htf_features_shift4h",
+    "data/htf_features_24h",
+    "data/htf_features_24h_shift12h",
+    "data/htf_features_7d",
+    "data/htf_features_7d_shift84h",
+    "data/htf_4class_labels",
+    "data/htf_4class_labels_shift4h",
+    "data/htf_4class_labels_24h",
+    "data/htf_4class_labels_24h_shift12h",
+    "data/htf_4class_labels_7d",
+    "data/htf_4class_labels_7d_shift84h",
+    "data/htf_optimized",
+    "data/htf_optimized_shift4h",
+    "data/htf_optimized_24h",
+    "data/htf_optimized_24h_shift12h",
+    "data/htf_optimized_7d",
+    "data/htf_optimized_7d_shift84h",
+    "data/htf_with_helpers",
+    "data/htf_with_helpers_shift4h",
+    "data/htf_with_helpers_24h",
+    "data/htf_with_helpers_24h_shift12h",
+    "data/htf_with_helpers_7d",
+    "data/htf_with_helpers_7d_shift84h",
+    "data/htf_helper_cache"
+  ],
+  "verification_passed": true,
+  "roots": {
+    "data/htf_backtest": {
+      "source": {
+        "files": 13,
+        "dirs": 0,
+        "total_size_bytes": 117141367,
+        "latest_mtime_ns": 1773727094578648063
+      },
+      "backup": {
+        "files": 13,
+        "dirs": 0,
+        "total_size_bytes": 117141367,
+        "latest_mtime_ns": 1773727094578648063
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_backtest_shift4h": {
+      "source": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63291333,
+        "latest_mtime_ns": 1773727830041581618
+      },
+      "backup": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63291333,
+        "latest_mtime_ns": 1773727830041581618
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_backtest_24h": {
+      "source": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63312658,
+        "latest_mtime_ns": 1773748320937025119
+      },
+      "backup": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63312658,
+        "latest_mtime_ns": 1773748320937025119
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_backtest_24h_shift12h": {
+      "source": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63296518,
+        "latest_mtime_ns": 1773749194564977221
+      },
+      "backup": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 63296518,
+        "latest_mtime_ns": 1773749194564977221
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_backtest_7d": {
+      "source": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 66256663,
+        "latest_mtime_ns": 1773763701272416769
+      },
+      "backup": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 66256663,
+        "latest_mtime_ns": 1773763701272416769
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_backtest_7d_shift84h": {
+      "source": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 65836930,
+        "latest_mtime_ns": 1773769413967972559
+      },
+      "backup": {
+        "files": 6,
+        "dirs": 0,
+        "total_size_bytes": 65836930,
+        "latest_mtime_ns": 1773769413967972559
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features": {
+      "source": {
+        "files": 16914,
+        "dirs": 3,
+        "total_size_bytes": 2961892849,
+        "latest_mtime_ns": 1773653271144960583
+      },
+      "backup": {
+        "files": 16914,
+        "dirs": 3,
+        "total_size_bytes": 2961892849,
+        "latest_mtime_ns": 1773653271144960583
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features_shift4h": {
+      "source": {
+        "files": 11340,
+        "dirs": 2,
+        "total_size_bytes": 2386668830,
+        "latest_mtime_ns": 1773727829716960446
+      },
+      "backup": {
+        "files": 11340,
+        "dirs": 2,
+        "total_size_bytes": 2386668830,
+        "latest_mtime_ns": 1773727829716960446
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features_24h": {
+      "source": {
+        "files": 3782,
+        "dirs": 2,
+        "total_size_bytes": 2054232694,
+        "latest_mtime_ns": 1773748320407616815
+      },
+      "backup": {
+        "files": 3782,
+        "dirs": 2,
+        "total_size_bytes": 2054232694,
+        "latest_mtime_ns": 1773748320407616815
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features_24h_shift12h": {
+      "source": {
+        "files": 3782,
+        "dirs": 2,
+        "total_size_bytes": 2064117780,
+        "latest_mtime_ns": 1773749194050429625
+      },
+      "backup": {
+        "files": 3782,
+        "dirs": 2,
+        "total_size_bytes": 2064117780,
+        "latest_mtime_ns": 1773749194050429625
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features_7d": {
+      "source": {
+        "files": 544,
+        "dirs": 2,
+        "total_size_bytes": 1912817685,
+        "latest_mtime_ns": 1773763697874688964
+      },
+      "backup": {
+        "files": 544,
+        "dirs": 2,
+        "total_size_bytes": 1912817685,
+        "latest_mtime_ns": 1773763697874688964
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_features_7d_shift84h": {
+      "source": {
+        "files": 544,
+        "dirs": 2,
+        "total_size_bytes": 1924114965,
+        "latest_mtime_ns": 1773769410295726993
+      },
+      "backup": {
+        "files": 544,
+        "dirs": 2,
+        "total_size_bytes": 1924114965,
+        "latest_mtime_ns": 1773769410295726993
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels": {
+      "source": {
+        "files": 17010,
+        "dirs": 3,
+        "total_size_bytes": 503717205,
+        "latest_mtime_ns": 1773727246824607664
+      },
+      "backup": {
+        "files": 17010,
+        "dirs": 3,
+        "total_size_bytes": 503717205,
+        "latest_mtime_ns": 1773727246824607664
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels_shift4h": {
+      "source": {
+        "files": 11340,
+        "dirs": 2,
+        "total_size_bytes": 406571051,
+        "latest_mtime_ns": 1773727981818520123
+      },
+      "backup": {
+        "files": 11340,
+        "dirs": 2,
+        "total_size_bytes": 406571051,
+        "latest_mtime_ns": 1773727981818520123
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels_24h": {
+      "source": {
+        "files": 1891,
+        "dirs": 1,
+        "total_size_bytes": 256521514,
+        "latest_mtime_ns": 1773748469562481348
+      },
+      "backup": {
+        "files": 1891,
+        "dirs": 1,
+        "total_size_bytes": 256521514,
+        "latest_mtime_ns": 1773748469562481348
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels_24h_shift12h": {
+      "source": {
+        "files": 1891,
+        "dirs": 1,
+        "total_size_bytes": 256962452,
+        "latest_mtime_ns": 1773749341157710273
+      },
+      "backup": {
+        "files": 1891,
+        "dirs": 1,
+        "total_size_bytes": 256962452,
+        "latest_mtime_ns": 1773749341157710273
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels_7d": {
+      "source": {
+        "files": 271,
+        "dirs": 1,
+        "total_size_bytes": 235842477,
+        "latest_mtime_ns": 1773763881538242159
+      },
+      "backup": {
+        "files": 271,
+        "dirs": 1,
+        "total_size_bytes": 235842477,
+        "latest_mtime_ns": 1773763881538242159
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_4class_labels_7d_shift84h": {
+      "source": {
+        "files": 271,
+        "dirs": 1,
+        "total_size_bytes": 234936995,
+        "latest_mtime_ns": 1773769592605578632
+      },
+      "backup": {
+        "files": 271,
+        "dirs": 1,
+        "total_size_bytes": 234936995,
+        "latest_mtime_ns": 1773769592605578632
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized": {
+      "source": {
+        "files": 33822,
+        "dirs": 15,
+        "total_size_bytes": 2317246574,
+        "latest_mtime_ns": 1773727516384224477
+      },
+      "backup": {
+        "files": 33822,
+        "dirs": 15,
+        "total_size_bytes": 2317246574,
+        "latest_mtime_ns": 1773727516384224477
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized_shift4h": {
+      "source": {
+        "files": 11404,
+        "dirs": 6,
+        "total_size_bytes": 921750757,
+        "latest_mtime_ns": 1773728250131904696
+      },
+      "backup": {
+        "files": 11404,
+        "dirs": 6,
+        "total_size_bytes": 921750757,
+        "latest_mtime_ns": 1773728250131904696
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized_24h": {
+      "source": {
+        "files": 1923,
+        "dirs": 3,
+        "total_size_bytes": 417930950,
+        "latest_mtime_ns": 1773749126970818281
+      },
+      "backup": {
+        "files": 1923,
+        "dirs": 3,
+        "total_size_bytes": 417930950,
+        "latest_mtime_ns": 1773749126970818281
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized_24h_shift12h": {
+      "source": {
+        "files": 1923,
+        "dirs": 3,
+        "total_size_bytes": 431884110,
+        "latest_mtime_ns": 1773749994912867167
+      },
+      "backup": {
+        "files": 1923,
+        "dirs": 3,
+        "total_size_bytes": 431884110,
+        "latest_mtime_ns": 1773749994912867167
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized_7d": {
+      "source": {
+        "files": 303,
+        "dirs": 3,
+        "total_size_bytes": 297164862,
+        "latest_mtime_ns": 1773769376913474667
+      },
+      "backup": {
+        "files": 303,
+        "dirs": 3,
+        "total_size_bytes": 297164862,
+        "latest_mtime_ns": 1773769376913474667
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_optimized_7d_shift84h": {
+      "source": {
+        "files": 303,
+        "dirs": 3,
+        "total_size_bytes": 295589469,
+        "latest_mtime_ns": 1773776467151760132
+      },
+      "backup": {
+        "files": 303,
+        "dirs": 3,
+        "total_size_bytes": 295589469,
+        "latest_mtime_ns": 1773776467151760132
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers": {
+      "source": {
+        "files": 33630,
+        "dirs": 9,
+        "total_size_bytes": 3434216507,
+        "latest_mtime_ns": 1773727691176596584
+      },
+      "backup": {
+        "files": 33630,
+        "dirs": 9,
+        "total_size_bytes": 3434216507,
+        "latest_mtime_ns": 1773727691176596584
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers_shift4h": {
+      "source": {
+        "files": 11340,
+        "dirs": 4,
+        "total_size_bytes": 1348058310,
+        "latest_mtime_ns": 1773748209790955122
+      },
+      "backup": {
+        "files": 11340,
+        "dirs": 4,
+        "total_size_bytes": 1348058310,
+        "latest_mtime_ns": 1773748209790955122
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers_24h": {
+      "source": {
+        "files": 1891,
+        "dirs": 2,
+        "total_size_bytes": 666855972,
+        "latest_mtime_ns": 1773749154584245816
+      },
+      "backup": {
+        "files": 1891,
+        "dirs": 2,
+        "total_size_bytes": 666855972,
+        "latest_mtime_ns": 1773749154584245816
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers_24h_shift12h": {
+      "source": {
+        "files": 1891,
+        "dirs": 2,
+        "total_size_bytes": 680441299,
+        "latest_mtime_ns": 1773763592455134247
+      },
+      "backup": {
+        "files": 1891,
+        "dirs": 2,
+        "total_size_bytes": 680441299,
+        "latest_mtime_ns": 1773763592455134247
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers_7d": {
+      "source": {
+        "files": 271,
+        "dirs": 2,
+        "total_size_bytes": 517244601,
+        "latest_mtime_ns": 1773769391174179032
+      },
+      "backup": {
+        "files": 271,
+        "dirs": 2,
+        "total_size_bytes": 517244601,
+        "latest_mtime_ns": 1773769391174179032
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_with_helpers_7d_shift84h": {
+      "source": {
+        "files": 271,
+        "dirs": 2,
+        "total_size_bytes": 514192185,
+        "latest_mtime_ns": 1773796047512164057
+      },
+      "backup": {
+        "files": 271,
+        "dirs": 2,
+        "total_size_bytes": 514192185,
+        "latest_mtime_ns": 1773796047512164057
+      },
+      "verified_equal_files_and_bytes": true
+    },
+    "data/htf_helper_cache": {
+      "source": {
+        "files": 24845,
+        "dirs": 16,
+        "total_size_bytes": 2425322508,
+        "latest_mtime_ns": 1773796040484812075
+      },
+      "backup": {
+        "files": 24845,
+        "dirs": 16,
+        "total_size_bytes": 2425322508,
+        "latest_mtime_ns": 1773796040484812075
+      },
+      "verified_equal_files_and_bytes": true
+    }
+  }
+}
