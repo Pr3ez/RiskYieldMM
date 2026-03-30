@@ -49,6 +49,11 @@ from scripts.analysis.optimizers.rolling_rank_winsorize import (
     RollingRankWinsorizeTransformer,
     get_winsorize_rank_candidates,
 )
+from scripts.feature_engineering.htf_feature_acceptance import (
+    FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE,
+    FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+    get_final_output_excluded_columns,
+)
 
 
 @dataclass
@@ -95,33 +100,103 @@ class HTFOptimizationConfig:
         return self.htf_optimized_dir_override or (self.project_root / "data" / "htf_optimized")
 
 
-def get_feature_cols(df: pl.DataFrame) -> list[str]:
-    """Get feature columns (exclude meta and datetime)."""
-    meta_cols = {
-        "timestamp",
-        "batch_id",
-        "target_long",
-        "target_short",
-        "target_4class",
-        "target_breakfree",
-        "target_name",
-        "period_8h_start",
-        "batch_family",
-        "family_batch_id",
-        "family_period_start",
-        "family_period_end",
-        "family_bar_pos",
-        "source_base_batch_id",
-        "source_base_period_start",
-        "source_half_in_base",
-        "is_label_half",
-    }
-    datetime_types = {pl.Datetime, pl.Date, pl.Time}
-    return [
-        c
-        for c in df.columns
-        if c not in meta_cols and df[c].dtype not in datetime_types
-    ]
+OPTIMIZER_META_COLS = {
+    "timestamp",
+    "batch_id",
+    "target_long",
+    "target_short",
+    "target_4class",
+    "target_breakfree",
+    "target_name",
+    "period_8h_start",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours",
+}
+
+
+def _non_nullish_count_expr(col: str, dtype: pl.DataType) -> pl.Expr:
+    expr = pl.col(col).is_not_null()
+    if dtype.is_float():
+        expr = expr & ~pl.col(col).is_nan()
+    return expr.sum().alias(col)
+
+
+def get_feature_cols(df: pl.DataFrame, *, output_stage: str = "optimized") -> list[str]:
+    """
+    Get transformable feature columns for optimization.
+
+    The optimizer is numeric-only. Multi-regime batches carry additional
+    bookkeeping fields like `batch_regime` and `anchor_utc`; these must stay in
+    batch metadata and never enter the rolling rank-winsorize transformer.
+
+    Columns that are explicitly blocked by the final-output feature acceptance
+    policy are excluded first. Columns that are entirely null/NaN after target
+    gating are excluded next. Keeping either class would only preserve
+    structurally unusable columns in optimized/helper outputs.
+    """
+    feature_cols: list[str] = []
+    for col in df.columns:
+        dtype = df.schema[col]
+        if col in OPTIMIZER_META_COLS:
+            continue
+        if not dtype.is_numeric():
+            continue
+        feature_cols.append(col)
+
+    policy_blocked = get_final_output_excluded_columns(
+        feature_cols,
+        stage=output_stage,
+    )
+    if policy_blocked:
+        preview = ", ".join(policy_blocked[:8])
+        suffix = "" if len(policy_blocked) <= 8 else ", ..."
+        print(
+            "  → Excluding policy-blocked model feature columns: "
+            f"count={len(policy_blocked)} first={preview}{suffix}"
+        )
+        blocked_set = set(policy_blocked)
+        feature_cols = [col for col in feature_cols if col not in blocked_set]
+
+    if not feature_cols or df.is_empty():
+        return feature_cols
+
+    non_null_counts = df.select(
+        [pl.len().alias("__rows__")]
+        + [_non_nullish_count_expr(col, df.schema[col]) for col in feature_cols]
+    )
+    rows = int(non_null_counts["__rows__"][0]) if len(non_null_counts) > 0 else 0
+    if rows <= 0:
+        return feature_cols
+
+    kept_cols: list[str] = []
+    dropped_cols: list[str] = []
+    for col in feature_cols:
+        if int(non_null_counts[col][0]) > 0:
+            kept_cols.append(col)
+        else:
+            dropped_cols.append(col)
+
+    if dropped_cols:
+        preview = ", ".join(dropped_cols[:8])
+        suffix = "" if len(dropped_cols) <= 8 else ", ..."
+        print(
+            "  → Excluding all-null model feature columns: "
+            f"count={len(dropped_cols)} first={preview}{suffix}"
+        )
+
+    return kept_cols
 
 
 def _batch_id_from_stem(stem: str) -> int:
@@ -199,7 +274,7 @@ def load_early_batches(
     tf: str,
     target: str,
     config: HTFOptimizationConfig,
-) -> tuple[pd.DataFrame, pd.Series]:
+) -> tuple[pd.DataFrame, pd.Series, list[str]]:
     """
     Load FIRST N batches chronologically for walk-forward validation.
 
@@ -247,27 +322,27 @@ def load_early_batches(
 
     print(f"  → {len(merged):,} rows from early history (sorted by timestamp)")
 
+    gated_targets = {"target_4class", "target_breakfree"}
+    if target in gated_targets:
+        merged = merged.filter(pl.col(target) >= 0)
+        print(f"  → Filtered to {len(merged):,} valid rows (target >= 0)")
+
     # Get feature columns
-    feature_cols = get_feature_cols(merged)
+    feature_cols = get_feature_cols(merged, output_stage="optimized")
 
     # Convert to pandas
     X = merged.select(feature_cols).to_pandas()
 
     # Handle categorical target (4-class) vs binary
     if target in {"target_4class"}:
-        # For multiclass: convert to int, filter valid (-1 = invalid)
-        y_raw = merged[target].to_pandas()
-        valid_mask = y_raw >= 0
-        X = X[valid_mask].reset_index(drop=True)
-        y = y_raw[valid_mask].astype(int).reset_index(drop=True)
-        print(f"  → Filtered to {len(y):,} valid rows (target >= 0)")
+        y = merged[target].to_pandas().astype(int)
     else:
         y = merged[target].to_pandas().astype(float)
 
     del merged
     gc.collect()
 
-    return X, y
+    return X, y, feature_cols
 
 
 def walk_forward_validate(
@@ -456,6 +531,7 @@ def apply_streaming_to_all_batches(
     best_config: dict,
     config: HTFOptimizationConfig,
     cached_meta: dict | None = None,
+    selected_feature_cols: list[str] | None = None,
 ) -> dict:
     """
     Apply transformer to ALL batches in streaming mode.
@@ -552,7 +628,9 @@ def apply_streaming_to_all_batches(
     state_dir.mkdir(parents=True, exist_ok=True)
 
     state = None  # Transformer state
-    state_feature_cols: list[str] | None = None
+    state_feature_cols: list[str] | None = (
+        list(selected_feature_cols) if selected_feature_cols else None
+    )
     start_batch = first_batch
     resume_reason = "full_recompute"
 
@@ -576,14 +654,21 @@ def apply_streaming_to_all_batches(
 
     if config.incremental_update and not config.recompute and cached_meta:
         prev_fps = cached_meta.get("batch_fingerprints", {})
-        first_diff = None
-        for rec in pairs:
-            bid = int(rec["batch_id"])
-            bid_key = str(bid)
-            out_ok = bid in output_files and output_files[bid].exists()
-            if (bid_key not in prev_fps) or (prev_fps[bid_key] != current_fingerprints[bid_key]) or (not out_ok):
-                first_diff = bid
-                break
+        policy_changed = (
+            cached_meta.get("final_output_feature_policy_version")
+            != FINAL_OUTPUT_FEATURE_POLICY_VERSION
+            or cached_meta.get("final_output_feature_policy_signature")
+            != FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE
+        )
+        first_diff = first_batch if policy_changed else None
+        if not policy_changed:
+            for rec in pairs:
+                bid = int(rec["batch_id"])
+                bid_key = str(bid)
+                out_ok = bid in output_files and output_files[bid].exists()
+                if (bid_key not in prev_fps) or (prev_fps[bid_key] != current_fingerprints[bid_key]) or (not out_ok):
+                    first_diff = bid
+                    break
 
         if first_diff is None:
             total_rows = sum(int(per_batch_rows.get(str(b), 0)) for b in pair_batch_ids)
@@ -603,15 +688,18 @@ def apply_streaming_to_all_batches(
                 "feature_cols": cached_meta.get("feature_cols", []),
             }
 
-        # Try to load most recent snapshot strictly before the first changed batch
+        # Try to load most recent snapshot strictly before the first changed
+        # batch. A policy change invalidates the prior feature-column set, so
+        # snapshots are intentionally ignored in that case.
         snapshot_candidates: list[tuple[int, Path]] = []
-        for p in sorted(state_dir.glob("state_after_batch_*.npz")):
-            try:
-                snap_bid = _batch_id_from_stem(p.stem.replace("state_after_", ""))
-            except Exception:
-                continue
-            if snap_bid < first_diff:
-                snapshot_candidates.append((snap_bid, p))
+        if not policy_changed:
+            for p in sorted(state_dir.glob("state_after_batch_*.npz")):
+                try:
+                    snap_bid = _batch_id_from_stem(p.stem.replace("state_after_", ""))
+                except Exception:
+                    continue
+                if snap_bid < first_diff:
+                    snapshot_candidates.append((snap_bid, p))
         snapshot_candidates = sorted(snapshot_candidates, key=lambda x: x[0], reverse=True)
 
         loaded_snapshot = False
@@ -631,7 +719,14 @@ def apply_streaming_to_all_batches(
 
         if not loaded_snapshot:
             start_batch = first_batch
-            resume_reason = f"full_recompute_from_{first_batch}_first_diff_{first_diff}"
+            if policy_changed:
+                state_feature_cols = None
+                resume_reason = (
+                    f"full_recompute_from_{first_batch}_policy_"
+                    f"{FINAL_OUTPUT_FEATURE_POLICY_VERSION}"
+                )
+            else:
+                resume_reason = f"full_recompute_from_{first_batch}_first_diff_{first_diff}"
 
     total_rows = 0
     feature_cols = state_feature_cols
@@ -701,11 +796,14 @@ def apply_streaming_to_all_batches(
 
         # Get feature columns (first batch only)
         if feature_cols is None:
-            feature_cols = get_feature_cols(merged)
+            feature_cols = get_feature_cols(merged, output_stage="optimized")
 
         # Convert to pandas
         X_pd = merged.select(feature_cols).to_pandas()
-        meta_cols = [c for c in merged.columns if c not in feature_cols]
+        # Preserve only true batch metadata. Any numeric column excluded from
+        # `feature_cols` is intentionally being dropped from model-facing
+        # outputs and must not leak back in through the metadata side.
+        meta_cols = [c for c in merged.columns if c in OPTIMIZER_META_COLS]
         meta = merged.select(meta_cols)
 
         del merged
@@ -833,7 +931,18 @@ def optimize_single_tf_target(
             cached_meta = None
             cached_config = None
 
+    policy_changed = bool(
+        cached_meta
+        and (
+            cached_meta.get("final_output_feature_policy_version")
+            != FINAL_OUTPUT_FEATURE_POLICY_VERSION
+            or cached_meta.get("final_output_feature_policy_signature")
+            != FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE
+        )
+    )
+
     selection_info = None
+    selected_feature_cols: list[str] | None = None
     if cached_config is not None:
         print("  ✓ Cached best config found. Skipping grid search.")
         selection_info = {
@@ -858,12 +967,20 @@ def optimize_single_tf_target(
             "summary": cached_meta.get("best_config_summary") if cached_meta else None,
         }
         best_config = cached_config
+        if policy_changed:
+            print(
+                "  → Final-output feature policy changed; cached model-facing "
+                "feature column set will be recomputed."
+            )
+        elif cached_meta and isinstance(cached_meta.get("feature_cols"), list):
+            selected_feature_cols = [str(col) for col in cached_meta["feature_cols"]]
     else:
         # Step 1: Load EARLY batches for walk-forward validation
-        X_sample, y_sample = load_early_batches(tf, target, config)
+        X_sample, y_sample, selected_feature_cols = load_early_batches(tf, target, config)
 
         # Step 2: Select best config using walk-forward validation
         selection_info = select_best_config(X_sample, y_sample, tf, target, config)
+        selection_info["feature_cols"] = list(selected_feature_cols or X_sample.columns.tolist())
         best_config = selection_info["config"]
 
         del X_sample, y_sample
@@ -876,6 +993,7 @@ def optimize_single_tf_target(
         best_config=best_config,
         config=config,
         cached_meta=cached_meta,
+        selected_feature_cols=selected_feature_cols,
     )
     total_rows = int(apply_info["total_rows"])
 
@@ -929,6 +1047,8 @@ def optimize_single_tf_target(
             "start_batch": apply_info.get("start_batch"),
             "end_batch": apply_info.get("end_batch"),
             "feature_cols": apply_info.get("feature_cols", []),
+            "final_output_feature_policy_version": FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+            "final_output_feature_policy_signature": FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE,
             "batch_fingerprints": apply_info.get("batch_fingerprints", {}),
             "per_batch_rows": apply_info.get("per_batch_rows", {}),
             "per_batch_last_timestamp": apply_info.get("per_batch_last_timestamp", {}),

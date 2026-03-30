@@ -1,0 +1,95 @@
+{
+  "legacy_production_probe": {
+    "1m": {
+      "current_columns": 116,
+      "expected_columns": 146,
+      "rebuild_reasons": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ],
+      "aux_source_files": 6
+    },
+    "15m": {
+      "current_columns": 116,
+      "expected_columns": 146,
+      "rebuild_reasons": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ],
+      "aux_source_files": 6
+    }
+  },
+  "multi_regime_production_probe": {
+    "8h": {
+      "1m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ],
+      "15m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ]
+    },
+    "24h": {
+      "1m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ],
+      "15m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ]
+    },
+    "7d": {
+      "1m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ],
+      "15m": [
+        "artifact_version",
+        "source_fingerprint",
+        "schema_columns"
+      ]
+    }
+  },
+  "resume_smoke_second_run": {
+    "combined_1m": "current",
+    "features_B_1m": {
+      "status": "current",
+      "run_mode": "current"
+    },
+    "features_B_15m": {
+      "status": "current",
+      "run_mode": "current"
+    },
+    "features_C_1m": {
+      "status": "current",
+      "run_mode": "current",
+      "skipped_batches": 24
+    },
+    "features_C_15m": {
+      "status": "current",
+      "run_mode": "current",
+      "skipped_batches": 24
+    },
+    "labels_B_1m": {
+      "status": "current",
+      "run_mode": "current"
+    },
+    "labels_C_1m": {
+      "status": "current",
+      "run_mode": "current"
+    }
+  },
+  "artifacts": {
+    "smoke_dir": "test_output/resume_logic_smoke",
+    "smoke_summary": "test_output/resume_logic_smoke/inspect_summary.txt"
+  }
+}

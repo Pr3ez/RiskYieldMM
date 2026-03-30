@@ -1,0 +1,20 @@
+[
+  {
+    "regime": "7d",
+    "family": "B",
+    "tf": "1m",
+    "stage": "labels",
+    "check": "batch_ids_cover_expected_prefix",
+    "ok": false,
+    "detail": "missing_prefix=1 extra=0 trailing_missing=0 first_missing_prefix=[1] first_extra=[]"
+  },
+  {
+    "regime": "7d",
+    "family": "C",
+    "tf": "1m",
+    "stage": "labels",
+    "check": "batch_ids_cover_expected_prefix",
+    "ok": false,
+    "detail": "missing_prefix=1 extra=0 trailing_missing=0 first_missing_prefix=[1] first_extra=[]"
+  }
+]

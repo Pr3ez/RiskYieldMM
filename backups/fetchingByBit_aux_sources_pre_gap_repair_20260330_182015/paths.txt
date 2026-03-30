@@ -1,0 +1,15 @@
+fetchingByBit/index-price-15m-bybit-linear
+fetchingByBit/index-price-1h-bybit-linear
+fetchingByBit/index-price-1m-bybit-linear
+fetchingByBit/index-price-4h-bybit-linear
+fetchingByBit/index-price-5m-bybit-linear
+fetchingByBit/mark-price-15m-bybit-linear
+fetchingByBit/mark-price-1h-bybit-linear
+fetchingByBit/mark-price-1m-bybit-linear
+fetchingByBit/mark-price-4h-bybit-linear
+fetchingByBit/mark-price-5m-bybit-linear
+fetchingByBit/premium-price-15m-bybit-linear
+fetchingByBit/premium-price-1h-bybit-linear
+fetchingByBit/premium-price-1m-bybit-linear
+fetchingByBit/premium-price-4h-bybit-linear
+fetchingByBit/premium-price-5m-bybit-linear

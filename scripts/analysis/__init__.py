@@ -23,7 +23,15 @@ Usage:
 
 
 """
+from . import config, data, features, models
 
-from . import config, data, features, models, viz
+# Keep analysis utilities importable in headless/runtime-only environments
+# where plotting dependencies are intentionally absent.
+try:
+    from . import viz
+except ModuleNotFoundError as exc:
+    if exc.name not in {"matplotlib", "matplotlib.pyplot"}:
+        raise
+    viz = None
 
 __all__ = ["config", "data", "features", "models", "viz"]

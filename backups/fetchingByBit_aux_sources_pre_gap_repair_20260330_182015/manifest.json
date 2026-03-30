@@ -1,0 +1,80 @@
+{
+  "backup_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/backups/fetchingByBit_aux_sources_pre_gap_repair_20260330_182015",
+  "entries": [
+    {
+      "path": "fetchingByBit/index-price-15m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 3577578
+    },
+    {
+      "path": "fetchingByBit/index-price-1h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 913156
+    },
+    {
+      "path": "fetchingByBit/index-price-1m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 52091518
+    },
+    {
+      "path": "fetchingByBit/index-price-4h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 242478
+    },
+    {
+      "path": "fetchingByBit/index-price-5m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 10599207
+    },
+    {
+      "path": "fetchingByBit/mark-price-15m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 3537169
+    },
+    {
+      "path": "fetchingByBit/mark-price-1h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 906067
+    },
+    {
+      "path": "fetchingByBit/mark-price-1m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 50951125
+    },
+    {
+      "path": "fetchingByBit/mark-price-4h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 239628
+    },
+    {
+      "path": "fetchingByBit/mark-price-5m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 10422993
+    },
+    {
+      "path": "fetchingByBit/premium-price-15m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 5287504
+    },
+    {
+      "path": "fetchingByBit/premium-price-1h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 1384948
+    },
+    {
+      "path": "fetchingByBit/premium-price-1m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 67654340
+    },
+    {
+      "path": "fetchingByBit/premium-price-4h-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 389577
+    },
+    {
+      "path": "fetchingByBit/premium-price-5m-bybit-linear",
+      "file_count": 1,
+      "total_size_bytes": 15555622
+    }
+  ]
+}

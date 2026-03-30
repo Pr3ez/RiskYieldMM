@@ -1,0 +1,110 @@
+{
+  "run_id": "htf_pythonscript_20260330_024953_pid43258",
+  "rotation_manifest": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/ris172_rotation_manifest_20260330_024944.json",
+  "optimized": {
+    "htf_optimized": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 5670,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T01:01:30.714844+00:00"
+      },
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_optimized_shift4h": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 5669,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T01:14:34.568432+00:00"
+      },
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_optimized_24h": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 1890,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T01:32:30.257052+00:00"
+      },
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_optimized_24h_shift12h": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 1890,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T01:49:46.815034+00:00"
+      },
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_optimized_7d": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 270,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T03:53:37.333564+00:00"
+      },
+      "sample_batch": "batch_0002.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_optimized_7d_shift84h": {
+      "meta": {
+        "policy_version": "2026-03-30-b8d1c43c8001",
+        "policy_signature": "b8d1c43c8001e5f08f40a8087ecc8a6551a4331aa227d6290cac736411670fd0",
+        "resume_reason": "full_recompute",
+        "saved_batches": 270,
+        "reused_batches": 0,
+        "skipped_batches": 0,
+        "timestamp": "2026-03-30T05:42:42.799017+00:00"
+      },
+      "sample_batch": "batch_0002.parquet",
+      "blocked_columns_present": []
+    }
+  },
+  "helpers": {
+    "htf_with_helpers": {
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_with_helpers_shift4h": {
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_with_helpers_24h": {
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_with_helpers_24h_shift12h": {
+      "sample_batch": "batch_0001.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_with_helpers_7d": {
+      "sample_batch": "batch_0002.parquet",
+      "blocked_columns_present": []
+    },
+    "htf_with_helpers_7d_shift84h": {
+      "sample_batch": "batch_0002.parquet",
+      "blocked_columns_present": []
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "stage_dir": "test_output/fetchingByBit_aux_stage_20260330_182045",
+  "symbol": "BTCUSDT",
+  "category": "linear",
+  "intervals": ["1","5","15","60","240"],
+  "types": ["mark","index","premium"],
+  "start_date": "2021-01-01",
+  "end_date": "now"
+}

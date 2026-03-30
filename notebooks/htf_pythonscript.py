@@ -1,37 +1,51 @@
 # %% [markdown]
 # # HTF Strategy Backtest
 #
-# ## Data Preparation Summary
+# Notebook structure note:
+# - Cells `1-13` are the retained legacy `8h` notebook flow. They remain useful
+#   for debug, back-compat, and legacy `5m` work, but they are not the supported
+#   production path anymore.
+# - Cell `14` is the supported production runner and the source of truth for
+#   shared HTF materialization across `8h`, `24h`, and `7d`.
+# - Legacy names like `period_8h_start` and `shift4h` are intentionally kept in
+#   older cells for backward compatibility. The shared path keeps
+#   `period_8h_start` as a compatibility alias and records the real regime in
+#   metadata such as `batch_regime`, `batch_duration_hours`, and
+#   `family_shift_hours`.
 #
+# ## Storage overview
 #
-# | Timeframe | Batches | Rows/Batch | Total Rows | Combined File |
-# |-----------|---------|------------|------------|---------------|
-# | 1m | 5,574 | 480 | 2,675,634 | `1m_HTF_combined.parquet` (41.6 MB) |
-# for now only 1m timeframe since it prove best performance
-# | 5m | 5,574 | 96 | 535,060 | `5m_HTF_combined.parquet` (8.9 MB) |
-# | 15m | 5,574 | 32 | 178,354 | `15m_HTF_combined.parquet` (3.1 MB) |
-# 15m timeframe also need computation in order to make labels
+# Legacy 8h roots used by Cells `1-13`:
+# - combined/backtest: `data/htf_backtest`, `data/htf_backtest_shift4h`
+# - features: `data/htf_features`, `data/htf_features_shift4h`
+# - labels: `data/htf_4class_labels`, `data/htf_4class_labels_shift4h`
+# - optimized: `data/htf_optimized`, `data/htf_optimized_shift4h`
+# - helpers: `data/htf_with_helpers`, `data/htf_with_helpers_shift4h`
 #
-# **Data structure:**
-# - Each batch covers one 8h period (00:00-08:00, 08:00-16:00, or 16:00-00:00 UTC)
-# - Columns: `timestamp`, `open`, `high`, `low`, `close`, `volume`, `period_8h_start`, `batch_id`
+# Shared multi-regime roots used by Cell `14`:
+# - `8h`: base roots above plus the `shift4h` family-C compatibility roots
+# - `24h`: `data/htf_*_24h` and `data/htf_*_24h_shift12h`
+# - `7d`: `data/htf_*_7d` and `data/htf_*_7d_shift84h`
 #
-#
-# **File locations:**
-# - Individual batches: `data/htf_backtest/{tf}_HTF_backtest_XXXX.parquet`
-# - Combined files: `data/htf_backtest/{tf}_HTF_combined.parquet`
+# The shared production path writes and validates the current HTF artifacts.
+# The legacy cells below are preserved for reference, notebook replay, and
+# legacy-only workflows, not as a second production engine.
 
 # %%
 # =============================================================================
-# CELL 2: SETUP & PATHS (No data loading - just config)
+# CELL 2: SETUP, PATHS, AND SHARED-PRODUCTION WRAPPER
 # =============================================================================
 import gc
-import hashlib
+import os
 import json
-import shutil
 import sys
+import time
+import atexit
+import builtins
+import threading
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import polars as pl
 
@@ -68,6 +82,31 @@ def resolve_project_root() -> Path:
 PROJECT_ROOT = resolve_project_root()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+from scripts.feature_engineering.htf_artifact_utils import (
+    artifact_meta_payload as _shared_artifact_meta_payload,
+    artifact_rebuild_reasons as _shared_artifact_rebuild_reasons,
+    clear_artifact_target as _shared_clear_artifact_target,
+    find_batch_missing_required_columns as _shared_find_batch_missing_required_columns,
+    fingerprint_batch_dir as _shared_fingerprint_batch_dir,
+    fingerprint_paths as _shared_fingerprint_paths,
+    load_json_safe as _shared_load_json_safe,
+    prepare_stage_rebuild as _shared_prepare_stage_rebuild,
+    schema_columns_for_batch_dir as _shared_schema_columns_for_batch_dir,
+)
+from scripts.feature_engineering.htf_kernels import (
+    _compute_past_distance_metrics as _shared_compute_past_distance_metrics,
+    compute_4class_labels as _shared_compute_4class_labels,
+    compute_distance_metrics as _shared_compute_distance_metrics,
+    compute_hybrid_distance_metrics as _shared_compute_hybrid_distance_metrics,
+)
+from scripts.feature_engineering.htf_shared_config import (
+    SHARED_BREAKFREE_THRESHOLD_1M,
+    SHARED_BREAKOUT_THRESHOLD,
+    SHARED_DISTANCE_WINDOWS_BY_TF,
+    SHARED_PIPELINE_ARTIFACT_VERSION,
+    SHARED_RISK_RATIO,
+    SHARED_THRESHOLDS_BY_TF,
+)
 DATA_DIR = PROJECT_ROOT / "data"
 HTF_BACKTEST_DIR = DATA_DIR / "htf_backtest"
 HTF_BACKTEST_SHIFT4H_DIR = DATA_DIR / "htf_backtest_shift4h"
@@ -79,6 +118,7 @@ HTF_OPTIMIZED_DIR = DATA_DIR / "htf_optimized"
 HTF_OPTIMIZED_SHIFT4H_DIR = DATA_DIR / "htf_optimized_shift4h"
 HTF_WITH_HELPERS_DIR = DATA_DIR / "htf_with_helpers"
 HTF_WITH_HELPERS_SHIFT4H_DIR = DATA_DIR / "htf_with_helpers_shift4h"
+HTF_HELPER_CACHE_DIR = DATA_DIR / "htf_helper_cache"
 RAW_DATA_DIR = PROJECT_ROOT / "fetchingByBit"
 
 # Create ALL required dirs (robust - works from scratch)
@@ -93,19 +133,365 @@ HTF_OPTIMIZED_DIR.mkdir(parents=True, exist_ok=True)
 HTF_OPTIMIZED_SHIFT4H_DIR.mkdir(parents=True, exist_ok=True)
 HTF_WITH_HELPERS_DIR.mkdir(parents=True, exist_ok=True)
 HTF_WITH_HELPERS_SHIFT4H_DIR.mkdir(parents=True, exist_ok=True)
+HTF_HELPER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
-# Active repair scope
-ENABLE_5M_PIPELINE = False
+RUN_DEBUG_OUTPUT_DIR = PROJECT_ROOT / "test_output" / "htf_run_logs"
+RUN_DEBUG_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+_previous_heartbeat_stop = getattr(builtins, "_HTF_NOTEBOOK_HEARTBEAT_STOP", None)
+if _previous_heartbeat_stop is not None:
+    _previous_heartbeat_stop.set()
+
+_ORIGINAL_PRINT = getattr(builtins, "_HTF_NOTEBOOK_ORIGINAL_PRINT", builtins.print)
+builtins._HTF_NOTEBOOK_ORIGINAL_PRINT = _ORIGINAL_PRINT
+
+RUN_INSTANCE_ID = f"htf_pythonscript_{datetime.now().strftime('%Y%m%d_%H%M%S')}_pid{os.getpid()}"
+RUN_LOG_PATH = RUN_DEBUG_OUTPUT_DIR / f"{RUN_INSTANCE_ID}.log"
+RUN_STATUS_PATH = RUN_DEBUG_OUTPUT_DIR / f"{RUN_INSTANCE_ID}_status.json"
+RUN_HEARTBEAT_SECONDS = 60
+RUN_SILENCE_HEARTBEAT_SECONDS = 60
+RUN_LOOP_PROGRESS_EVERY = 250
+RUN_LOG_HANDLE = open(RUN_LOG_PATH, "a", buffering=1, encoding="utf-8")
+RUN_LOG_LOCK = threading.Lock()
+RUN_HEARTBEAT_STOP = threading.Event()
+builtins._HTF_NOTEBOOK_HEARTBEAT_STOP = RUN_HEARTBEAT_STOP
+RUN_PROGRESS: dict[str, Any] = {
+    "run_id": RUN_INSTANCE_ID,
+    "pid": os.getpid(),
+    "stage": "startup",
+    "detail": "",
+    "started_at": time.time(),
+    "stage_started_at": time.time(),
+    "last_activity_at": time.time(),
+    "last_status_write_at": 0.0,
+}
+
+
+def _format_elapsed(seconds: float) -> str:
+    seconds = max(0, int(seconds))
+    hours, rem = divmod(seconds, 3600)
+    minutes, secs = divmod(rem, 60)
+    if hours:
+        return f"{hours}h{minutes:02d}m{secs:02d}s"
+    if minutes:
+        return f"{minutes}m{secs:02d}s"
+    return f"{secs}s"
+
+
+def _stringify_progress_value(value: Any) -> Any:
+    if isinstance(value, Path):
+        return str(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if isinstance(value, tuple):
+        return list(value)
+    return value
+
+
+def _write_run_status(reason: str = "update") -> None:
+    now = time.time()
+    payload = {
+        "reason": reason,
+        "run_id": RUN_PROGRESS["run_id"],
+        "pid": RUN_PROGRESS["pid"],
+        "stage": RUN_PROGRESS["stage"],
+        "detail": RUN_PROGRESS["detail"],
+        "run_elapsed_seconds": round(now - RUN_PROGRESS["started_at"], 3),
+        "stage_elapsed_seconds": round(now - RUN_PROGRESS["stage_started_at"], 3),
+        "silence_seconds": round(now - RUN_PROGRESS["last_activity_at"], 3),
+        "log_path": str(RUN_LOG_PATH),
+        "status_path": str(RUN_STATUS_PATH),
+        "updated_at": datetime.now().isoformat(timespec="seconds"),
+    }
+    with RUN_STATUS_PATH.open("w", encoding="utf-8") as f:
+        json.dump(payload, f, indent=2)
+    RUN_PROGRESS["last_status_write_at"] = now
+
+
+def _append_to_run_log(text: str) -> None:
+    if not text:
+        return
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    normalized = text if text.endswith("\n") else text + "\n"
+    lines = normalized.rstrip("\n").split("\n")
+    if not lines:
+        lines = [""]
+    with RUN_LOG_LOCK:
+        for line in lines:
+            RUN_LOG_HANDLE.write(f"[{timestamp}] {line}\n")
+        RUN_LOG_HANDLE.flush()
+
+
+def _tee_print(*args, **kwargs):
+    _ORIGINAL_PRINT(*args, **kwargs)
+    sep = kwargs.get("sep", " ")
+    end = kwargs.get("end", "\n")
+    message = sep.join(str(arg) for arg in args) + end
+    RUN_PROGRESS["last_activity_at"] = time.time()
+    _append_to_run_log(message)
+    if RUN_PROGRESS["last_activity_at"] - RUN_PROGRESS["last_status_write_at"] >= 15:
+        _write_run_status("activity")
+
+
+def set_run_stage(stage: str, detail: str | None = None, *, announce: bool = True) -> None:
+    RUN_PROGRESS["stage"] = stage
+    RUN_PROGRESS["detail"] = detail or ""
+    RUN_PROGRESS["stage_started_at"] = time.time()
+    RUN_PROGRESS["last_activity_at"] = time.time()
+    _write_run_status("stage_change")
+    if announce:
+        print("\n" + "=" * 70)
+        print(f"[RUN STAGE] {stage}")
+        if detail:
+            print(f"detail: {detail}")
+        print(f"log: {RUN_LOG_PATH}")
+        print(f"status: {RUN_STATUS_PATH}")
+        print("=" * 70)
+
+
+def log_loop_progress(
+    label: str,
+    current: int,
+    total: int,
+    *,
+    started_at: float,
+    every: int = RUN_LOOP_PROGRESS_EVERY,
+) -> None:
+    if total <= 0:
+        return
+    if current != 1 and current != total and current % every != 0:
+        return
+    progress = current / total
+    elapsed = time.time() - started_at
+    eta = (elapsed / progress) * (1.0 - progress) if progress > 0 else 0.0
+    print(
+        f"  {label}: {current:,}/{total:,} "
+        f"({progress * 100:5.1f}%) | elapsed={_format_elapsed(elapsed)} "
+        f"| eta~{_format_elapsed(eta)}"
+    )
+    _write_run_status("loop_progress")
+
+
+def multi_regime_progress_callback(event: str, payload: dict[str, Any]) -> None:
+    stage = payload.get("stage", "multi-regime")
+    fields = []
+    for key, value in payload.items():
+        if key == "stage":
+            continue
+        rendered = _stringify_progress_value(value)
+        if isinstance(rendered, (list, dict)):
+            rendered = json.dumps(rendered)
+        fields.append(f"{key}={rendered}")
+    detail = ", ".join(fields)
+    if event == "start":
+        set_run_stage(f"CELL 14 / {stage}", detail=detail, announce=True)
+    else:
+        RUN_PROGRESS["detail"] = f"{stage} | {detail}" if detail else stage
+        RUN_PROGRESS["last_activity_at"] = time.time()
+        _write_run_status(f"multi_regime_{event}")
+        print(f"[CELL 14][{event.upper()}] {stage}" + (f" | {detail}" if detail else ""))
+
+
+def _heartbeat_worker() -> None:
+    while not RUN_HEARTBEAT_STOP.wait(RUN_HEARTBEAT_SECONDS):
+        silence = time.time() - RUN_PROGRESS["last_activity_at"]
+        if silence < RUN_SILENCE_HEARTBEAT_SECONDS:
+            continue
+        print(
+            "[HEARTBEAT] "
+            f"stage={RUN_PROGRESS['stage']} | "
+            f"detail={RUN_PROGRESS['detail'] or '-'} | "
+            f"run_elapsed={_format_elapsed(time.time() - RUN_PROGRESS['started_at'])} | "
+            f"stage_elapsed={_format_elapsed(time.time() - RUN_PROGRESS['stage_started_at'])} | "
+            f"silence={_format_elapsed(silence)}"
+        )
+        _write_run_status("heartbeat")
+
+
+def _shutdown_run_logging() -> None:
+    RUN_HEARTBEAT_STOP.set()
+    _write_run_status("shutdown")
+    with RUN_LOG_LOCK:
+        RUN_LOG_HANDLE.flush()
+        RUN_LOG_HANDLE.close()
+
+
+builtins.print = _tee_print
+HEARTBEAT_THREAD = threading.Thread(target=_heartbeat_worker, name="htf-run-heartbeat", daemon=True)
+HEARTBEAT_THREAD.start()
+atexit.register(_shutdown_run_logging)
+
+set_run_stage(
+    "Notebook bootstrap",
+    detail=f"pid={os.getpid()}, run_id={RUN_INSTANCE_ID}",
+    announce=False,
+)
+print("=" * 70)
+print("RUN LOGGING ENABLED")
+print("=" * 70)
+print(f"Run ID: {RUN_INSTANCE_ID}")
+print(f"PID: {os.getpid()}")
+print(f"Log file: {RUN_LOG_PATH}")
+print(f"Status file: {RUN_STATUS_PATH}")
+print("=" * 70)
+print("Production note: use CELL 14 for supported HTF production runs.")
+print("Cells 1-13 remain available for legacy/debug/back-compat only.")
+print("=" * 70)
+
+# Supported shared production config. This is the supported HTF execution path
+# when the file is run as a script. Legacy cells remain below for debug and
+# back-compat, but normal script execution should short-circuit into the shared
+# pipeline instead of replaying the legacy notebook stages.
+RUN_LEGACY_NOTEBOOK_CELLS = os.environ.get("HTF_RUN_LEGACY_NOTEBOOK_CELLS", "0") == "1"
+RUN_MULTI_REGIME_EXTENSION = os.environ.get("HTF_RUN_MULTI_REGIME_EXTENSION", "1") == "1"
+MULTI_REGIME_BUILD_REGIMES = ("8h", "24h", "7d")
+MULTI_REGIME_VALIDATE_REGIMES = ("8h", "24h", "7d")
+MULTI_REGIME_FORCE_FULL_REBUILD = False
+MULTI_REGIME_SMOKE_MODE = False
+MULTI_REGIME_SMOKE_START = None
+MULTI_REGIME_SMOKE_END = None
+MULTI_REGIME_RUN_OPTIMIZATION = True
+MULTI_REGIME_RUN_HELPERS = True
+MULTI_REGIME_RUN_VALIDATION = True
+
+# Shared production config lives here, not in the legacy cells below. Legacy
+# constants may still exist for back-compat, but the supported production path
+# must be understandable and runnable from this block alone.
+MULTI_REGIME_PIPELINE_ARTIFACT_VERSION = SHARED_PIPELINE_ARTIFACT_VERSION
+MULTI_REGIME_THRESHOLDS_BY_TF = SHARED_THRESHOLDS_BY_TF
+MULTI_REGIME_DISTANCE_WINDOWS_BY_TF = SHARED_DISTANCE_WINDOWS_BY_TF
+MULTI_REGIME_BREAKOUT_THRESHOLD = SHARED_BREAKOUT_THRESHOLD
+MULTI_REGIME_RISK_RATIO = SHARED_RISK_RATIO
+MULTI_REGIME_BREAKFREE_THRESHOLD_1M = SHARED_BREAKFREE_THRESHOLD_1M
+
+
+def _is_interactive_kernel() -> bool:
+    return "ipykernel" in sys.modules or "JPY_PARENT_PID" in os.environ
+
+
+def run_supported_multi_regime_pipeline() -> dict | None:
+    import importlib
+
+    import scripts.feature_engineering.htf_multiregime_pipeline as mr_module
+
+    importlib.reload(mr_module)
+
+    MultiRegimeHTFConfig = mr_module.MultiRegimeHTFConfig
+    run_multi_regime_htf_pipeline = mr_module.run_multi_regime_htf_pipeline
+
+    set_run_stage(
+        "CELL 14: multi-regime pipeline",
+        detail=(
+            f"regimes={MULTI_REGIME_BUILD_REGIMES}, helpers={MULTI_REGIME_RUN_HELPERS}, "
+            f"optimization={MULTI_REGIME_RUN_OPTIMIZATION}"
+        ),
+    )
+    print("=" * 70)
+    print("CELL 14: AUTHORITATIVE MULTI-REGIME HTF PIPELINE")
+    print("=" * 70)
+    print(f"Run enabled: {RUN_MULTI_REGIME_EXTENSION}")
+    print(f"Build regimes: {MULTI_REGIME_BUILD_REGIMES}")
+    print(f"Validate regimes: {MULTI_REGIME_VALIDATE_REGIMES}")
+    print(f"Force full rebuild: {MULTI_REGIME_FORCE_FULL_REBUILD}")
+    print(f"Smoke mode: {MULTI_REGIME_SMOKE_MODE}")
+    print(f"Run optimization: {MULTI_REGIME_RUN_OPTIMIZATION}")
+    print(f"Run helpers: {MULTI_REGIME_RUN_HELPERS}")
+    print(f"Run validation: {MULTI_REGIME_RUN_VALIDATION}")
+    print("Supported production path: CELL 14 / shared multi-regime engine only")
+    print("=" * 70)
+
+    if not RUN_MULTI_REGIME_EXTENSION:
+        print("Shared multi-regime pipeline disabled by HTF_RUN_MULTI_REGIME_EXTENSION=0.")
+        return None
+
+    multi_regime_config = MultiRegimeHTFConfig(
+        project_root=PROJECT_ROOT,
+        data_dir=PROJECT_ROOT / "data",
+        raw_data_dir=PROJECT_ROOT / "fetchingByBit",
+        pipeline_artifact_version=MULTI_REGIME_PIPELINE_ARTIFACT_VERSION,
+        thresholds_by_tf=MULTI_REGIME_THRESHOLDS_BY_TF,
+        distance_windows_by_tf=MULTI_REGIME_DISTANCE_WINDOWS_BY_TF,
+        build_regimes=MULTI_REGIME_BUILD_REGIMES,
+        validate_regimes=MULTI_REGIME_VALIDATE_REGIMES,
+        rebuild_existing=MULTI_REGIME_FORCE_FULL_REBUILD,
+        run_optimization=MULTI_REGIME_RUN_OPTIMIZATION,
+        run_helpers=MULTI_REGIME_RUN_HELPERS,
+        run_validation=MULTI_REGIME_RUN_VALIDATION,
+        breakout_threshold=MULTI_REGIME_BREAKOUT_THRESHOLD,
+        risk_ratio=MULTI_REGIME_RISK_RATIO,
+        breakfree_threshold_1m=MULTI_REGIME_BREAKFREE_THRESHOLD_1M,
+        smoke_mode=MULTI_REGIME_SMOKE_MODE,
+        smoke_start=MULTI_REGIME_SMOKE_START,
+        smoke_end=MULTI_REGIME_SMOKE_END,
+        progress_callback=multi_regime_progress_callback,
+    )
+    multi_regime_summary = run_multi_regime_htf_pipeline(multi_regime_config)
+    validation_df = multi_regime_summary.get("validation")
+    if isinstance(validation_df, pl.DataFrame) and len(validation_df) > 0:
+        print("\n" + "=" * 70)
+        print("MULTI-REGIME VALIDATION SUMMARY")
+        print("=" * 70)
+        print(
+            validation_df.group_by(["regime", "family", "tf", "stage"])
+            .agg(
+                [
+                    pl.len().alias("checks"),
+                    pl.col("ok").sum().alias("pass"),
+                    (pl.len() - pl.col("ok").sum()).alias("fail"),
+                ]
+            )
+            .sort(["regime", "family", "tf", "stage"])
+        )
+    return multi_regime_summary
+
+
+def _should_short_circuit_to_supported_production() -> bool:
+    return __name__ == "__main__" and not _is_interactive_kernel() and not RUN_LEGACY_NOTEBOOK_CELLS
+
+
+if _should_short_circuit_to_supported_production():
+    print("Normal script execution detected; jumping directly to supported CELL 14 pipeline.")
+    print(
+        "Set HTF_RUN_LEGACY_NOTEBOOK_CELLS=1 only when you intentionally want to "
+        "replay the legacy notebook cells for debug/back-compat work."
+    )
+    run_supported_multi_regime_pipeline()
+    raise SystemExit(0)
+
+if RUN_LEGACY_NOTEBOOK_CELLS:
+    print("Legacy notebook cells enabled via HTF_RUN_LEGACY_NOTEBOOK_CELLS=1.")
+elif _is_interactive_kernel():
+    print("Interactive kernel detected; legacy notebook cells remain available below.")
+
+# ---------------------------------------------------------------------------
+# Legacy/debug notebook path below
+# ---------------------------------------------------------------------------
+# Everything below this point until CELL 14 belongs to the legacy 8h notebook
+# flow. Normal supported production execution does not reach it because the
+# script short-circuits into `run_supported_multi_regime_pipeline()` above.
+#
+# The remaining functions and constants stay here only for:
+# - legacy/back-compat notebook replay
+# - interactive debugging
+# - legacy `5m` support, which is explicitly out of shared production scope
+# - compatibility during the unification transition
+# ---------------------------------------------------------------------------
+
+# Legacy artifact/version config for the notebook replay path below.
+ENABLE_5M_PIPELINE = False  # Legacy-only scope; not part of the supported shared production path.
 PIPELINE_ARTIFACT_VERSION = "2026-03-06-repair-01"
 ARTIFACT_STAGE_VERSIONS = {
+    "features": f"{PIPELINE_ARTIFACT_VERSION}-features-v2",
     "shift4h_combined": f"{PIPELINE_ARTIFACT_VERSION}-shift4h-combined-v1",
     "shift4h_metrics": f"{PIPELINE_ARTIFACT_VERSION}-shift4h-metrics-v1",
     "labels": f"{PIPELINE_ARTIFACT_VERSION}-labels-v1",
     "shift4h_features": f"{PIPELINE_ARTIFACT_VERSION}-shift4h-features-v1",
-    "shift4h_helpers": f"{PIPELINE_ARTIFACT_VERSION}-shift4h-helpers-v1",
+    "helper_cache": f"{PIPELINE_ARTIFACT_VERSION}-helper-cache-v1",
+    "helpers": f"{PIPELINE_ARTIFACT_VERSION}-helpers-v1",
+    "shift4h_helpers": f"{PIPELINE_ARTIFACT_VERSION}-shift4h-helpers-v2",
 }
 
-# Timeframes we're working with (1m)
+# Legacy notebook timeframes used by the cells below.
 HTF_TIMEFRAMES = ["1m", "15m"]
 SHIFT4H_TIMEFRAMES = ["1m", "15m"]
 FAMILY_ACTIVE_SCOPE = {
@@ -177,85 +563,53 @@ def project_relative_path(path: Path) -> str:
     except Exception:
         return str(path)
 
+# Legacy/shared compatibility shims for cells 1-13 only.
+#
+# Keep these in phase 1 because they preserve notebook-specific behavior that is
+# still relevant for legacy replay:
+# - project-relative fingerprint serialization
+# - summary stats embedded in legacy fingerprints
+# - legacy metadata timestamp formatting (`updated_at_mode="z"`)
+# - notebook-local logging during rebuild decisions
+#
+# These are not part of the supported CELL 14 production path.
 
 def load_json_safe(path: Path) -> dict | None:
-    if not path.exists():
-        return None
-    try:
-        with open(path, "r") as f:
-            return json.load(f)
-    except Exception:
-        return None
+    return _shared_load_json_safe(path)
 
 
 def fingerprint_paths(paths: list[Path]) -> dict:
-    entries: list[tuple[str, int, int]] = []
-    for path in sorted({Path(p) for p in paths}, key=lambda p: str(p)):
-        if not path.exists():
-            continue
-        stat = path.stat()
-        entries.append(
-            (
-                project_relative_path(path),
-                int(stat.st_mtime_ns),
-                int(stat.st_size),
-            )
-        )
-
-    digest = hashlib.sha256()
-    for rel_path, mtime_ns, size_bytes in entries:
-        digest.update(f"{rel_path}|{mtime_ns}|{size_bytes}\n".encode("utf-8"))
-
-    return {
-        "count": int(len(entries)),
-        "latest_mtime_ns": int(max((e[1] for e in entries), default=0)),
-        "total_size_bytes": int(sum(e[2] for e in entries)),
-        "digest": digest.hexdigest(),
-    }
+    return _shared_fingerprint_paths(
+        paths,
+        path_serializer=project_relative_path,
+        include_summary_stats=True,
+    )
 
 
 def fingerprint_batch_dir(directory: Path) -> dict:
-    return fingerprint_paths(sorted(directory.glob("batch_*.parquet")))
+    return _shared_fingerprint_batch_dir(
+        directory,
+        path_serializer=project_relative_path,
+        include_summary_stats=True,
+    )
 
 
 def schema_columns_for_batch_dir(directory: Path) -> list[str]:
-    files = sorted(directory.glob("batch_*.parquet"))
-    if not files:
-        return []
-    return pl.scan_parquet(str(files[0])).collect_schema().names()
+    return _shared_schema_columns_for_batch_dir(directory)
 
 
 def find_batch_missing_required_columns(
     directory: Path, required_cols: set[str]
 ) -> dict | None:
-    for batch_path in sorted(directory.glob("batch_*.parquet")):
-        cols = set(pl.scan_parquet(str(batch_path)).collect_schema().names())
-        missing = sorted(required_cols - cols)
-        if missing:
-            return {
-                "path": project_relative_path(batch_path),
-                "missing": missing,
-            }
-    return None
+    return _shared_find_batch_missing_required_columns(
+        directory,
+        required_cols,
+        path_serializer=project_relative_path,
+    )
 
 
 def clear_artifact_target(path: Path) -> list[str]:
-    removed: list[str] = []
-    if not path.exists():
-        return removed
-
-    if path.is_dir():
-        for child in sorted(path.iterdir(), key=lambda p: p.name):
-            if child.is_dir():
-                shutil.rmtree(child)
-            else:
-                child.unlink()
-            removed.append(project_relative_path(child))
-        return removed
-
-    path.unlink()
-    removed.append(project_relative_path(path))
-    return removed
+    return _shared_clear_artifact_target(path, path_serializer=project_relative_path)
 
 
 def artifact_rebuild_reasons(
@@ -267,24 +621,14 @@ def artifact_rebuild_reasons(
     source_fingerprint: dict,
     schema_columns: list[str] | None = None,
 ) -> list[str]:
-    meta = load_json_safe(meta_path)
-    if meta is None:
-        return ["missing_meta"]
-
-    reasons: list[str] = []
-    if meta.get("artifact_version") != artifact_version:
-        reasons.append("artifact_version")
-    if meta.get("family") != family:
-        reasons.append("family")
-    if meta.get("timeframe") != timeframe:
-        reasons.append("timeframe")
-    if meta.get("source_fingerprint") != source_fingerprint:
-        reasons.append("source_fingerprint")
-    if schema_columns is not None and sorted(meta.get("schema_columns", [])) != sorted(
-        schema_columns
-    ):
-        reasons.append("schema_columns")
-    return reasons
+    return _shared_artifact_rebuild_reasons(
+        meta_path=meta_path,
+        artifact_version=artifact_version,
+        family=family,
+        timeframe=timeframe,
+        source_fingerprint=source_fingerprint,
+        schema_columns=schema_columns,
+    )
 
 
 def artifact_meta_payload(
@@ -297,18 +641,16 @@ def artifact_meta_payload(
     rebuild_mode: str,
     extra: dict | None = None,
 ) -> dict:
-    payload = {
-        "artifact_version": artifact_version,
-        "family": family,
-        "timeframe": timeframe,
-        "source_fingerprint": source_fingerprint,
-        "schema_columns": schema_columns,
-        "rebuild_mode": rebuild_mode,
-        "updated_at": f"{datetime.utcnow().isoformat()}Z",
-    }
-    if extra:
-        payload.update(extra)
-    return payload
+    return _shared_artifact_meta_payload(
+        artifact_version=artifact_version,
+        family=family,
+        timeframe=timeframe,
+        source_fingerprint=source_fingerprint,
+        schema_columns=schema_columns,
+        rebuild_mode=rebuild_mode,
+        extra=extra,
+        updated_at_mode="z",
+    )
 
 
 def prepare_stage_rebuild(
@@ -325,56 +667,23 @@ def prepare_stage_rebuild(
     required_batch_columns: set[str] | None = None,
     full_rebuild_reasons: set[str] | None = None,
 ) -> tuple[list[str], str]:
-    reasons = artifact_rebuild_reasons(
+    return _shared_prepare_stage_rebuild(
+        stage_name=stage_name,
         meta_path=meta_path,
         artifact_version=artifact_version,
         family=family,
         timeframe=timeframe,
         source_fingerprint=source_fingerprint,
         schema_columns=schema_columns,
+        output_targets=output_targets,
+        inspect_batch_dir=inspect_batch_dir,
+        required_batch_columns=required_batch_columns,
+        full_rebuild_reasons=full_rebuild_reasons,
+        path_serializer=project_relative_path,
+        log=print,
     )
 
-    legacy_schema = None
-    if inspect_batch_dir is not None and required_batch_columns:
-        if inspect_batch_dir.exists() and list(inspect_batch_dir.glob("batch_*.parquet")):
-            legacy_schema = find_batch_missing_required_columns(
-                inspect_batch_dir, required_batch_columns
-            )
-            if legacy_schema is not None:
-                reasons.append(
-                    "legacy_schema:"
-                    f"{legacy_schema['path']} missing={','.join(legacy_schema['missing'])}"
-                )
-
-    def _reason_key(reason: str) -> str:
-        return "legacy_schema" if reason.startswith("legacy_schema:") else reason
-
-    destructive_reason_keys = (
-        {_reason_key(reason) for reason in reasons}
-        if full_rebuild_reasons is None
-        else set(full_rebuild_reasons)
-    )
-    should_full_rebuild = any(_reason_key(reason) in destructive_reason_keys for reason in reasons)
-
-    rebuild_mode = "full" if should_full_rebuild else "incremental_tail"
-    if should_full_rebuild:
-        for target in output_targets:
-            clear_artifact_target(target)
-        print(
-            f"  {stage_name} rebuild mode: full "
-            f"({', '.join(reasons)})"
-        )
-    elif reasons:
-        print(
-            f"  {stage_name} rebuild mode: incremental_tail "
-            f"({', '.join(reasons)})"
-        )
-    else:
-        print(f"  {stage_name} rebuild mode: incremental_tail")
-
-    return reasons, rebuild_mode
-
-# Quick validation - check files exist
+# Legacy setup sanity check: confirm the expected combined/features roots exist.
 print("=" * 70)
 print("DATA FILES CHECK")
 print("=" * 70)
@@ -396,12 +705,17 @@ for tf in HTF_TIMEFRAMES:
     else:
         print(f"{tf}: OHLCV {ohlcv_exists}, Features {feature_exists}")
 
-print("\n✓ Setup complete. Run next cells to process data.")
+print(
+    "\n✓ Legacy setup complete. Use the remaining legacy cells only for "
+    "debug/notebook replay; normal production runs should use CELL 14."
+)
 
 # %%
 # =============================================================================
-# CELL 2.5: ROBUST HTF COMBINED FILE GENERATION
+# CELL 2.5: LEGACY ROBUST HTF COMBINED FILE GENERATION
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # For each timeframe in HTF_TIMEFRAMES:
 #   1. Check if {tf}_HTF_combined.parquet exists
 #   2. Compare against raw source data (fetchingByBit/sorted-{tf}-bybit-linear/)
@@ -946,6 +1260,7 @@ def create_combined_file(tf: str, raw_info: dict) -> dict:
 # =============================================================================
 # MAIN: Check and update all timeframes
 # =============================================================================
+set_run_stage("Legacy combined batches", detail=f"timeframes={HTF_TIMEFRAMES}")
 print("=" * 70)
 print("HTF COMBINED FILE CHECK & UPDATE")
 print("=" * 70)
@@ -1088,6 +1403,7 @@ for tf in HTF_TIMEFRAMES:
 
 print("\n✓ All HTF combined files checked.")
 
+set_run_stage("Legacy shift4h combined batches", detail=f"timeframes={SHIFT4H_TIMEFRAMES}")
 print("\n" + "=" * 70)
 print("SHIFT4H FAMILY C COMBINED FILE CHECK & UPDATE")
 print("=" * 70)
@@ -1129,8 +1445,10 @@ for tf in SHIFT4H_TIMEFRAMES:
 
 # %%
 # =============================================================================
-# CELL 3: VALIDATE BATCH ALIGNMENT (Load → Validate → Save Results → Free Memory)
+# CELL 3: LEGACY VALIDATE BATCH ALIGNMENT (Load → Validate → Save Results → Free Memory)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # Validates that batched LTF data aligns with 8h candles (OPEN & CLOSE match)
 # Results saved to parquet so we don't need to keep data in memory
 # =============================================================================
@@ -1148,6 +1466,7 @@ if SKIP_VALIDATION and validation_results_path.exists():
     print("\n✓ Validation already completed. Set SKIP_VALIDATION=False to re-run.")
 
 else:
+    set_run_stage("Legacy 8h validation", detail="OHLCV vs batched open/close alignment")
     print("=" * 70)
     print("VALIDATION: 8h OHLCV vs Batched Data (OPEN & CLOSE Alignment)")
     print("=" * 70)
@@ -1286,8 +1605,10 @@ else:
 
 # %%
 # =============================================================================
-# CELL 5: HTF FEATURE ENGINEERING (Compute on Full Data, Then Split to Batches)
+# CELL 5: LEGACY HTF FEATURE ENGINEERING (Compute on Full Data, Then Split to Batches)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # Features with long windows (xlong=8h) need continuous data to avoid NaN
 # Strategy: Compute features on FULL combined data, THEN split into batch files
 # Output: data/htf_features/{tf}/batch_{batch_id:04d}.parquet
@@ -1303,7 +1624,17 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import polars as pl
-from numba import njit
+try:
+    from numba import njit
+except ImportError:  # pragma: no cover - shell fallback when numba is unavailable
+    def njit(*args, **kwargs):
+        if args and callable(args[0]) and len(args) == 1 and not kwargs:
+            return args[0]
+
+        def decorator(func):
+            return func
+
+        return decorator
 
 # Add project root to path for imports
 project_root = Path.cwd().parent
@@ -1320,7 +1651,7 @@ from scripts.feature_engineering.compute_htf_features import HTFFeatureEngine
 # CONFIGURATION
 # =============================================================================
 RECOMPUTE_FEATURES = False  # True => full rebuild
-# Fast incremental mode (production default):
+# Legacy incremental mode for notebook replay:
 # - Detect new/missing combined batches
 # - Recompute only affected tail + small context warmup for rolling windows
 INCREMENTAL_FEATURE_UPDATE = True
@@ -1333,6 +1664,7 @@ if "BARS_PER_8H" not in globals():
 
 # Rolling distance feature windows (fixed from IC optimization)
 # These are past-window (causal) distances based on OHLCV only.
+AUXILIARY_SOURCE_FEATURE_TFS = {"1m", "15m"}
 DISTANCE_WINDOWS_BY_TF = {
     # Keep time-equivalent horizons across TFs:
     # 1m: 240/120 bars == 5m: 48/24 bars == 15m: 16/8 bars
@@ -1358,42 +1690,19 @@ DISTANCE_WINDOWS_BY_TF = {
 DISTANCE_OUTLIER_PCT = 0.05
 
 
-@njit
+# Temporary pass-through kernel name for the legacy feature cell.
+# This wrapper currently adds no math behavior; it exists so the legacy path
+# keeps a stable local symbol while the implementation is owned by the shared
+# kernel module.
 def _compute_past_distance_metrics(close, high, low, bar_pos, window, outlier_pct):
-    n = len(close)
-    dist_avg_high = np.full(n, np.nan, dtype=np.float64)
-    dist_avg_low = np.full(n, np.nan, dtype=np.float64)
-    dist_top5_high = np.full(n, np.nan, dtype=np.float64)
-    dist_bot5_low = np.full(n, np.nan, dtype=np.float64)
-
-    top_n = max(1, int(window * outlier_pct))
-
-    for i in range(n):
-        if bar_pos[i] < window:
-            continue
-
-        entry = close[i]
-        if entry == 0:
-            continue
-
-        start = i - window
-        highs = high[start:i]
-        lows = low[start:i]
-
-        avg_high = np.mean(highs)
-        avg_low = np.mean(lows)
-
-        sorted_highs = np.sort(highs)
-        sorted_lows = np.sort(lows)
-        avg_top_high = np.mean(sorted_highs[-top_n:])
-        avg_bot_low = np.mean(sorted_lows[:top_n])
-
-        dist_avg_high[i] = 100.0 * (avg_high - entry) / entry
-        dist_avg_low[i] = 100.0 * (entry - avg_low) / entry
-        dist_top5_high[i] = 100.0 * (avg_top_high - entry) / entry
-        dist_bot5_low[i] = 100.0 * (entry - avg_bot_low) / entry
-
-    return dist_avg_high, dist_avg_low, dist_top5_high, dist_bot5_low
+    return _shared_compute_past_distance_metrics(
+        close,
+        high,
+        low,
+        bar_pos,
+        window,
+        outlier_pct,
+    )
 
 
 # Verify paths from Cell 2 exist
@@ -1402,6 +1711,7 @@ assert HTF_BACKTEST_DIR.exists(), f"HTF_BACKTEST_DIR not found: {HTF_BACKTEST_DI
 # =============================================================================
 # STEP 1: INITIALIZE ENGINE
 # =============================================================================
+set_run_stage("Legacy feature engineering", detail=f"timeframes={HTF_TIMEFRAMES}")
 print("=" * 70)
 print("HTF FEATURE ENGINEERING PIPELINE")
 print("=" * 70)
@@ -1457,9 +1767,67 @@ for tf in HTF_TIMEFRAMES:
     )
     existing_batch_set = set(existing_batch_ids)
 
+    meta_keep_cols = [
+        "timestamp",
+        "batch_id",
+        "period_8h_start",
+        "bar_in_batch_norm",
+        "batch_family",
+        "family_batch_id",
+        "family_period_start",
+        "family_period_end",
+        "family_bar_pos",
+        "source_base_batch_id",
+        "source_base_period_start",
+        "source_half_in_base",
+        "is_label_half",
+    ]
+    auxiliary_source_paths = (
+        engine.get_source_paths_for_timeframe(tf)
+        if tf in AUXILIARY_SOURCE_FEATURE_TFS
+        else []
+    )
+    expected_feature_cols = engine.estimate_feature_output_columns(
+        tf,
+        include_auxiliary_sources=tf in AUXILIARY_SOURCE_FEATURE_TFS,
+        distance_windows=DISTANCE_WINDOWS_BY_TF.get(tf, {}),
+    )
+    expected_schema_columns = [
+        *expected_feature_cols,
+        *[c for c in meta_keep_cols if c != "timestamp"],
+    ]
+    feature_meta_path = tf_output_dir / "_build_meta.json"
+    feature_source_fingerprint = {
+        "combined": fingerprint_paths([src_path]),
+        "auxiliary_sources": fingerprint_paths(auxiliary_source_paths),
+    }
+    feature_rebuild_reasons, feature_rebuild_mode = prepare_stage_rebuild(
+        stage_name=f"Features B/{tf}",
+        meta_path=feature_meta_path,
+        artifact_version=ARTIFACT_STAGE_VERSIONS["features"],
+        family="B",
+        timeframe=tf,
+        source_fingerprint=feature_source_fingerprint,
+        schema_columns=expected_schema_columns,
+        output_targets=[tf_output_dir, feature_meta_path],
+        inspect_batch_dir=tf_output_dir,
+        required_batch_columns=set(expected_schema_columns),
+        full_rebuild_reasons={
+            "missing_meta",
+            "artifact_version",
+            "family",
+            "timeframe",
+            "schema_columns",
+            "legacy_schema",
+        },
+    )
+
     # Decide scope: full rebuild vs incremental tail update
-    if RECOMPUTE_FEATURES or not existing_batch_ids:
-        run_mode = "full_recompute" if RECOMPUTE_FEATURES else "full_first_build"
+    if RECOMPUTE_FEATURES or feature_rebuild_mode == "full" or not existing_batch_ids:
+        if RECOMPUTE_FEATURES or (feature_rebuild_mode == "full" and existing_batch_ids):
+            run_mode = "full_recompute"
+        else:
+            run_mode = "full_first_build"
         write_start_batch = combined_batch_ids[0]
         write_batch_ids = combined_batch_ids
         context_start_batch = combined_batch_ids[0]
@@ -1489,14 +1857,17 @@ for tf in HTF_TIMEFRAMES:
         missing_batch_ids = [
             b for b in combined_batch_ids if b not in existing_batch_set
         ]
-        if not missing_batch_ids and existing_batch_ids[-1] >= combined_max_batch:
+        if (
+            not feature_rebuild_reasons
+            and not missing_batch_ids
+            and existing_batch_ids[-1] >= combined_max_batch
+        ):
             print(
                 f"  ✓ Features up to date ({len(existing_batch_ids)} batches, "
                 f"max_batch={existing_batch_ids[-1]})."
             )
-            meta_path = tf_output_dir / "_build_meta.json"
-            if meta_path.exists():
-                print(f"  ✓ Existing metadata: {meta_path.name}")
+            if feature_meta_path.exists():
+                print(f"  ✓ Existing metadata: {feature_meta_path.name}")
             continue
 
         run_mode = "incremental_tail"
@@ -1541,27 +1912,15 @@ for tf in HTF_TIMEFRAMES:
     )
 
     # Extract metadata to rejoin later
-    meta_keep_cols = [
-        "timestamp",
-        "batch_id",
-        "period_8h_start",
-        "bar_in_batch_norm",
-        "batch_family",
-        "family_batch_id",
-        "family_period_start",
-        "family_period_end",
-        "family_bar_pos",
-        "source_base_batch_id",
-        "source_base_period_start",
-        "source_half_in_base",
-        "is_label_half",
-    ]
     meta_df = df_full.select([c for c in meta_keep_cols if c in df_full.columns])
 
     # Cache bar_pos for distance feature computation
     bar_pos = df_full["bar_pos"].to_numpy().astype(np.int32)
 
-    # Convert to pandas for feature computation (OHLCV only)
+    # Convert to pandas for feature computation.
+    # `1m` and `15m` enrich the combined OHLCV stream with causally aligned
+    # fetched auxiliary sources (mark/index/premium, OI, long/short, funding).
+    # Legacy `5m` stays OHLCV-only in this phase.
     ohlcv_cols = ["timestamp", "open", "high", "low", "close", "volume"]
     df_pd = df_full.select(ohlcv_cols).to_pandas()
 
@@ -1569,9 +1928,13 @@ for tf in HTF_TIMEFRAMES:
     del df_full
     gc.collect()
 
+    if tf in AUXILIARY_SOURCE_FEATURE_TFS:
+        print("  Augmenting feature input with fetched auxiliary sources...")
+        df_pd = engine.augment_dataframe_for_timeframe(df_pd, target_tf=tf)
+
     # Compute features on FULL continuous data
     print(f"  Computing features on full {len(df_pd):,} rows...")
-    print("    (This ensures xlong windows have enough history)")
+    print("    (This ensures xlong windows have enough history and keeps joins causal)")
     df_features = engine.compute_features(df=df_pd, target_tf=tf)
 
     # Compute past-window distance features (causal)
@@ -1681,42 +2044,51 @@ for tf in HTF_TIMEFRAMES:
         0, named=True
     )
     source_plan = engine.get_source_resolution_plan(tf)
-    feature_meta = {
-        "timeframe": tf,
-        "created_at_utc": f"{datetime.utcnow().isoformat()}Z",
-        "source_file": str(src_path),
-        "source_plan": source_plan,
-        "run_mode": run_mode,
-        "recompute_features": bool(RECOMPUTE_FEATURES),
-        "incremental_feature_update": bool(INCREMENTAL_FEATURE_UPDATE),
-        "context_start_batch": int(context_start_batch),
-        "write_start_batch": int(write_start_batch),
-        "write_batches_count": int(len(batch_ids_to_write)),
-        "distance_windows": DISTANCE_WINDOWS_BY_TF.get(tf, {}),
-        "distance_outlier_pct": float(DISTANCE_OUTLIER_PCT),
-        "rows_total_compute_scope": int(len(df_pl)),
-        "batches_total_compute_scope": int(len(batch_ids)),
-        "batches_total_combined": int(len(combined_batch_ids)),
-        "expected_rows_per_batch": expected_rows,
-        "incomplete_batches_count": int(len(incomplete_stats)),
-        "incomplete_batch_ids": [
-            int(v) for v in incomplete_stats["batch_id"].to_list()
-        ],
-        "first_batch_id": int(write_stats["batch_id"].min()),
-        "last_batch_id": last_batch_id,
-        "first_timestamp": str(write_stats["first_ts"].min()),
-        "last_timestamp": str(write_stats["last_ts"].max()),
-        "last_batch_rows": int(last_batch_row["rows"]),
-        "last_batch_first_timestamp": str(last_batch_row["first_ts"]),
-        "last_batch_last_timestamp": str(last_batch_row["last_ts"]),
-        "columns_total": int(len(df_pl.columns)),
-        "output_dir": str(tf_output_dir),
-        "output_pattern": "batch_XXXX.parquet",
-    }
-    meta_path = tf_output_dir / "_build_meta.json"
-    with open(meta_path, "w") as f:
+    feature_meta = artifact_meta_payload(
+        artifact_version=ARTIFACT_STAGE_VERSIONS["features"],
+        family="B",
+        timeframe=tf,
+        source_fingerprint=feature_source_fingerprint,
+        schema_columns=df_pl.columns,
+        rebuild_mode=run_mode,
+        extra={
+            "stage": "features",
+            "created_at_utc": f"{datetime.utcnow().isoformat()}Z",
+            "source_file": str(src_path),
+            "auxiliary_source_paths": [str(path) for path in auxiliary_source_paths],
+            "source_plan": source_plan,
+            "run_mode": run_mode,
+            "recompute_features": bool(RECOMPUTE_FEATURES),
+            "incremental_feature_update": bool(INCREMENTAL_FEATURE_UPDATE),
+            "rebuild_reasons": feature_rebuild_reasons,
+            "context_start_batch": int(context_start_batch),
+            "write_start_batch": int(write_start_batch),
+            "write_batches_count": int(len(batch_ids_to_write)),
+            "distance_windows": DISTANCE_WINDOWS_BY_TF.get(tf, {}),
+            "distance_outlier_pct": float(DISTANCE_OUTLIER_PCT),
+            "rows_total_compute_scope": int(len(df_pl)),
+            "batches_total_compute_scope": int(len(batch_ids)),
+            "batches_total_combined": int(len(combined_batch_ids)),
+            "expected_rows_per_batch": expected_rows,
+            "incomplete_batches_count": int(len(incomplete_stats)),
+            "incomplete_batch_ids": [
+                int(v) for v in incomplete_stats["batch_id"].to_list()
+            ],
+            "first_batch_id": int(write_stats["batch_id"].min()),
+            "last_batch_id": last_batch_id,
+            "first_timestamp": str(write_stats["first_ts"].min()),
+            "last_timestamp": str(write_stats["last_ts"].max()),
+            "last_batch_rows": int(last_batch_row["rows"]),
+            "last_batch_first_timestamp": str(last_batch_row["first_ts"]),
+            "last_batch_last_timestamp": str(last_batch_row["last_ts"]),
+            "columns_total": int(len(df_pl.columns)),
+            "output_dir": str(tf_output_dir),
+            "output_pattern": "batch_XXXX.parquet",
+        },
+    )
+    with open(feature_meta_path, "w") as f:
         json.dump(feature_meta, f, indent=2)
-    print(f"  ✓ Saved metadata: {meta_path.name}")
+    print(f"  ✓ Saved metadata: {feature_meta_path.name}")
 
     # Clean up
     del df_pl
@@ -1767,8 +2139,10 @@ print("✓ Structure: HTF_FEATURES_DIR/{tf}/batch_{batch_id:04d}.parquet")
 
 # %%
 # =============================================================================
-# CELL 5B: APPLY FAMILY METADATA TO BASE FEATURES + BUILD SHIFT4H FEATURES
+# CELL 5B: LEGACY APPLY FAMILY METADATA TO BASE FEATURES + BUILD SHIFT4H FEATURES
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 
 
 def _feature_value_cols(df: pl.DataFrame) -> list[str]:
@@ -1903,6 +2277,7 @@ def _build_shift4h_feature_batches(tf: str) -> dict:
     }
 
 
+set_run_stage("Legacy family feature materialization", detail="family B/C feature batches")
 print("\n" + "=" * 70)
 print("FAMILY FEATURE MATERIALIZATION")
 print("=" * 70)
@@ -1917,8 +2292,12 @@ for tf in HTF_TIMEFRAMES:
 
 # %%
 # =============================================================================
-# CELL 6: VALIDATE BATCH FEATURE FILES
+# CELL 6: LEGACY VALIDATE BATCH FEATURE FILES
 # =============================================================================
+# Legacy/debug validation only.
+# Supported production validation for the HTF workflow runs through CELL 14 /
+# `run_multi_regime_htf_pipeline(...)`.
+#
 # Validates the batch-by-batch feature files created in Cell 5:
 # 1. All batches exist and are readable
 # 2. Each batch has correct structure (batch_id, period_8h_start, features)
@@ -1931,8 +2310,10 @@ from pathlib import Path
 
 import polars as pl
 
+set_run_stage("Legacy feature validation", detail=f"timeframes={HTF_TIMEFRAMES}")
 print("=" * 70)
-print("VALIDATING BATCH FEATURE FILES")
+print("CELL 6: LEGACY VALIDATE BATCH FEATURE FILES")
+print("Legacy/debug validation only. Supported production validation runs in CELL 14.")
 print("=" * 70)
 
 # Ensure remaining-bars config exists (Cell 7 defines it; keep a safe default here)
@@ -2190,9 +2571,12 @@ else:
 
 # %%
 # =============================================================================
-# CELL 7: COMPUTE DISTANCE METRICS FOR 4-CLASS TARGET LABELING
+# CELL 7: LEGACY DISTANCE METRICS FOR 4-CLASS TARGET LABELING
 # =============================================================================
-# Computes per-bar distance metrics for all timeframes:
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
+# Computes per-bar distance metrics for the legacy labeling timeframes handled in
+# this cell (`5m` and `15m`):
 #   - dist_avg_high: distance to average of remaining highs (%)
 #   - dist_avg_low: distance to average of remaining lows (%)
 #   - dist_top5_high: distance to top 5% high average (%)
@@ -2211,7 +2595,17 @@ from pathlib import Path
 
 import numpy as np
 import polars as pl
-from numba import njit
+try:
+    from numba import njit
+except ImportError:  # pragma: no cover - shell fallback when numba is unavailable
+    def njit(*args, **kwargs):
+        if args and callable(args[0]) and len(args) == 1 and not kwargs:
+            return args[0]
+
+        def decorator(func):
+            return func
+
+        return decorator
 
 # =============================================================================
 # PATHS (redefine here so cell can run standalone)
@@ -2273,10 +2667,10 @@ OUTLIER_PERCENTILE = 0.05  # Top/bottom 5%
 BB_PERIOD = 20
 BB_STD = 2.0
 
-# Per-timeframe optimal thresholds (used for labeling + batch stats)
+# Legacy per-timeframe thresholds used by the notebook label cells below.
 TF_THRESHOLDS = {
-    "5m": {"BREAKOUT": 1.6, "RISK_RATIO": 2.5},  # MSE=47.21 (structural mismatch)
-    "15m": {"BREAKOUT": 2.1, "RISK_RATIO": 2.5},  # MSE=1.39 (perfect fit)
+    "5m": {"BREAKOUT": 1.6, "RISK_RATIO": 2.5},
+    "15m": {"BREAKOUT": 2.1, "RISK_RATIO": 2.5},
 }
 
 # Bars per 8h batch by timeframe
@@ -2293,6 +2687,7 @@ INCREMENTAL_DISTANCE_METRICS = (
 )
 INCREMENTAL_TAIL_BATCHES_BY_TF = {"5m": 8, "15m": 8}
 
+set_run_stage("Legacy distance metrics", detail="15m distance metrics and batch stats")
 print("=" * 70)
 print("DISTANCE METRICS COMPUTATION FOR 4-CLASS TARGET LABELING")
 print("=" * 70)
@@ -2307,7 +2702,9 @@ print("=" * 70)
 # =============================================================================
 # STEP 1.2: NUMBA FUNCTION FOR PER-BAR METRICS
 # =============================================================================
-@njit
+# Temporary pass-through kernel name for legacy Cells 7/7B.
+# Retain in phase 1 for notebook cell compatibility; remove only after the
+# legacy/debug path is intentionally simplified further.
 def compute_distance_metrics(
     close,
     high,
@@ -2317,63 +2714,14 @@ def compute_distance_metrics(
     bars_per_batch,
     min_remaining,
 ):
-    """
-    Compute distance metrics for each bar (current batch only).
-    """
-    n = len(close)
-    dist_avg_high = np.full(n, np.nan, dtype=np.float64)
-    dist_avg_low = np.full(n, np.nan, dtype=np.float64)
-    dist_top5_high = np.full(n, np.nan, dtype=np.float64)
-    dist_bot5_low = np.full(n, np.nan, dtype=np.float64)
-    remaining_bars_out = np.full(n, 0, dtype=np.int32)
-
-    outlier_pct = 0.05  # Top/bottom 5%
-
-    for i in range(n):
-        entry = close[i]
-        current_batch = batch_id[i]
-
-        # Find batch end
-        batch_end = i + 1
-        while batch_end < n and batch_id[batch_end] == current_batch:
-            batch_end += 1
-
-        count = batch_end - (i + 1)
-        remaining_bars_out[i] = count
-
-        if count < min_remaining:
-            continue
-
-        # Collect remaining highs/lows (current batch only)
-        highs = np.zeros(count, dtype=np.float64)
-        lows = np.zeros(count, dtype=np.float64)
-        for j in range(count):
-            highs[j] = high[i + 1 + j]
-            lows[j] = low[i + 1 + j]
-
-        # Sort for percentiles
-        sorted_highs = np.sort(highs)
-        sorted_lows = np.sort(lows)
-        top_n = max(1, int(count * outlier_pct))
-
-        # Compute averages
-        avg_high = np.mean(highs)
-        avg_low = np.mean(lows)
-        avg_top_high = np.mean(sorted_highs[-top_n:])
-        avg_bot_low = np.mean(sorted_lows[:top_n])
-
-        # Compute distances as percentages
-        dist_avg_high[i] = 100.0 * (avg_high - entry) / entry
-        dist_avg_low[i] = 100.0 * (entry - avg_low) / entry
-        dist_top5_high[i] = 100.0 * (avg_top_high - entry) / entry
-        dist_bot5_low[i] = 100.0 * (entry - avg_bot_low) / entry
-
-    return (
-        dist_avg_high,
-        dist_avg_low,
-        dist_top5_high,
-        dist_bot5_low,
-        remaining_bars_out,
+    return _shared_compute_distance_metrics(
+        close,
+        high,
+        low,
+        batch_id,
+        bar_pos,
+        bars_per_batch,
+        min_remaining,
     )
 
 
@@ -2806,23 +3154,22 @@ print("=" * 70)
 
 # %%
 # =============================================================================
-# CELL 8: 4-CLASS TARGET LABELING (15m IMPLEMENTATION)
+# CELL 8: LEGACY 4-CLASS TARGET LABELING (15m IMPLEMENTATION)
 # =============================================================================
-# Implements the validated 4-class labeling system:
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
+# Implements the legacy 4-class labeling system for the `15m` path:
 #   - Precomputed distance metrics from Cell 7
-#   - Per-timeframe optimal thresholds from grid search
+#   - Legacy notebook thresholds defined above
 #
 # Classes:
-#   0: DOWN_BALANCED     - Down direction, no extreme outliers
-#   1: DOWN_CONT         - Down with strong downside momentum
-#   2: DOWN_VOLATILE     - Down with both-side outliers
-#   3: UP_BALANCED       - Up direction, no extreme outliers
-#   4: UP_CONT           - Up with strong upside momentum
-#   5: UP_VOLATILE       - Up with both-side outliers
-#   6: UP_REVERSAL_RISK  - Up but has significant downside outliers
-#   7: DOWN_REVERSAL_RISK- Down but has significant upside outliers
+#   0: DOWN_BALANCED
+#   1: DOWN_EXPANSION
+#   2: UP_BALANCED
+#   3: UP_EXPANSION
 #
-# Output: {tf}_labels.parquet in HTF_LABELS_DIR (target_4class)
+# Output: per-batch parquet files under `data/htf_4class_labels/{tf}/`
+# containing both `target_4class` and `target_breakfree`.
 # =============================================================================
 
 import json
@@ -2853,7 +3200,7 @@ CLASS_NAMES = {
     3: "UP_EXPANSION",
 }
 
-# Target distribution reference (collapsed from prior detailed class scheme)
+# Reference distribution used by this legacy cell for quick sanity checks.
 DOC_TARGETS = {0: 25.5, 1: 23.6, 2: 28.4, 3: 22.6}
 
 # Breakfree threshold (end-of-batch close distance)
@@ -2870,13 +3217,15 @@ BREAKFREE_THRESHOLD = 0.001  # 0.10%
 # Only consider entries in the first 4h of each 8h batch
 ENTRY_WINDOW_HOURS = 4
 
-# Which timeframes to process (15m first since it matches perfectly)
+# This legacy cell handles only the `15m` label path. Hybrid `5m` and `1m`
+# labeling are handled later in Cells `9` and `9B`.
 PROCESS_TIMEFRAMES = ["15m"]  # Add "5m" later with 5m-specific targets
 
 RECOMPUTE_LABELS = False  # Fast mode default: update label tail batches only
 INCREMENTAL_LABEL_UPDATE = True
 INCREMENTAL_LABEL_TAIL_BATCHES_BY_TF = {"15m": 8, "5m": 8, "1m": 8}
 
+set_run_stage("Legacy 15m labels", detail=f"timeframes={PROCESS_TIMEFRAMES}")
 print("=" * 70)
 print("4-CLASS TARGET LABELING")
 print("=" * 70)
@@ -2890,114 +3239,13 @@ print("=" * 70)
 # =============================================================================
 # LABELING FUNCTION (VECTORIZED POLARS)
 # =============================================================================
+# Temporary pass-through kernel name for legacy Cells 8/9/9B/9C.
+# This should only be retired once the legacy notebook cell-order behavior is
+# either removed or replaced with a simpler explicit alias strategy.
 def compute_4class_labels(
     df: pl.DataFrame, breakout_thresh: float, risk_thresh: float
 ) -> pl.DataFrame:
-    """
-    Compute 4-class labels using vectorized Polars expressions.
-
-    Classes:
-    - 0 DOWN_BALANCED
-    - 1 DOWN_EXPANSION
-    - 2 UP_BALANCED
-    - 3 UP_EXPANSION
-    """
-    eps = 1e-10
-
-    # Scenario detection
-    df = df.with_columns(
-        [
-            (pl.col("dist_avg_low") < 0).alias("is_breakout_up"),
-            (pl.col("dist_avg_high") < 0).alias("is_breakout_down"),
-            ((pl.col("dist_avg_low") > 0) & (pl.col("dist_avg_high") > 0)).alias(
-                "is_oscillation"
-            ),
-        ]
-    )
-
-    # Direction: breakout UP → UP, breakout DOWN → DOWN, oscillation → compare avgs
-    df = df.with_columns(
-        [
-            pl.when(pl.col("is_breakout_up"))
-            .then(pl.lit(True))
-            .when(pl.col("is_breakout_down"))
-            .then(pl.lit(False))
-            .otherwise(pl.col("dist_avg_high") > pl.col("dist_avg_low"))
-            .alias("is_up")
-        ]
-    )
-
-    # Risk flags
-    # For breakouts: use absolute threshold
-    # For oscillation: use ratio threshold
-    df = df.with_columns(
-        [
-            # high_risk_up
-            pl.when(pl.col("is_breakout_up"))
-            .then(pl.col("dist_top5_high") > breakout_thresh)
-            .when(pl.col("is_breakout_down"))
-            .then(pl.lit(False))  # Ignore upside in breakout DOWN
-            .otherwise(
-                (pl.col("dist_top5_high") / (pl.col("dist_avg_high") + eps))
-                > risk_thresh
-            )
-            .alias("high_risk_up"),
-            # high_risk_down
-            pl.when(pl.col("is_breakout_down"))
-            .then(pl.col("dist_bot5_low") > breakout_thresh)
-            .when(pl.col("is_breakout_up"))
-            .then(pl.lit(False))  # Ignore downside in breakout UP
-            .otherwise(
-                (pl.col("dist_bot5_low") / (pl.col("dist_avg_low") + eps)) > risk_thresh
-            )
-            .alias("high_risk_down"),
-        ]
-    )
-
-    # Compute 4-class label
-    df = df.with_columns(
-        [
-            pl.when(pl.col("dist_avg_high").is_nan())
-            .then(pl.lit(-1))  # Invalid bar
-            .when(pl.col("is_up") & (pl.col("high_risk_up") | pl.col("high_risk_down")))
-            .then(pl.lit(3))  # UP_EXPANSION
-            .when(pl.col("is_up"))
-            .then(pl.lit(2))  # UP_BALANCED
-            .when(
-                ~pl.col("is_up") & (pl.col("high_risk_up") | pl.col("high_risk_down"))
-            )
-            .then(pl.lit(1))  # DOWN_EXPANSION
-            .when(~pl.col("is_up"))
-            .then(pl.lit(0))  # DOWN_BALANCED
-            .otherwise(pl.lit(-1))
-            .alias("target_4class")
-        ]
-    )
-
-    # Add class name column
-    df = df.with_columns(
-        [
-            pl.col("target_4class")
-            .replace_strict(
-                {i: name for i, name in CLASS_NAMES.items()}, default="INVALID"
-            )
-            .alias("target_name")
-        ]
-    )
-
-    # Clean up intermediate columns
-    df = df.drop(
-        [
-            "is_breakout_up",
-            "is_breakout_down",
-            "is_oscillation",
-            "is_up",
-            "high_risk_up",
-            "high_risk_down",
-        ]
-    )
-
-    return df
+    return _shared_compute_4class_labels(df, breakout_thresh, risk_thresh)
 
 
 # =============================================================================
@@ -3254,10 +3502,18 @@ for tf in PROCESS_TIMEFRAMES:
 
     # Save per-batch (8h aligned) - overwrite only selected scope
     batch_ids = df_output["batch_id"].unique().sort().to_list()
-    for bid in batch_ids:
+    batch_save_started_at = time.time()
+    total_batches = len(batch_ids)
+    for idx, bid in enumerate(batch_ids, 1):
         batch_df = df_output.filter(pl.col("batch_id") == bid)
         batch_path = tf_labels_dir / f"batch_{bid:04d}.parquet"
         batch_df.write_parquet(batch_path)
+        log_loop_progress(
+            f"{tf} label batches",
+            idx,
+            total_batches,
+            started_at=batch_save_started_at,
+        )
 
     print(f"  ✓ Saved {len(batch_ids):,} batch files ({len(df_output):,} total rows)")
     labels_meta = artifact_meta_payload(
@@ -3320,8 +3576,11 @@ print("=" * 70)
 
 # %%
 # =============================================================================
-# CELL 8B: SHIFT4H FAMILY C - 15m DISTANCE METRICS + LABELS
+# CELL 8B: LEGACY SHIFT4H FAMILY C - 15m DISTANCE METRICS + LABELS
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
+set_run_stage("Legacy shift4h 15m labels", detail="family C distance metrics and labels")
 print("\n" + "=" * 70)
 print("SHIFT4H FAMILY C - 15M DISTANCE METRICS + LABELS")
 print("=" * 70)
@@ -3567,9 +3826,17 @@ if SHIFT4H_15M_INPUT.exists():
         ]
     )
     df_shift15_out = df_shift15_labels.select([c for c in shift15_cols if c in df_shift15_labels.columns])
-    for bid in sorted(df_shift15_out["batch_id"].unique().to_list()):
+    shift15_batch_ids = sorted(df_shift15_out["batch_id"].unique().to_list())
+    shift15_save_started_at = time.time()
+    for idx, bid in enumerate(shift15_batch_ids, 1):
         df_shift15_out.filter(pl.col("batch_id") == bid).write_parquet(
             SHIFT4H_15M_LABEL_DIR / f"batch_{int(bid):04d}.parquet"
+        )
+        log_loop_progress(
+            "shift4h 15m label batches",
+            idx,
+            len(shift15_batch_ids),
+            started_at=shift15_save_started_at,
         )
     with open(shift15_label_meta_path, "w") as f:
         json.dump(
@@ -3601,16 +3868,18 @@ else:
 
 # %%
 # =============================================================================
-# CELL 9: HYBRID 5m TARGET LABELING (5m ENTRY + 15m DISTANCE METRICS)
+# CELL 9: LEGACY HYBRID 5m TARGET LABELING (5m ENTRY + 15m DISTANCE METRICS)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # This cell implements a hybrid approach for 5m timeframe:
 #   - Entry reference: 5m close (granular entry timing)
 #   - Distance metrics: computed from remaining 15m bars (smoother targets)
 #
-# Why this works:
+# Practical motivation for the hybrid legacy path:
 #   - Each 5m bar gets unique distances because entry close differs
-#   - But the future bars used are 15m (less noisy than 5m)
-#   - Inherits 15m's better oscillation/breakout distribution (~26% vs 16%)
+#   - The future bars used are still 15m, which keeps the target path less noisy
+#     than a pure 5m forward-distance calculation
 #
 # Current-batch only:
 #   - No next-batch borrowing
@@ -3625,7 +3894,17 @@ from datetime import datetime
 from pathlib import Path
 
 import polars as pl
-from numba import njit
+try:
+    from numba import njit
+except ImportError:  # pragma: no cover - shell fallback when numba is unavailable
+    def njit(*args, **kwargs):
+        if args and callable(args[0]) and len(args) == 1 and not kwargs:
+            return args[0]
+
+        def decorator(func):
+            return func
+
+        return decorator
 
 # =============================================================================
 # PATHS
@@ -3659,7 +3938,9 @@ CLASS_NAMES = {
 }
 
 
-@njit
+# Temporary pass-through kernel name for legacy hybrid-label cells.
+# As with `compute_4class_labels`, keep this until the legacy/debug notebook
+# flow is intentionally simplified further.
 def compute_hybrid_distance_metrics(
     close_entry,
     batch_id_entry,
@@ -3671,54 +3952,16 @@ def compute_hybrid_distance_metrics(
     min_remaining,
     outlier_pct,
 ):
-    """Hybrid future-distance metrics using entry closes and 15m future bars."""
-    n = len(close_entry)
-    dist_avg_high = np.full(n, np.nan, dtype=np.float64)
-    dist_avg_low = np.full(n, np.nan, dtype=np.float64)
-    dist_top5_high = np.full(n, np.nan, dtype=np.float64)
-    dist_bot5_low = np.full(n, np.nan, dtype=np.float64)
-    remaining_bars_out = np.full(n, 0, dtype=np.int32)
-
-    n_15m = len(high_15m)
-    for i in range(n):
-        entry = close_entry[i]
-        current_batch = batch_id_entry[i]
-        current_15m_pos = bar_pos_15m_for_entry[i]
-
-        highs = []
-        lows = []
-        for j in range(n_15m):
-            if batch_id_15m[j] == current_batch and bar_pos_15m[j] > current_15m_pos:
-                highs.append(high_15m[j])
-                lows.append(low_15m[j])
-
-        count = len(highs)
-        remaining_bars_out[i] = count
-        if count < min_remaining:
-            continue
-
-        highs_arr = np.array(highs, dtype=np.float64)
-        lows_arr = np.array(lows, dtype=np.float64)
-        sorted_highs = np.sort(highs_arr)
-        sorted_lows = np.sort(lows_arr)
-        top_n = max(1, int(count * outlier_pct))
-
-        avg_high = np.mean(highs_arr)
-        avg_low = np.mean(lows_arr)
-        avg_top_high = np.mean(sorted_highs[-top_n:])
-        avg_bot_low = np.mean(sorted_lows[:top_n])
-
-        dist_avg_high[i] = 100.0 * (avg_high - entry) / entry
-        dist_avg_low[i] = 100.0 * (entry - avg_low) / entry
-        dist_top5_high[i] = 100.0 * (avg_top_high - entry) / entry
-        dist_bot5_low[i] = 100.0 * (entry - avg_bot_low) / entry
-
-    return (
-        dist_avg_high,
-        dist_avg_low,
-        dist_top5_high,
-        dist_bot5_low,
-        remaining_bars_out,
+    return _shared_compute_hybrid_distance_metrics(
+        close_entry,
+        batch_id_entry,
+        bar_pos_15m_for_entry,
+        high_15m,
+        low_15m,
+        batch_id_15m,
+        bar_pos_15m,
+        min_remaining,
+        outlier_pct,
     )
 
 
@@ -3726,86 +3969,7 @@ if "compute_4class_labels" not in globals():
     def compute_4class_labels(
         df: pl.DataFrame, breakout_thresh: float, risk_thresh: float
     ) -> pl.DataFrame:
-        eps = 1e-10
-        df = df.with_columns(
-            [
-                (pl.col("dist_avg_low") < 0).alias("is_breakout_up"),
-                (pl.col("dist_avg_high") < 0).alias("is_breakout_down"),
-                ((pl.col("dist_avg_low") > 0) & (pl.col("dist_avg_high") > 0)).alias(
-                    "is_oscillation"
-                ),
-            ]
-        )
-        df = df.with_columns(
-            [
-                pl.when(pl.col("is_breakout_up"))
-                .then(pl.lit(True))
-                .when(pl.col("is_breakout_down"))
-                .then(pl.lit(False))
-                .otherwise(pl.col("dist_avg_high") > pl.col("dist_avg_low"))
-                .alias("is_up")
-            ]
-        )
-        df = df.with_columns(
-            [
-                pl.when(pl.col("is_breakout_up"))
-                .then(pl.col("dist_top5_high") > breakout_thresh)
-                .when(pl.col("is_breakout_down"))
-                .then(pl.lit(False))
-                .otherwise(
-                    (pl.col("dist_top5_high") / (pl.col("dist_avg_high") + eps))
-                    > risk_thresh
-                )
-                .alias("high_risk_up"),
-                pl.when(pl.col("is_breakout_down"))
-                .then(pl.col("dist_bot5_low") > breakout_thresh)
-                .when(pl.col("is_breakout_up"))
-                .then(pl.lit(False))
-                .otherwise(
-                    (pl.col("dist_bot5_low") / (pl.col("dist_avg_low") + eps))
-                    > risk_thresh
-                )
-                .alias("high_risk_down"),
-            ]
-        )
-        df = df.with_columns(
-            [
-                pl.when(pl.col("dist_avg_high").is_nan())
-                .then(pl.lit(-1))
-                .when(
-                    pl.col("is_up")
-                    & (pl.col("high_risk_up") | pl.col("high_risk_down"))
-                )
-                .then(pl.lit(3))
-                .when(pl.col("is_up"))
-                .then(pl.lit(2))
-                .when(
-                    ~pl.col("is_up")
-                    & (pl.col("high_risk_up") | pl.col("high_risk_down"))
-                )
-                .then(pl.lit(1))
-                .when(~pl.col("is_up"))
-                .then(pl.lit(0))
-                .otherwise(pl.lit(-1))
-                .alias("target_4class")
-            ]
-        )
-        df = df.with_columns(
-            pl.col("target_4class")
-            .replace_strict({i: name for i, name in CLASS_NAMES.items()}, default="INVALID")
-            .alias("target_name")
-        )
-        return df.drop(
-            [
-                "is_breakout_up",
-                "is_breakout_down",
-                "is_oscillation",
-                "is_up",
-                "high_risk_up",
-                "high_risk_down",
-                "batch_id_check",
-            ]
-        )
+        return _shared_compute_4class_labels(df, breakout_thresh, risk_thresh)
 
 
 print("=" * 70)
@@ -4049,8 +4213,10 @@ else:
 
 # %%
 # =============================================================================
-# CELL 9B: HYBRID 1m TARGET LABELING (1m ENTRY + 15m DISTANCE METRICS)
+# CELL 9B: LEGACY HYBRID 1m TARGET LABELING (1m ENTRY + 15m DISTANCE METRICS)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # This mirrors Cell 9 logic used for 5m:
 #   - Entry reference: 1m close
 #   - Future distance metrics: remaining 15m bars from the same 8h batch
@@ -4090,6 +4256,7 @@ BREAKFREE_THRESHOLD_1M = 0.001  # 0.10%
 INCREMENTAL_LABEL_UPDATE_1M = True
 INCREMENTAL_TAIL_BATCHES_1M = 8
 
+set_run_stage("Legacy hybrid 1m labels", detail="family B 1m entry + 15m future path")
 print("=" * 70)
 print("HYBRID 1m TARGET LABELING (1m Entry + 15m Distance Metrics)")
 print("=" * 70)
@@ -4350,9 +4517,16 @@ df_output_1m = df_labeled_1m.filter(pl.col("batch_id").is_in(target_batches_1m))
 )
 
 batch_ids_1m = df_output_1m["batch_id"].unique().sort().to_list()
-for bid in batch_ids_1m:
+batch_1m_save_started_at = time.time()
+for idx, bid in enumerate(batch_ids_1m, 1):
     df_output_1m.filter(pl.col("batch_id") == bid).write_parquet(
         tf_labels_dir_1m / f"batch_{bid:04d}.parquet"
+    )
+    log_loop_progress(
+        "1m label batches",
+        idx,
+        len(batch_ids_1m),
+        started_at=batch_1m_save_started_at,
     )
 
 valid_labels_1m = len(df_output_1m.filter(pl.col("target_4class") >= 0))
@@ -4391,8 +4565,10 @@ gc.collect()
 
 # %%
 # =============================================================================
-# CELL 9C: SHIFT4H FAMILY C - HYBRID 1m TARGET LABELING (1m ENTRY + SHIFT4H 15m DISTANCE METRICS)
+# CELL 9C: LEGACY SHIFT4H FAMILY C - HYBRID 1m TARGET LABELING (1m ENTRY + SHIFT4H 15m DISTANCE METRICS)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 
 import gc
 import json
@@ -4425,6 +4601,7 @@ BREAKFREE_THRESHOLD_1M_SHIFT = 0.001
 INCREMENTAL_LABEL_UPDATE_1M_SHIFT = True
 INCREMENTAL_TAIL_BATCHES_1M_SHIFT = 8
 
+set_run_stage("Legacy shift4h hybrid 1m labels", detail="family C 1m entry + shifted 15m future path")
 print("=" * 70)
 print("SHIFT4H FAMILY C - HYBRID 1m TARGET LABELING")
 print("=" * 70)
@@ -4696,9 +4873,16 @@ else:
     ).select(available_cols_1m_shift)
 
     batch_ids_1m_shift = df_output_1m_shift["batch_id"].unique().sort().to_list()
-    for bid in batch_ids_1m_shift:
+    shift_1m_save_started_at = time.time()
+    for idx, bid in enumerate(batch_ids_1m_shift, 1):
         df_output_1m_shift.filter(pl.col("batch_id") == bid).write_parquet(
             shift_1m_label_dir / f"batch_{bid:04d}.parquet"
+        )
+        log_loop_progress(
+            "shift4h 1m label batches",
+            idx,
+            len(batch_ids_1m_shift),
+            started_at=shift_1m_save_started_at,
         )
 
     valid_labels_1m_shift = len(df_output_1m_shift.filter(pl.col("target_4class") >= 0))
@@ -4737,8 +4921,10 @@ else:
 
 # %%
 # =============================================================================
-# CELL 10: HTF FEATURE OPTIMIZATION (Rolling Rank-Winsorize)
+# CELL 10: LEGACY HTF FEATURE OPTIMIZATION (Rolling Rank-Winsorize)
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # CORRECT winsorize-rank implementation:
 #   1. Rolling rank: u_t = percentile of x_t vs past L values (t-L..t-1)
 #   2. Clip ranks: u_t' = clip(u_t, p_min, p_max)
@@ -4849,17 +5035,20 @@ else:
 
 # %%
 # =============================================================================
-# CELL 11: L1 HELPER FEATURES (CORRECTED - RAW DATA INPUT)
+# CELL 11: LEGACY L1 HELPER FEATURES (RAW-INPUT HELPER MATERIALIZATION)
 # =============================================================================
-# ISSUE FIXED: Previous version fed rank-winsorized data (0-1) to helpers.
-# Helpers expect RAW returns and prices for proper estimation.
+# Legacy/debug only. Supported production execution uses CELL 14.
 #
-# SOLUTION:
-# 1. Load from htf_features/ (has raw OHLCV: close ~40000-70000)
-# 2. Compute raw returns from raw close
-# 3. Build feature matrix with raw returns at column 0 (what helpers expect)
-# 4. Run walk-forward helper generation
-# 5. Join results with htf_optimized/ (rank-winsorized features)
+# Helper generation in this legacy cell intentionally uses raw-price/raw-return
+# context from `htf_features`, then joins the helper outputs back onto
+# `htf_optimized`.
+#
+# Invariants:
+# 1. Load from `htf_features` so OHLCV inputs stay on their raw scale.
+# 2. Compute raw returns from raw close.
+# 3. Build the helper input matrix with raw returns in column 0.
+# 4. Run walk-forward helper generation.
+# 5. Join helper outputs back to the optimized feature batches.
 #
 # OUTPUT:
 #   - data/htf_with_helpers/{tf}/{target}/batch_XXXX.parquet
@@ -4881,166 +5070,12 @@ PROJECT_ROOT = resolve_project_root() if "resolve_project_root" in globals() els
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-# Import helper infrastructure (SAME as main_wf)
-from scripts.target_models.helpers import create_helper_ensemble
-
-# =============================================================================
-# HELPER: PREPARE RAW DATA FOR HELPERS
-# =============================================================================
-
-
-def prepare_raw_features_for_helpers(df: pl.DataFrame) -> tuple[np.ndarray, list[str]]:
-    """
-    Prepare feature matrix with RAW returns/volatility that helpers expect.
-
-    Helpers use column indices:
-    - return_col_idx=0: raw log returns
-    - vol_col_idx=1: raw volatility (rolling std of returns)
-    - price_col_idx: close price (for OU, Kalman)
-
-    Returns:
-        (feature_matrix, column_names)
-    """
-    # Get raw close prices
-    close = df["close"].to_numpy().astype(np.float64)
-
-    # Compute raw log returns
-    returns = np.zeros_like(close)
-    returns[1:] = np.diff(np.log(np.maximum(close, 1e-10)))
-
-    # Compute rolling volatility (20-period std of returns)
-    volatility = pd.Series(returns).rolling(20, min_periods=1).std().fillna(0.01).values
-
-    # Build feature matrix: [returns, volatility, close, other raw columns...]
-    # This puts returns at index 0, volatility at index 1
-    feature_cols = ["raw_returns", "raw_volatility", "close"]
-    features = np.column_stack([returns, volatility, close])
-
-    # Add other raw numeric columns that might be useful
-    for col in ["open", "high", "low", "volume"]:
-        if col in df.columns:
-            vals = df[col].to_numpy().astype(np.float64)
-            features = np.column_stack([features, vals])
-            feature_cols.append(col)
-
-    return features, feature_cols
-
-
-# =============================================================================
-# WALK-FORWARD HELPER GENERATION (NO LOOK-AHEAD BIAS)
-# =============================================================================
-
-
-def compute_helpers_walk_forward_raw(
-    raw_df: pl.DataFrame,
-    target: str,
-    horizon: int = 1,
-    warmup_rows: int = 5000,
-    refit_every: int = 1000,
-    helpers: list[str] | None = None,
-    start_row: int | None = None,
-    verbose: bool = True,
-) -> pd.DataFrame:
-    """
-    Generate L1 helper features using walk-forward approach with RAW data.
-
-    CRITICAL: At each row t, we only use data from rows [0, t-1] to fit.
-    Uses RAW returns/prices, not rank-winsorized data.
-    """
-    if helpers is None:
-        helpers = ["ou", "garch", "cusum", "kalman", "egarch"]
-
-    # Prepare raw feature matrix
-    X, feature_cols = prepare_raw_features_for_helpers(raw_df)
-    n_rows = len(X)
-
-    if verbose:
-        print(f"  Raw data prepared: {n_rows:,} rows, {len(feature_cols)} columns")
-        print(f"  Returns range: {np.nanmin(X[:, 0]):.6f} to {np.nanmax(X[:, 0]):.6f}")
-        print(f"  Close range: {np.nanmin(X[:, 2]):.2f} to {np.nanmax(X[:, 2]):.2f}")
-        print(f"  Walk-forward: warmup={warmup_rows}, refit_every={refit_every}")
-
-    # Convert to DataFrame for helper API
-    X_df = pd.DataFrame(X, columns=feature_cols)
-
-    # Incremental mode: only compute rows >= start_row
-    if start_row is None:
-        start_row = warmup_rows
-    start_row = int(max(start_row, warmup_rows))
-    if start_row >= n_rows:
-        return pd.DataFrame({"row_idx": []})
-
-    helper_output_list = []
-    t0 = time.time()
-    chunk_size = refit_every
-    first_chunk_start = (
-        warmup_rows + ((start_row - warmup_rows) // chunk_size) * chunk_size
-    )
-    processed_chunks = 0
-    total_rows_to_compute = n_rows - start_row
-
-    if verbose:
-        print(
-            f"  Incremental helper compute window: start_row={start_row:,}, "
-            f"rows_to_compute={total_rows_to_compute:,}, first_chunk={first_chunk_start:,}"
-        )
-
-    for chunk_start in range(first_chunk_start, n_rows, chunk_size):
-        chunk_end = min(chunk_start + chunk_size, n_rows)
-
-        # 1. FIT on all data up to chunk_start (past only)
-        X_train = X_df.iloc[:chunk_start]
-
-        # Create and fit fresh ensemble
-        ensemble = create_helper_ensemble(
-            target=target,
-            horizon=horizon,
-            random_state=42 + chunk_start,
-            helpers=helpers,
-            enable_boosting=False,
-        )
-        ensemble.fit(X_train)
-
-        # 2. TRANSFORM the current chunk
-        pred_start = max(chunk_start, start_row)
-        if pred_start >= chunk_end:
-            continue
-
-        X_chunk = X_df.iloc[pred_start:chunk_end]
-        chunk_features = ensemble.transform(X_chunk)
-        chunk_df = chunk_features.features.reset_index(drop=True).copy()
-        chunk_df.insert(
-            0,
-            "row_idx",
-            np.arange(pred_start, chunk_end, dtype=np.int64),
-        )
-        helper_output_list.append(chunk_df)
-        processed_chunks += 1
-
-        if verbose and (
-            processed_chunks == 1 or processed_chunks % 20 == 0 or chunk_end == n_rows
-        ):
-            elapsed = time.time() - t0
-            progress = (chunk_end - start_row) / max(1, (n_rows - start_row))
-            eta = elapsed / max(progress, 0.01) * (1 - progress)
-            print(
-                f"    chunk {processed_chunks}: {chunk_end:,}/{n_rows:,} "
-                f"({progress * 100:.1f}% incremental), "
-                f"{elapsed / 60:.1f}m elapsed, ~{eta / 60:.1f}m remaining"
-            )
-
-    if not helper_output_list:
-        return pd.DataFrame({"row_idx": []})
-
-    helper_df_partial = pd.concat(helper_output_list, axis=0, ignore_index=True)
-
-    if verbose:
-        print(
-            f"  Generated {len(helper_df_partial.columns) - 1} helper features "
-            f"for {len(helper_df_partial):,} rows in {time.time() - t0:.1f}s"
-        )
-
-    return helper_df_partial
+# Shared exact-parity helper cache/materialization logic
+from scripts.feature_engineering.htf_helper_cache import (
+    DEFAULT_HELPER_NAMES,
+    build_helper_cache_exact,
+    materialize_helpers_from_cache,
+)
 
 
 # =============================================================================
@@ -5064,48 +5099,94 @@ def _helper_family_runs() -> list[tuple[str, dict, list[str]]]:
     ]
 
 
-def _helper_cols_from_batch_dir(helper_dir: Path) -> list[str]:
-    files = sorted(helper_dir.glob("batch_*.parquet"))
-    if not files:
-        return []
-    schema = pl.scan_parquet(
-        str(helper_dir / "batch_*.parquet"),
-        extra_columns="ignore",
-        missing_columns="insert",
-    ).collect_schema().names()
-    return [c for c in schema if c.startswith("H_")]
+def _legacy_helper_cache_namespace(family: str) -> str:
+    return "base_0h" if family == "B" else "shift4h"
 
-
-def _load_helper_source_batches(
-    helper_dir: Path, source_batch_ids: list[int], helper_cols: list[str]
-) -> pl.DataFrame | None:
-    parts = []
-    for source_batch_id in sorted({int(bid) for bid in source_batch_ids}):
-        batch_path = helper_dir / f"batch_{source_batch_id:04d}.parquet"
-        if not batch_path.exists():
-            return None
-        parts.append(pl.read_parquet(batch_path, columns=["timestamp"] + helper_cols))
-    if not parts:
-        return None
-    return (
-        pl.concat(parts, how="diagonal_relaxed")
-        .sort("timestamp")
-        .unique(subset=["timestamp"], keep="last")
-    )
-
-
+set_run_stage("Legacy helper materialization", detail="helper features from raw inputs")
 print("=" * 70)
-print("HTF L1 HELPER FEATURES (CORRECTED - RAW DATA INPUT)")
+print("HTF L1 HELPER FEATURES (RAW-INPUT HELPER MATERIALIZATION)")
 print("=" * 70)
 
 TARGETS = ["target_4class"]
+USE_CANONICAL_HELPER_CACHE = True
 INCREMENTAL_SPLIT_BATCHES = True
-HELPERS = ["ou", "garch", "cusum", "kalman", "egarch"]
+INCREMENTAL_HELPER_CACHE_UPDATE = True
+HELPERS = list(DEFAULT_HELPER_NAMES)
 INCREMENTAL_HELPERS_SKIP_UNCHANGED = True
 WRITE_HELPERS_COMBINED = False
 HELPER_OVERLAP_BATCHES_BY_TF = {"1m": 2, "5m": 2, "15m": 2}
+HELPER_CACHE_OVERLAP_BATCHES_BY_TF = {"1m": 2, "15m": 2}
+HELPER_WARMUP_BY_TF = {"1m": 20000, "5m": 10000, "15m": 5000}
+HELPER_REFIT_EVERY_BY_TF = {"1m": 10000, "5m": 5000, "15m": 2500}
 
 results = []
+helper_cache_results: dict[tuple[str, str, str], dict[str, Any]] = {}
+
+if USE_CANONICAL_HELPER_CACHE:
+    print("\n" + "=" * 70)
+    print("CANONICAL HELPER CACHE PREPARATION")
+    print("=" * 70)
+    for family, scope, family_timeframes in _helper_family_runs():
+        cache_namespace = _legacy_helper_cache_namespace(family)
+        for tf in family_timeframes:
+            for target in TARGETS:
+                print(f"\n{'─' * 50}")
+                print(f"CACHE / {cache_namespace} / {tf} / {target}")
+                print("─" * 50)
+
+                canonical_raw_dir = scope["features_dir"] / tf
+                if not canonical_raw_dir.exists():
+                    print(f"  ⚠️ canonical features directory not found: {canonical_raw_dir}")
+                    continue
+
+                cache_dir = HTF_HELPER_CACHE_DIR / cache_namespace / tf / target
+                cache_meta_path = cache_dir / "_helper_cache_meta.json"
+                cache_source_fingerprint = {
+                    "raw_batches": fingerprint_batch_dir(canonical_raw_dir),
+                }
+
+                cache_result = build_helper_cache_exact(
+                    raw_dir=canonical_raw_dir,
+                    cache_dir=cache_dir,
+                    meta_path=cache_meta_path,
+                    timeframe=tf,
+                    target=target,
+                    helpers=HELPERS,
+                    warmup_rows=HELPER_WARMUP_BY_TF[tf],
+                    refit_every=HELPER_REFIT_EVERY_BY_TF[tf],
+                    overlap_batches=HELPER_CACHE_OVERLAP_BATCHES_BY_TF.get(tf, 2),
+                    rebuild_existing=False,
+                    incremental_update=INCREMENTAL_HELPER_CACHE_UPDATE,
+                    artifact_version=ARTIFACT_STAGE_VERSIONS["helper_cache"],
+                    source_fingerprint=cache_source_fingerprint,
+                    chunk_progress_every=20,
+                    batch_progress_every=500,
+                    verbose=True,
+                    log=print,
+                )
+                helper_cache_results[(family, tf, target)] = {
+                    "cache_dir": cache_dir,
+                    "meta_path": cache_meta_path,
+                    "source_fingerprint": cache_source_fingerprint,
+                    "result": cache_result,
+                }
+                results.append(
+                    {
+                        "family": f"CACHE_{family}",
+                        "tf": tf,
+                        "target": target,
+                        "rows": cache_result.rows,
+                        "helpers": cache_result.helper_cols,
+                        "warmup": HELPER_WARMUP_BY_TF[tf],
+                        "time": 0.0,
+                        "skipped": cache_result.status == "current",
+                    }
+                )
+                print(
+                    f"  ✓ Helper cache status={cache_result.status} "
+                    f"| run_mode={cache_result.run_mode} | rows={cache_result.rows:,} "
+                    f"| helper_cols={cache_result.helper_cols}"
+                )
 
 for family, scope, family_timeframes in _helper_family_runs():
     print("\n" + "=" * 70)
@@ -5142,44 +5223,14 @@ for family, scope, family_timeframes in _helper_family_runs():
                 print(f"  ⚠️ No optimized batch files in {opt_dir}")
                 continue
 
-            helper_source_fingerprint = {
-                "raw_batches": fingerprint_batch_dir(raw_dir),
-                "optimized_batches": fingerprint_batch_dir(opt_dir),
-                "optimized_meta": fingerprint_paths(
-                    [scope["optimized_dir"] / tf / f"optimized_{target}_meta.json"]
-                ),
-            }
-            helper_schema_columns = schema_columns_for_batch_dir(output_dir)
-            if not helper_schema_columns:
-                helper_schema_columns = (load_json_safe(helpers_meta_path) or {}).get(
-                    "schema_columns", []
-                )
-            helper_rebuild_reasons: list[str] = []
-            helper_rebuild_mode = "incremental_tail"
-            if family == "C":
-                helper_rebuild_reasons, helper_rebuild_mode = prepare_stage_rebuild(
-                    stage_name=f"Shift4h helpers {tf}/{target}",
-                    meta_path=helpers_meta_path,
-                    artifact_version=ARTIFACT_STAGE_VERSIONS["shift4h_helpers"],
-                    family=family,
-                    timeframe=tf,
-                    source_fingerprint=helper_source_fingerprint,
-                    schema_columns=helper_schema_columns,
-                    output_targets=[output_dir],
-                    inspect_batch_dir=output_dir,
-                    required_batch_columns=set(
-                        ["timestamp", *family_metadata_cols(include_timestamp=False)]
-                    ),
-                    full_rebuild_reasons={
-                        "missing_meta",
-                        "artifact_version",
-                        "family",
-                        "timeframe",
-                        "schema_columns",
-                        "legacy_schema",
-                    },
-                )
+            cache_info = helper_cache_results.get((family, tf, target))
+            if cache_info is None:
+                print(f"  ⚠️ Helper cache missing for {tf}/{target}")
+                continue
 
+            cache_dir = cache_info["cache_dir"]
+            cache_meta_path = cache_info["meta_path"]
+            canonical_raw_dir = scope["features_dir"] / tf
             raw_by_id = {
                 int(path.stem.split("_")[1]): path
                 for path in raw_files
@@ -5190,385 +5241,79 @@ for family, scope, family_timeframes in _helper_family_runs():
                 for path in opt_files
                 if path.stem.startswith("batch_")
             }
-            helper_files = sorted(output_dir.glob("batch_*.parquet"))
-            helper_by_id = {
-                int(path.stem.split("_")[1]): path
-                for path in helper_files
-                if path.stem.startswith("batch_")
-            }
-
-            common_batch_ids = sorted(set(raw_by_id) & set(opt_by_id))
-            if not common_batch_ids:
-                print("  ⚠️ No overlapping batch IDs between features and optimized")
+            if not raw_by_id or not opt_by_id:
+                print("  ⚠️ Missing raw or optimized batches")
                 continue
-
-            orphan_helper_ids = sorted(set(helper_by_id) - set(common_batch_ids))
-            if orphan_helper_ids:
-                print(f"  Removing {len(orphan_helper_ids)} orphan helper batches")
-                for bid in orphan_helper_ids:
-                    helper_by_id[bid].unlink(missing_ok=True)
-                    helper_by_id.pop(bid, None)
-
-            raw_mtime = {bid: int(path.stat().st_mtime_ns) for bid, path in raw_by_id.items()}
-            opt_mtime = {bid: int(path.stat().st_mtime_ns) for bid, path in opt_by_id.items()}
-            helper_mtime = {
-                bid: int(path.stat().st_mtime_ns) for bid, path in helper_by_id.items()
-            }
-
-            affected_batch_ids = []
-            for bid in common_batch_ids:
-                helper_stamp = helper_mtime.get(bid)
-                if helper_stamp is None or helper_stamp < max(raw_mtime[bid], opt_mtime[bid]):
-                    affected_batch_ids.append(bid)
-            affected_batch_set = set(affected_batch_ids)
 
             raw_sig = {
                 "count": int(len(raw_by_id)),
                 "max_batch": int(max(raw_by_id)),
-                "max_mtime_ns": int(max(raw_mtime.values())),
+                "max_mtime_ns": int(max(int(path.stat().st_mtime_ns) for path in raw_by_id.values())),
             }
             opt_sig = {
                 "count": int(len(opt_by_id)),
                 "max_batch": int(max(opt_by_id)),
-                "max_mtime_ns": int(max(opt_mtime.values())),
+                "max_mtime_ns": int(max(int(path.stat().st_mtime_ns) for path in opt_by_id.values())),
+            }
+            helper_source_fingerprint = {
+                "helper_cache": fingerprint_batch_dir(cache_dir),
+                "helper_cache_meta": fingerprint_paths([cache_meta_path]),
+                "optimized_batches": fingerprint_batch_dir(opt_dir),
+                "optimized_meta": fingerprint_paths(
+                    [scope["optimized_dir"] / tf / f"optimized_{target}_meta.json"]
+                ),
             }
 
-            if INCREMENTAL_HELPERS_SKIP_UNCHANGED and not affected_batch_ids:
-                print("  ✓ Helper outputs up to date (no affected batches), skipping")
-                results.append(
-                    {
-                        "family": family,
-                        "tf": tf,
-                        "target": target,
-                        "rows": 0,
-                        "helpers": 0,
-                        "warmup": 0,
-                        "time": 0.0,
-                        "skipped": True,
-                    }
-                )
-                continue
-
-            first_affected_batch = min(affected_batch_ids)
-            overlap_batches = HELPER_OVERLAP_BATCHES_BY_TF.get(tf, 2)
-            write_start_batch = max(common_batch_ids[0], first_affected_batch - overlap_batches)
-            batches_to_write = [bid for bid in common_batch_ids if bid >= write_start_batch]
-            print(
-                f"  Incremental helper update: affected={len(affected_batch_ids)} "
-                f"(first={first_affected_batch}), write_start={write_start_batch}, "
-                f"write_batches={len(batches_to_write)}"
-            )
-
-            reuse_helper_dir = output_dir
-            if family == "C":
-                base_helper_dir = family_scope("B")["helpers_dir"] / tf / target
-                if base_helper_dir.exists() and list(base_helper_dir.glob("batch_*.parquet")):
-                    reuse_helper_dir = base_helper_dir
-            reuse_helper_cols = _helper_cols_from_batch_dir(reuse_helper_dir)
-            if reuse_helper_cols:
-                print(f"  Attempting helper reuse from {reuse_helper_dir}")
-                t0 = time.time()
-                rows_joined = 0
-                saved_batches = 0
-                skipped_batches = 0
-                reuse_failed = False
-                reuse_failure_detail = ""
-
-                for i, batch_id in enumerate(batches_to_write, 1):
-                    opt_file = opt_by_id.get(batch_id)
-                    if opt_file is None:
-                        continue
-
-                    opt_batch = pl.read_parquet(opt_file).with_columns(
-                        pl.lit(batch_id).alias("batch_id")
-                    )
-                    if family == "B":
-                        source_batch_ids = [batch_id]
-                    else:
-                        source_batch_ids = opt_batch["source_base_batch_id"].drop_nulls().unique().to_list()
-
-                    helper_source = _load_helper_source_batches(
-                        reuse_helper_dir, source_batch_ids, reuse_helper_cols
-                    )
-                    if helper_source is None:
-                        reuse_failed = True
-                        reuse_failure_detail = (
-                            f"missing helper source batch for {family}/{tf}/{target} batch {batch_id}"
-                        )
-                        break
-
-                    missing_helper_ts = int(
-                        opt_batch.join(
-                            helper_source.select(["timestamp"]),
-                            on="timestamp",
-                            how="anti",
-                        )
-                        .select(pl.len())
-                        .item()
-                    )
-                    if missing_helper_ts > 0:
-                        reuse_failed = True
-                        reuse_failure_detail = (
-                            f"helper reuse missing {missing_helper_ts} timestamps for "
-                            f"{family}/{tf}/{target} batch {batch_id}"
-                        )
-                        break
-
-                    enriched_batch = opt_batch.join(helper_source, on="timestamp", how="left")
-
-                    batch_path = output_dir / f"batch_{batch_id:04d}.parquet"
-                    force_rewrite = batch_id in affected_batch_set
-                    if INCREMENTAL_SPLIT_BATCHES and batch_path.exists() and not force_rewrite:
-                        existing = pl.read_parquet(batch_path, columns=["timestamp"])
-                        same_rows = len(existing) == len(enriched_batch)
-                        same_last_ts = (
-                            existing["timestamp"].max() == enriched_batch["timestamp"].max()
-                        )
-                        if same_rows and same_last_ts:
-                            skipped_batches += 1
-                            rows_joined += len(enriched_batch)
-                            if i % 500 == 0:
-                                print(f"    processed {i}/{len(batches_to_write)} batches...")
-                            continue
-
-                    enriched_batch.write_parquet(batch_path, compression="zstd")
-                    saved_batches += 1
-                    rows_joined += len(enriched_batch)
-                    if i % 500 == 0:
-                        print(f"    processed {i}/{len(batches_to_write)} batches...")
-
-                if not reuse_failed:
-                    join_elapsed = time.time() - t0
-                    print(
-                        f"  Reused helper features for {rows_joined:,} rows in {join_elapsed:.1f}s "
-                        f"(saved={saved_batches}, skipped={skipped_batches})"
-                    )
-                    if WRITE_HELPERS_COMBINED:
-                        print("  Building optional combined.parquet from per-batch files...")
-                        pl.concat(
-                            [
-                                pl.read_parquet(batch_file)
-                                for batch_file in sorted(output_dir.glob("batch_*.parquet"))
-                            ]
-                        ).sort("timestamp").write_parquet(combined_path)
-                        print(f"  ✓ Saved {combined_path.name}")
-
-                    helpers_meta = {
-                        "updated_at": datetime.now().isoformat(),
-                        "family": family,
-                        "timeframe": tf,
-                        "target": target,
-                        "artifact_version": ARTIFACT_STAGE_VERSIONS["shift4h_helpers"]
-                        if family == "C"
-                        else None,
-                        "source_fingerprint": helper_source_fingerprint,
-                        "schema_columns": schema_columns_for_batch_dir(output_dir),
-                        "rebuild_mode": helper_rebuild_mode,
-                        "run_mode": "reuse_existing_helpers",
-                        "helper_source_dir": str(reuse_helper_dir),
-                        "rebuild_reasons": helper_rebuild_reasons,
-                        "first_affected_batch": int(first_affected_batch),
-                        "write_start_batch": int(write_start_batch),
-                        "affected_batches_count": int(len(affected_batch_ids)),
-                        "write_batches_count": int(len(batches_to_write)),
-                        "rows": int(rows_joined),
-                        "helper_cols": int(len(reuse_helper_cols)),
-                        "warmup": 0,
-                        "refit_every": 0,
-                        "raw_sig": raw_sig,
-                        "opt_sig": opt_sig,
-                        "saved_batches": int(saved_batches),
-                        "skipped_batches": int(skipped_batches),
-                        "write_helpers_combined": bool(WRITE_HELPERS_COMBINED),
-                    }
-                    with open(helpers_meta_path, "w") as f:
-                        json.dump(helpers_meta, f, indent=2)
-
-                    results.append(
-                        {
-                            "family": family,
-                            "tf": tf,
-                            "target": target,
-                            "rows": rows_joined,
-                            "helpers": len(reuse_helper_cols),
-                            "warmup": 0,
-                            "time": 0.0,
-                            "skipped": False,
-                        }
-                    )
-                    print(
-                        f"  ✓ Saved batch helper files ({len(reuse_helper_cols)} helper features via reuse)"
-                    )
-                    print(f"  ✓ Saved {helpers_meta_path.name}")
-                    continue
-
-                print(f"  Helper reuse unavailable, falling back to walk-forward compute: {reuse_failure_detail}")
-
-            print(f"  Loading {len(raw_files)} raw batches...", end=" ", flush=True)
-            t0 = time.time()
-            raw_combined = (
-                pl.scan_parquet(
-                    str(raw_dir / "batch_*.parquet"),
-                    extra_columns="ignore",
-                    missing_columns="insert",
-                )
-                .sort("timestamp")
-                .collect()
-            )
-            print(f"{len(raw_combined):,} rows in {time.time() - t0:.1f}s")
-
-            if tf == "1m":
-                warmup, refit = 20000, 10000
-            elif tf == "5m":
-                warmup, refit = 10000, 5000
-            elif tf == "15m":
-                warmup, refit = 5000, 2500
-            else:
-                warmup, refit = 2000, 1000
-
-            batch_np = raw_combined["batch_id"].to_numpy()
-            start_candidates = np.where(batch_np >= write_start_batch)[0]
-            if len(start_candidates) == 0:
-                print("  ⚠️ Could not find write_start_batch in combined rows, skipping")
-                continue
-            start_row = int(start_candidates[0])
-
-            t0 = time.time()
-            helper_df_partial = compute_helpers_walk_forward_raw(
-                raw_df=raw_combined,
-                target=target.replace("target_", ""),
-                horizon=1,
-                warmup_rows=warmup,
-                refit_every=refit,
-                helpers=HELPERS,
-                start_row=start_row,
-                verbose=True,
-            )
-            helper_time = time.time() - t0
-
-            if helper_df_partial.empty:
-                print("  ⚠️ Incremental helper output empty, skipping")
-                continue
-
-            helper_pl = pl.from_pandas(helper_df_partial).with_columns(
-                pl.col("row_idx").cast(pl.Int64)
-            )
-            timestamp_lookup = (
-                raw_combined.select(["timestamp"])
-                .with_row_index("row_idx")
-                .with_columns(pl.col("row_idx").cast(pl.Int64))
-            )
-            helper_cols = [c for c in helper_pl.columns if c.startswith("H_")]
-            helper_lookup = (
-                helper_pl.join(timestamp_lookup, on="row_idx", how="left")
-                .drop("row_idx")
-                .select(["timestamp"] + helper_cols)
-                .sort("timestamp")
-                .unique(subset=["timestamp"], keep="last")
-            )
-
-            print(
-                f"  Joining helper features into {len(batches_to_write)} optimized batches...",
-                flush=True,
-            )
-            t0 = time.time()
-            rows_joined = 0
-            saved_batches = 0
-            skipped_batches = 0
-
-            for i, batch_id in enumerate(batches_to_write, 1):
-                opt_file = opt_by_id.get(batch_id)
-                if opt_file is None:
-                    continue
-                opt_batch = pl.read_parquet(opt_file).with_columns(
-                    pl.lit(batch_id).alias("batch_id")
-                )
-                enriched_batch = opt_batch.join(helper_lookup, on="timestamp", how="left")
-
-                batch_path = output_dir / f"batch_{batch_id:04d}.parquet"
-                force_rewrite = batch_id in affected_batch_set
-                if INCREMENTAL_SPLIT_BATCHES and batch_path.exists() and not force_rewrite:
-                    existing = pl.read_parquet(batch_path, columns=["timestamp"])
-                    same_rows = len(existing) == len(enriched_batch)
-                    same_last_ts = (
-                        existing["timestamp"].max() == enriched_batch["timestamp"].max()
-                    )
-                    if same_rows and same_last_ts:
-                        skipped_batches += 1
-                        rows_joined += len(enriched_batch)
-                        if i % 500 == 0:
-                            print(f"    processed {i}/{len(batches_to_write)} batches...")
-                        continue
-
-                enriched_batch.write_parquet(batch_path, compression="zstd")
-                saved_batches += 1
-                rows_joined += len(enriched_batch)
-
-                if i % 500 == 0:
-                    print(f"    processed {i}/{len(batches_to_write)} batches...")
-
-            join_elapsed = time.time() - t0
-            print(
-                f"  Joined and saved {rows_joined:,} rows in {join_elapsed:.1f}s "
-                f"(saved={saved_batches}, skipped={skipped_batches})"
-            )
-
-            if WRITE_HELPERS_COMBINED:
-                print("  Building optional combined.parquet from per-batch files...")
-                pl.concat(
-                    [
-                        pl.read_parquet(batch_file)
-                        for batch_file in sorted(output_dir.glob("batch_*.parquet"))
-                    ]
-                ).sort("timestamp").write_parquet(combined_path)
-                print(f"  ✓ Saved {combined_path.name}")
-
-            n_helper = len(helper_cols)
-            helpers_meta = {
-                "updated_at": datetime.now().isoformat(),
-                "family": family,
-                "timeframe": tf,
-                "target": target,
-                "artifact_version": ARTIFACT_STAGE_VERSIONS["shift4h_helpers"]
+            output_artifact_version = (
+                ARTIFACT_STAGE_VERSIONS["shift4h_helpers"]
                 if family == "C"
-                else None,
-                "source_fingerprint": helper_source_fingerprint,
-                "schema_columns": schema_columns_for_batch_dir(output_dir),
-                "rebuild_mode": helper_rebuild_mode,
-                "run_mode": "incremental_tail",
-                "rebuild_reasons": helper_rebuild_reasons,
-                "first_affected_batch": int(first_affected_batch),
-                "write_start_batch": int(write_start_batch),
-                "affected_batches_count": int(len(affected_batch_ids)),
-                "write_batches_count": int(len(batches_to_write)),
-                "start_row": int(start_row),
-                "rows": int(rows_joined),
-                "helper_cols": int(n_helper),
-                "warmup": int(warmup),
-                "refit_every": int(refit),
-                "raw_sig": raw_sig,
-                "opt_sig": opt_sig,
-                "saved_batches": int(saved_batches),
-                "skipped_batches": int(skipped_batches),
-                "write_helpers_combined": bool(WRITE_HELPERS_COMBINED),
-            }
-            with open(helpers_meta_path, "w") as f:
-                json.dump(helpers_meta, f, indent=2)
+                else ARTIFACT_STAGE_VERSIONS["helpers"]
+            )
+
+            materialize_result = materialize_helpers_from_cache(
+                cache_dir=cache_dir,
+                optimized_dir=opt_dir,
+                output_dir=output_dir,
+                meta_path=helpers_meta_path,
+                family=family,
+                timeframe=tf,
+                target=target,
+                overlap_batches=HELPER_OVERLAP_BATCHES_BY_TF.get(tf, 2),
+                rebuild_existing=False,
+                incremental_skip_unchanged=INCREMENTAL_HELPERS_SKIP_UNCHANGED,
+                artifact_version=output_artifact_version,
+                source_fingerprint=helper_source_fingerprint,
+                extra_meta={
+                    "canonical_raw_dir": str(canonical_raw_dir),
+                    "helper_cache_meta": str(cache_meta_path),
+                    "warmup": int(HELPER_WARMUP_BY_TF[tf]),
+                    "refit_every": int(HELPER_REFIT_EVERY_BY_TF[tf]),
+                    "raw_sig": raw_sig,
+                    "opt_sig": opt_sig,
+                    "write_helpers_combined": bool(WRITE_HELPERS_COMBINED),
+                },
+                write_combined=WRITE_HELPERS_COMBINED,
+                batch_progress_every=500,
+                log=print,
+            )
 
             results.append(
                 {
                     "family": family,
                     "tf": tf,
                     "target": target,
-                    "rows": rows_joined,
-                    "helpers": n_helper,
-                    "warmup": warmup,
-                    "time": helper_time,
-                    "skipped": False,
+                    "rows": materialize_result.rows,
+                    "helpers": materialize_result.helper_cols,
+                    "warmup": HELPER_WARMUP_BY_TF[tf],
+                    "time": 0.0,
+                    "skipped": materialize_result.status == "current",
                 }
             )
-            print(f"  ✓ Saved batch helper files ({n_helper} helper features)")
-            print(f"  ✓ Saved {helpers_meta_path.name}")
+            print(
+                f"  ✓ Helper materialization status={materialize_result.status} "
+                f"| run_mode={materialize_result.run_mode} | rows={materialize_result.rows:,} "
+                f"| helper_cols={materialize_result.helper_cols}"
+            )
 
 print("\n" + "=" * 70)
 print("SUMMARY")
@@ -5577,8 +5322,10 @@ print(pl.DataFrame(results) if results else pl.DataFrame({"family": [], "tf": []
 
 # %%
 # =============================================================================
-# CELL 12: SPLIT BACK TO 8H BATCHES
+# CELL 12: LEGACY SPLIT BACK TO 8H BATCHES
 # =============================================================================
+# Legacy/debug only. Supported production execution uses CELL 14.
+#
 # In low-RAM mode (WRITE_HELPERS_COMBINED=False), helper batch files are already
 # written directly in Cell 11. This cell verifies/splits combined helper outputs
 # for both base family B and shifted family C when combined.parquet is present.
@@ -5608,6 +5355,7 @@ def _split_family_runs() -> list[tuple[str, dict, list[str]]]:
     ]
 
 
+set_run_stage("Legacy helper split", detail="split combined helper outputs back to batch files")
 print("=" * 70)
 print("SPLIT COMBINED DATA BACK TO 8H BATCHES")
 print("=" * 70)
@@ -5741,8 +5489,14 @@ for family, scope, family_timeframes in _split_family_runs():
             print(f"  Rows per batch: {len(first)} (first), {len(last)} (last)")
 # %%
 # =============================================================================
-# CELL 13: END-TO-END PIPELINE VALIDATION SUITE
+# CELL 13: LEGACY END-TO-END PIPELINE VALIDATION SUITE
 # =============================================================================
+# Legacy/debug only. Supported production validation uses CELL 14.
+#
+# This large validation block is intentionally retained inline for the
+# legacy/debug notebook island. It is not part of the supported production
+# acceptance path for shared multi-regime runs.
+#
 # Purpose:
 #   Validate each stage output (combined/features/labels/optimized/helpers)
 #   for both base family B and shifted family C and fail fast on structural
@@ -6428,8 +6182,10 @@ def _validate_cross_family(tf: str) -> list[dict]:
     return rows
 
 
+set_run_stage("Legacy end-to-end validation", detail="family/timeframe consistency checks")
 print("=" * 70)
-print("CELL 13: END-TO-END PIPELINE VALIDATION")
+print("CELL 13: LEGACY END-TO-END PIPELINE VALIDATION")
+print("Legacy/debug validation only. Supported production validation runs in CELL 14.")
 print("=" * 70)
 print(
     f"Families/timeframes: {[(family, timeframes) for family, _, timeframes in FAMILY_RUNS]}"
@@ -6515,3 +6271,22 @@ if len(fails) > 0:
     )
 
 print("\nAll validation checks passed.")
+
+# %%
+# =============================================================================
+# CELL 14: AUTHORITATIVE MULTI-REGIME HTF PIPELINE (8h + 24h + 7d)
+# =============================================================================
+# This shared engine is the source of truth for production HTF materialization.
+# It preserves the legacy 8h artifact layout while applying the same resumable
+# batch logic to 8h, 24h, and 7d regimes.
+# The older cells above remain available for reference and debugging only.
+# - 8h: family B at 00:00/08:00/16:00 UTC, family C shifted by 4h
+# - 24h: family B at 00:00 UTC, family C at 12:00 UTC
+# - 7d: family B at Monday 00:00 UTC, family C at Thursday 12:00 UTC
+# - Targets remain 1m-only: target_4class and target_breakfree
+# - The compatibility column name `period_8h_start` is still used downstream
+#   even for longer regimes; the actual regime is stored in metadata columns
+#   such as `batch_regime`, `batch_duration_hours`, and `family_shift_hours`.
+# =============================================================================
+
+multi_regime_summary = run_supported_multi_regime_pipeline()

@@ -1,0 +1,13 @@
+{
+  "reason": "heartbeat",
+  "run_id": "htf_pythonscript_20260316_125236_pid1308896",
+  "pid": 1308896,
+  "stage": "Legacy helper materialization",
+  "detail": "helper features from raw inputs",
+  "run_elapsed_seconds": 30944.402,
+  "stage_elapsed_seconds": 29685.41,
+  "silence_seconds": 0.001,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260316_125236_pid1308896.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260316_125236_pid1308896_status.json",
+  "updated_at": "2026-03-16T21:28:20"
+}

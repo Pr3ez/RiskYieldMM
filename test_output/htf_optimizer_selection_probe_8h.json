@@ -1,0 +1,28 @@
+{
+  "8h/B/optimizer_input": {
+    "rows": 1920,
+    "numeric_candidates": 134,
+    "selected": 131,
+    "dropped_all_null_candidates": [
+      "D_dist_avg_high_w240",
+      "D_dist_avg_low_w240",
+      "D_dist_top5_high_w240"
+    ],
+    "expected_drop_present": {
+      "D_dist_avg_high_w240": true,
+      "D_dist_avg_low_w240": true,
+      "D_dist_top5_high_w240": true
+    }
+  },
+  "8h/C/optimizer_input": {
+    "rows": 1920,
+    "numeric_candidates": 134,
+    "selected": 133,
+    "dropped_all_null_candidates": [
+      "F_I_N_S_fundingZscore_long_zsc"
+    ],
+    "expected_drop_present": {
+      "F_I_N_S_fundingZscore_long_zsc": true
+    }
+  }
+}

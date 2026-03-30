@@ -1,0 +1,926 @@
+{
+  "8h_B_1m": {
+    "rows": 1360635,
+    "columns": 194,
+    "all_null_columns": [
+      "D_dist_avg_high_w240",
+      "D_dist_avg_low_w240",
+      "D_dist_top5_high_w240"
+    ],
+    "top_null_columns": [
+      {
+        "column": "D_dist_avg_high_w240",
+        "nulls": 1360635,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_avg_low_w240",
+        "nulls": 1360635,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_top5_high_w240",
+        "nulls": 1360635,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_bot5_low_w120",
+        "nulls": 680356,
+        "pct": 0.5000282956119753
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651121,
+        "pct": 0.4785420042847641
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651121,
+        "pct": 0.4785420042847641
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 403844,
+        "pct": 0.2968055356506337
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 399841,
+        "pct": 0.29386352695616386
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 325582,
+        "pct": 0.2392868035880306
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 325582,
+        "pct": 0.2392868035880306
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 325456,
+        "pct": 0.23919419976702055
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162938,
+        "pct": 0.11975143958519367
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81494,
+        "pct": 0.05989409356660677
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 10080,
+        "pct": 0.007408305680803449
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 75,
+    "batch_max": 240,
+    "batch_nuniq": 2
+  },
+  "8h_C_1m": {
+    "rows": 1360560,
+    "columns": 189,
+    "all_null_columns": [
+      "F_I_N_S_fundingZscore_long_zsc"
+    ],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 1360560,
+        "pct": 1.0
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651121,
+        "pct": 0.47856838360675014
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651121,
+        "pct": 0.47856838360675014
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 403844,
+        "pct": 0.29682189686599636
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 325666,
+        "pct": 0.23936173340389252
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 325540,
+        "pct": 0.23926912447815604
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 325540,
+        "pct": 0.23926912447815604
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162624,
+        "pct": 0.11952725348385959
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81288,
+        "pct": 0.05974598694655142
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_neg",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_pos",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_neg",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_pos",
+        "nulls": 10080,
+        "pct": 0.007408714058916917
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 240,
+    "batch_max": 240,
+    "batch_nuniq": 1
+  },
+  "24h_B_1m": {
+    "rows": 1360800,
+    "columns": 194,
+    "all_null_columns": [],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 719803,
+        "pct": 0.5289557613168724
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651207,
+        "pct": 0.47854717813051145
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651127,
+        "pct": 0.47848838918283365
+      },
+      {
+        "column": "D_dist_avg_high_w240",
+        "nulls": 453601,
+        "pct": 0.3333340681951793
+      },
+      {
+        "column": "D_dist_avg_low_w240",
+        "nulls": 453601,
+        "pct": 0.3333340681951793
+      },
+      {
+        "column": "D_dist_top5_high_w240",
+        "nulls": 453601,
+        "pct": 0.3333340681951793
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 393515,
+        "pct": 0.2891791593180482
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 325588,
+        "pct": 0.23926219870664314
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 325493,
+        "pct": 0.23919238683127572
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 325493,
+        "pct": 0.23919238683127572
+      },
+      {
+        "column": "D_dist_bot5_low_w120",
+        "nulls": 226801,
+        "pct": 0.16666740152851264
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162749,
+        "pct": 0.1195980305702528
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81370,
+        "pct": 0.05979570840681952
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 720,
+    "batch_max": 720,
+    "batch_nuniq": 1
+  },
+  "24h_C_1m": {
+    "rows": 1360395,
+    "columns": 194,
+    "all_null_columns": [],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 1044602,
+        "pct": 0.7678666857787628
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 651115,
+        "pct": 0.47862201786980985
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 651035,
+        "pct": 0.4785632114202125
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 410170,
+        "pct": 0.30150801789186227
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 325629,
+        "pct": 0.23936356719923257
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 325629,
+        "pct": 0.23936356719923257
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 325534,
+        "pct": 0.2392937345403357
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162813,
+        "pct": 0.11968068097868634
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81412,
+        "pct": 0.05984438343275299
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_neg",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_pos",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_neg",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_pos",
+        "nulls": 10080,
+        "pct": 0.007409612649267309
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 315,
+    "batch_max": 720,
+    "batch_nuniq": 2
+  },
+  "7d_B_1m": {
+    "rows": 1360800,
+    "columns": 194,
+    "all_null_columns": [],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 856272,
+        "pct": 0.6292416225749559
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 650981,
+        "pct": 0.47838109935332157
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 650979,
+        "pct": 0.47837962962962965
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 397193,
+        "pct": 0.2918819811875367
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 325350,
+        "pct": 0.2390873015873016
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 325350,
+        "pct": 0.2390873015873016
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 325348,
+        "pct": 0.23908583186360965
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162669,
+        "pct": 0.11953924162257495
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81336,
+        "pct": 0.059770723104056435
+      },
+      {
+        "column": "D_dist_avg_high_w240",
+        "nulls": 64801,
+        "pct": 0.047619782480893595
+      },
+      {
+        "column": "D_dist_avg_low_w240",
+        "nulls": 64801,
+        "pct": 0.047619782480893595
+      },
+      {
+        "column": "D_dist_top5_high_w240",
+        "nulls": 64801,
+        "pct": 0.047619782480893595
+      },
+      {
+        "column": "D_dist_bot5_low_w120",
+        "nulls": 32401,
+        "pct": 0.023810258671369783
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 10080,
+        "pct": 0.007407407407407408
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 5040,
+    "batch_max": 5040,
+    "batch_nuniq": 1
+  },
+  "7d_C_1m": {
+    "rows": 1356075,
+    "columns": 194,
+    "all_null_columns": [],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 905486,
+        "pct": 0.6677256051472079
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 649027,
+        "pct": 0.4786070091993437
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 649025,
+        "pct": 0.4786055343546633
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 405525,
+        "pct": 0.2990431945135778
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_long_zsc",
+        "nulls": 324574,
+        "pct": 0.23934811865125455
+      },
+      {
+        "column": "X_D_basisRetPressure_long_pct",
+        "nulls": 324572,
+        "pct": 0.2393466438065741
+      },
+      {
+        "column": "X_D_fundingBasisPressure_long_pct",
+        "nulls": 324572,
+        "pct": 0.2393466438065741
+      },
+      {
+        "column": "X_D_basisRetPressure_med_pct",
+        "nulls": 162293,
+        "pct": 0.11967848385966853
+      },
+      {
+        "column": "X_D_basisRetPressure_short_pct",
+        "nulls": 81146,
+        "pct": 0.05983887321866416
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_neg",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_pos",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_neg",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_pos",
+        "nulls": 5600,
+        "pct": 0.004129565105174861
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 315,
+    "batch_max": 5040,
+    "batch_nuniq": 2
+  },
+  "8h_B_15m": {
+    "rows": 90709,
+    "columns": 189,
+    "all_null_columns": [
+      "D_dist_avg_high_w16",
+      "D_dist_avg_low_w16",
+      "D_dist_top5_high_w16"
+    ],
+    "top_null_columns": [
+      {
+        "column": "D_dist_avg_high_w16",
+        "nulls": 90709,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_avg_low_w16",
+        "nulls": 90709,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_top5_high_w16",
+        "nulls": 90709,
+        "pct": 1.0
+      },
+      {
+        "column": "D_dist_bot5_low_w8",
+        "nulls": 45358,
+        "pct": 0.5000385849254209
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 30660,
+        "pct": 0.33800394668665734
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 26657,
+        "pct": 0.2938738162696094
+      },
+      {
+        "column": "M_N_rsi_short_bnd",
+        "nulls": 4319,
+        "pct": 0.0476137979693305
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 2849,
+        "pct": 0.03140812929257295
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 2833,
+        "pct": 0.03123174106207763
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_neg",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_pos",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_neg",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_pos",
+        "nulls": 2504,
+        "pct": 0.02760475807251761
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 5,
+    "batch_max": 16,
+    "batch_nuniq": 2
+  },
+  "8h_C_15m": {
+    "rows": 90704,
+    "columns": 189,
+    "all_null_columns": [
+      "F_I_N_S_fundingZscore_long_zsc"
+    ],
+    "top_null_columns": [
+      {
+        "column": "F_I_N_S_fundingZscore_long_zsc",
+        "nulls": 90704,
+        "pct": 1.0
+      },
+      {
+        "column": "F_I_N_S_fundingZscore_xlong_zsc",
+        "nulls": 30660,
+        "pct": 0.3380225789380843
+      },
+      {
+        "column": "M_N_rsi_short_bnd",
+        "nulls": 4433,
+        "pct": 0.048873258070206385
+      },
+      {
+        "column": "D_F_N_S_premiumZscore_xlong_zsc",
+        "nulls": 2849,
+        "pct": 0.03140986064561651
+      },
+      {
+        "column": "X_D_fundingBasisPressure_xlong_pct",
+        "nulls": 2833,
+        "pct": 0.031233462691832775
+      },
+      {
+        "column": "H_4cl_1_cp_any",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_count_21",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_magnitude",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_ret_down",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_ret_up",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_vol_down",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cp_vol_up",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_neg",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cusum_ret_pos",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_neg",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_cusum_vol_pos",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_days_since_cp",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_garch_cond_vol",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_garch_persistence",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      },
+      {
+        "column": "H_4cl_1_garch_vol_change",
+        "nulls": 2504,
+        "pct": 0.027606279767154702
+      }
+    ],
+    "infinite_columns": {},
+    "dup_batch_ts": 0,
+    "non_monotonic_batches": [],
+    "overlap_batches": [],
+    "batch_min": 16,
+    "batch_max": 16,
+    "batch_nuniq": 1
+  }
+}

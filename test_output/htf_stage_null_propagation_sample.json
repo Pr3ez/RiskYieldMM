@@ -1,0 +1,71 @@
+{
+  "8h_B_1m": {
+    "features": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 2400, "nulls": 1683},
+      "D_F_basis_pct": {"rows": 2400, "nulls": 3},
+      "D_N_markCloseDeviation_pct": {"rows": 2400, "nulls": 3},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 2400, "nulls": 720},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 2400, "nulls": 720},
+      "D_dist_avg_high_w240": {"rows": 2400, "nulls": 1200},
+      "D_dist_avg_low_w240": {"rows": 2400, "nulls": 1200},
+      "D_dist_top5_high_w240": {"rows": 2400, "nulls": 1200},
+      "D_dist_bot5_low_w120": {"rows": 2400, "nulls": 600}
+    },
+    "optimized": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 1200, "nulls": 484},
+      "D_F_basis_pct": {"rows": 1200, "nulls": 4},
+      "D_N_markCloseDeviation_pct": {"rows": 1200, "nulls": 4},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 1200, "nulls": 598},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 1200, "nulls": 598},
+      "D_dist_avg_high_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_avg_low_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_top5_high_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_bot5_low_w120": {"rows": 1200, "nulls": 601}
+    },
+    "helpers": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 1200, "nulls": 484},
+      "D_F_basis_pct": {"rows": 1200, "nulls": 4},
+      "D_N_markCloseDeviation_pct": {"rows": 1200, "nulls": 4},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 1200, "nulls": 598},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 1200, "nulls": 598},
+      "D_dist_avg_high_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_avg_low_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_top5_high_w240": {"rows": 1200, "nulls": 1200},
+      "D_dist_bot5_low_w120": {"rows": 1200, "nulls": 601}
+    }
+  },
+  "8h_C_1m": {
+    "features": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 2400, "nulls": 1444},
+      "D_F_basis_pct": {"rows": 2400, "nulls": 2},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 2400, "nulls": 480},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 2400, "nulls": 480}
+    },
+    "optimized": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 1200, "nulls": 1200},
+      "D_F_basis_pct": {"rows": 1200, "nulls": 1},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 1200, "nulls": 124},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 1200, "nulls": 124}
+    },
+    "helpers": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 1200, "nulls": 1200},
+      "D_F_basis_pct": {"rows": 1200, "nulls": 1},
+      "D_F_N_S_premiumZscore_long_zsc": {"rows": 1200, "nulls": 124},
+      "X_D_fundingBasisPressure_long_pct": {"rows": 1200, "nulls": 124}
+    }
+  },
+  "8h_B_15m": {
+    "features": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 160, "nulls": 115},
+      "D_dist_avg_high_w16": {"rows": 160, "nulls": 80},
+      "D_dist_avg_low_w16": {"rows": 160, "nulls": 80},
+      "D_dist_top5_high_w16": {"rows": 160, "nulls": 80}
+    },
+    "helpers": {
+      "F_I_N_S_fundingZscore_long_zsc": {"rows": 80, "nulls": 36},
+      "D_dist_avg_high_w16": {"rows": 80, "nulls": 80},
+      "D_dist_avg_low_w16": {"rows": 80, "nulls": 80},
+      "D_dist_top5_high_w16": {"rows": 80, "nulls": 80}
+    }
+  }
+}

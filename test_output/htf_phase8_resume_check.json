@@ -1,0 +1,603 @@
+{
+  "first_pass": {
+    "status_counts": {
+      "created": 36
+    },
+    "run_mode_counts": {
+      "full_first_build": 24,
+      "full": 12
+    },
+    "rows": [
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "created",
+        "run_mode": "full"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "created",
+        "run_mode": "full_first_build"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "created",
+        "run_mode": "full_first_build"
+      }
+    ],
+    "validation_checks": 396,
+    "validation_failures": 0
+  },
+  "second_pass": {
+    "status_counts": {
+      "current": 36
+    },
+    "run_mode_counts": {
+      "current": 36
+    },
+    "rows": [
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "8h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "24h",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "combined",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "B",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "features",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "15m",
+        "stage": "distance_metrics",
+        "status": "current",
+        "run_mode": "current"
+      },
+      {
+        "regime": "7d",
+        "family": "C",
+        "tf": "1m",
+        "stage": "labels",
+        "status": "current",
+        "run_mode": "current"
+      }
+    ],
+    "validation_checks": 396,
+    "validation_failures": 0
+  }
+}

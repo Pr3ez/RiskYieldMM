@@ -1,0 +1,77 @@
+{
+  "timestamp": "20260328_020952",
+  "moved": [
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_shift4h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_shift4h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_shift4h/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_shift4h/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h_shift12h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h_shift12h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h_shift12h/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_24h_shift12h/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d_shift84h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d_shift84h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d_shift84h/1m/optimized_target_4class_meta.json",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_optimized_7d_shift84h/1m/optimized_target_4class_meta_pre_ris166_20260328_020952.json"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_shift4h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_shift4h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_24h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_24h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_24h_shift12h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_24h_shift12h/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_7d/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_7d/1m/target_4class_pre_ris166_20260328_020952"
+    },
+    {
+      "src": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_7d_shift84h/1m/target_4class",
+      "dst": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers_7d_shift84h/1m/target_4class_pre_ris166_20260328_020952"
+    }
+  ]
+}

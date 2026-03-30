@@ -1,0 +1,209 @@
+{
+  "total_roots": 31,
+  "changed_roots": [
+    {
+      "root": "data/htf_features",
+      "changed": true,
+      "backup_files": 16914,
+      "current_files": 16914,
+      "backup_bytes": 2961892849,
+      "current_bytes": 3505537859,
+      "backup_latest_mtime_ns": 1773653271144960583,
+      "current_latest_mtime_ns": 1773848494560146279
+    },
+    {
+      "root": "data/htf_features_shift4h",
+      "changed": true,
+      "backup_files": 11340,
+      "current_files": 11340,
+      "backup_bytes": 2386668830,
+      "current_bytes": 2930931346,
+      "backup_latest_mtime_ns": 1773727829716960446,
+      "current_latest_mtime_ns": 1773863835796879266
+    },
+    {
+      "root": "data/htf_features_24h",
+      "changed": true,
+      "backup_files": 3782,
+      "current_files": 3782,
+      "backup_bytes": 2054232694,
+      "current_bytes": 2483455474,
+      "backup_latest_mtime_ns": 1773748320407616815,
+      "current_latest_mtime_ns": 1773879628751967403
+    },
+    {
+      "root": "data/htf_features_24h_shift12h",
+      "changed": true,
+      "backup_files": 3782,
+      "current_files": 3782,
+      "backup_bytes": 2064117780,
+      "current_bytes": 2493653487,
+      "backup_latest_mtime_ns": 1773749194050429625,
+      "current_latest_mtime_ns": 1773879874758515031
+    },
+    {
+      "root": "data/htf_features_7d",
+      "changed": true,
+      "backup_files": 544,
+      "current_files": 544,
+      "backup_bytes": 1912817685,
+      "current_bytes": 2288524172,
+      "backup_latest_mtime_ns": 1773763697874688964,
+      "current_latest_mtime_ns": 1773895035912721433
+    },
+    {
+      "root": "data/htf_features_7d_shift84h",
+      "changed": true,
+      "backup_files": 544,
+      "current_files": 544,
+      "backup_bytes": 1924114965,
+      "current_bytes": 2299962804,
+      "backup_latest_mtime_ns": 1773769410295726993,
+      "current_latest_mtime_ns": 1773895121407001974
+    },
+    {
+      "root": "data/htf_optimized",
+      "changed": true,
+      "backup_files": 33822,
+      "current_files": 33822,
+      "backup_bytes": 2317246574,
+      "current_bytes": 2485277907,
+      "backup_latest_mtime_ns": 1773727516384224477,
+      "current_latest_mtime_ns": 1774354545672635023
+    },
+    {
+      "root": "data/htf_optimized_shift4h",
+      "changed": true,
+      "backup_files": 11404,
+      "current_files": 11404,
+      "backup_bytes": 921750757,
+      "current_bytes": 1082546802,
+      "backup_latest_mtime_ns": 1773728250131904696,
+      "current_latest_mtime_ns": 1773864211394028700
+    },
+    {
+      "root": "data/htf_optimized_24h",
+      "changed": true,
+      "backup_files": 1923,
+      "current_files": 1923,
+      "backup_bytes": 417930950,
+      "current_bytes": 517165985,
+      "backup_latest_mtime_ns": 1773749126970818281,
+      "current_latest_mtime_ns": 1773879766504839753
+    },
+    {
+      "root": "data/htf_optimized_24h_shift12h",
+      "changed": true,
+      "backup_files": 1923,
+      "current_files": 1923,
+      "backup_bytes": 431884110,
+      "current_bytes": 531710707,
+      "backup_latest_mtime_ns": 1773749994912867167,
+      "current_latest_mtime_ns": 1773880015809600061
+    },
+    {
+      "root": "data/htf_optimized_7d",
+      "changed": true,
+      "backup_files": 303,
+      "current_files": 303,
+      "backup_bytes": 297164862,
+      "current_bytes": 357445977,
+      "backup_latest_mtime_ns": 1773769376913474667,
+      "current_latest_mtime_ns": 1773895074033677976
+    },
+    {
+      "root": "data/htf_optimized_7d_shift84h",
+      "changed": true,
+      "backup_files": 303,
+      "current_files": 303,
+      "backup_bytes": 295589469,
+      "current_bytes": 355363353,
+      "backup_latest_mtime_ns": 1773776467151760132,
+      "current_latest_mtime_ns": 1773895162098559162
+    },
+    {
+      "root": "data/htf_with_helpers",
+      "changed": true,
+      "backup_files": 33630,
+      "current_files": 33630,
+      "backup_bytes": 3434216507,
+      "current_bytes": 3597354007,
+      "backup_latest_mtime_ns": 1773727691176596584,
+      "current_latest_mtime_ns": 1774354570545088916
+    },
+    {
+      "root": "data/htf_with_helpers_shift4h",
+      "changed": true,
+      "backup_files": 11340,
+      "current_files": 11340,
+      "backup_bytes": 1348058310,
+      "current_bytes": 1504904404,
+      "backup_latest_mtime_ns": 1773748209790955122,
+      "current_latest_mtime_ns": 1773879459054325207
+    },
+    {
+      "root": "data/htf_with_helpers_24h",
+      "changed": true,
+      "backup_files": 1891,
+      "current_files": 1891,
+      "backup_bytes": 666855972,
+      "current_bytes": 761364389,
+      "backup_latest_mtime_ns": 1773749154584245816,
+      "current_latest_mtime_ns": 1773879804491110757
+    },
+    {
+      "root": "data/htf_with_helpers_24h_shift12h",
+      "changed": true,
+      "backup_files": 1891,
+      "current_files": 1891,
+      "backup_bytes": 680441299,
+      "current_bytes": 775824040,
+      "backup_latest_mtime_ns": 1773763592455134247,
+      "current_latest_mtime_ns": 1773894869854858174
+    },
+    {
+      "root": "data/htf_with_helpers_7d",
+      "changed": true,
+      "backup_files": 271,
+      "current_files": 271,
+      "backup_bytes": 517244601,
+      "current_bytes": 572941935,
+      "backup_latest_mtime_ns": 1773769391174179032,
+      "current_latest_mtime_ns": 1773895092214471345
+    },
+    {
+      "root": "data/htf_with_helpers_7d_shift84h",
+      "changed": true,
+      "backup_files": 271,
+      "current_files": 271,
+      "backup_bytes": 514192185,
+      "current_bytes": 569393699,
+      "backup_latest_mtime_ns": 1773796047512164057,
+      "current_latest_mtime_ns": 1773909343395974102
+    },
+    {
+      "root": "data/htf_helper_cache",
+      "changed": true,
+      "backup_files": 24845,
+      "current_files": 24845,
+      "backup_bytes": 2425322508,
+      "current_bytes": 2425322521,
+      "backup_latest_mtime_ns": 1773796040484812075,
+      "current_latest_mtime_ns": 1773909335644734559
+    }
+  ],
+  "unchanged_roots": [
+    "data/htf_backtest",
+    "data/htf_backtest_shift4h",
+    "data/htf_backtest_24h",
+    "data/htf_backtest_24h_shift12h",
+    "data/htf_backtest_7d",
+    "data/htf_backtest_7d_shift84h",
+    "data/htf_4class_labels",
+    "data/htf_4class_labels_shift4h",
+    "data/htf_4class_labels_24h",
+    "data/htf_4class_labels_24h_shift12h",
+    "data/htf_4class_labels_7d",
+    "data/htf_4class_labels_7d_shift84h"
+  ]
+}

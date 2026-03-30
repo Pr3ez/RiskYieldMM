@@ -988,10 +988,14 @@ def fetch_mark_index_premium(
     all_data = []
     cur_start = start_ts
     step_ms = INTERVAL_MS[interval]
+    # Match the kline fetcher semantics exactly: 1000 bars per request with an
+    # inclusive end timestamp. Without subtracting one step from `cur_end`, a
+    # [start, end] request spans 1001 timestamps while the API still returns at
+    # most 1000 rows, which drops one boundary bar every page.
     window_ms = step_ms * 1000
 
     while cur_start <= end_ts:
-        cur_end = min(cur_start + window_ms, end_ts)
+        cur_end = min(cur_start + window_ms - step_ms, end_ts)
         params = {
             "category": category,
             "symbol": symbol,
