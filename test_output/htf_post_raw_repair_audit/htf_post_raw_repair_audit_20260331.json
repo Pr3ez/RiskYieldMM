@@ -1,0 +1,193 @@
+{
+  "run_log": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260330_203337_pid93804.log",
+  "root_helper_reports": {
+    "24h": {
+      "B": {
+        "premium_xlong": 0.4780482069370958,
+        "funding_basis_xlong": 0.4780518812463257,
+        "d_bot5_low_w120": null
+      },
+      "C": {
+        "premium_xlong": 0.4780038150684176,
+        "funding_basis_xlong": 0.4780001396653178,
+        "d_bot5_low_w120": null
+      }
+    },
+    "7d": {
+      "B": {
+        "premium_xlong": 0.47338991769547323,
+        "funding_basis_xlong": 0.4733913874191652,
+        "d_bot5_low_w120": null
+      },
+      "C": {
+        "premium_xlong": 0.4750327231163468,
+        "funding_basis_xlong": 0.4750312482716664,
+        "d_bot5_low_w120": null
+      }
+    },
+    "8h": {
+      "B": {
+        "premium_xlong": 0.4785420042847641,
+        "funding_basis_xlong": 0.4785317149713185,
+        "d_bot5_low_w120": 0.5000282956119753
+      },
+      "C": {
+        "premium_xlong": 0.47856838360675014,
+        "funding_basis_xlong": 0.47856838360675014,
+        "d_bot5_low_w120": null
+      }
+    }
+  },
+  "latest_tail_batches": {
+    "8h/B": [
+      {
+        "batch": "batch_5668.parquet",
+        "rows": 240,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.5
+        }
+      },
+      {
+        "batch": "batch_5669.parquet",
+        "rows": 240,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.5
+        }
+      },
+      {
+        "batch": "batch_5670.parquet",
+        "rows": 75,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 1.0
+        }
+      }
+    ],
+    "24h/B": [
+      {
+        "batch": "batch_1888.parquet",
+        "rows": 720,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.16666666666666666
+        }
+      },
+      {
+        "batch": "batch_1889.parquet",
+        "rows": 720,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.16666666666666666
+        }
+      },
+      {
+        "batch": "batch_1890.parquet",
+        "rows": 720,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.16666666666666666
+        }
+      }
+    ],
+    "24h/C": [
+      {
+        "batch": "batch_1888.parquet",
+        "rows": 720,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      },
+      {
+        "batch": "batch_1889.parquet",
+        "rows": 720,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      },
+      {
+        "batch": "batch_1890.parquet",
+        "rows": 315,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      }
+    ],
+    "7d/B": [
+      {
+        "batch": "batch_0269.parquet",
+        "rows": 5040,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.023809523809523808
+        }
+      },
+      {
+        "batch": "batch_0270.parquet",
+        "rows": 5040,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.023809523809523808
+        }
+      },
+      {
+        "batch": "batch_0271.parquet",
+        "rows": 5040,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.023809523809523808
+        }
+      }
+    ],
+    "7d/C": [
+      {
+        "batch": "batch_0269.parquet",
+        "rows": 5040,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      },
+      {
+        "batch": "batch_0270.parquet",
+        "rows": 5040,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      },
+      {
+        "batch": "batch_0271.parquet",
+        "rows": 315,
+        "null_rates": {
+          "D_F_N_S_premiumZscore_xlong_zsc": 0.0,
+          "X_D_fundingBasisPressure_xlong_pct": 0.0,
+          "D_dist_bot5_low_w120": 0.0
+        }
+      }
+    ]
+  },
+  "conclusion": {
+    "root_wide_helper_reports_still_high_for_premium_families": true,
+    "latest_rebuilt_tail_batches_clean_for_premium_families": true,
+    "likely_reason": "raw repair was materialized only in incremental-tail rebuilt batches for most affected roots; historical helper batches remain stale"
+  }
+}

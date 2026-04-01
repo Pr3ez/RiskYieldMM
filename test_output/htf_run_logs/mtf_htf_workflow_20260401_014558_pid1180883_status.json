@@ -1,0 +1,13 @@
+{
+  "reason": "multi_regime_detail",
+  "run_id": "mtf_htf_workflow_20260401_014558_pid1180883",
+  "pid": 1180883,
+  "stage": "MTF HTF / 8h/C/1m/helpers",
+  "detail": "8h/C/1m/helpers/cache | cache_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_helper_cache/shift4h/1m/target_4class, canonical_raw_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_shift4h/1m",
+  "run_elapsed_seconds": 674.57,
+  "stage_elapsed_seconds": 0.173,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/mtf_htf_workflow_20260401_014558_pid1180883.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/mtf_htf_workflow_20260401_014558_pid1180883_status.json",
+  "updated_at": "2026-04-01T01:57:13"
+}

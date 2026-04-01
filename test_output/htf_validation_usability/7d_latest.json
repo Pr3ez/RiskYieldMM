@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-03-30T05:45:30.883876+00:00",
+  "generated_at": "2026-03-31T07:59:47.537161+00:00",
   "regime": "7d",
   "null_rate_threshold": 0.25,
   "report_top_n": 20,
@@ -22,15 +22,15 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
@@ -48,15 +48,15 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
@@ -66,33 +66,33 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 325560,
+          "nulls": 322680,
           "rows": 2721207,
-          "null_rate": 0.11963808706945117
+          "null_rate": 0.11857973318457582
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 162780,
+          "nulls": 161340,
           "rows": 2721207,
-          "null_rate": 0.059819043534725586
+          "null_rate": 0.05928986659228791
         },
         {
           "column": "D_dist_avg_high_w240",
@@ -120,15 +120,15 @@
         },
         {
           "column": "D_F_basis_pct",
-          "nulls": 2713,
+          "nulls": 2689,
           "rows": 2721207,
-          "null_rate": 0.000996984058912093
+          "null_rate": 0.0009881644432047985
         },
         {
           "column": "D_N_markCloseDeviation_pct",
-          "nulls": 2713,
+          "nulls": 2689,
           "rows": 2721207,
-          "null_rate": 0.000996984058912093
+          "null_rate": 0.0009881644432047985
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
@@ -205,9 +205,9 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 5696,
+          "nulls": 5664,
           "rows": 181414,
-          "null_rate": 0.03139779730340547
+          "null_rate": 0.031221405183723416
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
@@ -235,9 +235,9 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 2852,
+          "nulls": 2836,
           "rows": 181414,
-          "null_rate": 0.01572094766666299
+          "null_rate": 0.015632751606821964
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
@@ -318,59 +318,59 @@
       "high_null_columns": [
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 650981,
+          "nulls": 644191,
           "rows": 1360800,
-          "null_rate": 0.47838109935332157
+          "null_rate": 0.4733913874191652
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 650979,
+          "nulls": 644189,
           "rows": 1360800,
-          "null_rate": 0.47837962962962965
+          "null_rate": 0.47338991769547323
         }
       ],
       "top_null_columns": [
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 650981,
+          "nulls": 644191,
           "rows": 1360800,
-          "null_rate": 0.47838109935332157
+          "null_rate": 0.4733913874191652
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 650979,
+          "nulls": 644189,
           "rows": 1360800,
-          "null_rate": 0.47837962962962965
+          "null_rate": 0.47338991769547323
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 325350,
+          "nulls": 321990,
           "rows": 1360800,
-          "null_rate": 0.2390873015873016
+          "null_rate": 0.23661816578483244
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 325350,
+          "nulls": 321990,
           "rows": 1360800,
-          "null_rate": 0.2390873015873016
+          "null_rate": 0.23661816578483244
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 325348,
+          "nulls": 321988,
           "rows": 1360800,
-          "null_rate": 0.23908583186360965
+          "null_rate": 0.2366166960611405
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 162669,
+          "nulls": 160989,
           "rows": 1360800,
-          "null_rate": 0.11953924162257495
+          "null_rate": 0.11830467372134039
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 81336,
+          "nulls": 80496,
           "rows": 1360800,
-          "null_rate": 0.059770723104056435
+          "null_rate": 0.05915343915343915
         },
         {
           "column": "D_dist_bot5_low_w120",
@@ -380,15 +380,15 @@
         },
         {
           "column": "D_F_basis_pct",
-          "nulls": 1356,
+          "nulls": 1342,
           "rows": 1360800,
-          "null_rate": 0.0009964726631393299
+          "null_rate": 0.0009861845972957083
         },
         {
           "column": "D_N_markCloseDeviation_pct",
-          "nulls": 1356,
+          "nulls": 1342,
           "rows": 1360800,
-          "null_rate": 0.0009964726631393299
+          "null_rate": 0.0009861845972957083
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
@@ -463,59 +463,59 @@
       "high_null_columns": [
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 650981,
+          "nulls": 644191,
           "rows": 1360800,
-          "null_rate": 0.47838109935332157
+          "null_rate": 0.4733913874191652
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 650979,
+          "nulls": 644189,
           "rows": 1360800,
-          "null_rate": 0.47837962962962965
+          "null_rate": 0.47338991769547323
         }
       ],
       "top_null_columns": [
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 650981,
+          "nulls": 644191,
           "rows": 1360800,
-          "null_rate": 0.47838109935332157
+          "null_rate": 0.4733913874191652
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 650979,
+          "nulls": 644189,
           "rows": 1360800,
-          "null_rate": 0.47837962962962965
+          "null_rate": 0.47338991769547323
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 325350,
+          "nulls": 321990,
           "rows": 1360800,
-          "null_rate": 0.2390873015873016
+          "null_rate": 0.23661816578483244
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 325350,
+          "nulls": 321990,
           "rows": 1360800,
-          "null_rate": 0.2390873015873016
+          "null_rate": 0.23661816578483244
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 325348,
+          "nulls": 321988,
           "rows": 1360800,
-          "null_rate": 0.23908583186360965
+          "null_rate": 0.2366166960611405
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 162669,
+          "nulls": 160989,
           "rows": 1360800,
-          "null_rate": 0.11953924162257495
+          "null_rate": 0.11830467372134039
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 81336,
+          "nulls": 80496,
           "rows": 1360800,
-          "null_rate": 0.059770723104056435
+          "null_rate": 0.05915343915343915
         },
         {
           "column": "D_dist_bot5_low_w120",
@@ -900,15 +900,15 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
@@ -926,15 +926,15 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 1302240,
+          "nulls": 1290603,
           "rows": 2721207,
-          "null_rate": 0.4785523482778047
+          "null_rate": 0.4742759371117302
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
@@ -944,33 +944,33 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 651120,
+          "nulls": 645360,
           "rows": 2721207,
-          "null_rate": 0.23927617413890234
+          "null_rate": 0.23715946636915164
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 325560,
+          "nulls": 322680,
           "rows": 2721207,
-          "null_rate": 0.11963808706945117
+          "null_rate": 0.11857973318457582
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 162780,
+          "nulls": 161340,
           "rows": 2721207,
-          "null_rate": 0.059819043534725586
+          "null_rate": 0.05928986659228791
         },
         {
           "column": "D_dist_avg_high_w240",
@@ -998,15 +998,15 @@
         },
         {
           "column": "D_F_basis_pct",
-          "nulls": 2713,
+          "nulls": 2689,
           "rows": 2721207,
-          "null_rate": 0.000996984058912093
+          "null_rate": 0.0009881644432047985
         },
         {
           "column": "D_N_markCloseDeviation_pct",
-          "nulls": 2713,
+          "nulls": 2689,
           "rows": 2721207,
-          "null_rate": 0.000996984058912093
+          "null_rate": 0.0009881644432047985
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
@@ -1083,9 +1083,9 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 5696,
+          "nulls": 5664,
           "rows": 181414,
-          "null_rate": 0.03139779730340547
+          "null_rate": 0.031221405183723416
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
@@ -1113,9 +1113,9 @@
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 2852,
+          "nulls": 2836,
           "rows": 181414,
-          "null_rate": 0.01572094766666299
+          "null_rate": 0.015632751606821964
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
@@ -1196,71 +1196,71 @@
       "high_null_columns": [
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 649027,
+          "nulls": 644180,
           "rows": 1356075,
-          "null_rate": 0.4786070091993437
+          "null_rate": 0.4750327231163468
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 649025,
+          "nulls": 644178,
           "rows": 1356075,
-          "null_rate": 0.4786055343546633
+          "null_rate": 0.4750312482716664
         }
       ],
       "top_null_columns": [
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 649027,
+          "nulls": 644180,
           "rows": 1356075,
-          "null_rate": 0.4786070091993437
+          "null_rate": 0.4750327231163468
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 649025,
+          "nulls": 644178,
           "rows": 1356075,
-          "null_rate": 0.4786055343546633
+          "null_rate": 0.4750312482716664
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 324574,
+          "nulls": 322174,
           "rows": 1356075,
-          "null_rate": 0.23934811865125455
+          "null_rate": 0.23757830503475103
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 324572,
+          "nulls": 322172,
           "rows": 1356075,
-          "null_rate": 0.2393466438065741
+          "null_rate": 0.23757683019007061
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 324572,
+          "nulls": 322172,
           "rows": 1356075,
-          "null_rate": 0.2393466438065741
+          "null_rate": 0.23757683019007061
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 162293,
+          "nulls": 161093,
           "rows": 1356075,
-          "null_rate": 0.11967848385966853
+          "null_rate": 0.11879357705141677
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 81146,
+          "nulls": 80546,
           "rows": 1356075,
-          "null_rate": 0.05983887321866416
+          "null_rate": 0.05939641981453828
         },
         {
           "column": "D_F_basis_pct",
-          "nulls": 1354,
+          "nulls": 1344,
           "rows": 1356075,
-          "null_rate": 0.0009984698486440646
+          "null_rate": 0.0009910956252419667
         },
         {
           "column": "D_N_markCloseDeviation_pct",
-          "nulls": 1354,
+          "nulls": 1344,
           "rows": 1356075,
-          "null_rate": 0.0009984698486440646
+          "null_rate": 0.0009910956252419667
         },
         {
           "column": "C_N_bodySize_bnd",
@@ -1341,59 +1341,59 @@
       "high_null_columns": [
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 649027,
+          "nulls": 644180,
           "rows": 1356075,
-          "null_rate": 0.4786070091993437
+          "null_rate": 0.4750327231163468
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 649025,
+          "nulls": 644178,
           "rows": 1356075,
-          "null_rate": 0.4786055343546633
+          "null_rate": 0.4750312482716664
         }
       ],
       "top_null_columns": [
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
-          "nulls": 649027,
+          "nulls": 644180,
           "rows": 1356075,
-          "null_rate": 0.4786070091993437
+          "null_rate": 0.4750327231163468
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
-          "nulls": 649025,
+          "nulls": 644178,
           "rows": 1356075,
-          "null_rate": 0.4786055343546633
+          "null_rate": 0.4750312482716664
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
-          "nulls": 324574,
+          "nulls": 322174,
           "rows": 1356075,
-          "null_rate": 0.23934811865125455
+          "null_rate": 0.23757830503475103
         },
         {
           "column": "X_D_basisRetPressure_long_pct",
-          "nulls": 324572,
+          "nulls": 322172,
           "rows": 1356075,
-          "null_rate": 0.2393466438065741
+          "null_rate": 0.23757683019007061
         },
         {
           "column": "X_D_fundingBasisPressure_long_pct",
-          "nulls": 324572,
+          "nulls": 322172,
           "rows": 1356075,
-          "null_rate": 0.2393466438065741
+          "null_rate": 0.23757683019007061
         },
         {
           "column": "X_D_basisRetPressure_med_pct",
-          "nulls": 162293,
+          "nulls": 161093,
           "rows": 1356075,
-          "null_rate": 0.11967848385966853
+          "null_rate": 0.11879357705141677
         },
         {
           "column": "X_D_basisRetPressure_short_pct",
-          "nulls": 81146,
+          "nulls": 80546,
           "rows": 1356075,
-          "null_rate": 0.05983887321866416
+          "null_rate": 0.05939641981453828
         },
         {
           "column": "H_4cl_1_cp_any",
