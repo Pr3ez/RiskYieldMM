@@ -1,0 +1,13 @@
+{
+  "reason": "shutdown",
+  "run_id": "mtf_htf_workflow_20260401_014414_pid1178628",
+  "pid": 1178628,
+  "stage": "MTF HTF workflow",
+  "detail": "regimes=('8h', '24h', '7d'), helpers=True, optimization=True",
+  "run_elapsed_seconds": 0.174,
+  "stage_elapsed_seconds": 0.0,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/mtf_htf_workflow_20260401_014414_pid1178628.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/mtf_htf_workflow_20260401_014414_pid1178628_status.json",
+  "updated_at": "2026-04-01T01:44:14"
+}
