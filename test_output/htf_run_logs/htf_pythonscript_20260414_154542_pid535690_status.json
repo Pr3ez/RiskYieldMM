@@ -1,0 +1,13 @@
+{
+  "reason": "stage_change",
+  "run_id": "htf_pythonscript_20260414_154542_pid535690",
+  "pid": 535690,
+  "stage": "HTF / 8h/B/1m/features",
+  "detail": "regime=8h, family=B, tf=1m, detail=",
+  "run_elapsed_seconds": 3.776,
+  "stage_elapsed_seconds": 0.0,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260414_154542_pid535690.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260414_154542_pid535690_status.json",
+  "updated_at": "2026-04-14T15:45:45"
+}

@@ -70,3 +70,6 @@ htmlcov/
 
 # Docs
 docs/_build/
+
+# Private CV/certificate working files
+cv_tmp/

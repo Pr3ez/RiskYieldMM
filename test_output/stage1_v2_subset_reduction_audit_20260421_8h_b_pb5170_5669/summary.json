@@ -1,0 +1,104 @@
+{
+  "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5669_live",
+  "run_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5669_live",
+  "combo_count": 8,
+  "step_count": 500,
+  "train_step_count": 350,
+  "test_step_count": 150,
+  "full_pool": {
+    "subset_key": "f2_v1_t3,f2_v1_t5,f2_v1_t6,f2_v2_t10,f2_v2_t4,f2_v2_t8,f2_v3_t9,f7_v1_t4",
+    "test_mean_dir_acc": 0.7121944444444446,
+    "test_mean_acc": 0.5266111111111111,
+    "test_global_top1_capture_rate": 1.0
+  },
+  "best_by_size": [
+    {
+      "subset_size": 1,
+      "subset_key": "f2_v2_t4",
+      "train_mean_dir_acc": 0.5253690476190476,
+      "test_mean_dir_acc": 0.5302222222222223,
+      "test_mean_acc": 0.2771666666666667,
+      "test_global_top1_capture_rate": 0.1,
+      "test_dir_acc_gap_vs_full_pool": -0.1819722222222223,
+      "test_acc_gap_vs_full_pool": -0.24944444444444447,
+      "test_top1_capture_gap_vs_full_pool": -0.9
+    },
+    {
+      "subset_size": 2,
+      "subset_key": "f2_v1_t3,f2_v2_t10",
+      "train_mean_dir_acc": 0.6338095238095237,
+      "test_mean_dir_acc": 0.5895277777777778,
+      "test_mean_acc": 0.3606388888888889,
+      "test_global_top1_capture_rate": 0.21333333333333335,
+      "test_dir_acc_gap_vs_full_pool": -0.12266666666666681,
+      "test_acc_gap_vs_full_pool": -0.16597222222222224,
+      "test_top1_capture_gap_vs_full_pool": -0.7866666666666666
+    },
+    {
+      "subset_size": 3,
+      "subset_key": "f2_v1_t3,f2_v2_t10,f2_v2_t4",
+      "train_mean_dir_acc": 0.66925,
+      "test_mean_dir_acc": 0.6453333333333333,
+      "test_mean_acc": 0.4126111111111111,
+      "test_global_top1_capture_rate": 0.31333333333333335,
+      "test_dir_acc_gap_vs_full_pool": -0.06686111111111126,
+      "test_acc_gap_vs_full_pool": -0.11400000000000005,
+      "test_top1_capture_gap_vs_full_pool": -0.6866666666666666
+    },
+    {
+      "subset_size": 4,
+      "subset_key": "f2_v1_t3,f2_v1_t6,f2_v2_t10,f2_v2_t4",
+      "train_mean_dir_acc": 0.6886547619047618,
+      "test_mean_dir_acc": 0.6622777777777777,
+      "test_mean_acc": 0.4409444444444444,
+      "test_global_top1_capture_rate": 0.43333333333333335,
+      "test_dir_acc_gap_vs_full_pool": -0.04991666666666683,
+      "test_acc_gap_vs_full_pool": -0.08566666666666672,
+      "test_top1_capture_gap_vs_full_pool": -0.5666666666666667
+    },
+    {
+      "subset_size": 5,
+      "subset_key": "f2_v1_t3,f2_v1_t6,f2_v2_t10,f2_v2_t4,f7_v1_t4",
+      "train_mean_dir_acc": 0.7038095238095239,
+      "test_mean_dir_acc": 0.6779444444444445,
+      "test_mean_acc": 0.46474999999999983,
+      "test_global_top1_capture_rate": 0.54,
+      "test_dir_acc_gap_vs_full_pool": -0.034250000000000114,
+      "test_acc_gap_vs_full_pool": -0.06186111111111131,
+      "test_top1_capture_gap_vs_full_pool": -0.45999999999999996
+    },
+    {
+      "subset_size": 6,
+      "subset_key": "f2_v1_t3,f2_v1_t5,f2_v1_t6,f2_v2_t10,f2_v2_t4,f7_v1_t4",
+      "train_mean_dir_acc": 0.7143928571428572,
+      "test_mean_dir_acc": 0.6923333333333332,
+      "test_mean_acc": 0.48508333333333326,
+      "test_global_top1_capture_rate": 0.72,
+      "test_dir_acc_gap_vs_full_pool": -0.01986111111111133,
+      "test_acc_gap_vs_full_pool": -0.041527777777777886,
+      "test_top1_capture_gap_vs_full_pool": -0.28
+    },
+    {
+      "subset_size": 7,
+      "subset_key": "f2_v1_t3,f2_v1_t5,f2_v1_t6,f2_v2_t10,f2_v2_t4,f2_v3_t9,f7_v1_t4",
+      "train_mean_dir_acc": 0.7241428571428573,
+      "test_mean_dir_acc": 0.7121388888888889,
+      "test_mean_acc": 0.5111111111111111,
+      "test_global_top1_capture_rate": 0.88,
+      "test_dir_acc_gap_vs_full_pool": -5.555555555569747e-05,
+      "test_acc_gap_vs_full_pool": -0.01550000000000007,
+      "test_top1_capture_gap_vs_full_pool": -0.12
+    },
+    {
+      "subset_size": 8,
+      "subset_key": "f2_v1_t3,f2_v1_t5,f2_v1_t6,f2_v2_t10,f2_v2_t4,f2_v2_t8,f2_v3_t9,f7_v1_t4",
+      "train_mean_dir_acc": 0.7294404761904763,
+      "test_mean_dir_acc": 0.7121944444444446,
+      "test_mean_acc": 0.5266111111111111,
+      "test_global_top1_capture_rate": 1.0,
+      "test_dir_acc_gap_vs_full_pool": 0.0,
+      "test_acc_gap_vs_full_pool": 0.0,
+      "test_top1_capture_gap_vs_full_pool": 0.0
+    }
+  ]
+}

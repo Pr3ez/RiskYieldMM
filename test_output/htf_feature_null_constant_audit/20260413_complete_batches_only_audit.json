@@ -1,0 +1,599 @@
+{
+  "by_root": {
+    "8h/B": {
+      "rows": 1350555,
+      "feature_count": 170,
+      "min_complete_batch": 43,
+      "null_feature_count": 9,
+      "null_features": [
+        {
+          "feature": "D_dist_bot5_low_w120",
+          "nulls": 675315,
+          "rows": 1350555,
+          "null_rate": 0.5000277663627175
+        },
+        {
+          "feature": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 540,
+          "rows": 1350555,
+          "null_rate": 0.0003998356231327121
+        },
+        {
+          "feature": "S_N_longShortZscore_long_zsc",
+          "nulls": 480,
+          "rows": 1350555,
+          "null_rate": 0.00035540944278463296
+        },
+        {
+          "feature": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 421,
+          "rows": 1350555,
+          "null_rate": 0.0003117236987756885
+        },
+        {
+          "feature": "X_D_longShortRetPressure_long_pct",
+          "nulls": 420,
+          "rows": 1350555,
+          "null_rate": 0.00031098326243655385
+        },
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 329,
+          "rows": 1350555,
+          "null_rate": 0.00024360355557530053
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 329,
+          "rows": 1350555,
+          "null_rate": 0.00024360355557530053
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 329,
+          "rows": 1350555,
+          "null_rate": 0.00024360355557530053
+        },
+        {
+          "feature": "S_M_longShortChange_short_pct",
+          "nulls": 60,
+          "rows": 1350555,
+          "null_rate": 4.442618034807912e-05
+        }
+      ]
+    },
+    "8h/C": {
+      "rows": 1350480,
+      "feature_count": 170,
+      "min_complete_batch": 43,
+      "null_feature_count": 8,
+      "null_features": [
+        {
+          "feature": "S_N_longShortZscore_long_zsc",
+          "nulls": 722,
+          "rows": 1350480,
+          "null_rate": 0.0005346247260233399
+        },
+        {
+          "feature": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 718,
+          "rows": 1350480,
+          "null_rate": 0.0005316628161838754
+        },
+        {
+          "feature": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 480,
+          "rows": 1350480,
+          "null_rate": 0.00035542918073573843
+        },
+        {
+          "feature": "X_D_longShortRetPressure_long_pct",
+          "nulls": 358,
+          "rows": 1350480,
+          "null_rate": 0.00026509093063207157
+        },
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 319,
+          "rows": 1350480,
+          "null_rate": 0.00023621230969729282
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 319,
+          "rows": 1350480,
+          "null_rate": 0.00023621230969729282
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 319,
+          "rows": 1350480,
+          "null_rate": 0.00023621230969729282
+        },
+        {
+          "feature": "S_M_longShortChange_med_pct",
+          "nulls": 60,
+          "rows": 1350480,
+          "null_rate": 4.4428647591967304e-05
+        }
+      ]
+    },
+    "24h/B": {
+      "rows": 1350720,
+      "feature_count": 170,
+      "min_complete_batch": 15,
+      "null_feature_count": 8,
+      "null_features": [
+        {
+          "feature": "D_dist_bot5_low_w120",
+          "nulls": 225120,
+          "rows": 1350720,
+          "null_rate": 0.16666666666666666
+        },
+        {
+          "feature": "S_N_longShortZscore_long_zsc",
+          "nulls": 541,
+          "rows": 1350720,
+          "null_rate": 0.0004005271262733949
+        },
+        {
+          "feature": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 480,
+          "rows": 1350720,
+          "null_rate": 0.00035536602700781805
+        },
+        {
+          "feature": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 480,
+          "rows": 1350720,
+          "null_rate": 0.00035536602700781805
+        },
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 298,
+          "rows": 1350720,
+          "null_rate": 0.00022062307510068704
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 298,
+          "rows": 1350720,
+          "null_rate": 0.00022062307510068704
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 298,
+          "rows": 1350720,
+          "null_rate": 0.00022062307510068704
+        },
+        {
+          "feature": "X_D_longShortRetPressure_long_pct",
+          "nulls": 180,
+          "rows": 1350720,
+          "null_rate": 0.00013326226012793177
+        }
+      ]
+    },
+    "24h/C": {
+      "rows": 1350315,
+      "feature_count": 170,
+      "min_complete_batch": 15,
+      "null_feature_count": 9,
+      "null_features": [
+        {
+          "feature": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 778,
+          "rows": 1350315,
+          "null_rate": 0.0005761618585293061
+        },
+        {
+          "feature": "S_N_longShortZscore_long_zsc",
+          "nulls": 661,
+          "rows": 1350315,
+          "null_rate": 0.0004895154093674439
+        },
+        {
+          "feature": "X_D_longShortRetPressure_long_pct",
+          "nulls": 598,
+          "rows": 1350315,
+          "null_rate": 0.0004428596290495181
+        },
+        {
+          "feature": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 421,
+          "rows": 1350315,
+          "null_rate": 0.0003117791033943932
+        },
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 350,
+          "rows": 1350315,
+          "null_rate": 0.00025919877954403233
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 350,
+          "rows": 1350315,
+          "null_rate": 0.00025919877954403233
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 350,
+          "rows": 1350315,
+          "null_rate": 0.00025919877954403233
+        },
+        {
+          "feature": "S_M_longShortChange_med_pct",
+          "nulls": 60,
+          "rows": 1350315,
+          "null_rate": 4.443407649326268e-05
+        },
+        {
+          "feature": "S_M_longShortChange_short_pct",
+          "nulls": 60,
+          "rows": 1350315,
+          "null_rate": 4.443407649326268e-05
+        }
+      ]
+    },
+    "7d/B": {
+      "rows": 1350720,
+      "feature_count": 170,
+      "min_complete_batch": 4,
+      "null_feature_count": 10,
+      "null_features": [
+        {
+          "feature": "D_dist_bot5_low_w120",
+          "nulls": 32160,
+          "rows": 1350720,
+          "null_rate": 0.023809523809523808
+        },
+        {
+          "feature": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 1258,
+          "rows": 1350720,
+          "null_rate": 0.0009313551291163231
+        },
+        {
+          "feature": "S_N_longShortZscore_long_zsc",
+          "nulls": 1202,
+          "rows": 1350720,
+          "null_rate": 0.0008898957592987444
+        },
+        {
+          "feature": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 901,
+          "rows": 1350720,
+          "null_rate": 0.0006670516465292585
+        },
+        {
+          "feature": "X_D_longShortRetPressure_long_pct",
+          "nulls": 778,
+          "rows": 1350720,
+          "null_rate": 0.0005759891021085051
+        },
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 264,
+          "rows": 1350720,
+          "null_rate": 0.00019545131485429994
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 264,
+          "rows": 1350720,
+          "null_rate": 0.00019545131485429994
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 264,
+          "rows": 1350720,
+          "null_rate": 0.00019545131485429994
+        },
+        {
+          "feature": "S_M_longShortChange_med_pct",
+          "nulls": 60,
+          "rows": 1350720,
+          "null_rate": 4.4420753375977256e-05
+        },
+        {
+          "feature": "S_M_longShortChange_short_pct",
+          "nulls": 60,
+          "rows": 1350720,
+          "null_rate": 4.4420753375977256e-05
+        }
+      ]
+    },
+    "7d/C": {
+      "rows": 1345995,
+      "feature_count": 170,
+      "min_complete_batch": 4,
+      "null_feature_count": 3,
+      "null_features": [
+        {
+          "feature": "C_N_bodySize_bnd",
+          "nulls": 384,
+          "rows": 1345995,
+          "null_rate": 0.0002852908071723892
+        },
+        {
+          "feature": "C_N_lowerShadow_bnd",
+          "nulls": 384,
+          "rows": 1345995,
+          "null_rate": 0.0002852908071723892
+        },
+        {
+          "feature": "C_N_upperShadow_bnd",
+          "nulls": 384,
+          "rows": 1345995,
+          "null_rate": 0.0002852908071723892
+        }
+      ]
+    }
+  },
+  "union": {
+    "C_N_bodySize_bnd": [
+      {
+        "root": "8h/B",
+        "nulls": 329,
+        "null_rate": 0.00024360355557530053
+      },
+      {
+        "root": "8h/C",
+        "nulls": 319,
+        "null_rate": 0.00023621230969729282
+      },
+      {
+        "root": "24h/B",
+        "nulls": 298,
+        "null_rate": 0.00022062307510068704
+      },
+      {
+        "root": "24h/C",
+        "nulls": 350,
+        "null_rate": 0.00025919877954403233
+      },
+      {
+        "root": "7d/B",
+        "nulls": 264,
+        "null_rate": 0.00019545131485429994
+      },
+      {
+        "root": "7d/C",
+        "nulls": 384,
+        "null_rate": 0.0002852908071723892
+      }
+    ],
+    "C_N_upperShadow_bnd": [
+      {
+        "root": "8h/B",
+        "nulls": 329,
+        "null_rate": 0.00024360355557530053
+      },
+      {
+        "root": "8h/C",
+        "nulls": 319,
+        "null_rate": 0.00023621230969729282
+      },
+      {
+        "root": "24h/B",
+        "nulls": 298,
+        "null_rate": 0.00022062307510068704
+      },
+      {
+        "root": "24h/C",
+        "nulls": 350,
+        "null_rate": 0.00025919877954403233
+      },
+      {
+        "root": "7d/B",
+        "nulls": 264,
+        "null_rate": 0.00019545131485429994
+      },
+      {
+        "root": "7d/C",
+        "nulls": 384,
+        "null_rate": 0.0002852908071723892
+      }
+    ],
+    "C_N_lowerShadow_bnd": [
+      {
+        "root": "8h/B",
+        "nulls": 329,
+        "null_rate": 0.00024360355557530053
+      },
+      {
+        "root": "8h/C",
+        "nulls": 319,
+        "null_rate": 0.00023621230969729282
+      },
+      {
+        "root": "24h/B",
+        "nulls": 298,
+        "null_rate": 0.00022062307510068704
+      },
+      {
+        "root": "24h/C",
+        "nulls": 350,
+        "null_rate": 0.00025919877954403233
+      },
+      {
+        "root": "7d/B",
+        "nulls": 264,
+        "null_rate": 0.00019545131485429994
+      },
+      {
+        "root": "7d/C",
+        "nulls": 384,
+        "null_rate": 0.0002852908071723892
+      }
+    ],
+    "S_M_longShortChange_short_pct": [
+      {
+        "root": "8h/B",
+        "nulls": 60,
+        "null_rate": 4.442618034807912e-05
+      },
+      {
+        "root": "24h/C",
+        "nulls": 60,
+        "null_rate": 4.443407649326268e-05
+      },
+      {
+        "root": "7d/B",
+        "nulls": 60,
+        "null_rate": 4.4420753375977256e-05
+      }
+    ],
+    "S_N_longShortZscore_long_zsc": [
+      {
+        "root": "8h/B",
+        "nulls": 480,
+        "null_rate": 0.00035540944278463296
+      },
+      {
+        "root": "8h/C",
+        "nulls": 722,
+        "null_rate": 0.0005346247260233399
+      },
+      {
+        "root": "24h/B",
+        "nulls": 541,
+        "null_rate": 0.0004005271262733949
+      },
+      {
+        "root": "24h/C",
+        "nulls": 661,
+        "null_rate": 0.0004895154093674439
+      },
+      {
+        "root": "7d/B",
+        "nulls": 1202,
+        "null_rate": 0.0008898957592987444
+      }
+    ],
+    "S_N_longShortZscore_xlong_zsc": [
+      {
+        "root": "8h/B",
+        "nulls": 421,
+        "null_rate": 0.0003117236987756885
+      },
+      {
+        "root": "8h/C",
+        "nulls": 480,
+        "null_rate": 0.00035542918073573843
+      },
+      {
+        "root": "24h/B",
+        "nulls": 480,
+        "null_rate": 0.00035536602700781805
+      },
+      {
+        "root": "24h/C",
+        "nulls": 421,
+        "null_rate": 0.0003117791033943932
+      },
+      {
+        "root": "7d/B",
+        "nulls": 901,
+        "null_rate": 0.0006670516465292585
+      }
+    ],
+    "X_D_longShortRetPressure_long_pct": [
+      {
+        "root": "8h/B",
+        "nulls": 420,
+        "null_rate": 0.00031098326243655385
+      },
+      {
+        "root": "8h/C",
+        "nulls": 358,
+        "null_rate": 0.00026509093063207157
+      },
+      {
+        "root": "24h/B",
+        "nulls": 180,
+        "null_rate": 0.00013326226012793177
+      },
+      {
+        "root": "24h/C",
+        "nulls": 598,
+        "null_rate": 0.0004428596290495181
+      },
+      {
+        "root": "7d/B",
+        "nulls": 778,
+        "null_rate": 0.0005759891021085051
+      }
+    ],
+    "X_D_longShortRetPressure_xlong_pct": [
+      {
+        "root": "8h/B",
+        "nulls": 540,
+        "null_rate": 0.0003998356231327121
+      },
+      {
+        "root": "8h/C",
+        "nulls": 718,
+        "null_rate": 0.0005316628161838754
+      },
+      {
+        "root": "24h/B",
+        "nulls": 480,
+        "null_rate": 0.00035536602700781805
+      },
+      {
+        "root": "24h/C",
+        "nulls": 778,
+        "null_rate": 0.0005761618585293061
+      },
+      {
+        "root": "7d/B",
+        "nulls": 1258,
+        "null_rate": 0.0009313551291163231
+      }
+    ],
+    "D_dist_bot5_low_w120": [
+      {
+        "root": "8h/B",
+        "nulls": 675315,
+        "null_rate": 0.5000277663627175
+      },
+      {
+        "root": "24h/B",
+        "nulls": 225120,
+        "null_rate": 0.16666666666666666
+      },
+      {
+        "root": "7d/B",
+        "nulls": 32160,
+        "null_rate": 0.023809523809523808
+      }
+    ],
+    "S_M_longShortChange_med_pct": [
+      {
+        "root": "8h/C",
+        "nulls": 60,
+        "null_rate": 4.4428647591967304e-05
+      },
+      {
+        "root": "24h/C",
+        "nulls": 60,
+        "null_rate": 4.443407649326268e-05
+      },
+      {
+        "root": "7d/B",
+        "nulls": 60,
+        "null_rate": 4.4420753375977256e-05
+      }
+    ]
+  },
+  "complete_batch_cutoffs": {
+    "8h/B": 43,
+    "8h/C": 43,
+    "24h/B": 15,
+    "24h/C": 15,
+    "7d/B": 4,
+    "7d/C": 4
+  }
+}

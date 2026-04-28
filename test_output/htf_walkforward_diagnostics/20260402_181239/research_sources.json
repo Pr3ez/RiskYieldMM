@@ -1,0 +1,47 @@
+[
+  {
+    "category": "official_doc",
+    "title": "CatBoost feature importances",
+    "url": "https://catboost.ai/docs/en/features/feature-importances-calculation"
+  },
+  {
+    "category": "official_doc",
+    "title": "CatBoost select_features",
+    "url": "https://catboost.ai/docs/en/concepts/python-reference_catboost_select_features"
+  },
+  {
+    "category": "official_doc",
+    "title": "CatBoost SHAP values",
+    "url": "https://catboost.ai/docs/en/concepts/shap-values"
+  },
+  {
+    "category": "official_doc",
+    "title": "CatBoost object importance",
+    "url": "https://catboost.ai/docs/en/features/object-importances-calcution"
+  },
+  {
+    "category": "official_doc",
+    "title": "CatBoost overfitting detector",
+    "url": "https://catboost.ai/docs/en/features/overfitting-detector-desc"
+  },
+  {
+    "category": "official_doc",
+    "title": "CatBoost parameter tuning",
+    "url": "https://catboost.ai/docs/en/concepts/parameter-tuning.html"
+  },
+  {
+    "category": "primary_paper",
+    "title": "CatBoost: unbiased boosting with categorical features",
+    "url": "https://arxiv.org/abs/1706.09516"
+  },
+  {
+    "category": "primary_paper",
+    "title": "A Unified Approach to Interpreting Model Predictions",
+    "url": "https://arxiv.org/abs/1706.06060"
+  },
+  {
+    "category": "primary_paper",
+    "title": "The Probability of Backtest Overfitting",
+    "url": "https://ssrn.com/abstract=2326253"
+  }
+]

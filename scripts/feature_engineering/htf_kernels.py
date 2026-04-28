@@ -147,7 +147,10 @@ def _compute_past_distance_metrics(close, high, low, bar_pos, window, outlier_pc
 
     top_n = max(1, int(window * outlier_pct))
     for i in range(n):
-        if bar_pos[i] < window:
+        # Use continuous family-stream history rather than batch-local bar
+        # position. Resetting at every batch leaves the first `window` rows of
+        # every batch null even when enough causal history already exists.
+        if i < window:
             continue
         entry = close[i]
         if entry == 0:

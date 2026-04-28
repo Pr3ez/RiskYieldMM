@@ -1,0 +1,90 @@
+{
+  "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5669_live",
+  "run_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5669_live",
+  "policy_selection_mode": "nested",
+  "selection_objective": "mean_filtered_cde",
+  "window_size": 300,
+  "window_stride": 50,
+  "window_count": 5,
+  "loss_names": [
+    "filtered_cde",
+    "class_error",
+    "macro_f1_error",
+    "multiclass_brier",
+    "multiclass_logloss",
+    "composite"
+  ],
+  "discount_factors": [
+    0.5,
+    0.7,
+    0.85,
+    0.95,
+    0.98
+  ],
+  "window_test_cde": {
+    "selected_mean": 0.4911481481481482,
+    "selected_median": 0.49162037037037043,
+    "ex_post_mean": 0.45663888888888887,
+    "static_mean": 0.46423148148148147,
+    "oracle_mean": 0.26856481481481487
+  },
+  "window_test_accuracy": {
+    "selected_mean": 0.29382407407407407,
+    "ex_post_mean": 0.30573148148148144,
+    "static_mean": 0.3080555555555556,
+    "oracle_mean": 0.5425648148148148
+  },
+  "stability": {
+    "selected_matches_ex_post_rate": 0.0,
+    "selected_beats_static_cde_rate": 0.0,
+    "ex_post_beats_static_cde_rate": 0.4,
+    "selected_unique_policy_count": 5,
+    "ex_post_unique_policy_count": 4,
+    "selected_unique_family_count": 4,
+    "ex_post_unique_family_count": 4
+  },
+  "selected_family_frequency": [
+    {
+      "selected_update_loss_name": "multiclass_logloss",
+      "selected_window_count": 2,
+      "share": 0.4
+    },
+    {
+      "selected_update_loss_name": "class_error",
+      "selected_window_count": 1,
+      "share": 0.2
+    },
+    {
+      "selected_update_loss_name": "filtered_cde",
+      "selected_window_count": 1,
+      "share": 0.2
+    },
+    {
+      "selected_update_loss_name": "multiclass_brier",
+      "selected_window_count": 1,
+      "share": 0.2
+    }
+  ],
+  "ex_post_family_frequency": [
+    {
+      "ex_post_best_update_loss_name": "multiclass_logloss",
+      "ex_post_best_window_count": 2,
+      "share": 0.4
+    },
+    {
+      "ex_post_best_update_loss_name": "class_error",
+      "ex_post_best_window_count": 1,
+      "share": 0.2
+    },
+    {
+      "ex_post_best_update_loss_name": "filtered_cde",
+      "ex_post_best_window_count": 1,
+      "share": 0.2
+    },
+    {
+      "ex_post_best_update_loss_name": "multiclass_brier",
+      "ex_post_best_window_count": 1,
+      "share": 0.2
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "run_id": "stage1_catboost_7d_b_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "source": {
+    "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_probability_outputs/2026-04-02_18-48-12",
+    "pred_rows_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_probability_outputs/2026-04-02_18-48-12/winner12_predictions_filtered.parquet",
+    "winners_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_b_live/catboost/1m/target_4class/winners_all_steps.parquet"
+  },
+  "config": {
+    "holdout_steps": 169,
+    "wf_warmup_steps": 120,
+    "wf_retrain_every_steps": 25,
+    "max_train_batches": 300,
+    "n_regimes": 5,
+    "specialists_per_regime": 4,
+    "min_rows_per_regime": 1200,
+    "random_seed": 42,
+    "combo_count": 8,
+    "regime_feature_count": 13
+  },
+  "rows": {
+    "pred_rows_long": 6854400,
+    "row_feature_rows": 856800,
+    "holdout_rows": 851760,
+    "walkforward_rows": 252000,
+    "batches_total": 170,
+    "batches_holdout": 169,
+    "batches_walkforward": 50
+  },
+  "metrics": {
+    "holdout": {
+      "model": {
+        "accuracy": 0.42454916877993804,
+        "macro_recall": 0.25529171372504006,
+        "macro_f1": 0.2567210204317711,
+        "cross_direction_error": 0.509163379355687
+      },
+      "uniform": {
+        "accuracy": 0.4378322532168686,
+        "macro_recall": 0.26629209190172354,
+        "macro_f1": 0.2701066562621453,
+        "cross_direction_error": 0.4960070911993989
+      },
+      "mean_delta_accuracy_model_vs_uniform": -0.013283084436930593,
+      "share_model_beats_uniform_accuracy": 0.33136094674556216,
+      "fit_time_s": 0.07453632354736328
+    },
+    "walkforward": {
+      "model": {
+        "accuracy": 0.4077420634920635,
+        "macro_recall": 0.22206864254608114,
+        "macro_f1": 0.2151963567532853,
+        "cross_direction_error": 0.5500079365079366
+      },
+      "uniform": {
+        "accuracy": 0.44338492063492063,
+        "macro_recall": 0.2401486995106471,
+        "macro_f1": 0.23337817765674862,
+        "cross_direction_error": 0.49478968253968253
+      },
+      "mean_delta_accuracy_model_vs_uniform": -0.03564285714285714,
+      "share_model_beats_uniform_accuracy": 0.32,
+      "retrain_count": 2,
+      "mean_fit_time_s_when_retrain": 4.60957396030426
+    }
+  },
+  "artifacts": {
+    "winner12_router_feature_table_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_feature_table.parquet",
+    "winner12_router_feature_columns_json": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_feature_columns.json",
+    "winner12_router_holdout_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_holdout_batch_metrics.parquet",
+    "winner12_router_holdout_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_holdout_batch_metrics.csv",
+    "winner12_router_holdout_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_holdout_row_predictions.parquet",
+    "winner12_router_walkforward_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_walkforward_batch_metrics.parquet",
+    "winner12_router_walkforward_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_walkforward_batch_metrics.csv",
+    "winner12_router_walkforward_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_walkforward_row_predictions.parquet",
+    "winner12_router_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis_smoke_7db/winner12_router_outputs/2026-04-02_18-49-49/winner12_router_summary.json"
+  }
+}

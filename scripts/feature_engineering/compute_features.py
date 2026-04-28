@@ -38,7 +38,8 @@ Feature Categories (67 total):
 - Trend Strength: 7 features (adx, diDiff, cci)
 - Perpetual Composite: 3 features (oiVolumeRatio)
 
-Author: RiskYieldMM Project
+Author: P. Augustyniak
+RiskYieldMM Project
 Created: 2025-12-20
 Updated: 2025-12-21 (added 31 new features from research batch)
 """
@@ -133,6 +134,12 @@ def load_raw_data(data_dir: Path) -> pd.DataFrame:
 
     # Sort by timestamp
     df = df.sort_values("timestamp").reset_index(drop=True)
+    if "longShortRatio" in df.columns:
+        ratio = df["longShortRatio"].replace([np.inf, -np.inf], np.nan)
+        # Long/short ratio is strictly positive; zeros/non-positive values are
+        # treated as missing and causally forward-filled from the last valid
+        # observation.
+        df["longShortRatio"] = ratio.mask(ratio <= 0, np.nan).ffill()
 
     return df
 
@@ -342,20 +349,25 @@ def compute_oi_ratio(df: pd.DataFrame, n: int) -> pd.Series:
 
 def compute_body_size(df: pd.DataFrame) -> pd.Series:
     """C_N_bodySize_bnd_N: |close - open| / (high - low)"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return abs(df["close"] - df["open"]) / range_
+    range_ = df["high"] - df["low"]
+    ratio = abs(df["close"] - df["open"]) / range_.replace(0, np.nan)
+    # A zero-range candle is flat by definition; emit 0 instead of NaN so
+    # complete batches stay model-ready without using any future information.
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def compute_upper_shadow(df: pd.DataFrame) -> pd.Series:
     """C_N_upperShadow_bnd_N: (high - max(open, close)) / (high - low)"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return (df["high"] - np.maximum(df["open"], df["close"])) / range_
+    range_ = df["high"] - df["low"]
+    ratio = (df["high"] - np.maximum(df["open"], df["close"])) / range_.replace(0, np.nan)
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def compute_lower_shadow(df: pd.DataFrame) -> pd.Series:
     """C_N_lowerShadow_bnd_N: (min(open, close) - low) / (high - low)"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return (np.minimum(df["open"], df["close"]) - df["low"]) / range_
+    range_ = df["high"] - df["low"]
+    ratio = (np.minimum(df["open"], df["close"]) - df["low"]) / range_.replace(0, np.nan)
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def compute_candle_direction(df: pd.DataFrame) -> pd.Series:
@@ -979,7 +991,8 @@ def compute_long_short_ratio(df: pd.DataFrame) -> pd.Series:
 
     Academic: Baker & Wurgler (2006), De Long et al. (1990)
     """
-    return df["longShortRatio"]
+    ls = df["longShortRatio"].replace([np.inf, -np.inf], np.nan)
+    return ls.mask(ls <= 0, np.nan)
 
 
 def compute_long_short_zscore(df: pd.DataFrame, n: int) -> pd.Series:
@@ -991,10 +1004,18 @@ def compute_long_short_zscore(df: pd.DataFrame, n: int) -> pd.Series:
 
     Academic: Baker & Wurgler (2006), Moskowitz et al. (2011)
     """
-    ls = df["longShortRatio"]
+    ls = compute_long_short_ratio(df)
     mean = ls.rolling(n).mean()
     std = ls.rolling(n).std()
-    zscore = (ls - mean) / std.replace(0, np.nan)
+    zscore = pd.Series(np.nan, index=df.index, dtype=np.float64)
+    ready = mean.notna() & std.notna()
+    nonflat = ready & (std > 0)
+    flat = ready & (std == 0)
+
+    zscore.loc[nonflat] = (ls.loc[nonflat] - mean.loc[nonflat]) / std.loc[nonflat]
+    # A flat, fully observed rolling window means positioning matches its local
+    # baseline exactly, so the z-score should be neutral rather than missing.
+    zscore.loc[flat] = 0.0
     return zscore.clip(-5, 5)
 
 
@@ -1006,8 +1027,8 @@ def compute_long_short_change(df: pd.DataFrame, n: int) -> pd.Series:
 
     Academic: Moskowitz et al. (2011)
     """
-    ls = df["longShortRatio"]
-    change = (ls / ls.shift(n)) - 1
+    ls = compute_long_short_ratio(df)
+    change = (ls / ls.shift(n)).replace([np.inf, -np.inf], np.nan) - 1
     return change.clip(-1, 1)
 
 

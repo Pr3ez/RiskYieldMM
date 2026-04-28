@@ -1,0 +1,13 @@
+{
+  "reason": "heartbeat",
+  "run_id": "htf_pythonscript_20260401_031616_pid1243795",
+  "pid": 1243795,
+  "stage": "HTF / all/-/validation",
+  "detail": "all/-/validation | regime=all, family=None, tf=None, elapsed_seconds=176.674, summary=rows=552",
+  "run_elapsed_seconds": 136571.623,
+  "stage_elapsed_seconds": 119330.589,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260401_031616_pid1243795.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260401_031616_pid1243795_status.json",
+  "updated_at": "2026-04-02T17:12:27"
+}

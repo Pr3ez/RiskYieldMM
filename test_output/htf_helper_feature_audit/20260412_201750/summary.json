@@ -1,0 +1,12 @@
+{
+  "timestamp_utc": "2026-04-12T18:17:50.566030+00:00",
+  "merged_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260411_153744_merged",
+  "output_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_helper_feature_audit/20260412_201750",
+  "rows": {
+    "root_summary": 6,
+    "helper_feature_detail": 258,
+    "degenerate_helpers": 12,
+    "selected_helpers": 82,
+    "helper_kind_summary": 12
+  }
+}

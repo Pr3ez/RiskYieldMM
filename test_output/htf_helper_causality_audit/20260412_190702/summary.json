@@ -1,0 +1,17 @@
+{
+  "run_id": "20260412_190702",
+  "batch_dir": "data/htf_features/1m",
+  "train_rows": 20000,
+  "chunk_rows": 256,
+  "context_rows": 500,
+  "tol": 1e-08,
+  "feature_cols": [
+    "raw_returns",
+    "raw_volatility",
+    "close",
+    "open",
+    "high",
+    "low",
+    "volume"
+  ]
+}

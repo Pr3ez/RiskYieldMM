@@ -1,0 +1,90 @@
+{
+  "run_id": "stage1_catboost_7d_c_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "source": {
+    "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_probability_outputs/2026-04-02_19-21-37",
+    "pred_rows_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_probability_outputs/2026-04-02_19-21-37/winner12_predictions_filtered.parquet",
+    "winners_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_c_live/catboost/1m/target_4class/winners_all_steps.parquet"
+  },
+  "config": {
+    "eta": 0.5,
+    "loss_type": "nll",
+    "combos": [
+      "f2_v1_t3",
+      "f2_v1_t5",
+      "f2_v1_t6",
+      "f2_v2_t10",
+      "f2_v2_t4",
+      "f2_v2_t8",
+      "f2_v3_t9",
+      "f7_v1_t4"
+    ]
+  },
+  "rows": {
+    "batches": 168,
+    "row_predictions": 846720,
+    "weight_history_rows": 1344
+  },
+  "metrics": {
+    "mean_hedge_accuracy": 0.46403297430083146,
+    "mean_uniform_accuracy": 0.5065369897959183,
+    "mean_top_combo_accuracy": 0.4337962962962963,
+    "mean_oracle_best_combo_accuracy": 0.7293355536659107,
+    "mean_hedge_macro_f1": 0.15365564007644889,
+    "mean_uniform_macro_f1": 0.16691351292841555,
+    "mean_top_combo_macro_f1": 0.14783726683992768,
+    "mean_hedge_cross_direction_error": 0.47103174603174597,
+    "mean_uniform_cross_direction_error": 0.4524624433106576,
+    "mean_top_combo_cross_direction_error": 0.4921378968253967,
+    "mean_delta_hedge_vs_uniform_accuracy": -0.04250401549508693,
+    "mean_delta_hedge_vs_top_combo_accuracy": 0.03023667800453515,
+    "mean_delta_hedge_vs_uniform_macro_f1": -0.013257872851966657,
+    "mean_delta_hedge_vs_top_combo_macro_f1": 0.0058183732365211915,
+    "share_hedge_beats_uniform_accuracy": 0.3630952380952381,
+    "share_hedge_beats_top_combo_accuracy": 0.21428571428571427
+  },
+  "final_weights_top12": [
+    {
+      "action_key": "f2_v2_t10",
+      "weight_after": 0.9998592055553049
+    },
+    {
+      "action_key": "f2_v3_t9",
+      "weight_after": 8.023204076271704e-05
+    },
+    {
+      "action_key": "f2_v2_t8",
+      "weight_after": 6.0495474171813965e-05
+    },
+    {
+      "action_key": "f2_v1_t6",
+      "weight_after": 6.692976038488085e-08
+    },
+    {
+      "action_key": "f2_v1_t5",
+      "weight_after": 1.347675555104624e-16
+    },
+    {
+      "action_key": "f7_v1_t4",
+      "weight_after": 9.998415743565737e-25
+    },
+    {
+      "action_key": "f2_v2_t4",
+      "weight_after": 9.42855481700533e-25
+    },
+    {
+      "action_key": "f2_v1_t3",
+      "weight_after": 1.9218578465174491e-31
+    }
+  ],
+  "artifacts": {
+    "winner12_hedge_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_batch_metrics.parquet",
+    "winner12_hedge_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_batch_metrics.csv",
+    "winner12_hedge_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_row_predictions.parquet",
+    "winner12_hedge_row_predictions_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_row_predictions.csv",
+    "winner12_hedge_weight_history_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_weight_history.parquet",
+    "winner12_hedge_weight_history_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_weight_history.csv",
+    "winner12_hedge_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_hedge_outputs/2026-04-02_19-21-52/winner12_hedge_summary.json"
+  }
+}

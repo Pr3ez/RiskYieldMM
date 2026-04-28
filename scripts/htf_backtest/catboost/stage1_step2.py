@@ -25,10 +25,21 @@ from typing import Any
 
 import numpy as np
 import polars as pl
-from catboost import EFeaturesSelectionAlgorithm, EShapCalcType, Pool
-from sklearn.metrics import f1_score
-
-from .stage1_optimizer import fit_catboost_with_fallback_stage1
+from .stage1_selector_kernel import (
+    _combo_key_from_row,
+    _compute_metrics,
+    _extract_selected_feature_names,
+    _fit_catboost_model,
+    _format_action_key,
+    _full_proba_and_pred,
+    _is_better_metric,
+    _list_combo_metrics_from_pred_payload,
+    _metric_direction,
+    _metric_value,
+    _resolve_shap_calc_type,
+    _select_features_with_fallback,
+)
+from .stage1_selector_step import process_stage1_selector_step
 from .utils import (
     BaseOptimizerConfig,
     ModelSearchSpace,
@@ -65,6 +76,8 @@ def _init_step2_unit_state(total_steps: int) -> dict[str, Any]:
         "selected_features_rows_by_combo": {},
         "selector_fold_rows_by_combo": {},
         "filtered_rows_by_combo": {},
+        "selected_prediction_rows_by_combo": {},
+        "selected_feature_masks_by_combo": {},
         "all_importance_rows": [],
         "combo_meta": {},
         "failed_steps": [],
@@ -128,6 +141,8 @@ def _resolve_overrides(tf: str, target_col: str, tf_overrides: dict[str, Any]) -
         "window_space",
         "feature_space",
         "model_space",
+        "features_dir_override",
+        "labels_dir_override",
     }
     # Backward-compatible shape: {tf: {optuna_trials: ...}}
     if any(k in tf_overrides for k in override_keys):
@@ -173,73 +188,6 @@ def _resolve_feature_target(feature_source_map: dict[str, Any], tf: str, target:
     return target
 
 
-def _detect_direction_indices(class_names: list[str]) -> tuple[set[int], set[int]]:
-    up = set()
-    down = set()
-    for i, name in enumerate(class_names):
-        token = str(name).upper()
-        if "UP" in token:
-            up.add(i)
-        if "DOWN" in token:
-            down.add(i)
-    return up, down
-
-
-def _cross_direction_error(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    up_indices: set[int],
-    down_indices: set[int],
-) -> float | None:
-    if y_true.size == 0 or not up_indices or not down_indices:
-        return None
-    true_up = np.isin(y_true, list(up_indices))
-    true_down = np.isin(y_true, list(down_indices))
-    pred_up = np.isin(y_pred, list(up_indices))
-    pred_down = np.isin(y_pred, list(down_indices))
-    mask = true_up | true_down
-    denom = int(mask.sum())
-    if denom <= 0:
-        return None
-    wrong = (true_up & pred_down) | (true_down & pred_up)
-    return float((wrong & mask).sum() / denom)
-
-
-def _compute_metrics(
-    y_true: np.ndarray,
-    y_pred: np.ndarray,
-    *,
-    n_classes: int,
-    class_names: list[str],
-) -> dict[str, float | None]:
-    if y_true.size == 0:
-        return {
-            "accuracy": None,
-            "macro_f1": None,
-            "cross_direction_error": None,
-        }
-    up_idx, down_idx = _detect_direction_indices(class_names)
-    return {
-        "accuracy": float((y_true == y_pred).mean()),
-        "macro_f1": float(f1_score(y_true, y_pred, average="macro", zero_division=0)),
-        "cross_direction_error": _cross_direction_error(
-            y_true, y_pred, up_indices=up_idx, down_indices=down_idx
-        ),
-    }
-
-
-def _format_action_key(fold_count: int, val_batches: int, train_batches: int) -> str:
-    return f"f{int(fold_count)}_v{int(val_batches)}_t{int(train_batches)}"
-
-
-def _combo_key_from_row(row: dict[str, Any]) -> tuple[int, int, int]:
-    return (
-        int(row["fold_count"]),
-        int(row["val_batches_per_fold"]),
-        int(row["train_batches_per_fold"]),
-    )
-
-
 def _rows_to_debug_df(rows: list[dict[str, Any]]) -> pl.DataFrame:
     """
     Build a robust Polars DataFrame from sparse/mixed debug rows.
@@ -252,108 +200,188 @@ def _rows_to_debug_df(rows: list[dict[str, Any]]) -> pl.DataFrame:
         return pl.DataFrame()
     all_keys = sorted({k for r in rows for k in r.keys()})
     normalized = [{k: r.get(k) for k in all_keys} for r in rows]
-    return pl.from_dicts(
-        normalized,
-        infer_schema_length=None,
-    )
+    return pl.from_dicts(normalized, infer_schema_length=None)
 
 
-def _metric_value(metrics: dict[str, float | None], metric_name: str) -> float | None:
-    val = metrics.get(metric_name)
-    if val is None:
-        return None
-    try:
-        return float(val)
-    except Exception:
-        return None
-
-
-def _metric_direction(metric_name: str) -> str:
-    m = str(metric_name).strip().lower()
-    return "minimize" if m in {"log_loss", "cross_direction_error"} else "maximize"
-
-
-def _is_better_metric(
+def _sort_action_key_ranking_rows(
+    rows: list[dict[str, Any]],
     *,
-    candidate: float | None,
-    current_best: float | None,
-    direction: str,
-    min_improvement: float,
-) -> bool:
-    if candidate is None:
-        return False
-    if current_best is None:
-        return True
-    if str(direction) == "minimize":
-        return float(candidate) < (float(current_best) - float(min_improvement))
-    return float(candidate) > (float(current_best) + float(min_improvement))
-
-
-def _list_combo_metrics_from_pred_payload(
-    *,
-    pred_payload: pl.DataFrame,
-    combo_index: pl.DataFrame,
-    allowed_combo_keys: set[tuple[int, int, int]] | None,
-    selection_metric: str,
     selection_direction: str,
-    n_classes: int,
-    class_names: list[str],
 ) -> list[dict[str, Any]]:
-    if pred_payload.is_empty() or combo_index.is_empty():
-        return []
+    def _metric_sort_value(value: float | None) -> float:
+        if value is None:
+            return float("-inf") if selection_direction != "minimize" else float("inf")
+        return float(value)
 
-    complete_idx = combo_index.filter(pl.col("status") == "complete")
-    if complete_idx.is_empty():
-        return []
+    reverse_metric = selection_direction != "minimize"
+    rows_sorted = sorted(
+        rows,
+        key=lambda r: (
+            -int(r.get("winner_count", 0) or 0),
+            (
+                -_metric_sort_value(r.get("mean_validation_metric"))
+                if reverse_metric
+                else _metric_sort_value(r.get("mean_validation_metric"))
+            ),
+            (
+                -_metric_sort_value(r.get("mean_prediction_metric"))
+                if reverse_metric
+                else _metric_sort_value(r.get("mean_prediction_metric"))
+            ),
+            str(r.get("action_key", "")),
+        ),
+    )
+    return rows_sorted
 
-    metrics_rows = []
-    for combo_key, grp in pred_payload.group_by("combo_id"):
-        combo_id = int(combo_key[0] if isinstance(combo_key, tuple) else combo_key)
-        combo_row = complete_idx.filter(pl.col("combo_id") == combo_id).head(1)
-        if combo_row.is_empty():
+
+def _select_root_topk_action_keys(
+    *,
+    step_dirs: list[Path],
+    unit: _Step2UnitConfig,
+    topk_action_keys_per_root: int,
+) -> dict[str, Any]:
+    val_metric_sum: dict[str, float] = {}
+    val_metric_count: dict[str, int] = {}
+    pred_metric_sum: dict[str, float] = {}
+    pred_metric_count: dict[str, int] = {}
+    winner_count: dict[str, int] = {}
+    rows_seen: dict[str, int] = {}
+    steps_seen = 0
+    missing_steps = 0
+
+    for step_dir in step_dirs:
+        stage1_dir = step_dir / "stage1"
+        combo_path = stage1_dir / "stage1_combo_index.parquet"
+        val_path = stage1_dir / "stage1_val_predictions.parquet"
+        pred_path = stage1_dir / "stage1_pred_batch_predictions.parquet"
+        if not (combo_path.exists() and val_path.exists() and pred_path.exists()):
+            missing_steps += 1
             continue
-        row = combo_row.to_dicts()[0]
-        key = (
-            int(row["fold_count"]),
-            int(row["val_batches_per_fold"]),
-            int(row["train_batches_per_fold"]),
+
+        combo_df = pl.read_parquet(combo_path)
+        val_df = pl.read_parquet(val_path)
+        pred_df = pl.read_parquet(pred_path)
+        if "scope" in val_df.columns:
+            val_df = val_df.filter(pl.col("scope") == "val_fold")
+        if "scope" in pred_df.columns:
+            pred_df = pred_df.filter(pl.col("scope") == "pred_batch")
+        if combo_df.is_empty() or val_df.is_empty() or pred_df.is_empty():
+            missing_steps += 1
+            continue
+
+        val_metrics = _list_combo_metrics_from_pred_payload(
+            pred_payload=val_df,
+            combo_index=combo_df,
+            allowed_combo_keys=unit.allowed_combo_keys,
+            selection_metric=unit.selection_metric,
+            selection_direction=unit.selection_direction,
+            n_classes=unit.n_classes,
+            class_names=unit.class_names,
         )
-        if allowed_combo_keys and key not in allowed_combo_keys:
+        pred_metrics = _list_combo_metrics_from_pred_payload(
+            pred_payload=pred_df,
+            combo_index=combo_df,
+            allowed_combo_keys=unit.allowed_combo_keys,
+            selection_metric=unit.selection_metric,
+            selection_direction=unit.selection_direction,
+            n_classes=unit.n_classes,
+            class_names=unit.class_names,
+        )
+        if not val_metrics:
+            missing_steps += 1
             continue
-        y_true = grp["y_true"].to_numpy().astype(np.int32, copy=False)
-        y_pred = grp["y_pred"].to_numpy().astype(np.int32, copy=False)
-        m = _compute_metrics(y_true, y_pred, n_classes=n_classes, class_names=class_names)
-        metric_val = _metric_value(m, selection_metric)
-        if metric_val is None:
-            continue
-        metrics_rows.append(
+
+        steps_seen += 1
+        pred_metric_map = {str(r["action_key"]): r for r in pred_metrics}
+        for row in val_metrics:
+            action_key = str(row["action_key"])
+            metric_val = row.get("selection_value")
+            if metric_val is not None:
+                val_metric_sum[action_key] = val_metric_sum.get(action_key, 0.0) + float(
+                    metric_val
+                )
+                val_metric_count[action_key] = val_metric_count.get(action_key, 0) + 1
+            rows_seen[action_key] = rows_seen.get(action_key, 0) + int(row.get("pred_rows", 0) or 0)
+            pred_row = pred_metric_map.get(action_key)
+            if pred_row is not None and pred_row.get("selection_value") is not None:
+                pred_metric_sum[action_key] = pred_metric_sum.get(action_key, 0.0) + float(
+                    pred_row["selection_value"]
+                )
+                pred_metric_count[action_key] = pred_metric_count.get(action_key, 0) + 1
+
+        winner_action_key = str(pred_metrics[0]["action_key"]) if pred_metrics else None
+        if winner_action_key:
+            winner_count[winner_action_key] = winner_count.get(winner_action_key, 0) + 1
+
+    ranking_rows: list[dict[str, Any]] = []
+    action_keys = sorted(
+        set(val_metric_sum)
+        | set(pred_metric_sum)
+        | set(winner_count)
+        | set(rows_seen)
+    )
+    for action_key in action_keys:
+        val_n = int(val_metric_count.get(action_key, 0))
+        pred_n = int(pred_metric_count.get(action_key, 0))
+        ranking_rows.append(
             {
-                "combo_id": int(combo_id),
-                "combo_key": key,
-                "fold_count": int(key[0]),
-                "val_batches_per_fold": int(key[1]),
-                "train_batches_per_fold": int(key[2]),
-                "selection_metric": selection_metric,
-                "selection_direction": selection_direction,
-                "selection_value": float(metric_val),
-                "accuracy": m["accuracy"],
-                "macro_f1": m["macro_f1"],
-                "cross_direction_error": m["cross_direction_error"],
-                "pred_rows": int(len(y_true)),
+                "action_key": action_key,
+                "winner_count": int(winner_count.get(action_key, 0)),
+                "winner_rate": (
+                    float(winner_count.get(action_key, 0) / steps_seen) if steps_seen else 0.0
+                ),
+                "validation_steps": val_n,
+                "prediction_steps": pred_n,
+                "mean_validation_metric": (
+                    float(val_metric_sum[action_key] / val_n) if val_n else None
+                ),
+                "mean_prediction_metric": (
+                    float(pred_metric_sum[action_key] / pred_n) if pred_n else None
+                ),
+                "rows_seen": int(rows_seen.get(action_key, 0)),
             }
         )
 
-    if not metrics_rows:
-        return []
-    if selection_direction == "minimize":
-        metrics_rows.sort(
-            key=lambda r: (float(r["selection_value"]), int(r["combo_id"]))
+    ranking_rows = _sort_action_key_ranking_rows(
+        ranking_rows,
+        selection_direction=unit.selection_direction,
+    )
+
+    selected_action_keys: list[str] = []
+    if ranking_rows:
+        dominant_winner = str(ranking_rows[0]["action_key"])
+        selected_action_keys.append(dominant_winner)
+        near_winners = [
+            r for r in ranking_rows if str(r["action_key"]) != dominant_winner
+        ]
+        near_winners = sorted(
+            near_winners,
+            key=lambda r: (
+                (
+                    float(r["mean_validation_metric"])
+                    if r.get("mean_validation_metric") is not None
+                    else (float("inf") if unit.selection_direction == "minimize" else float("-inf"))
+                ),
+                float(r["mean_prediction_metric"])
+                if r.get("mean_prediction_metric") is not None
+                else (float("inf") if unit.selection_direction == "minimize" else float("-inf")),
+                str(r.get("action_key", "")),
+            ),
+            reverse=unit.selection_direction != "minimize",
         )
-    else:
-        metrics_rows.sort(
-            key=lambda r: (-float(r["selection_value"]), int(r["combo_id"]))
+        selected_action_keys.extend(
+            str(r["action_key"])
+            for r in near_winners[: max(0, int(topk_action_keys_per_root) - 1)]
         )
-    return metrics_rows
+
+    return {
+        "selected_action_keys": selected_action_keys,
+        "ranking_rows": ranking_rows,
+        "steps_seen": int(steps_seen),
+        "missing_steps": int(missing_steps),
+        "selection_metric": str(unit.selection_metric),
+        "selection_direction": str(unit.selection_direction),
+    }
 
 
 def _pick_best_combo_from_pred_payload(
@@ -376,125 +404,6 @@ def _pick_best_combo_from_pred_payload(
         class_names=class_names,
     )
     return rows[0] if rows else None
-
-
-def _full_proba_and_pred(
-    proba_raw: np.ndarray,
-    classes: np.ndarray | None,
-    n_classes: int,
-) -> tuple[np.ndarray, np.ndarray]:
-    proba_raw = np.asarray(proba_raw, dtype=np.float64)
-    if proba_raw.ndim == 1:
-        proba_raw = np.column_stack([1.0 - proba_raw, proba_raw])
-    if proba_raw.ndim != 2:
-        raise ValueError(f"Invalid probability output shape: {proba_raw.shape}")
-
-    if classes is None:
-        if proba_raw.shape[1] == int(n_classes):
-            full = proba_raw
-        else:
-            # Best effort fallback
-            full = np.full((proba_raw.shape[0], int(n_classes)), 1e-12, dtype=np.float64)
-            cols = min(proba_raw.shape[1], int(n_classes))
-            full[:, :cols] = proba_raw[:, :cols]
-    else:
-        classes_arr = np.asarray(classes, dtype=int).reshape(-1)
-        full = np.full((proba_raw.shape[0], int(n_classes)), 1e-12, dtype=np.float64)
-        for i, c in enumerate(classes_arr):
-            if 0 <= int(c) < int(n_classes):
-                full[:, int(c)] = proba_raw[:, i]
-
-    row_sum = full.sum(axis=1, keepdims=True)
-    row_sum[row_sum <= 0] = 1.0
-    full = full / row_sum
-    pred = np.argmax(full, axis=1).astype(np.int32)
-    return full, pred
-
-
-def _fit_catboost_model(
-    *,
-    X_train: np.ndarray,
-    y_train: np.ndarray,
-    X_eval: np.ndarray,
-    y_eval: np.ndarray,
-    cb_params: dict,
-    iterations: int,
-):
-    params = dict(cb_params)
-    params["verbose"] = False
-    params["allow_writing_files"] = False
-    if len(np.unique(y_train)) <= 2 and int(np.max(y_train)) <= 1:
-        params["loss_function"] = "Logloss"
-        params["eval_metric"] = "Logloss"
-    else:
-        params["loss_function"] = "MultiClass"
-        params["eval_metric"] = "MultiClass"
-    model, _ = fit_catboost_with_fallback_stage1(
-        params=params,
-        iterations=int(max(10, iterations)),
-        X_train=X_train,
-        y_train=y_train,
-        X_val=X_eval,
-        y_val=y_eval,
-    )
-    return model
-
-
-def _resolve_shap_calc_type(shap_calc_type: str) -> EShapCalcType:
-    token = str(shap_calc_type).strip().lower()
-    mapping = {
-        "regular": EShapCalcType.Regular,
-        "approximate": EShapCalcType.Approximate,
-        "exact": EShapCalcType.Exact,
-    }
-    if token not in mapping:
-        raise ValueError(
-            "selector_shap_calc_type must be one of: Regular, Approximate, Exact"
-        )
-    return mapping[token]
-
-
-def _extract_selected_feature_names(
-    selector_result: dict[str, Any],
-    feature_names: list[str],
-) -> list[str]:
-    # select_features may return either indices or names depending on input.
-    selected_names = selector_result.get("selected_features_names")
-    if isinstance(selected_names, (list, tuple)) and selected_names:
-        out = [str(v) for v in selected_names]
-        return list(dict.fromkeys(out))
-
-    selected = selector_result.get("selected_features")
-    if isinstance(selected, (list, tuple)) and selected:
-        out: list[str] = []
-        for v in selected:
-            if isinstance(v, str):
-                out.append(str(v))
-                continue
-            try:
-                idx = int(v)
-            except Exception:
-                continue
-            if 0 <= idx < len(feature_names):
-                out.append(str(feature_names[idx]))
-        if out:
-            return list(dict.fromkeys(out))
-
-    eliminated = selector_result.get("eliminated_features")
-    if isinstance(eliminated, (list, tuple)):
-        elim_idx = set()
-        for v in eliminated:
-            try:
-                idx = int(v)
-            except Exception:
-                continue
-            if 0 <= idx < len(feature_names):
-                elim_idx.add(idx)
-        keep = [str(feature_names[i]) for i in range(len(feature_names)) if i not in elim_idx]
-        if keep:
-            return keep
-
-    return list(feature_names)
 
 
 def _build_unit_configs(
@@ -537,6 +446,16 @@ def _build_unit_configs(
             ov = _resolve_overrides(tf, target, tf_overrides)
             if "exclude_tail_pct" in ov:
                 cfg = replace(cfg, exclude_tail_pct=float(ov["exclude_tail_pct"]))
+            if "features_dir_override" in ov:
+                cfg = replace(
+                    cfg,
+                    features_dir_override=Path(ov["features_dir_override"]),
+                )
+            if "labels_dir_override" in ov:
+                cfg = replace(
+                    cfg,
+                    labels_dir_override=Path(ov["labels_dir_override"]),
+                )
             if "cb_base_params" in ov:
                 merged = dict(cfg.cb_base_params)
                 merged.update(dict(ov["cb_base_params"]))
@@ -605,6 +524,8 @@ def run_stage1_step2_feature_pruning(
     promotion_min_macro_f1_delta: float = -0.005,
     output_subdir: str = "stage1_step2",
     combo_processing_mode: str = "winner_only",
+    selection_scope: str | None = None,
+    topk_action_keys_per_root: int = 3,
     progress_every_steps: int = 10,
     comparison_metric_mode: str = "reward",
     winner_metric: str = "accuracy",
@@ -640,11 +561,14 @@ def run_stage1_step2_feature_pruning(
         raise ValueError("selector_step_vote_min_frac must be in (0, 1].")
     selector_shap_mode = _resolve_shap_calc_type(selector_shap_calc_type)
 
-    combo_processing_mode = str(combo_processing_mode).strip().lower()
-    if combo_processing_mode not in {"winner_only", "all_combos"}:
+    if selection_scope is None:
+        selection_scope = combo_processing_mode
+    combo_processing_mode = str(selection_scope).strip().lower()
+    if combo_processing_mode not in {"winner_only", "all_combos", "root_topk"}:
         raise ValueError(
-            "combo_processing_mode must be 'winner_only' or 'all_combos'"
+            "selection_scope must be 'winner_only', 'all_combos' or 'root_topk'"
         )
+    topk_action_keys_per_root = max(1, int(topk_action_keys_per_root))
     comparison_metric_mode = str(comparison_metric_mode).strip().lower()
     if comparison_metric_mode not in {"reward", "selection_metric", "accuracy"}:
         raise ValueError(
@@ -723,6 +647,36 @@ def run_stage1_step2_feature_pruning(
         total_steps: int,
         state: dict[str, Any],
     ) -> None:
+        process_stage1_selector_step(
+            unit=unit,
+            unit_key=unit_key,
+            step_dir=step_dir,
+            step_idx=step_idx,
+            total_steps=total_steps,
+            state=state,
+            unit_scope_info=unit_scope_info.get(unit_key, {}),
+            combo_processing_mode=combo_processing_mode,
+            feature_selector_method=feature_selector_method,
+            selector_shap_calc_type=selector_shap_calc_type,
+            selector_steps=selector_steps,
+            selector_keep_ratio=selector_keep_ratio,
+            selector_fold_vote_min_frac=selector_fold_vote_min_frac,
+            selector_step_vote_min_frac=selector_step_vote_min_frac,
+            min_features_keep=min_features_keep,
+            feature_importance_type=feature_importance_type,
+            winner_metric=winner_metric,
+            no_worse_accuracy_guard=no_worse_accuracy_guard,
+            skip_prune_if_baseline_accuracy_ge=skip_prune_if_baseline_accuracy_ge,
+            enforce_step1_combo_alignment=enforce_step1_combo_alignment,
+            enforce_step1_fold_alignment=enforce_step1_fold_alignment,
+            debug_step_selection=debug_step_selection,
+            debug_combo_detail=debug_combo_detail,
+            debug_walkforward=debug_walkforward,
+            debug_walkforward_every_steps=debug_walkforward_every_steps,
+            verbose=verbose,
+        )
+        return
+
         baseline_rows_by_combo = state["baseline_rows_by_combo"]
         step_fold_plan_by_combo = state["step_fold_plan_by_combo"]
         importance_rows_by_combo = state["importance_rows_by_combo"]
@@ -968,8 +922,15 @@ def run_stage1_step2_feature_pruning(
         )
         train_df_cache: dict[tuple[int, int], pl.DataFrame] = {}
         val_df_cache: dict[tuple[int, int], pl.DataFrame] = {}
+        selected_action_keys = set(
+            unit_scope_info.get(unit_key, {}).get("selected_action_keys", [])
+        )
         if combo_processing_mode == "winner_only":
             selected_rows = [winner]
+        elif combo_processing_mode == "root_topk":
+            selected_rows = [
+                row for row in combo_metrics if str(row.get("action_key")) in selected_action_keys
+            ]
         else:
             selected_rows = combo_metrics
 
@@ -1331,16 +1292,16 @@ def run_stage1_step2_feature_pruning(
                         max(min_features_keep, round(float(selector_keep_ratio) * n_features_total))
                     )
                     n_features_select = min(n_features_select, n_features_total)
-                    selector_result = model.select_features(
-                        Pool(X_train_num, y_train.astype(np.int32)),
-                        eval_set=Pool(X_val_num, y_val.astype(np.int32)),
-                        features_for_select=list(range(n_features_total)),
-                        num_features_to_select=int(n_features_select),
-                        steps=int(selector_steps),
-                        algorithm=EFeaturesSelectionAlgorithm.RecursiveByShapValues,
-                        shap_calc_type=selector_shap_mode,
-                        train_final_model=False,
-                        logging_level="Silent",
+                    selector_result, selector_eval_mode = _select_features_with_fallback(
+                        model,
+                        X_train=X_train_num,
+                        y_train=y_train,
+                        X_val=X_val_num,
+                        y_val=y_val,
+                        n_features_total=n_features_total,
+                        n_features_select=n_features_select,
+                        selector_steps=selector_steps,
+                        selector_shap_mode=selector_shap_mode,
                     )
                     fold_selected_features = _extract_selected_feature_names(
                         selector_result, feat_cols
@@ -1361,6 +1322,7 @@ def run_stage1_step2_feature_pruning(
                             "selector_method": "recursive_shap",
                             "selector_steps": int(selector_steps),
                             "selector_shap_calc_type": str(selector_shap_calc_type),
+                            "selector_eval_mode": str(selector_eval_mode),
                         }
                     )
                     if debug_combo_detail and verbose:
@@ -2075,6 +2037,7 @@ def run_stage1_step2_feature_pruning(
     global_rows: list[dict[str, Any]] = []
     unit_states: dict[str, dict[str, Any]] = {}
     unit_step_dirs: dict[str, dict[int, Path]] = {}
+    unit_scope_info: dict[str, dict[str, Any]] = {}
     ordered_units: list[_Step2UnitConfig] = []
 
     for unit in units:
@@ -2103,6 +2066,21 @@ def run_stage1_step2_feature_pruning(
         unit_states[unit_key] = _init_step2_unit_state(
             len(common_step_batches_sorted) if common_step_batches_sorted else len(step_dirs)
         )
+        scope_info = {
+            "selected_action_keys": [],
+            "ranking_rows": [],
+            "steps_seen": 0,
+            "missing_steps": 0,
+            "selection_metric": str(unit.selection_metric),
+            "selection_direction": str(unit.selection_direction),
+        }
+        if combo_processing_mode == "root_topk":
+            scope_info = _select_root_topk_action_keys(
+                step_dirs=step_dirs,
+                unit=unit,
+                topk_action_keys_per_root=topk_action_keys_per_root,
+            )
+        unit_scope_info[unit_key] = scope_info
         ordered_units.append(unit)
 
         if verbose:
@@ -2126,6 +2104,11 @@ def run_stage1_step2_feature_pruning(
                 f"[Stage1-Step2] {unit_key}: step_batches={first_pred}..{last_pred} "
                 f"(n={len(step_dirs)})"
             )
+            if combo_processing_mode == "root_topk":
+                print(
+                    f"[Stage1-Step2] {unit_key}: root_topk selected_action_keys="
+                    f"{scope_info.get('selected_action_keys', [])}"
+                )
 
     if not ordered_units:
         return {"unit_summaries": {}, "artifacts": {}}
@@ -2189,6 +2172,10 @@ def run_stage1_step2_feature_pruning(
                 "steps_seen": int(len(step_dirs)),
                 "status": "insufficient_data",
                 "combo_processing_mode": combo_processing_mode,
+                "selection_scope": combo_processing_mode,
+                "selected_action_keys": unit_scope_info.get(unit_key, {}).get(
+                    "selected_action_keys", []
+                ),
                 "failed_steps": failed_steps[:20],
             }
             continue
@@ -2745,8 +2732,11 @@ def run_stage1_step2_feature_pruning(
 
         # Global feature mask across all combos for this timeframe/target unit.
         global_feature_mask = None
+        unit_importance_df = pl.DataFrame(all_importance_rows) if all_importance_rows else pl.DataFrame()
+        unit_feature_stability_df = pl.DataFrame()
+        unit_feature_noise_df = pl.DataFrame()
+        top_features_by_combo_df = pl.DataFrame()
         if all_importance_rows:
-            unit_importance_df = pl.DataFrame(all_importance_rows)
             if feature_selector_method == "recursive_shap":
                 unit_feat_summary = (
                     unit_importance_df.group_by("feature")
@@ -2845,6 +2835,113 @@ def run_stage1_step2_feature_pruning(
                 json.dump(global_feature_mask, f, indent=2)
             global_feature_mask["artifacts"]["feature_mask_global"] = str(global_mask_path)
 
+            stability_aggs = [
+                pl.len().alias("n_step_records"),
+                pl.col("pred_batch").n_unique().alias("step_count"),
+                pl.col("action_key").n_unique().alias("action_key_count"),
+                pl.col("importance").mean().alias("mean_importance"),
+                pl.col("importance").median().alias("median_importance"),
+                pl.col("importance").std(ddof=1).alias("std_importance"),
+            ]
+            if "is_selected_step" in unit_importance_df.columns:
+                stability_aggs.append(
+                    pl.col("is_selected_step").mean().alias("selected_step_freq")
+                )
+            if "is_noisy_step" in unit_importance_df.columns:
+                stability_aggs.append(
+                    pl.col("is_noisy_step").mean().alias("noisy_step_freq")
+                )
+            unit_feature_stability_df = (
+                unit_importance_df.group_by("feature")
+                .agg(stability_aggs)
+                .with_columns(
+                    pl.when(
+                        pl.col("std_importance").is_not_null()
+                        & (pl.col("mean_importance").abs() > 1e-12)
+                    )
+                    .then(pl.col("std_importance") / pl.col("mean_importance").abs())
+                    .otherwise(None)
+                    .alias("importance_cv")
+                )
+                .sort("mean_importance", descending=True)
+            )
+
+            noise_aggs = [
+                pl.len().alias("n_step_records"),
+                pl.col("importance").mean().alias("mean_importance"),
+                pl.col("importance").median().alias("median_importance"),
+                pl.col("action_key").n_unique().alias("action_key_count"),
+            ]
+            if "is_selected_step" in unit_importance_df.columns:
+                noise_aggs.append(
+                    pl.col("is_selected_step").mean().alias("selected_step_freq")
+                )
+            if "is_noisy_step" in unit_importance_df.columns:
+                noise_aggs.append(
+                    pl.col("is_noisy_step").mean().alias("noisy_step_freq")
+                )
+            unit_feature_noise_df = (
+                unit_importance_df.group_by("feature")
+                .agg(noise_aggs)
+                .sort("mean_importance", descending=True)
+            )
+
+            top_features_by_combo_df = (
+                unit_importance_df.group_by(["action_key", "feature"])
+                .agg(
+                    [
+                        pl.len().alias("n_step_records"),
+                        pl.col("importance").mean().alias("mean_importance"),
+                        pl.col("importance").median().alias("median_importance"),
+                        pl.col("pred_batch").n_unique().alias("step_count"),
+                        pl.col("is_selected_step").mean().alias("selected_step_freq")
+                        if "is_selected_step" in unit_importance_df.columns
+                        else pl.lit(None).alias("selected_step_freq"),
+                    ]
+                )
+                .sort(["action_key", "mean_importance"], descending=[False, True])
+                .with_columns(
+                    pl.int_range(0, pl.len()).over("action_key").alias("rank_idx")
+                )
+                .filter(pl.col("rank_idx") < 30)
+                .with_columns((pl.col("rank_idx") + 1).alias("rank"))
+                .drop("rank_idx")
+            )
+
+        action_key_ranking_rows = unit_scope_info.get(unit_key, {}).get("ranking_rows", [])
+        action_key_ranking_df = (
+            pl.DataFrame(action_key_ranking_rows)
+            if action_key_ranking_rows
+            else pl.DataFrame()
+        )
+        action_key_ranking_path = out_unit_dir / "step2_action_key_ranking.parquet"
+        if not action_key_ranking_df.is_empty():
+            action_key_ranking_df.write_parquet(action_key_ranking_path)
+
+        unit_baseline_vs_filtered_df = (
+            pl.DataFrame([r for r in global_rows if str(r.get("unit")) == unit_key])
+            if global_rows
+            else pl.DataFrame()
+        )
+        baseline_vs_filtered_root_path = out_unit_dir / "step2_baseline_vs_filtered_root.parquet"
+        if not unit_baseline_vs_filtered_df.is_empty():
+            unit_baseline_vs_filtered_df.sort(
+                ["comparison_metric_improved", "metric_delta_filtered_minus_baseline"],
+                descending=[True, True],
+            ).write_parquet(baseline_vs_filtered_root_path)
+
+        feature_stability_path = out_unit_dir / "step2_feature_importance_stability.parquet"
+        if not unit_feature_stability_df.is_empty():
+            unit_feature_stability_df.write_parquet(feature_stability_path)
+
+        feature_noise_path = out_unit_dir / "step2_feature_noise_summary.parquet"
+        if not unit_feature_noise_df.is_empty():
+            unit_feature_noise_df.write_parquet(feature_noise_path)
+
+        top_features_by_combo_path = out_unit_dir / "step2_top_features_by_combo.parquet"
+        if not top_features_by_combo_df.is_empty():
+            top_features_by_combo_df.write_parquet(top_features_by_combo_path)
+
         unit_summary = {
             "generated_at": datetime.utcnow().isoformat() + "Z",
             "run_id": run_dir.name,
@@ -2856,6 +2953,11 @@ def run_stage1_step2_feature_pruning(
             "selection_metric": unit.selection_metric,
             "selection_direction": unit.selection_direction,
             "combo_processing_mode": combo_processing_mode,
+            "selection_scope": combo_processing_mode,
+            "selected_action_keys": unit_scope_info.get(unit_key, {}).get(
+                "selected_action_keys", []
+            ),
+            "topk_action_keys_per_root": int(topk_action_keys_per_root),
             "comparison_metric_mode": comparison_metric_mode,
             "feature_selector_method": str(feature_selector_method),
             "selector_steps": int(selector_steps),
@@ -2878,6 +2980,7 @@ def run_stage1_step2_feature_pruning(
             "combo_keys": sorted(combo_summaries.keys()),
             "winner_steps": int(len(step_winner_rows)),
             "winner_counts_by_action_key": winner_counts,
+            "action_key_ranking_rows": action_key_ranking_rows,
             "failed_steps_sample": failed_steps[:20],
             "failed_reason_counts": reason_counts,
             "global_feature_mask": global_feature_mask,
@@ -2891,6 +2994,23 @@ def run_stage1_step2_feature_pruning(
             "step_winners": str(winner_path) if not winner_df.is_empty() else None,
             "step_debug": str(step_debug_path) if not step_debug_df.is_empty() else None,
             "combo_debug": str(combo_debug_path) if not combo_debug_df.is_empty() else None,
+            "action_key_ranking": (
+                str(action_key_ranking_path) if not action_key_ranking_df.is_empty() else None
+            ),
+            "baseline_vs_filtered_root": (
+                str(baseline_vs_filtered_root_path)
+                if not unit_baseline_vs_filtered_df.is_empty()
+                else None
+            ),
+            "feature_importance_stability": (
+                str(feature_stability_path) if not unit_feature_stability_df.is_empty() else None
+            ),
+            "feature_noise_summary": (
+                str(feature_noise_path) if not unit_feature_noise_df.is_empty() else None
+            ),
+            "top_features_by_combo": (
+                str(top_features_by_combo_path) if not top_features_by_combo_df.is_empty() else None
+            ),
         }
         unit_summaries[unit_key] = unit_summary
         if verbose:
@@ -2932,6 +3052,8 @@ def run_stage1_step2_feature_pruning(
             "promotion_min_macro_f1_delta": float(promotion_min_macro_f1_delta),
             "output_subdir": str(output_subdir),
             "combo_processing_mode": combo_processing_mode,
+            "selection_scope": combo_processing_mode,
+            "topk_action_keys_per_root": int(topk_action_keys_per_root),
             "comparison_metric_mode": comparison_metric_mode,
             "winner_metric": winner_metric,
             "no_worse_accuracy_guard": bool(no_worse_accuracy_guard),

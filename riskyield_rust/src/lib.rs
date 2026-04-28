@@ -3,7 +3,7 @@
 //! PyO3 bindings for fast L1 helper feature generation.
 //! Provides 100-500x speedup over pure Python implementations.
 
-use numpy::{PyArray1, PyArray2, PyArrayMethods, PyReadonlyArray1};
+use numpy::{PyArray1, PyArray2, PyArrayMethods, PyReadonlyArray1, PyReadonlyArray2};
 use pyo3::prelude::*;
 
 mod bocpd;
@@ -19,12 +19,12 @@ use bocpd::{bocpd_online, BOCPDConfig};
 use cusum::{cusum_transform, CUSUMConfig};
 use egarch::{
     egarch_rolling_transform, egarch_rolling_transform_full,
-    estimate_egarch_params, EGARCHConfig, EGARCHParams,
+    egarch_transform_with_state, estimate_egarch_params, EGARCHConfig, EGARCHParams, EGARCHStreamingState,
 };
 use evt::{evt_rolling_transform, EVTConfig};
 use garch::garch_transform;
 use hmm::hmm_transform;
-use kalman::{kalman_transform, KalmanConfig};
+use kalman::{kalman_transform, kalman_transform_with_state, KalmanConfig, KalmanStreamingState, RunningMoments};
 use ou::{ou_rolling_transform, OUConfig};
 
 /// Python module for RiskYield Rust helpers
@@ -42,6 +42,7 @@ fn riskyield_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // EGARCH functions
     m.add_function(wrap_pyfunction!(py_egarch_rolling_transform, m)?)?;
     m.add_function(wrap_pyfunction!(py_egarch_rolling_transform_full, m)?)?;
+    m.add_function(wrap_pyfunction!(py_egarch_transform_with_state, m)?)?;
     m.add_function(wrap_pyfunction!(py_egarch_estimate_params, m)?)?;
 
     // CUSUM functions
@@ -49,6 +50,7 @@ fn riskyield_rust(m: &Bound<'_, PyModule>) -> PyResult<()> {
 
     // Kalman functions
     m.add_function(wrap_pyfunction!(py_kalman_transform, m)?)?;
+    m.add_function(wrap_pyfunction!(py_kalman_transform_with_state, m)?)?;
 
     // GARCH functions
     m.add_function(wrap_pyfunction!(py_garch_transform, m)?)?;
@@ -377,6 +379,7 @@ fn py_egarch_rolling_transform<'py>(
         low_vol_percentile: 25.0,
         high_vol_percentile: 75.0,
         recent_shock_window,
+        recent_shock_z_threshold: 1.0,
     };
 
     let features = egarch_rolling_transform(data, &config, &params, low_vol_threshold, high_vol_threshold);
@@ -398,6 +401,123 @@ fn py_egarch_rolling_transform<'py>(
 
     PyArray1::from_vec(py, output)
         .reshape([n, 8])
+}
+
+/// Compute EGARCH features with explicit streaming-state handoff.
+#[pyfunction]
+#[allow(clippy::too_many_arguments)]
+#[pyo3(signature = (
+    returns,
+    omega,
+    alpha,
+    gamma,
+    beta,
+    mean_return,
+    low_vol_threshold,
+    high_vol_threshold,
+    recent_shock_window=5,
+    recent_shock_z_threshold=1.0,
+    state_log_var=None,
+    vol_count=0,
+    vol_sum=0.0,
+    vol_sum_sq=0.0,
+    recent_shock_flags=None
+))]
+fn py_egarch_transform_with_state<'py>(
+    py: Python<'py>,
+    returns: PyReadonlyArray1<f64>,
+    omega: f64,
+    alpha: f64,
+    gamma: f64,
+    beta: f64,
+    mean_return: f64,
+    low_vol_threshold: f64,
+    high_vol_threshold: f64,
+    recent_shock_window: usize,
+    recent_shock_z_threshold: f64,
+    state_log_var: Option<f64>,
+    vol_count: usize,
+    vol_sum: f64,
+    vol_sum_sq: f64,
+    recent_shock_flags: Option<PyReadonlyArray1<f64>>,
+) -> PyResult<(
+    Bound<'py, PyArray2<f64>>,
+    f64,
+    usize,
+    f64,
+    f64,
+    Bound<'py, PyArray1<f64>>,
+)> {
+    let data = returns.as_slice()?;
+
+    let params = EGARCHParams {
+        omega,
+        alpha,
+        gamma,
+        beta,
+    };
+
+    let config = EGARCHConfig {
+        rolling_window: 126,
+        low_vol_percentile: 25.0,
+        high_vol_percentile: 75.0,
+        recent_shock_window,
+        recent_shock_z_threshold,
+    };
+
+    let initial_state = match (state_log_var, recent_shock_flags) {
+        (Some(log_var), Some(flags_arr)) => {
+            let flags = flags_arr.as_slice()?;
+            Some(EGARCHStreamingState {
+                log_var,
+                vol_count,
+                vol_sum,
+                vol_sum_sq,
+                recent_shock_flags: flags.to_vec(),
+            })
+        }
+        (None, None) => None,
+        _ => {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "state_log_var and recent_shock_flags must be provided together",
+            ));
+        }
+    };
+
+    let (features, final_state) = egarch_transform_with_state(
+        data,
+        &config,
+        &params,
+        mean_return,
+        low_vol_threshold,
+        high_vol_threshold,
+        initial_state.as_ref(),
+    );
+
+    let n = features.vol.len();
+    let mut output = vec![0.0; n * 8];
+    for i in 0..n {
+        output[i * 8 + 0] = features.vol[i];
+        output[i * 8 + 1] = features.log_vol[i];
+        output[i * 8 + 2] = features.asymmetry[i];
+        output[i * 8 + 3] = features.persistence[i];
+        output[i * 8 + 4] = features.news_impact[i];
+        output[i * 8 + 5] = features.vol_zscore[i];
+        output[i * 8 + 6] = features.vol_regime[i];
+        output[i * 8 + 7] = features.leverage_active[i];
+    }
+
+    let flags_out = PyArray1::from_vec(py, final_state.recent_shock_flags);
+    let features_out = PyArray1::from_vec(py, output).reshape([n, 8])?;
+
+    Ok((
+        features_out,
+        final_state.log_var,
+        final_state.vol_count,
+        final_state.vol_sum,
+        final_state.vol_sum_sq,
+        flags_out,
+    ))
 }
 
 /// Compute EGARCH features with full rolling parameter re-estimation.
@@ -426,6 +546,7 @@ fn py_egarch_rolling_transform_full<'py>(
         low_vol_percentile: 25.0,
         high_vol_percentile: 75.0,
         recent_shock_window: 5,
+        recent_shock_z_threshold: 1.0,
     };
 
     let features = egarch_rolling_transform_full(data, &config);
@@ -562,7 +683,7 @@ fn py_kalman_transform<'py>(
     measurement_noise: f64,
     dt: f64,
 ) -> PyResult<Bound<'py, PyArray2<f64>>> {
-    let data = signal.as_slice().unwrap();
+    let data = signal.as_slice()?;
 
     let config = KalmanConfig {
         process_noise,
@@ -588,6 +709,134 @@ fn py_kalman_transform<'py>(
 
     PyArray1::from_vec(py, output)
         .reshape([n, 7])
+}
+
+/// Compute Kalman features with optional carried streaming state.
+///
+/// This is the streaming-state contract used by the HTF helper pipeline:
+/// callers may provide the train-end or previous-chunk end state and receive
+/// the final state after consuming `signal`.
+#[pyfunction]
+#[allow(clippy::too_many_arguments)]
+#[pyo3(signature = (
+    signal,
+    process_noise=1e-5,
+    measurement_noise=1e-3,
+    dt=1.0,
+    state_x=None,
+    state_p=None,
+    innovation_count=0,
+    innovation_sum=0.0,
+    innovation_sum_sq=0.0,
+    velocity_count=0,
+    velocity_sum=0.0,
+    velocity_sum_sq=0.0
+))]
+fn py_kalman_transform_with_state<'py>(
+    py: Python<'py>,
+    signal: PyReadonlyArray1<f64>,
+    process_noise: f64,
+    measurement_noise: f64,
+    dt: f64,
+    state_x: Option<PyReadonlyArray1<f64>>,
+    state_p: Option<PyReadonlyArray2<f64>>,
+    innovation_count: usize,
+    innovation_sum: f64,
+    innovation_sum_sq: f64,
+    velocity_count: usize,
+    velocity_sum: f64,
+    velocity_sum_sq: f64,
+) -> PyResult<(
+    Bound<'py, PyArray2<f64>>,
+    Bound<'py, PyArray1<f64>>,
+    Bound<'py, PyArray2<f64>>,
+    usize,
+    f64,
+    f64,
+    usize,
+    f64,
+    f64,
+)> {
+    let data = signal.as_slice()?;
+
+    let config = KalmanConfig {
+        process_noise,
+        measurement_noise,
+        dt,
+    };
+
+    let initial_state = match (state_x, state_p) {
+        (Some(x_arr), Some(p_arr)) => {
+            let x_slice = x_arr.as_slice()?;
+            let p_view = p_arr.as_array();
+            if x_slice.len() != 3 || p_view.shape() != [3, 3] {
+                return Err(pyo3::exceptions::PyValueError::new_err(
+                    "Kalman state_x must have shape (3,) and state_p must have shape (3, 3)",
+                ));
+            }
+            let mut p_data = [[0.0_f64; 3]; 3];
+            for i in 0..3 {
+                for j in 0..3 {
+                    p_data[i][j] = p_view[[i, j]];
+                }
+            }
+            Some(KalmanStreamingState {
+                x: [x_slice[0], x_slice[1], x_slice[2]],
+                p: p_data,
+                innovation_stats: RunningMoments {
+                    count: innovation_count,
+                    sum: innovation_sum,
+                    sum_sq: innovation_sum_sq,
+                },
+                velocity_stats: RunningMoments {
+                    count: velocity_count,
+                    sum: velocity_sum,
+                    sum_sq: velocity_sum_sq,
+                },
+            })
+        }
+        (None, None) => None,
+        _ => {
+            return Err(pyo3::exceptions::PyValueError::new_err(
+                "state_x and state_p must be provided together",
+            ));
+        }
+    };
+
+    let (features, final_state) = kalman_transform_with_state(data, &config, initial_state.as_ref());
+
+    let n = features.velocity.len();
+    let mut output = vec![0.0; n * 7];
+    for i in 0..n {
+        output[i * 7 + 0] = features.filtered_dev[i];
+        output[i * 7 + 1] = features.velocity[i];
+        output[i * 7 + 2] = features.acceleration[i];
+        output[i * 7 + 3] = features.pred_error[i];
+        output[i * 7 + 4] = features.innovation[i];
+        output[i * 7 + 5] = features.zscore[i];
+        output[i * 7 + 6] = features.regime[i];
+    }
+
+    let state_x_out = PyArray1::from_vec(py, final_state.x.to_vec());
+    let state_p_flat: Vec<f64> = final_state
+        .p
+        .iter()
+        .flat_map(|row| row.iter().copied())
+        .collect();
+    let state_p_out = PyArray1::from_vec(py, state_p_flat).reshape([3, 3])?;
+    let features_out = PyArray1::from_vec(py, output).reshape([n, 7])?;
+
+    Ok((
+        features_out,
+        state_x_out,
+        state_p_out,
+        final_state.innovation_stats.count,
+        final_state.innovation_stats.sum,
+        final_state.innovation_stats.sum_sq,
+        final_state.velocity_stats.count,
+        final_state.velocity_stats.sum,
+        final_state.velocity_stats.sum_sq,
+    ))
 }
 
 // =============================================================================

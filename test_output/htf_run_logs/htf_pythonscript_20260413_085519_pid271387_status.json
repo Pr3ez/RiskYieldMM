@@ -1,0 +1,13 @@
+{
+  "reason": "shutdown",
+  "run_id": "htf_pythonscript_20260413_085519_pid271387",
+  "pid": 271387,
+  "stage": "Workflow bootstrap",
+  "detail": "pid=271387, run_id=htf_pythonscript_20260413_085519_pid271387",
+  "run_elapsed_seconds": 0.113,
+  "stage_elapsed_seconds": 0.113,
+  "silence_seconds": 0.113,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_085519_pid271387.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_085519_pid271387_status.json",
+  "updated_at": "2026-04-13T08:55:19"
+}

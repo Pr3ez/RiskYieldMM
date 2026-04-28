@@ -1,0 +1,87 @@
+{
+  "results": [
+    {
+      "root": "8h/B",
+      "scanned_batches": 5628,
+      "rows": 1350555,
+      "null_feature_count": 2,
+      "null_features": [
+        "S_N_longShortZscore_long_zsc",
+        "S_N_longShortZscore_xlong_zsc"
+      ],
+      "null_counts": {
+        "S_N_longShortZscore_long_zsc": 480,
+        "S_N_longShortZscore_xlong_zsc": 421
+      }
+    },
+    {
+      "root": "8h/C",
+      "scanned_batches": 5627,
+      "rows": 1350480,
+      "null_feature_count": 2,
+      "null_features": [
+        "S_N_longShortZscore_long_zsc",
+        "S_N_longShortZscore_xlong_zsc"
+      ],
+      "null_counts": {
+        "S_N_longShortZscore_long_zsc": 722,
+        "S_N_longShortZscore_xlong_zsc": 480
+      }
+    },
+    {
+      "root": "24h/B",
+      "scanned_batches": 1876,
+      "rows": 1350720,
+      "null_feature_count": 2,
+      "null_features": [
+        "S_N_longShortZscore_long_zsc",
+        "S_N_longShortZscore_xlong_zsc"
+      ],
+      "null_counts": {
+        "S_N_longShortZscore_long_zsc": 541,
+        "S_N_longShortZscore_xlong_zsc": 480
+      }
+    },
+    {
+      "root": "24h/C",
+      "scanned_batches": 1876,
+      "rows": 1350315,
+      "null_feature_count": 2,
+      "null_features": [
+        "S_N_longShortZscore_long_zsc",
+        "S_N_longShortZscore_xlong_zsc"
+      ],
+      "null_counts": {
+        "S_N_longShortZscore_long_zsc": 661,
+        "S_N_longShortZscore_xlong_zsc": 421
+      }
+    },
+    {
+      "root": "7d/B",
+      "scanned_batches": 268,
+      "rows": 1350720,
+      "null_feature_count": 2,
+      "null_features": [
+        "S_N_longShortZscore_long_zsc",
+        "S_N_longShortZscore_xlong_zsc"
+      ],
+      "null_counts": {
+        "S_N_longShortZscore_long_zsc": 1202,
+        "S_N_longShortZscore_xlong_zsc": 901
+      }
+    },
+    {
+      "root": "7d/C",
+      "scanned_batches": 268,
+      "rows": 1345995,
+      "null_feature_count": 0,
+      "null_features": [],
+      "null_counts": {}
+    }
+  ],
+  "union_null_features": [
+    "S_N_longShortZscore_long_zsc",
+    "S_N_longShortZscore_xlong_zsc"
+  ],
+  "union_null_feature_count": 2
+}

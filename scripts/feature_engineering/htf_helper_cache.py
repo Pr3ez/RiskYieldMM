@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import gc
 import hashlib
 import json
 import time
@@ -11,10 +12,53 @@ from typing import Any, Callable, Sequence
 import numpy as np
 import pandas as pd
 import polars as pl
+from scripts.feature_engineering.htf_feature_acceptance import (
+    FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+    get_final_output_excluded_columns,
+)
 
 LogFn = Callable[[str], None]
 
 DEFAULT_HELPER_NAMES = ("ou", "garch", "cusum", "kalman", "egarch")
+HELPER_CONTRACT_VERSION = "2026-04-13-live-safe-helper-contract-v1"
+HELPER_RUNTIME_CONTRACTS: dict[str, str] = {
+    "cusum": "context_replay_v1",
+    "garch": "context_replay_v1",
+    "ou": "context_replay_v1",
+    "kalman": "streaming_handoff_v1",
+    "egarch": "streaming_handoff_v1",
+}
+HELPER_SOURCE_FILE_MAP: dict[str, tuple[str, ...]] = {
+    "cusum": (
+        "scripts/target_models/helpers/cusum.py",
+        "riskyield_rust/src/cusum.rs",
+    ),
+    "garch": (
+        "scripts/target_models/helpers/garch.py",
+        "riskyield_rust/src/garch.rs",
+    ),
+    "ou": (
+        "scripts/target_models/helpers/ou.py",
+        "riskyield_rust/src/ou.rs",
+    ),
+    "kalman": (
+        "scripts/target_models/helpers/kalman.py",
+        "riskyield_rust/src/kalman.rs",
+        "riskyield_rust/src/lib.rs",
+    ),
+    "egarch": (
+        "scripts/target_models/helpers/egarch.py",
+        "riskyield_rust/src/egarch.rs",
+        "riskyield_rust/src/lib.rs",
+    ),
+}
+# The current helper set tops out at EGARCH(126). When a helper is fitted on a
+# train prefix and then transformed on a prediction chunk, we prepend one
+# trailing helper-window of context to keep chunk-start features causal and
+# closer to live parity without reading future rows. See the 2026-04-12 helper
+# source-backed audit note for the design rationale.
+HELPER_TRANSFORM_CONTEXT_ROWS = 126
+HELPER_RAW_SOURCE_COLUMNS = ("timestamp", "batch_id", "close", "open", "high", "low", "volume")
 
 
 @dataclass(frozen=True)
@@ -107,6 +151,65 @@ def helper_cols_from_batch_dir(batch_dir: Path) -> list[str]:
     return [col for col in schema_columns_for_batch_dir(batch_dir) if col.startswith("H_")]
 
 
+def _project_root() -> Path:
+    return Path(__file__).resolve().parents[2]
+
+
+def _helper_source_paths(helpers: Sequence[str]) -> list[Path]:
+    root = _project_root()
+    paths = {
+        root / "scripts/target_models/helpers/base.py",
+        root / "scripts/target_models/helpers/ensemble.py",
+        root / "scripts/feature_engineering/htf_helper_cache.py",
+        root / "scripts/feature_engineering/htf_feature_acceptance.py",
+    }
+    for helper in sorted(set(helpers)):
+        for rel_path in HELPER_SOURCE_FILE_MAP.get(helper, ()):
+            paths.add(root / rel_path)
+    return [path for path in sorted(paths) if path.exists()]
+
+
+def fingerprint_source_files(paths: Sequence[Path]) -> dict[str, Any]:
+    digest = hashlib.sha256()
+    entries: list[dict[str, Any]] = []
+    root = _project_root()
+    for path in sorted({Path(p) for p in paths}, key=lambda p: str(p)):
+        if not path.exists():
+            continue
+        payload = path.read_bytes()
+        rel_path = str(path.relative_to(root)) if root in path.parents else str(path)
+        file_digest = hashlib.sha256(payload).hexdigest()
+        digest.update(f"{rel_path}|{file_digest}|{len(payload)}".encode("utf-8"))
+        entries.append(
+            {
+                "path": rel_path,
+                "size_bytes": int(len(payload)),
+                "sha256": file_digest,
+            }
+        )
+    return {
+        "count": int(len(entries)),
+        "total_size_bytes": int(sum(item["size_bytes"] for item in entries)),
+        "digest": digest.hexdigest(),
+        "paths": [item["path"] for item in entries],
+    }
+
+
+def get_helper_contract_metadata(helpers: Sequence[str]) -> dict[str, Any]:
+    resolved_helpers = sorted(set(str(name) for name in helpers))
+    return {
+        "helper_contract_version": HELPER_CONTRACT_VERSION,
+        "helper_runtime_contracts": {
+            name: HELPER_RUNTIME_CONTRACTS[name]
+            for name in resolved_helpers
+            if name in HELPER_RUNTIME_CONTRACTS
+        },
+        "helper_implementation_fingerprint": fingerprint_source_files(
+            _helper_source_paths(resolved_helpers)
+        ),
+    }
+
+
 def prepare_raw_features_for_helpers(df: pl.DataFrame) -> tuple[np.ndarray, list[str]]:
     close = df["close"].to_numpy().astype(np.float64)
     returns = np.zeros_like(close)
@@ -125,6 +228,40 @@ def prepare_raw_features_for_helpers(df: pl.DataFrame) -> tuple[np.ndarray, list
     return features, feature_cols
 
 
+def _transform_helper_ensemble_chunk(
+    ensemble,
+    x_pred: pd.DataFrame,
+    x_context: pd.DataFrame,
+) -> pd.DataFrame:
+    """Transform one helper chunk with helper-specific continuity policy.
+
+    Most helpers still use context-prepended chunk transforms to stabilize
+    chunk-start rows. Kalman and EGARCH are now true streaming-state helpers,
+    so they must start from the fitted train-end state and consume only the
+    real prediction chunk. Replaying prepended context rows would double-count
+    already-seen history after the train prefix.
+    """
+
+    target_rows = len(x_pred)
+    frames: list[pd.DataFrame] = []
+    stateful_handoff_helpers = {"kalman", "egarch"}
+    for name, helper in ensemble._helpers.items():
+        helper_input = x_pred if name in stateful_handoff_helpers else x_context
+        output = helper.transform(helper_input)
+        helper_df = output.features.reset_index(drop=True)
+        if len(helper_df) != target_rows:
+            helper_df = helper_df.tail(target_rows).reset_index(drop=True)
+        if len(helper_df) != target_rows:
+            raise RuntimeError(
+                f"Helper '{name}' returned {len(helper_df)} rows for target_rows={target_rows}"
+            )
+        frames.append(helper_df)
+
+    if not frames:
+        return pd.DataFrame(index=np.arange(target_rows))
+    return pd.concat(frames, axis=1)
+
+
 def compute_helpers_walk_forward_raw(
     raw_df: pl.DataFrame,
     target: str,
@@ -137,6 +274,60 @@ def compute_helpers_walk_forward_raw(
     log: LogFn | None = None,
     chunk_progress_every: int = 20,
 ) -> pd.DataFrame:
+    helper_chunks = list(
+        iter_helper_chunk_outputs(
+            raw_df=raw_df,
+            target=target,
+            horizon=horizon,
+            warmup_rows=warmup_rows,
+            refit_every=refit_every,
+            helpers=helpers,
+            start_row=start_row,
+            verbose=verbose,
+            log=log,
+            chunk_progress_every=chunk_progress_every,
+        )
+    )
+    if not helper_chunks:
+        return pd.DataFrame({"row_idx": []})
+
+    helper_output_list: list[pd.DataFrame] = []
+    total_rows = 0
+    helper_feature_count = 0
+    for pred_start, chunk_df in helper_chunks:
+        if chunk_df.empty:
+            continue
+        helper_feature_count = max(helper_feature_count, len(chunk_df.columns))
+        total_rows += len(chunk_df)
+        chunk_df = chunk_df.copy()
+        chunk_df.insert(0, "row_idx", np.arange(pred_start, pred_start + len(chunk_df), dtype=np.int64))
+        helper_output_list.append(chunk_df)
+
+    if not helper_output_list:
+        return pd.DataFrame({"row_idx": []})
+
+    helper_df_partial = pd.concat(helper_output_list, axis=0, ignore_index=True)
+    if verbose:
+        log(
+            f"  Generated {helper_feature_count} helper features "
+            f"for {total_rows:,} rows"
+        )
+    return helper_df_partial
+
+
+def iter_helper_chunk_outputs(
+    *,
+    raw_df: pl.DataFrame,
+    target: str,
+    horizon: int = 1,
+    warmup_rows: int = 5000,
+    refit_every: int = 1000,
+    helpers: Sequence[str] | None = None,
+    start_row: int | None = None,
+    verbose: bool = False,
+    log: LogFn | None = None,
+    chunk_progress_every: int = 20,
+):
     from scripts.target_models.helpers import ensemble as helper_ensemble_module
 
     create_helper_ensemble = helper_ensemble_module.create_helper_ensemble
@@ -165,7 +356,6 @@ def compute_helpers_walk_forward_raw(
     if start_row >= n_rows:
         return pd.DataFrame({"row_idx": []})
 
-    helper_output_list: list[pd.DataFrame] = []
     t0 = time.time()
     first_chunk_start = warmup_rows + ((start_row - warmup_rows) // refit_every) * refit_every
     total_chunks = max(0, len(range(first_chunk_start, n_rows, refit_every)))
@@ -196,11 +386,10 @@ def compute_helpers_walk_forward_raw(
             processed_chunks += 1
             continue
 
-        X_chunk = X_df.iloc[pred_start:chunk_end]
-        chunk_features = ensemble.transform(X_chunk)
-        chunk_df = chunk_features.features.reset_index(drop=True).copy()
-        chunk_df.insert(0, "row_idx", np.arange(pred_start, chunk_end, dtype=np.int64))
-        helper_output_list.append(chunk_df)
+        transform_start = max(0, pred_start - HELPER_TRANSFORM_CONTEXT_ROWS)
+        x_pred = X_df.iloc[pred_start:chunk_end]
+        x_context = X_df.iloc[transform_start:chunk_end]
+        chunk_df = _transform_helper_ensemble_chunk(ensemble, x_pred=x_pred, x_context=x_context).copy()
         processed_chunks += 1
 
         if verbose and (
@@ -218,16 +407,11 @@ def compute_helpers_walk_forward_raw(
                 f"~{eta / 60:.1f}m remaining"
             )
 
-    if not helper_output_list:
-        return pd.DataFrame({"row_idx": []})
+        yield pred_start, chunk_df.reset_index(drop=True)
 
-    helper_df_partial = pd.concat(helper_output_list, axis=0, ignore_index=True)
-    if verbose:
-        log(
-            f"  Generated {len(helper_df_partial.columns) - 1} helper features "
-            f"for {len(helper_df_partial):,} rows in {time.time() - t0:.1f}s"
-        )
-    return helper_df_partial
+    if verbose and processed_chunks > 0:
+        elapsed = time.time() - t0
+        log(f"  Helper chunk generation finished in {elapsed:.1f}s")
 
 
 def _meta_rebuild_reasons(
@@ -367,7 +551,12 @@ def build_helper_cache_exact(
     raw_mtime = {batch_id: int(path.stat().st_mtime_ns) for batch_id, path in raw_by_id.items()}
     cache_mtime = {batch_id: int(path.stat().st_mtime_ns) for batch_id, path in cache_by_id.items()}
 
+    helper_contract = get_helper_contract_metadata(helpers)
     source_fingerprint = source_fingerprint or {"raw_batches": fingerprint_batch_dir(raw_dir)}
+    source_fingerprint = {
+        **source_fingerprint,
+        "helper_implementation": helper_contract["helper_implementation_fingerprint"],
+    }
     cache_schema_columns = schema_columns_for_batch_dir(cache_dir)
     if not cache_schema_columns:
         cache_schema_columns = (load_json_safe(meta_path) or {}).get("schema_columns", [])
@@ -380,6 +569,8 @@ def build_helper_cache_exact(
             "helper_names": list(helpers),
             "warmup": int(warmup_rows),
             "refit_every": int(refit_every),
+            "helper_contract_version": helper_contract["helper_contract_version"],
+            "helper_runtime_contracts": helper_contract["helper_runtime_contracts"],
         },
         source_fingerprint=source_fingerprint,
         schema_columns=cache_schema_columns,
@@ -388,7 +579,16 @@ def build_helper_cache_exact(
     def _reason_key(reason: str) -> str:
         return reason
 
-    full_rebuild_reasons = {"missing_meta", "artifact_version", "timeframe", "target", "helper_names", "schema_columns"}
+    full_rebuild_reasons = {
+        "missing_meta",
+        "artifact_version",
+        "timeframe",
+        "target",
+        "helper_names",
+        "schema_columns",
+        "helper_contract_version",
+        "helper_runtime_contracts",
+    }
     should_full_rebuild = rebuild_existing or any(_reason_key(reason) in full_rebuild_reasons for reason in rebuild_reasons)
     if should_full_rebuild:
         _clear_batch_dir(cache_dir)
@@ -437,16 +637,27 @@ def build_helper_cache_exact(
         f"write_batches={len(batches_to_write)}"
     )
 
+    # Helpers only need the raw OHLCV stream plus batch metadata. Reading the
+    # full optimized HTF feature matrix here was the main memory blow-up path
+    # identified in the 2026-04-13 helper-cache OOM investigation note.
     raw_combined = (
         pl.scan_parquet(
             str(raw_dir / "batch_*.parquet"),
             extra_columns="ignore",
             missing_columns="insert",
         )
+        .select(list(HELPER_RAW_SOURCE_COLUMNS))
         .sort("timestamp")
         .collect()
     )
     batch_np = raw_combined["batch_id"].to_numpy()
+    batch_change_points = np.flatnonzero(batch_np[1:] != batch_np[:-1]) + 1 if len(batch_np) > 1 else np.array([], dtype=np.int64)
+    batch_start_positions = np.concatenate(([0], batch_change_points))
+    batch_end_positions = np.concatenate((batch_change_points, [len(batch_np)]))
+    batch_offsets = {
+        int(batch_np[start]): (int(start), int(end - start))
+        for start, end in zip(batch_start_positions, batch_end_positions)
+    }
     start_candidates = np.where(batch_np >= write_start_batch)[0]
     if len(start_candidates) == 0:
         return HelperCacheBuildResult(
@@ -466,7 +677,80 @@ def build_helper_cache_exact(
         )
 
     start_row = int(start_candidates[0])
-    helper_df_partial = compute_helpers_walk_forward_raw(
+    rows_joined = 0
+    saved_batches = 0
+    skipped_batches = 0
+    helper_cols: list[str] = []
+    total_helper_rows = 0
+    total_helper_feature_cols = 0
+    affected_batch_set = set(affected_batch_ids)
+    processed_batch_count = 0
+    next_batch_pos = 0
+    current_batch_id: int | None = None
+    current_batch_parts: list[pl.DataFrame] = []
+    helper_chunks_seen = 0
+
+    def _write_cache_batch(batch_id: int, cache_batch: pl.DataFrame) -> None:
+        nonlocal rows_joined
+        nonlocal saved_batches
+        nonlocal skipped_batches
+        nonlocal processed_batch_count
+        nonlocal next_batch_pos
+        if next_batch_pos >= len(batches_to_write) or batch_id != batches_to_write[next_batch_pos]:
+            raise RuntimeError(
+                f"Helper cache batch order mismatch: batch_id={batch_id} "
+                f"expected={batches_to_write[next_batch_pos] if next_batch_pos < len(batches_to_write) else 'end'}"
+            )
+
+        batch_path = cache_dir / f"batch_{batch_id:04d}.parquet"
+        force_rewrite = batch_id in affected_batch_set
+
+        if batch_path.exists() and not force_rewrite:
+            existing = pl.read_parquet(batch_path, columns=["timestamp"])
+            same_rows = len(existing) == len(cache_batch)
+            same_last_ts = existing["timestamp"].max() == cache_batch["timestamp"].max()
+            if same_rows and same_last_ts:
+                skipped_batches += 1
+                rows_joined += len(cache_batch)
+                processed_batch_count += 1
+                next_batch_pos += 1
+                if processed_batch_count % max(1, batch_progress_every) == 0:
+                    log(f"    cache batches processed {processed_batch_count}/{len(batches_to_write)}")
+                return
+
+        cache_batch.write_parquet(batch_path, compression="zstd")
+        saved_batches += 1
+        rows_joined += len(cache_batch)
+        processed_batch_count += 1
+        next_batch_pos += 1
+        if processed_batch_count % max(1, batch_progress_every) == 0:
+            log(f"    cache batches processed {processed_batch_count}/{len(batches_to_write)}")
+
+    def _null_cache_batch(batch_id: int) -> pl.DataFrame:
+        batch_start, batch_len = batch_offsets[batch_id]
+        ts_only = raw_combined.slice(batch_start, batch_len).select(["timestamp"])
+        null_columns = [
+            pl.lit(None, dtype=pl.Float64).alias(col)
+            for col in helper_cols
+        ]
+        return ts_only.with_columns(null_columns).select(["timestamp", *helper_cols])
+
+    def _flush_current_batch() -> None:
+        nonlocal current_batch_id
+        nonlocal current_batch_parts
+        if current_batch_id is None or not current_batch_parts:
+            return
+
+        if len(current_batch_parts) == 1:
+            cache_batch = current_batch_parts[0]
+        else:
+            cache_batch = pl.concat(current_batch_parts, how="vertical_relaxed")
+        cache_batch = cache_batch.select(["timestamp", *helper_cols])
+        _write_cache_batch(current_batch_id, cache_batch)
+        current_batch_id = None
+        current_batch_parts = []
+
+    for pred_start, chunk_df in iter_helper_chunk_outputs(
         raw_df=raw_combined,
         target=target.replace("target_", ""),
         horizon=1,
@@ -477,8 +761,49 @@ def build_helper_cache_exact(
         verbose=verbose,
         log=log,
         chunk_progress_every=chunk_progress_every,
-    )
-    if helper_df_partial.empty:
+    ):
+        if chunk_df.empty:
+            continue
+
+        helper_chunks_seen += 1
+        total_helper_rows += len(chunk_df)
+        total_helper_feature_cols = max(total_helper_feature_cols, len(chunk_df.columns))
+        if not helper_cols:
+            helper_cols = [col for col in chunk_df.columns if col.startswith("H_")]
+
+        batch_chunk = batch_np[pred_start : pred_start + len(chunk_df)]
+        if len(batch_chunk) != len(chunk_df):
+            raise RuntimeError(
+                f"Helper chunk row mismatch: batch_chunk={len(batch_chunk)} chunk_df={len(chunk_df)}"
+            )
+
+        change_points = np.flatnonzero(batch_chunk[1:] != batch_chunk[:-1]) + 1
+        segment_bounds = np.concatenate(([0], change_points, [len(chunk_df)]))
+        chunk_pl = pl.from_pandas(chunk_df)
+
+        for seg_start, seg_end in zip(segment_bounds[:-1], segment_bounds[1:]):
+            batch_id = int(batch_chunk[seg_start])
+            if current_batch_id is not None and batch_id != current_batch_id:
+                _flush_current_batch()
+            while next_batch_pos < len(batches_to_write) and batches_to_write[next_batch_pos] < batch_id:
+                _write_cache_batch(batches_to_write[next_batch_pos], _null_cache_batch(batches_to_write[next_batch_pos]))
+            if current_batch_id is None:
+                batch_start, _batch_len = batch_offsets[batch_id]
+                segment_global_start = int(pred_start + seg_start)
+                if segment_global_start > batch_start:
+                    current_batch_parts.append(_null_cache_batch(batch_id).slice(0, segment_global_start - batch_start))
+            current_batch_id = batch_id
+            helper_slice = chunk_pl.slice(int(seg_start), int(seg_end - seg_start))
+            ts_slice = raw_combined.slice(int(pred_start + seg_start), int(seg_end - seg_start)).select(
+                ["timestamp"]
+            )
+            current_batch_parts.append(ts_slice.hstack(helper_slice))
+
+    _flush_current_batch()
+    while helper_cols and next_batch_pos < len(batches_to_write):
+        _write_cache_batch(batches_to_write[next_batch_pos], _null_cache_batch(batches_to_write[next_batch_pos]))
+
+    if helper_chunks_seen == 0 or not helper_cols:
         return HelperCacheBuildResult(
             cache_dir=cache_dir,
             meta_path=meta_path,
@@ -495,53 +820,22 @@ def build_helper_cache_exact(
             status="empty_helper_output",
         )
 
-    helper_pl = pl.from_pandas(helper_df_partial).with_columns(pl.col("row_idx").cast(pl.Int64))
-    timestamp_lookup = (
-        raw_combined.select(["timestamp"])
-        .with_row_index("row_idx")
-        .with_columns(pl.col("row_idx").cast(pl.Int64))
-    )
-    helper_cols = [col for col in helper_pl.columns if col.startswith("H_")]
-    helper_lookup = (
-        helper_pl.join(timestamp_lookup, on="row_idx", how="left")
-        .drop("row_idx")
-        .select(["timestamp", *helper_cols])
-        .sort("timestamp")
-        .unique(subset=["timestamp"], keep="last")
-    )
+    if verbose:
+        log(
+            f"  Generated {total_helper_feature_cols} helper features "
+            f"for {total_helper_rows:,} rows"
+        )
 
-    raw_batch_lookup = {
-        batch_id: pl.read_parquet(path, columns=["timestamp"])
-        for batch_id, path in raw_by_id.items()
-        if batch_id in batches_to_write
-    }
+    if processed_batch_count != len(batches_to_write):
+        raise RuntimeError(
+            "Helper cache streaming write count mismatch: "
+            f"processed={processed_batch_count} expected={len(batches_to_write)}"
+        )
 
-    rows_joined = 0
-    saved_batches = 0
-    skipped_batches = 0
-    affected_batch_set = set(affected_batch_ids)
-    for index, batch_id in enumerate(batches_to_write, 1):
-        raw_batch = raw_batch_lookup[batch_id].with_columns(pl.lit(batch_id).alias("batch_id"))
-        cache_batch = raw_batch.join(helper_lookup, on="timestamp", how="left").select(["timestamp", *helper_cols])
-        batch_path = cache_dir / f"batch_{batch_id:04d}.parquet"
-        force_rewrite = batch_id in affected_batch_set
-
-        if batch_path.exists() and not force_rewrite:
-            existing = pl.read_parquet(batch_path, columns=["timestamp"])
-            same_rows = len(existing) == len(cache_batch)
-            same_last_ts = existing["timestamp"].max() == cache_batch["timestamp"].max()
-            if same_rows and same_last_ts:
-                skipped_batches += 1
-                rows_joined += len(cache_batch)
-                if index % max(1, batch_progress_every) == 0:
-                    log(f"    cache batches processed {index}/{len(batches_to_write)}")
-                continue
-
-        cache_batch.write_parquet(batch_path, compression="zstd")
-        saved_batches += 1
-        rows_joined += len(cache_batch)
-        if index % max(1, batch_progress_every) == 0:
-            log(f"    cache batches processed {index}/{len(batches_to_write)}")
+    del raw_combined
+    del batch_np
+    del batch_offsets
+    gc.collect()
 
     write_json(
         meta_path,
@@ -551,6 +845,9 @@ def build_helper_cache_exact(
             "timeframe": timeframe,
             "target": target,
             "helper_names": list(helpers),
+            "helper_contract_version": helper_contract["helper_contract_version"],
+            "helper_runtime_contracts": helper_contract["helper_runtime_contracts"],
+            "helper_implementation_fingerprint": helper_contract["helper_implementation_fingerprint"],
             "warmup": int(warmup_rows),
             "refit_every": int(refit_every),
             "source_fingerprint": source_fingerprint,
@@ -602,6 +899,8 @@ def materialize_helpers_from_cache(
     artifact_version: str,
     source_fingerprint: dict[str, Any],
     extra_meta: dict[str, Any] | None = None,
+    helper_contract_version: str | None = None,
+    helper_runtime_contracts: dict[str, str] | None = None,
     write_combined: bool = False,
     batch_progress_every: int = 500,
     log: LogFn | None = None,
@@ -612,8 +911,8 @@ def materialize_helpers_from_cache(
     if meta_path is None:
         meta_path = output_dir / "_helpers_meta.json"
 
-    cache_cols = helper_cols_from_batch_dir(cache_dir)
-    if not cache_cols:
+    raw_cache_cols = helper_cols_from_batch_dir(cache_dir)
+    if not raw_cache_cols:
         return HelperMaterializationResult(
             output_dir=output_dir,
             meta_path=meta_path,
@@ -627,6 +926,23 @@ def materialize_helpers_from_cache(
             first_affected_batch=None,
             write_start_batch=None,
             status="missing_cache",
+        )
+    excluded_cache_cols = get_final_output_excluded_columns(raw_cache_cols, stage="helpers")
+    cache_cols = [col for col in raw_cache_cols if col not in set(excluded_cache_cols)]
+    if not cache_cols:
+        return HelperMaterializationResult(
+            output_dir=output_dir,
+            meta_path=meta_path,
+            run_mode="all_helper_cols_excluded",
+            rows=0,
+            helper_cols=0,
+            saved_batches=0,
+            skipped_batches=0,
+            affected_batches_count=0,
+            write_batches_count=0,
+            first_affected_batch=None,
+            write_start_batch=None,
+            status="all_helper_cols_excluded",
         )
 
     opt_by_id = batch_file_map(optimized_dir)
@@ -656,11 +972,36 @@ def materialize_helpers_from_cache(
     rebuild_reasons = _meta_rebuild_reasons(
         meta_path=meta_path,
         artifact_version=artifact_version,
-        expected_fields={"family": family, "timeframe": timeframe, "target": target},
+        expected_fields={
+            "family": family,
+            "timeframe": timeframe,
+            "target": target,
+            "helper_policy_version": FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+            **(
+                {"helper_contract_version": helper_contract_version}
+                if helper_contract_version is not None
+                else {}
+            ),
+            **(
+                {"helper_runtime_contracts": helper_runtime_contracts}
+                if helper_runtime_contracts is not None
+                else {}
+            ),
+        },
         source_fingerprint=source_fingerprint,
         schema_columns=output_schema_columns,
     )
-    full_rebuild_reasons = {"missing_meta", "artifact_version", "family", "timeframe", "target", "schema_columns"}
+    full_rebuild_reasons = {
+        "missing_meta",
+        "artifact_version",
+        "family",
+        "timeframe",
+        "target",
+        "schema_columns",
+        "helper_policy_version",
+        "helper_contract_version",
+        "helper_runtime_contracts",
+    }
     should_full_rebuild = rebuild_existing or any(reason in full_rebuild_reasons for reason in rebuild_reasons)
     if should_full_rebuild:
         _clear_batch_dir(output_dir)
@@ -668,6 +1009,11 @@ def materialize_helpers_from_cache(
         output_mtime = {}
 
     cache_ranges = _collect_batch_ranges(cache_dir)
+    if excluded_cache_cols:
+        log(
+            f"  Helper output policy: excluding {len(excluded_cache_cols)} helper columns "
+            f"from model-facing outputs"
+        )
     common_batch_ids = sorted(opt_by_id)
     affected_batch_ids: list[int] = []
     run_mode = "full_recompute" if should_full_rebuild else "incremental_tail"
@@ -767,6 +1113,9 @@ def materialize_helpers_from_cache(
         "family": family,
         "timeframe": timeframe,
         "target": target,
+        "helper_policy_version": FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+        "helper_contract_version": helper_contract_version,
+        "helper_runtime_contracts": helper_runtime_contracts,
         "source_fingerprint": source_fingerprint,
         "schema_columns": schema_columns_for_batch_dir(output_dir),
         "run_mode": run_mode,
@@ -778,6 +1127,7 @@ def materialize_helpers_from_cache(
         "write_batches_count": int(len(batches_to_write)),
         "rows": int(rows_joined),
         "helper_cols": int(len(cache_cols)),
+        "excluded_helper_cols": excluded_cache_cols,
         "saved_batches": int(saved_batches),
         "skipped_batches": int(skipped_batches),
         "write_helpers_combined": bool(write_combined),

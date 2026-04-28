@@ -12,6 +12,22 @@
 
 RiskYieldMM is a comprehensive machine learning system for predicting Bitcoin perpetual futures price movements on 8-hour timeframes. The project implements institutional-grade walk-forward validation with a multi-model ensemble architecture, ensuring statistically rigorous backtesting without look-ahead bias.
 
+## Recruiter Overview
+
+This repository is a portfolio-grade ML engineering project. It demonstrates the ability to build, validate, document, and optimize a non-trivial time-series machine learning system rather than only train a single notebook model.
+
+| Area | Evidence in this repository |
+|------|-----------------------------|
+| **Data engineering** | Bybit API ingestion, multi-source 8h bar aggregation, Parquet/JSON artifact workflows |
+| **Feature engineering** | 166 technical features plus 91 L1 helper/regime features |
+| **ML modelling** | CatBoost, LightGBM, PyTorch LSTM, Ridge baselines, ensemble weighting |
+| **Validation discipline** | Walk-forward testing, purged time-series splits, leakage checks, chronological audits |
+| **Uncertainty estimation** | Conformal prediction, Adaptive Conformal Inference, coverage monitoring |
+| **Performance engineering** | Rust/PyO3 helper implementations with documented 20-487x speedups |
+| **Experiment analysis** | Stage-1 CatBoost selector audits, pairwise disagreement analysis, discounted-loss policy replay |
+
+Generated datasets, trained models, backtest outputs, API data, and private CV/certificate files are intentionally excluded from Git. The source code and documentation are structured so reviewers can inspect the system design, run import/syntax checks, and reproduce full experiments after providing local market data.
+
 ### Core Capabilities
 
 | Capability | Implementation |
@@ -243,6 +259,47 @@ RiskYieldMM/
 
 ---
 
+## Quick Start for Reviewers
+
+The fastest way to inspect the project is to set up the Python environment, run source checks, and then review the documented experiment artifacts. Full model runs require local/generated data under `data/`, which is not committed.
+
+```bash
+git clone https://github.com/Pr3ez/RiskYieldMM.git
+cd RiskYieldMM
+
+conda create -n riskyieldmm python=3.10 -y
+conda activate riskyieldmm
+
+python -m pip install --upgrade pip
+python -m pip install -e .
+python -m pip install \
+  polars pandas numpy scipy scikit-learn catboost lightgbm xgboost torch \
+  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic
+
+# Syntax/package smoke check.
+python -m compileall scripts riskyield_rust -q
+```
+
+Optional Rust helper build:
+
+```bash
+cd riskyield_rust
+python -m pip install maturin
+maturin develop --release
+cd ..
+```
+
+Useful review entry points:
+
+- `docs/conformal/README.md` - conformal prediction and ACI validation summary
+- `docs/htf_stage1_logic.md` - Stage-1 CatBoost audit design
+- `docs/htf_stage1_artifacts.md` - reproducible artifact layout
+- `scripts/analysis/` - offline audit and selector-analysis scripts
+- `scripts/target_models/pipeline.py` - walk-forward target runner and conformal integration
+- `riskyield_rust/src/` - Rust helper implementations
+
+---
+
 ## Installation
 
 ### Prerequisites
@@ -256,20 +313,23 @@ RiskYieldMM/
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/RiskYieldMM.git
+git clone https://github.com/Pr3ez/RiskYieldMM.git
 cd RiskYieldMM
 
 # Create conda environment
-conda create -n ml_env python=3.10
-conda activate ml_env
+conda create -n riskyieldmm python=3.10 -y
+conda activate riskyieldmm
 
-# Install Python dependencies
-pip install -e .
-# Or: pip install -r requirements.txt
+# Install package and core dependencies
+python -m pip install --upgrade pip
+python -m pip install -e .
+python -m pip install \
+  polars pandas numpy scipy scikit-learn catboost lightgbm xgboost torch \
+  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic
 
 # Install Rust helpers (recommended for 20-487× speedup)
 cd riskyield_rust
-pip install maturin
+python -m pip install maturin
 maturin develop --release
 cd ..
 ```

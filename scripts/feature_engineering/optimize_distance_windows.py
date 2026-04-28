@@ -83,7 +83,9 @@ def compute_past_distance_metrics(
     top_n = max(1, int(window * outlier_pct))
 
     for i in range(n):
-        if bar_pos[i] < window:
+        # Match production HTF feature semantics: distance windows should use
+        # continuous causal history, not reset at every batch boundary.
+        if i < window:
             continue
 
         start = i - window

@@ -23,6 +23,19 @@ import numpy as np
 import polars as pl
 
 from .stage1_optimizer import build_stage1_combo_grid, evaluate_stage1_grid
+from .stage1_selector_step import (
+    Stage1SelectorUnitConfig,
+    collect_stage1_v2_step_artifacts,
+)
+from .stage1_v2_contract import (
+    STAGE1_V2_ARTIFACT_CONTRACT_VERSION,
+    STAGE1_V2_EXECUTION_MODE_FIXED_POLICY,
+    STAGE1_V2_ROOT_ARTIFACTS,
+    build_stage1_v2_selector_config,
+    normalize_stage1_version,
+    stage1_mode_name,
+    stage1_v2_contract_payload,
+)
 from .utils import compute_label_distribution, get_valid_batches
 
 
@@ -783,6 +796,145 @@ def _stage1_save_dynamic_registry(path: Path, obj: dict[str, Any]) -> None:
         json.dump(obj, f, indent=2)
 
 
+def _stage1_v2_write_frame(path: Path, rows: list[dict[str, Any]]) -> Path:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if rows:
+        pl.from_dicts(rows, infer_schema_length=None).write_parquet(path)
+    else:
+        pl.DataFrame().write_parquet(path)
+    return path
+
+
+def _stage1_v2_load_fixed_policy_registry(
+    selector_config: Any,
+    base_run_dir: Path,
+) -> tuple[dict[str, Any], str]:
+    registry_path_raw = getattr(selector_config, "fixed_policy_registry_path", None)
+    registry_path = (
+        Path(str(registry_path_raw)).expanduser()
+        if registry_path_raw is not None and str(registry_path_raw).strip() != ""
+        else base_run_dir / "stage1_v2_fixed_policy_registry.json"
+    )
+    if not registry_path.is_absolute():
+        registry_path = registry_path.resolve()
+    if not registry_path.exists():
+        raise FileNotFoundError(
+            f"Stage-1-v2 fixed policy registry not found: {registry_path}"
+        )
+    with open(registry_path, "r") as f:
+        payload = json.load(f)
+    combos = payload.get("combos")
+    if not isinstance(combos, dict) or not combos:
+        raise ValueError(
+            f"Stage-1-v2 fixed policy registry has no usable combo payload: {registry_path}"
+        )
+    return payload, str(registry_path)
+
+
+def _stage1_v2_write_root_artifacts(
+    *,
+    base_run_dir: Path,
+    run_id: str,
+    stage1_v2_cfg: Any,
+    progress_rows: list[dict[str, Any]],
+    baseline_vs_selected_rows: list[dict[str, Any]],
+    feature_importance_rows: list[dict[str, Any]],
+    feature_mask_rows: list[dict[str, Any]],
+) -> dict[str, str]:
+    artifact_paths: dict[str, str] = {}
+
+    progress_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["progress"]
+    _stage1_v2_write_frame(progress_path, progress_rows)
+    artifact_paths["progress"] = str(progress_path)
+
+    baseline_vs_selected_path = (
+        base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["baseline_vs_selected_root"]
+    )
+    _stage1_v2_write_frame(baseline_vs_selected_path, baseline_vs_selected_rows)
+    artifact_paths["baseline_vs_selected_root"] = str(baseline_vs_selected_path)
+
+    winner_change_summary_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["winner_change_summary"]
+    winner_change_rows: list[dict[str, Any]] = []
+    if baseline_vs_selected_rows:
+        winner_change_df = pl.from_dicts(
+            baseline_vs_selected_rows, infer_schema_length=None
+        )
+        if {"timeframe", "target", "winner_changed"}.issubset(set(winner_change_df.columns)):
+            winner_change_rows = (
+                winner_change_df.group_by(["timeframe", "target"])
+                .agg(
+                    [
+                        pl.len().alias("steps"),
+                        pl.col("winner_changed")
+                        .cast(pl.Int64)
+                        .sum()
+                        .alias("winner_changed_steps"),
+                    ]
+                )
+                .with_columns(
+                    (
+                        pl.col("winner_changed_steps") / pl.col("steps").clip(lower_bound=1)
+                    ).alias("winner_changed_rate")
+                )
+                .to_dicts()
+            )
+    _stage1_v2_write_frame(winner_change_summary_path, winner_change_rows)
+    artifact_paths["winner_change_summary"] = str(winner_change_summary_path)
+
+    importance_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["feature_importance_global"]
+    _stage1_v2_write_frame(importance_path, feature_importance_rows)
+    artifact_paths["feature_importance_global"] = str(importance_path)
+
+    feature_mask_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["feature_mask_global"]
+    _stage1_v2_write_frame(feature_mask_path, feature_mask_rows)
+    artifact_paths["feature_mask_global"] = str(feature_mask_path)
+
+    stability_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["feature_stability"]
+    stability_rows: list[dict[str, Any]] = []
+    if feature_importance_rows:
+        importance_df = pl.from_dicts(feature_importance_rows, infer_schema_length=None)
+        if {"timeframe", "target", "feature", "importance"}.issubset(set(importance_df.columns)):
+            stability_rows = (
+                importance_df.group_by(["timeframe", "target", "feature"])
+                .agg(
+                    [
+                        pl.len().alias("n_rows"),
+                        pl.col("importance").mean().alias("mean_importance"),
+                        pl.col("importance").median().alias("median_importance"),
+                        pl.col("importance").std(ddof=1).alias("std_importance"),
+                        pl.col("is_selected_step")
+                        .cast(pl.Float64)
+                        .mean()
+                        .alias("selected_step_freq")
+                        if "is_selected_step" in importance_df.columns
+                        else pl.lit(None).alias("selected_step_freq"),
+                    ]
+                )
+                .to_dicts()
+            )
+    _stage1_v2_write_frame(stability_path, stability_rows)
+    artifact_paths["feature_stability"] = str(stability_path)
+
+    run_summary_path = base_run_dir / STAGE1_V2_ROOT_ARTIFACTS["run_summary"]
+    run_summary = {
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "run_id": str(run_id),
+        "artifact_contract_version": STAGE1_V2_ARTIFACT_CONTRACT_VERSION,
+        "execution_mode": str(stage1_v2_cfg.execution_mode),
+        "selector_config": asdict(stage1_v2_cfg),
+        "step_rows": int(len(progress_rows)),
+        "baseline_vs_selected_rows": int(len(baseline_vs_selected_rows)),
+        "feature_importance_rows": int(len(feature_importance_rows)),
+        "feature_mask_rows": int(len(feature_mask_rows)),
+        "artifacts": artifact_paths,
+    }
+    with open(run_summary_path, "w") as f:
+        json.dump(run_summary, f, indent=2)
+    artifact_paths["run_summary"] = str(run_summary_path)
+
+    return artifact_paths
+
+
 def run_walk_forward_stage1_grid(
     n_steps: int | None = None,
     timeframes: list[str] | None = None,
@@ -809,6 +961,10 @@ def run_walk_forward_stage1_grid(
     stage1_backfill_low_quality_completed: bool = True,
     stage1_promotion_mode: str = "global",
     stage1_promoted_combo_cap_per_unit: int = 8,
+    stage1_version: str = "v1",
+    stage1_v2_selector_config: dict | None = None,
+    pred_batch_min: int | None = None,
+    pred_batch_max: int | None = None,
 ) -> dict:
     """Run isolated Stage-1 fold grid and store raw payload artifacts."""
     from .tf_1m import Config1m, FeatureSpace1m, ModelSpace1m, Optimizer1m, WindowSpace1m
@@ -834,13 +990,31 @@ def run_walk_forward_stage1_grid(
         timeframes = ["1m", "5m", "15m"]
 
     stage1_print_label_distribution = False
+    stage1_version = normalize_stage1_version(stage1_version)
+    stage1_mode = stage1_mode_name(stage1_version)
+    stage1_v2_cfg = (
+        build_stage1_v2_selector_config(stage1_v2_selector_config)
+        if stage1_version == "v2"
+        else None
+    )
     stage1_quality_accuracy_threshold = float(stage1_quality_accuracy_threshold)
     stage1_probe_enabled = bool(stage1_probe_enabled)
+    stage1_runtime_mode = "adaptive" if stage1_probe_enabled else "routine"
     if stage1_probe_tier_sizes is None:
         stage1_probe_tier_sizes = [8, 8, 8, 8]
     stage1_probe_tier_sizes = [int(max(0, x)) for x in stage1_probe_tier_sizes]
     stage1_probe_max_extra_candidates = int(max(0, stage1_probe_max_extra_candidates))
     stage1_probe_source_scope = str(stage1_probe_source_scope)
+    if pred_batch_min is not None:
+        pred_batch_min = int(pred_batch_min)
+    if pred_batch_max is not None:
+        pred_batch_max = int(pred_batch_max)
+    if (
+        pred_batch_min is not None
+        and pred_batch_max is not None
+        and int(pred_batch_min) > int(pred_batch_max)
+    ):
+        raise ValueError("pred_batch_min must be <= pred_batch_max")
     if stage1_probe_source_scope not in {"current", "archive", "current+archive"}:
         raise ValueError(
             "stage1_probe_source_scope must be one of: current, archive, current+archive"
@@ -933,6 +1107,7 @@ def run_walk_forward_stage1_grid(
         "model_space",
         "stage1_validity_target_col",
         "stage1_quality_accuracy_threshold",
+        "stage1_runtime_mode",
         "stage1_probe_enabled",
         "stage1_probe_tier_sizes",
         "stage1_probe_max_extra_candidates",
@@ -940,6 +1115,10 @@ def run_walk_forward_stage1_grid(
         "stage1_backfill_low_quality_completed",
         "stage1_promotion_mode",
         "stage1_promoted_combo_cap_per_unit",
+        "stage1_version",
+        "stage1_v2_selector_config",
+        "features_dir_override",
+        "labels_dir_override",
     }
 
     def _resolve_overrides(tf: str, target_col: str) -> dict:
@@ -990,6 +1169,16 @@ def run_walk_forward_stage1_grid(
 
             if "exclude_tail_pct" in overrides:
                 cfg = replace(cfg, exclude_tail_pct=overrides["exclude_tail_pct"])
+            if "features_dir_override" in overrides:
+                cfg = replace(
+                    cfg,
+                    features_dir_override=Path(overrides["features_dir_override"]),
+                )
+            if "labels_dir_override" in overrides:
+                cfg = replace(
+                    cfg,
+                    labels_dir_override=Path(overrides["labels_dir_override"]),
+                )
             if "cb_base_params" in overrides:
                 merged_cb = dict(cfg.cb_base_params)
                 merged_cb.update(dict(overrides["cb_base_params"]))
@@ -1008,6 +1197,8 @@ def run_walk_forward_stage1_grid(
                 stage1_quality_accuracy_threshold = float(
                     overrides["stage1_quality_accuracy_threshold"]
                 )
+            if "stage1_runtime_mode" in overrides:
+                stage1_runtime_mode = str(overrides["stage1_runtime_mode"]).strip().lower()
             if "stage1_probe_enabled" in overrides:
                 stage1_probe_enabled = bool(overrides["stage1_probe_enabled"])
             if "stage1_probe_tier_sizes" in overrides:
@@ -1030,6 +1221,13 @@ def run_walk_forward_stage1_grid(
             if "stage1_promoted_combo_cap_per_unit" in overrides:
                 stage1_promoted_combo_cap_per_unit = int(
                     max(1, overrides["stage1_promoted_combo_cap_per_unit"])
+                )
+            if "stage1_version" in overrides:
+                stage1_version = normalize_stage1_version(overrides["stage1_version"])
+                stage1_mode = stage1_mode_name(stage1_version)
+            if "stage1_v2_selector_config" in overrides and stage1_version == "v2":
+                stage1_v2_cfg = build_stage1_v2_selector_config(
+                    overrides["stage1_v2_selector_config"]
                 )
 
             if str(getattr(win, "window_selection_mode", "")) != "stage1_fold_cv":
@@ -1103,11 +1301,36 @@ def run_walk_forward_stage1_grid(
                     "overrides": overrides,
                     "optimizer": optimizer,
                     "stage1_combo_grid": stage1_combo_grid,
+                    "selector_unit": Stage1SelectorUnitConfig(
+                        timeframe=tf,
+                        target=str(target_col),
+                        feature_target=str(feature_target_col),
+                        n_classes=int(cfg.n_classes),
+                        class_names=list(cfg.class_names),
+                        exclude_tail_pct=float(cfg.exclude_tail_pct),
+                        cb_base_params=dict(cfg.cb_base_params),
+                        num_boost_round=int(max(10, model.num_boost_round_min)),
+                        selection_metric=str(cfg.optuna_metric),
+                        selection_direction=(
+                            "minimize"
+                            if str(cfg.optuna_metric) in {"log_loss", "cross_direction_error"}
+                            else "maximize"
+                        ),
+                        allowed_combo_keys=None,
+                        features_dir=cfg.features_dir,
+                        labels_dir=cfg.labels_dir,
+                    ),
                 }
             )
 
     if not execution_units:
         raise ValueError("No execution units were built.")
+
+    if stage1_version == "v2":
+        if stage1_v2_cfg is None:
+            stage1_v2_cfg = build_stage1_v2_selector_config(None)
+    else:
+        stage1_v2_cfg = None
 
     ref_cfg = execution_units[0]["optimizer"].config
     default_run_id = f"stage1_run_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}"
@@ -1122,39 +1345,101 @@ def run_walk_forward_stage1_grid(
         with open(run_config_path, "r") as f:
             existing_run_config = json.load(f)
         existing_mode = str(existing_run_config.get("mode", ""))
-        if existing_mode != "stage1_isolated_v1":
+        if existing_mode != stage1_mode:
             raise ValueError(
                 "run_id points to non-stage1 run. "
-                f"Expected mode=stage1_isolated_v1, got mode={existing_mode!r} "
+                f"Expected mode={stage1_mode!r}, got mode={existing_mode!r} "
                 f"for run_id={run_id}"
             )
+
+    stage1_v2_fixed_policy_registry: dict[str, Any] | None = None
+    stage1_v2_fixed_policy_registry_path: str | None = None
+    if (
+        stage1_v2_cfg is not None
+        and str(stage1_v2_cfg.execution_mode) == STAGE1_V2_EXECUTION_MODE_FIXED_POLICY
+    ):
+        (
+            stage1_v2_fixed_policy_registry,
+            stage1_v2_fixed_policy_registry_path,
+        ) = _stage1_v2_load_fixed_policy_registry(stage1_v2_cfg, base_run_dir)
 
     run_dir = base_run_dir / model_name
     run_dir.mkdir(parents=True, exist_ok=True)
 
+    if stage1_runtime_mode not in {"routine", "adaptive"}:
+        stage1_runtime_mode = "adaptive" if stage1_probe_enabled else "routine"
+    if stage1_runtime_mode == "routine":
+        stage1_probe_enabled = False
+    if stage1_probe_max_extra_candidates <= 0 or not any(stage1_probe_tier_sizes):
+        stage1_probe_enabled = False
+        if stage1_runtime_mode != "routine":
+            stage1_runtime_mode = "routine"
+
     run_config = {
         "run_id": run_id,
         "model_name": model_name,
-        "mode": "stage1_isolated_v1",
+        "mode": stage1_mode,
+        "stage1_version": str(stage1_version),
         "run_description": run_description,
+        "stage1_runtime_mode": str(stage1_runtime_mode),
+        "stage1_quality_accuracy_threshold": float(stage1_quality_accuracy_threshold),
+        "stage1_probe_enabled": bool(stage1_probe_enabled),
+        "stage1_probe_tier_sizes": [int(v) for v in stage1_probe_tier_sizes],
+        "stage1_probe_max_extra_candidates": int(stage1_probe_max_extra_candidates),
+        "stage1_probe_source_scope": str(stage1_probe_source_scope),
+        "stage1_backfill_low_quality_completed": bool(stage1_backfill_low_quality_completed),
+        "stage1_promotion_mode": str(stage1_promotion_mode),
+        "stage1_promoted_combo_cap_per_unit": int(stage1_promoted_combo_cap_per_unit),
         "timeframes": sorted({u["tf"] for u in execution_units}),
         "targets": {
             tf: sorted({u["target_col"] for u in execution_units if u["tf"] == tf})
             for tf in sorted({u["tf"] for u in execution_units})
         },
+        "execution_units": [
+            {
+                "timeframe": str(u["tf"]),
+                "target": str(u["target_col"]),
+                "feature_target": str(u["feature_target_col"]),
+                "features_dir": str(u["optimizer"].config.features_dir),
+                "labels_dir": str(u["optimizer"].config.labels_dir),
+            }
+            for u in execution_units
+        ],
         "created_at": datetime.now().isoformat(),
     }
+    if pred_batch_min is not None:
+        run_config["pred_batch_min"] = int(pred_batch_min)
+    if pred_batch_max is not None:
+        run_config["pred_batch_max"] = int(pred_batch_max)
+    if stage1_v2_cfg is not None:
+        run_config["stage1_v2_artifact_contract_version"] = (
+            STAGE1_V2_ARTIFACT_CONTRACT_VERSION
+        )
+        run_config["stage1_v2_selector_config"] = asdict(stage1_v2_cfg)
+        run_config["stage1_v2_execution_mode"] = str(stage1_v2_cfg.execution_mode)
+        if stage1_v2_fixed_policy_registry_path is not None:
+            run_config["stage1_v2_fixed_policy_registry_path"] = str(
+                stage1_v2_fixed_policy_registry_path
+            )
     with open(base_run_dir / "run_config.json", "w") as f:
         json.dump(run_config, f, indent=2)
+
+    if stage1_v2_cfg is not None:
+        contract_path = base_run_dir / "stage1_v2_artifact_contract.json"
+        with open(contract_path, "w") as f:
+            json.dump(stage1_v2_contract_payload(stage1_v2_cfg), f, indent=2)
 
     if stage1_probe_source_scope not in {"current", "archive", "current+archive"}:
         stage1_probe_source_scope = "current+archive"
     if stage1_promotion_mode not in {"global", "step_local", "repeat"}:
         stage1_promotion_mode = "global"
 
-    dynamic_registry_path = base_run_dir / "stage1_dynamic_combo_registry.json"
-    dynamic_registry = _stage1_load_dynamic_registry(dynamic_registry_path)
-    _stage1_save_dynamic_registry(dynamic_registry_path, dynamic_registry)
+    dynamic_registry_path: Path | None = None
+    dynamic_registry: dict[str, Any] = {"units": {}}
+    if stage1_probe_enabled:
+        dynamic_registry_path = base_run_dir / "stage1_dynamic_combo_registry.json"
+        dynamic_registry = _stage1_load_dynamic_registry(dynamic_registry_path)
+        _stage1_save_dynamic_registry(dynamic_registry_path, dynamic_registry)
 
     unit_history_stats: dict[str, dict[str, dict[str, Any]]] = {}
     unit_promoted_triplets: dict[str, list[tuple[int, int, int]]] = {}
@@ -1166,22 +1451,25 @@ def run_walk_forward_stage1_grid(
         unit_dir = run_dir / tf / safe_target
         cfg_local = unit["optimizer"].config
 
-        try:
-            history = _stage1_scan_unit_history_candidates(
-                unit_dir=unit_dir,
-                source_scope=stage1_probe_source_scope,
-                n_classes=int(cfg_local.n_classes),
-                class_names=list(cfg_local.class_names),
-                quality_threshold=float(stage1_quality_accuracy_threshold),
-            )
-        except Exception:
+        if stage1_probe_enabled:
+            try:
+                history = _stage1_scan_unit_history_candidates(
+                    unit_dir=unit_dir,
+                    source_scope=stage1_probe_source_scope,
+                    n_classes=int(cfg_local.n_classes),
+                    class_names=list(cfg_local.class_names),
+                    quality_threshold=float(stage1_quality_accuracy_threshold),
+                )
+            except Exception:
+                history = {}
+        else:
             history = {}
         unit_history_stats[model_key_unit] = history
 
         promoted_rows = (
-            dynamic_registry.get("units", {})
-            .get(model_key_unit, {})
-            .get("combos", {})
+            dynamic_registry.get("units", {}).get(model_key_unit, {}).get("combos", {})
+            if stage1_probe_enabled
+            else {}
         )
         promoted_triplets: list[tuple[int, int, int]] = []
         if isinstance(promoted_rows, dict):
@@ -1202,8 +1490,16 @@ def run_walk_forward_stage1_grid(
         print("=" * 100)
         print(f"\nRun ID: {run_id}")
         print(f"Description: {run_description}")
+        print(f"Stage1 version: {stage1_version}")
+        if pred_batch_min is not None or pred_batch_max is not None:
+            print(
+                "Prediction batch filter: "
+                f"min={pred_batch_min if pred_batch_min is not None else '-inf'}, "
+                f"max={pred_batch_max if pred_batch_max is not None else '+inf'}"
+            )
         print(
             "Stage1 adaptive quality: "
+            f"runtime_mode={stage1_runtime_mode}, "
             f"threshold={stage1_quality_accuracy_threshold:.3f}, "
             f"probe_enabled={bool(stage1_probe_enabled)}, "
             f"probe_scope={stage1_probe_source_scope}, "
@@ -1213,6 +1509,13 @@ def run_walk_forward_stage1_grid(
             f"promotion_mode={stage1_promotion_mode}, "
             f"promotion_cap={stage1_promoted_combo_cap_per_unit}"
         )
+        if stage1_v2_cfg is not None:
+            print(
+                "Stage1-v2 foundation: "
+                f"execution_mode={stage1_v2_cfg.execution_mode}, "
+                f"selector={stage1_v2_cfg.feature_selector_method}, "
+                f"importance={stage1_v2_cfg.feature_importance_type}"
+            )
 
         for unit in execution_units:
             tf = unit["tf"]
@@ -1343,6 +1646,10 @@ def run_walk_forward_stage1_grid(
 
     max_lookback_min = max(int(u["optimizer"].window_space.lookback_min) for u in execution_units)
     eligible_desc = [b for b in common_valid_desc if b > max_lookback_min]
+    if pred_batch_min is not None:
+        eligible_desc = [b for b in eligible_desc if int(b) >= int(pred_batch_min)]
+    if pred_batch_max is not None:
+        eligible_desc = [b for b in eligible_desc if int(b) <= int(pred_batch_max)]
     if not eligible_desc:
         raise ValueError(
             f"No valid batches with sufficient training data. Need batch > {max_lookback_min}, have 0 valid."
@@ -1399,6 +1706,10 @@ def run_walk_forward_stage1_grid(
     step_results: dict[str, list[dict[str, Any]]] = defaultdict(list)
     model_index_entries: list[dict[str, Any]] = []
     progress_rows: list[dict[str, Any]] = []
+    stage1_v2_progress_rows: list[dict[str, Any]] = []
+    stage1_v2_baseline_vs_selected_rows: list[dict[str, Any]] = []
+    stage1_v2_feature_importance_rows: list[dict[str, Any]] = []
+    stage1_v2_feature_mask_rows: list[dict[str, Any]] = []
     t_start = time.time()
 
     for step_idx, pred_batch in enumerate(step_batches, start=1):
@@ -1825,9 +2136,48 @@ def run_walk_forward_stage1_grid(
                 with open(snapshot_path, "w") as f:
                     json.dump(result["config_snapshot"], f, indent=2, default=str)
 
+                stage1_v2_result = None
+                if stage1_v2_cfg is not None:
+                    stage1_v2_result = collect_stage1_v2_step_artifacts(
+                        unit=unit["selector_unit"],
+                        step_dir=step_dir,
+                        step_idx=int(step_idx),
+                        total_steps=int(n_steps),
+                        selector_config=stage1_v2_cfg,
+                        fixed_policy_registry=stage1_v2_fixed_policy_registry,
+                        fixed_policy_registry_path=stage1_v2_fixed_policy_registry_path,
+                        verbose=bool(
+                            verbose
+                            and stage1_v2_cfg.execution_mode != "parity"
+                            and int(n_steps) <= 3
+                        ),
+                    )
+                    result["artifacts"]["stage1_v2_step_summary"] = str(
+                        stage1_v2_result["artifacts"]["summary"]
+                    )
+                    stage1_v2_progress_rows.append(
+                        {
+                            "model_key": model_key,
+                            **stage1_v2_result["progress_row"],
+                        }
+                    )
+                    stage1_v2_baseline_vs_selected_rows.append(
+                        {
+                            "model_key": model_key,
+                            **stage1_v2_result["baseline_vs_selected_row"],
+                        }
+                    )
+                    stage1_v2_feature_importance_rows.extend(
+                        stage1_v2_result.get("feature_importance_rows", [])
+                    )
+                    stage1_v2_feature_mask_rows.extend(
+                        stage1_v2_result.get("feature_mask_rows", [])
+                    )
+
                 batch_metadata = {
                     "run_id": run_id,
-                    "mode": "stage1_isolated_v1",
+                    "mode": stage1_mode,
+                    "stage1_version": str(stage1_version),
                     "model_name": model_name,
                     "timeframe": tf,
                     "target": target_col,
@@ -1839,6 +2189,9 @@ def run_walk_forward_stage1_grid(
                     "artifacts": result["artifacts"],
                     "completed_at": datetime.now().isoformat(),
                 }
+                if stage1_v2_result is not None:
+                    batch_metadata["stage1_v2_summary"] = stage1_v2_result["summary"]
+                    batch_metadata["stage1_v2_artifacts"] = stage1_v2_result["artifacts"]
                 with open(step_dir / "batch_metadata.json", "w") as f:
                     json.dump(batch_metadata, f, indent=2)
 
@@ -1898,6 +2251,14 @@ def run_walk_forward_stage1_grid(
                         "stage1_pred_batch_predictions.parquet, stage1_probe_log.parquet, "
                         "stage1_predecision_context.json, stage1_predecision_context.parquet"
                     )
+                    if stage1_v2_result is not None:
+                        v2_summary = stage1_v2_result["summary"]
+                        print(
+                            "    Stage1-v2 step: "
+                            f"mode={v2_summary.get('execution_mode')}, "
+                            f"winner_changed={bool(v2_summary.get('winner_changed'))}, "
+                            f"combos={int(v2_summary.get('combo_count', 0) or 0)}"
+                        )
             except Exception as e:
                 if verbose:
                     print(f"  {model_key}: ERROR - {e}")
@@ -1942,11 +2303,25 @@ def run_walk_forward_stage1_grid(
     else:
         progress_path = None
 
+    stage1_v2_root_artifacts: dict[str, str] = {}
+    if stage1_v2_cfg is not None:
+        stage1_v2_root_artifacts = _stage1_v2_write_root_artifacts(
+            base_run_dir=base_run_dir,
+            run_id=str(run_id),
+            stage1_v2_cfg=stage1_v2_cfg,
+            progress_rows=stage1_v2_progress_rows,
+            baseline_vs_selected_rows=stage1_v2_baseline_vs_selected_rows,
+            feature_importance_rows=stage1_v2_feature_importance_rows,
+            feature_mask_rows=stage1_v2_feature_mask_rows,
+        )
+
     final = {
         "run_id": run_id,
-        "mode": "stage1_isolated_v1",
+        "mode": stage1_mode,
+        "stage1_version": str(stage1_version),
         "model_name": model_name,
         "n_steps": int(n_steps),
+        "stage1_runtime_mode": str(stage1_runtime_mode),
         "stage1_quality_accuracy_threshold": float(stage1_quality_accuracy_threshold),
         "stage1_probe_enabled": bool(stage1_probe_enabled),
         "stage1_probe_tier_sizes": [int(v) for v in stage1_probe_tier_sizes],
@@ -1959,20 +2334,39 @@ def run_walk_forward_stage1_grid(
         "step_batches": [int(b) for b in step_batches],
         "results": {k: v for k, v in step_results.items()},
         "runtime_s": float(time.time() - t_start),
-        "dynamic_combo_registry": str(dynamic_registry_path),
+        "dynamic_combo_registry": (
+            str(dynamic_registry_path) if dynamic_registry_path is not None else None
+        ),
         "completed_at": datetime.now().isoformat(),
     }
+    if pred_batch_min is not None:
+        final["pred_batch_min"] = int(pred_batch_min)
+    if pred_batch_max is not None:
+        final["pred_batch_max"] = int(pred_batch_max)
+    if stage1_v2_cfg is not None:
+        final["stage1_v2_artifact_contract_version"] = (
+            STAGE1_V2_ARTIFACT_CONTRACT_VERSION
+        )
+        final["stage1_v2_selector_config"] = asdict(stage1_v2_cfg)
+        final["stage1_v2_execution_mode"] = str(stage1_v2_cfg.execution_mode)
+        final["stage1_v2_root_artifacts"] = dict(stage1_v2_root_artifacts)
+        if stage1_v2_fixed_policy_registry_path is not None:
+            final["stage1_v2_fixed_policy_registry_path"] = str(
+                stage1_v2_fixed_policy_registry_path
+            )
     with open(base_run_dir / "run_summary.json", "w") as f:
         json.dump(final, f, indent=2)
 
     run_state = {
         "run_id": run_id,
-        "mode": "stage1_isolated_v1",
+        "mode": stage1_mode,
+        "stage1_version": str(stage1_version),
         "model_name": model_name,
         "resume": bool(resume),
         "resume_mode": str(resume_mode),
         "requested_n_steps": int(n_steps),
         "max_steps_available": int(max_steps),
+        "stage1_runtime_mode": str(stage1_runtime_mode),
         "stage1_quality_accuracy_threshold": float(stage1_quality_accuracy_threshold),
         "stage1_probe_enabled": bool(stage1_probe_enabled),
         "stage1_probe_tier_sizes": [int(v) for v in stage1_probe_tier_sizes],
@@ -1988,13 +2382,32 @@ def run_walk_forward_stage1_grid(
                 "target": u["target_col"],
                 "feature_target": u["feature_target_col"],
                 "lookback_min": int(u["optimizer"].window_space.lookback_min),
+                "features_dir": str(u["optimizer"].config.features_dir),
+                "labels_dir": str(u["optimizer"].config.labels_dir),
             }
             for u in execution_units
         ],
         "progress_artifact": str(progress_path) if progress_path is not None else None,
-        "dynamic_combo_registry": str(dynamic_registry_path),
+        "dynamic_combo_registry": (
+            str(dynamic_registry_path) if dynamic_registry_path is not None else None
+        ),
         "updated_at": datetime.now().isoformat(),
     }
+    if pred_batch_min is not None:
+        run_state["pred_batch_min"] = int(pred_batch_min)
+    if pred_batch_max is not None:
+        run_state["pred_batch_max"] = int(pred_batch_max)
+    if stage1_v2_cfg is not None:
+        run_state["stage1_v2_artifact_contract_version"] = (
+            STAGE1_V2_ARTIFACT_CONTRACT_VERSION
+        )
+        run_state["stage1_v2_selector_config"] = asdict(stage1_v2_cfg)
+        run_state["stage1_v2_execution_mode"] = str(stage1_v2_cfg.execution_mode)
+        run_state["stage1_v2_root_artifacts"] = dict(stage1_v2_root_artifacts)
+        if stage1_v2_fixed_policy_registry_path is not None:
+            run_state["stage1_v2_fixed_policy_registry_path"] = str(
+                stage1_v2_fixed_policy_registry_path
+            )
     with open(base_run_dir / "stage1_run_state.json", "w") as f:
         json.dump(run_state, f, indent=2)
 

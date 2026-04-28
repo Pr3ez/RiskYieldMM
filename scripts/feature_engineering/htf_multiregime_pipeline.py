@@ -28,6 +28,7 @@ if TYPE_CHECKING:
 from scripts.feature_engineering.htf_helper_cache import (
     DEFAULT_HELPER_NAMES,
     build_helper_cache_exact,
+    get_helper_contract_metadata,
     materialize_helpers_from_cache,
 )
 from scripts.feature_engineering.htf_artifact_utils import (
@@ -42,6 +43,7 @@ from scripts.feature_engineering.htf_artifact_utils import (
     schema_columns_for_batch_dir as _shared_schema_columns_for_batch_dir,
 )
 from scripts.feature_engineering.htf_feature_acceptance import (
+    FINAL_OUTPUT_FEATURE_POLICY_VERSION,
     get_final_output_excluded_columns,
 )
 from scripts.feature_engineering.htf_kernels import (
@@ -219,6 +221,7 @@ class MultiRegimeHTFConfig:
     usability_audit_helper_prefix_batches: int = 20
     usability_audit_fail_on_all_null: bool = True
     usability_audit_fail_on_high_null: bool = False
+    usability_audit_fail_on_constant: bool = True
     stage_progress_every_batches: int = 250
     progress_callback: Callable[[str, dict[str, Any]], None] | None = None
 
@@ -2152,8 +2155,10 @@ def _build_helpers(
 
     cache_dir = _helper_cache_root(config) / cache_namespace / "1m" / "target_4class"
     cache_meta_path = cache_dir / "_helper_cache_meta.json"
+    helper_contract = get_helper_contract_metadata(HELPER_NAMES)
     cache_source_fingerprint = {
         "raw_batches": _fingerprint_batch_dir(helper_cache_raw_dir),
+        "helper_implementation": helper_contract["helper_implementation_fingerprint"],
     }
     cache_artifact_version = f"{config.pipeline_artifact_version}-helper-cache-v1"
 
@@ -2227,6 +2232,8 @@ def _build_helpers(
         incremental_skip_unchanged=config.incremental_helpers_skip_unchanged,
         artifact_version=_stage_version(config, "helpers", family),
         source_fingerprint=helper_source_fingerprint,
+        helper_contract_version=helper_contract["helper_contract_version"],
+        helper_runtime_contracts=helper_contract["helper_runtime_contracts"],
         extra_meta={
             "stage": "helpers",
             "batch_regime": regime,
@@ -2243,6 +2250,9 @@ def _build_helpers(
             "refit_every": int(config.helper_refit_every_by_tf["1m"]),
             "raw_sig": raw_sig,
             "opt_sig": opt_sig,
+            "helper_contract_version": helper_contract["helper_contract_version"],
+            "helper_runtime_contracts": helper_contract["helper_runtime_contracts"],
+            "helper_implementation_fingerprint": helper_contract["helper_implementation_fingerprint"],
             "write_helpers_combined": bool(config.write_helpers_combined),
         },
         write_combined=config.write_helpers_combined,
@@ -2354,6 +2364,13 @@ def _nullish_count_expr(col: str, dtype: pl.DataType) -> pl.Expr:
     return expr.sum().alias(col)
 
 
+def _nonnull_expr(col: str, dtype: pl.DataType) -> pl.Expr:
+    expr = pl.col(col)
+    if dtype.is_float():
+        expr = pl.when(pl.col(col).is_nan()).then(None).otherwise(pl.col(col))
+    return expr
+
+
 def _audit_value_columns(
     scan: pl.LazyFrame,
     schema: pl.Schema,
@@ -2411,11 +2428,71 @@ def _audit_value_columns(
     }
 
 
+def _audit_constant_columns(
+    scan: pl.LazyFrame,
+    schema: pl.Schema,
+    columns: list[str],
+    *,
+    top_n: int,
+) -> dict[str, Any]:
+    if not columns:
+        return {
+            "rows": 0,
+            "columns": 0,
+            "constant_columns": [],
+            "top_constant_columns": [],
+        }
+
+    aggregated = scan.select(
+        [pl.len().alias("__rows__")]
+        + [
+            _nonnull_expr(col, schema[col]).drop_nulls().n_unique().alias(col)
+            for col in columns
+        ]
+    ).collect()
+    rows = int(aggregated["__rows__"][0]) if len(aggregated) > 0 else 0
+    stats: list[dict[str, Any]] = []
+    for col in columns:
+        unique_non_null = int(aggregated[col][0]) if rows >= 0 else 0
+        stats.append(
+            {
+                "column": col,
+                "rows": rows,
+                "unique_non_null": unique_non_null,
+            }
+        )
+
+    constant_columns = [
+        item
+        for item in stats
+        if rows > 0 and item["unique_non_null"] <= 1
+    ]
+    constant_columns = sorted(
+        constant_columns,
+        key=lambda item: (item["unique_non_null"], item["column"]),
+    )
+    return {
+        "rows": rows,
+        "columns": len(columns),
+        "constant_columns": constant_columns,
+        "top_constant_columns": constant_columns[:top_n],
+    }
+
+
 def _format_usability_columns(items: list[dict[str, Any]], *, limit: int = 5) -> str:
     if not items:
         return "count=0"
     preview = ", ".join(
         f"{item['column']}:{item['null_rate']:.2%}" for item in items[:limit]
+    )
+    return f"count={len(items)} first={preview}"
+
+
+def _format_constant_columns(items: list[dict[str, Any]], *, limit: int = 5) -> str:
+    if not items:
+        return "count=0"
+    preview = ", ".join(
+        f"{item['column']}:{item['unique_non_null']}" for item in items[:limit]
     )
     return f"count={len(items)} first={preview}"
 
@@ -2426,6 +2503,41 @@ def _format_column_names(columns: list[str], *, limit: int = 5) -> str:
     preview = ", ".join(columns[:limit])
     suffix = "" if len(columns) <= limit else ", ..."
     return f"count={len(columns)} first={preview}{suffix}"
+
+
+def _select_post_warmup_helper_prefix_ids(
+    helper_files: list[Path],
+    helper_schema_map: pl.Schema,
+    helper_value_cols: list[str],
+    *,
+    prefix_batches: int,
+) -> tuple[list[int], int | None]:
+    if not helper_files or not helper_value_cols or prefix_batches <= 0:
+        return [], None
+
+    helper_ids = [
+        int(path.stem.split("_")[1])
+        for path in helper_files
+        if path.stem.startswith("batch_")
+    ]
+    first_ready_index: int | None = None
+    for idx, batch_path in enumerate(helper_files):
+        batch_audit = _audit_value_columns(
+            pl.scan_parquet(str(batch_path)),
+            helper_schema_map,
+            helper_value_cols,
+            null_rate_threshold=1.0,
+            top_n=1,
+        )
+        if batch_audit["rows"] > 0 and len(batch_audit["all_null_columns"]) < len(helper_value_cols):
+            first_ready_index = idx
+            break
+
+    if first_ready_index is None:
+        return [], None
+
+    start_batch_id = helper_ids[first_ready_index]
+    return helper_ids[first_ready_index : first_ready_index + int(prefix_batches)], start_batch_id
 
 
 def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
@@ -3044,8 +3156,148 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     )
 
         helper_dir = Path(scope["helpers"]) / "1m" / "target_4class"
+        helper_meta_path = helper_dir / "_helpers_meta.json"
         helper_files = sorted(helper_dir.glob("batch_*.parquet"))
         if config.run_helpers or helper_files:
+            helper_contract_current = get_helper_contract_metadata(HELPER_NAMES)
+            helper_meta = _load_json_safe(helper_meta_path)
+            rows.append(
+                _validation_row(
+                    regime,
+                    family,
+                    "1m",
+                    "helpers",
+                    "meta_exists",
+                    helper_meta is not None,
+                    str(helper_meta_path),
+                )
+            )
+            if helper_meta is not None:
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "helper_policy_version_match",
+                        helper_meta.get("helper_policy_version") == FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+                        (
+                            f"expected={FINAL_OUTPUT_FEATURE_POLICY_VERSION} "
+                            f"actual={helper_meta.get('helper_policy_version')}"
+                        ),
+                    )
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "helper_contract_version_match",
+                        helper_meta.get("helper_contract_version")
+                        == helper_contract_current["helper_contract_version"],
+                        (
+                            f"expected={helper_contract_current['helper_contract_version']} "
+                            f"actual={helper_meta.get('helper_contract_version')}"
+                        ),
+                    )
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "helper_runtime_contracts_match",
+                        helper_meta.get("helper_runtime_contracts")
+                        == helper_contract_current["helper_runtime_contracts"],
+                        (
+                            f"expected={json.dumps(helper_contract_current['helper_runtime_contracts'], sort_keys=True)} "
+                            f"actual={json.dumps(helper_meta.get('helper_runtime_contracts'), sort_keys=True)}"
+                        ),
+                    )
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "helper_implementation_fingerprint_match",
+                        helper_meta.get("helper_implementation_fingerprint")
+                        == helper_contract_current["helper_implementation_fingerprint"],
+                        (
+                            f"expected={helper_contract_current['helper_implementation_fingerprint']['digest'][:12]} "
+                            f"actual={(helper_meta.get('helper_implementation_fingerprint') or {}).get('digest', 'missing')[:12]}"
+                        ),
+                    )
+                )
+                helper_cache_meta_path_str = helper_meta.get("helper_cache_meta")
+                helper_cache_meta_path = (
+                    Path(helper_cache_meta_path_str) if helper_cache_meta_path_str else None
+                )
+                helper_cache_meta = (
+                    _load_json_safe(helper_cache_meta_path)
+                    if helper_cache_meta_path is not None
+                    else None
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "helper_cache_meta_exists",
+                        helper_cache_meta is not None,
+                        str(helper_cache_meta_path) if helper_cache_meta_path is not None else "missing",
+                    )
+                )
+                if helper_cache_meta is not None:
+                    rows.append(
+                        _validation_row(
+                            regime,
+                            family,
+                            "1m",
+                            "helpers",
+                            "helper_cache_contract_version_match",
+                            helper_cache_meta.get("helper_contract_version")
+                            == helper_contract_current["helper_contract_version"],
+                            (
+                                f"expected={helper_contract_current['helper_contract_version']} "
+                                f"actual={helper_cache_meta.get('helper_contract_version')}"
+                            ),
+                        )
+                    )
+                    rows.append(
+                        _validation_row(
+                            regime,
+                            family,
+                            "1m",
+                            "helpers",
+                            "helper_cache_runtime_contracts_match",
+                            helper_cache_meta.get("helper_runtime_contracts")
+                            == helper_contract_current["helper_runtime_contracts"],
+                            (
+                                f"expected={json.dumps(helper_contract_current['helper_runtime_contracts'], sort_keys=True)} "
+                                f"actual={json.dumps(helper_cache_meta.get('helper_runtime_contracts'), sort_keys=True)}"
+                            ),
+                        )
+                    )
+                    rows.append(
+                        _validation_row(
+                            regime,
+                            family,
+                            "1m",
+                            "helpers",
+                            "helper_cache_implementation_fingerprint_match",
+                            helper_cache_meta.get("helper_implementation_fingerprint")
+                            == helper_contract_current["helper_implementation_fingerprint"],
+                            (
+                                f"expected={helper_contract_current['helper_implementation_fingerprint']['digest'][:12]} "
+                                f"actual={(helper_cache_meta.get('helper_implementation_fingerprint') or {}).get('digest', 'missing')[:12]}"
+                            ),
+                        )
+                    )
             if not helper_files:
                 rows.append(_validation_row(regime, family, "1m", "helpers", "exists", False, str(helper_dir)))
             else:
@@ -3237,10 +3489,56 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                             _format_usability_columns(helper_audit["high_null_columns"]),
                         )
                     )
-                    helper_prefix_ids = helper_ids[: config.usability_audit_helper_prefix_batches]
-                    if helper_prefix_ids and helper_value_cols:
+                    helper_constant_audit = _audit_constant_columns(
+                        helper_scan,
+                        helper_schema_map,
+                        helper_value_cols,
+                        top_n=config.usability_audit_report_top_n,
+                    )
+                    usability_reports.append(
+                        {
+                            "regime": regime,
+                            "family": family,
+                            "tf": "1m",
+                            "stage": "helpers_helper_only_constant",
+                            **helper_constant_audit,
+                        }
+                    )
+                    rows.append(
+                        _validation_row(
+                            regime,
+                            family,
+                            "1m",
+                            "helpers",
+                            "usability_constant_helper_columns",
+                            (not config.usability_audit_fail_on_constant)
+                            or len(helper_constant_audit["constant_columns"]) == 0,
+                            _format_constant_columns(helper_constant_audit["constant_columns"]),
+                        )
+                    )
+                    helper_post_warmup_prefix_ids, first_ready_helper_batch = (
+                        _select_post_warmup_helper_prefix_ids(
+                            helper_files,
+                            helper_schema_map,
+                            helper_value_cols,
+                            prefix_batches=config.usability_audit_helper_prefix_batches,
+                        )
+                    )
+                    if helper_value_cols and first_ready_helper_batch is None:
+                        rows.append(
+                            _validation_row(
+                                regime,
+                                family,
+                                "1m",
+                                "helpers",
+                                "usability_post_warmup_prefix_available",
+                                False,
+                                "no_helper_batches_with_non_null_helper_values_found",
+                            )
+                        )
+                    if helper_post_warmup_prefix_ids and helper_value_cols:
                         helper_prefix_audit = _audit_value_columns(
-                            helper_scan.filter(pl.col("batch_id").is_in(helper_prefix_ids)),
+                            helper_scan.filter(pl.col("batch_id").is_in(helper_post_warmup_prefix_ids)),
                             helper_schema_map,
                             helper_value_cols,
                             null_rate_threshold=config.usability_audit_null_rate_threshold,
@@ -3251,8 +3549,11 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                                 "regime": regime,
                                 "family": family,
                                 "tf": "1m",
-                                "stage": "helpers_prefix",
-                                "prefix_batches": [int(batch_id) for batch_id in helper_prefix_ids],
+                                "stage": "helpers_post_warmup_prefix",
+                                "first_ready_batch": int(first_ready_helper_batch),
+                                "prefix_batches": [
+                                    int(batch_id) for batch_id in helper_post_warmup_prefix_ids
+                                ],
                                 **helper_prefix_audit,
                             }
                         )
@@ -3262,7 +3563,7 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                                 family,
                                 "1m",
                                 "helpers",
-                                "usability_prefix_all_null_helper_columns",
+                                "usability_post_warmup_prefix_all_null_helper_columns",
                                 (not config.usability_audit_fail_on_all_null)
                                 or len(helper_prefix_audit["all_null_columns"]) == 0,
                                 _format_usability_columns(helper_prefix_audit["all_null_columns"]),

@@ -1,0 +1,14 @@
+{
+  "timestamp_utc": "2026-04-02T18:14:33.118586+00:00",
+  "output_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics_smoke/20260402_181239",
+  "workflow_manifest": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics_smoke/20260402_181239/workflow_manifest.json",
+  "root_profiles": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics_smoke/20260402_181239/root_profiles.parquet",
+  "cross_root_summary": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics_smoke/20260402_181239/cross_root_summary.csv",
+  "causal_method_refresh": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics_smoke/20260402_181239/causal_method_refresh.csv",
+  "workflow_note": "/media/przem/linux_data/RiskYieldMM (Copy)/notebooks/notes/htf_walkforward_workflow_audit_2026-04-02.md",
+  "step2_manifests": {},
+  "phases": [
+    "audit"
+  ],
+  "feature_importance_type": "PredictionValuesChange"
+}
