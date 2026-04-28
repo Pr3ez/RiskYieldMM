@@ -1,0 +1,235 @@
+{
+  "timestamp_utc": "2026-04-02T17:24:51.863017+00:00",
+  "output_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806",
+  "roots": {
+    "8h/B": {
+      "root": "8h/B",
+      "run_id": "stage1_catboost_8h_b_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_170806/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/8h_b/winner12_probability_outputs/2026-04-02_19-08-09",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v1_t3",
+        "f2_v2_t10",
+        "f2_v3_t9",
+        "f2_v2_t4",
+        "f2_v1_t5",
+        "f2_v1_t6",
+        "f2_v2_t8",
+        "f7_v1_t4"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 500,
+      "incomplete_combo_batches_count": 0,
+      "incomplete_combo_batches": [],
+      "eval_batches_common_count": 380,
+      "eval_batches_common_min": 5290,
+      "eval_batches_common_max": 5669
+    },
+    "8h/C": {
+      "root": "8h/C",
+      "run_id": "stage1_catboost_8h_c_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_c_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_c_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_170942/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/8h_c/winner12_probability_outputs/2026-04-02_19-09-45",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v2_t10",
+        "f2_v3_t9",
+        "f7_v1_t4",
+        "f2_v1_t6",
+        "f2_v2_t8",
+        "f2_v1_t3",
+        "f2_v1_t5",
+        "f2_v2_t4"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 500,
+      "incomplete_combo_batches_count": 0,
+      "incomplete_combo_batches": [],
+      "eval_batches_common_count": 380,
+      "eval_batches_common_min": 5290,
+      "eval_batches_common_max": 5669
+    },
+    "24h/B": {
+      "root": "24h/B",
+      "run_id": "stage1_catboost_24h_b_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_24h_b_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_24h_b_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_171121/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/24h_b/winner12_probability_outputs/2026-04-02_19-11-26",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v3_t9",
+        "f2_v2_t10",
+        "f2_v1_t3",
+        "f2_v2_t4",
+        "f7_v1_t4",
+        "f2_v2_t8",
+        "f2_v1_t6",
+        "f2_v1_t5"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 498,
+      "incomplete_combo_batches_count": 2,
+      "incomplete_combo_batches": [
+        {
+          "pred_batch": 1866,
+          "combo_count": 7,
+          "missing_combos": [
+            "f2_v1_t3"
+          ],
+          "extra_combos": []
+        },
+        {
+          "pred_batch": 1867,
+          "combo_count": 7,
+          "missing_combos": [
+            "f2_v1_t3"
+          ],
+          "extra_combos": []
+        }
+      ],
+      "eval_batches_common_count": 378,
+      "eval_batches_common_min": 1511,
+      "eval_batches_common_max": 1890
+    },
+    "24h/C": {
+      "root": "24h/C",
+      "run_id": "stage1_catboost_24h_c_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_24h_c_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_24h_c_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_171500/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/24h_c/winner12_probability_outputs/2026-04-02_19-15-08",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v3_t9",
+        "f2_v2_t10",
+        "f2_v1_t3",
+        "f2_v1_t5",
+        "f2_v1_t6",
+        "f2_v2_t8",
+        "f7_v1_t4",
+        "f2_v2_t4"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 500,
+      "incomplete_combo_batches_count": 0,
+      "incomplete_combo_batches": [],
+      "eval_batches_common_count": 380,
+      "eval_batches_common_min": 1510,
+      "eval_batches_common_max": 1889
+    },
+    "7d/B": {
+      "root": "7d/B",
+      "run_id": "stage1_catboost_7d_b_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_b_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_b_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_171832/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_b/winner12_probability_outputs/2026-04-02_19-18-40",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v3_t9",
+        "f2_v2_t10",
+        "f2_v1_t3",
+        "f2_v2_t4",
+        "f2_v1_t5",
+        "f2_v2_t8",
+        "f2_v1_t6",
+        "f7_v1_t4"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 170,
+      "incomplete_combo_batches_count": 0,
+      "incomplete_combo_batches": [],
+      "eval_batches_common_count": 50,
+      "eval_batches_common_min": 221,
+      "eval_batches_common_max": 270
+    },
+    "7d/C": {
+      "root": "7d/C",
+      "run_id": "stage1_catboost_7d_c_live",
+      "unit_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_c_live/catboost/1m/target_4class",
+      "combo_match_pred_rows": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_7d_c_live/catboost/1m/target_4class/combo_match_analysis/causal_eval_20260402_172130/winner12_prediction_rows_pred_dedup.parquet",
+      "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/7d_c/winner12_probability_outputs/2026-04-02_19-21-37",
+      "excluded_methods": {
+        "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+        "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+        "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+      },
+      "combo_universe": [
+        "f2_v1_t3",
+        "f2_v2_t10",
+        "f2_v3_t9",
+        "f2_v1_t5",
+        "f2_v1_t6",
+        "f2_v2_t4",
+        "f2_v2_t8",
+        "f7_v1_t4"
+      ],
+      "combo_count": 8,
+      "complete_combo_batches_count": 168,
+      "incomplete_combo_batches_count": 2,
+      "incomplete_combo_batches": [
+        {
+          "pred_batch": 171,
+          "combo_count": 7,
+          "missing_combos": [
+            "f2_v1_t3"
+          ],
+          "extra_combos": []
+        },
+        {
+          "pred_batch": 172,
+          "combo_count": 7,
+          "missing_combos": [
+            "f2_v1_t3"
+          ],
+          "extra_combos": []
+        }
+      ],
+      "eval_batches_common_count": 48,
+      "eval_batches_common_min": 223,
+      "eval_batches_common_max": 270
+    }
+  },
+  "excluded_methods": {
+    "winner_combo_class": "Oracle hindsight winner selected with same-step realized truth.",
+    "weighted_majority_class": "Historical implementation used full-run capability weights, not causal per-step weights.",
+    "weighted_majority_direction": "Historical implementation used full-run capability weights, not causal per-step weights.",
+    "dynamic_topk": "Current heuristic posterior implementation uses full-run winner transitions/priors."
+  },
+  "artifacts": {
+    "all_method_scores_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/all_method_scores.parquet",
+    "all_method_scores_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/all_method_scores.csv",
+    "best_per_family_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/best_per_family.parquet",
+    "best_per_family_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/best_per_family.csv",
+    "leaderboard_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/leaderboard.parquet",
+    "leaderboard_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/leaderboard.csv",
+    "summary_table_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260402_170806/summary_table.csv"
+  }
+}

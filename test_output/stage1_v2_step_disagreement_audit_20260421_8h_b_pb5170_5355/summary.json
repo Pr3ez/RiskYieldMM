@@ -1,0 +1,97 @@
+{
+  "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live",
+  "run_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live",
+  "combo_count": 8,
+  "step_count": 186,
+  "pair_count": 28,
+  "train_step_count": 130,
+  "test_step_count": 56,
+  "mean_train_disagreement_rate": 0.33598901098901107,
+  "mean_test_disagreement_rate": 0.35331632653061223,
+  "stable_useful_pair_count": 0,
+  "stable_useful_pair_rate": 0.0,
+  "top_stable_pairs": [],
+  "top_combo_readiness": [
+    {
+      "action_key": "f7_v1_t4",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.501668742579844,
+      "mean_test_rule_wilson_lb": 0.29625652701706207,
+      "mean_test_accuracy_edge": -0.027714422721609813,
+      "mean_test_cde_edge": 0.0191829293366224
+    },
+    {
+      "action_key": "f2_v2_t10",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.48057567654821665,
+      "mean_test_rule_wilson_lb": 0.28430494578489623,
+      "mean_test_accuracy_edge": -0.003311346929195899,
+      "mean_test_cde_edge": -0.007444738243365239
+    },
+    {
+      "action_key": "f2_v2_t4",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.4798880641185694,
+      "mean_test_rule_wilson_lb": 0.28234300334178053,
+      "mean_test_accuracy_edge": -0.0037988171977805063,
+      "mean_test_cde_edge": 0.008435278588144274
+    },
+    {
+      "action_key": "f2_v3_t9",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.4783694913005258,
+      "mean_test_rule_wilson_lb": 0.2845048522113137,
+      "mean_test_accuracy_edge": -0.02570340849196213,
+      "mean_test_cde_edge": 0.004274151729850971
+    },
+    {
+      "action_key": "f2_v1_t6",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.47436188510491917,
+      "mean_test_rule_wilson_lb": 0.2747859179340401,
+      "mean_test_accuracy_edge": -0.039738519091847266,
+      "mean_test_cde_edge": -0.021268074188739827
+    },
+    {
+      "action_key": "f2_v1_t3",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.4549638398504097,
+      "mean_test_rule_wilson_lb": 0.2577319267575206,
+      "mean_test_accuracy_edge": -0.008767661013492458,
+      "mean_test_cde_edge": 0.01616193983849383
+    },
+    {
+      "action_key": "f2_v1_t5",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.44638498419962946,
+      "mean_test_rule_wilson_lb": 0.252398853967343,
+      "mean_test_accuracy_edge": -0.047880093626780314,
+      "mean_test_cde_edge": -0.0057872653150589995
+    },
+    {
+      "action_key": "f2_v2_t8",
+      "pair_count": 7,
+      "stable_useful_pair_count": 0,
+      "stable_useful_pair_rate": 0.0,
+      "mean_test_rule_win_rate": 0.44223654374030313,
+      "mean_test_rule_wilson_lb": 0.2483312133881236,
+      "mean_test_accuracy_edge": -0.01555406373075546,
+      "mean_test_cde_edge": 0.004884632215459276
+    }
+  ],
+  "disagreement_rows": 5208
+}

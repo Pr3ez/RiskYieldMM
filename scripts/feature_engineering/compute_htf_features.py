@@ -434,6 +434,13 @@ class HTFFeatureEngine:
             for col_name, func in config["derived"].items():
                 df[col_name] = func(df)
 
+        if "longShortRatio" in df.columns:
+            ratio = df["longShortRatio"].replace([np.inf, -np.inf], np.nan)
+            # A buy/sell ratio must stay strictly positive. Zero or negative
+            # values are treated as missing source points and repaired later via
+            # causal forward-fill on the aligned HTF frame.
+            df["longShortRatio"] = ratio.mask(ratio <= 0, np.nan)
+
         return df
 
     def get_source_paths_for_timeframe(
@@ -635,6 +642,9 @@ class HTFFeatureEngine:
 
         for col in ["openInterest", "longShortRatio", "fundingRate"]:
             if col in df.columns:
+                if col == "longShortRatio":
+                    ratio = df[col].replace([np.inf, -np.inf], np.nan)
+                    df[col] = ratio.mask(ratio <= 0, np.nan)
                 df[col] = df[col].ffill()
 
         return df
@@ -1374,20 +1384,23 @@ def _compute_yang_zhang_vol(df: pd.DataFrame, n: int) -> pd.Series:
 
 def _compute_body_size(df: pd.DataFrame) -> pd.Series:
     """Candle body size / range"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return abs(df["close"] - df["open"]) / range_
+    range_ = df["high"] - df["low"]
+    ratio = abs(df["close"] - df["open"]) / range_.replace(0, np.nan)
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def _compute_upper_shadow(df: pd.DataFrame) -> pd.Series:
     """Upper shadow / range"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return (df["high"] - np.maximum(df["open"], df["close"])) / range_
+    range_ = df["high"] - df["low"]
+    ratio = (df["high"] - np.maximum(df["open"], df["close"])) / range_.replace(0, np.nan)
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def _compute_lower_shadow(df: pd.DataFrame) -> pd.Series:
     """Lower shadow / range"""
-    range_ = (df["high"] - df["low"]).replace(0, np.nan)
-    return (np.minimum(df["open"], df["close"]) - df["low"]) / range_
+    range_ = df["high"] - df["low"]
+    ratio = (np.minimum(df["open"], df["close"]) - df["low"]) / range_.replace(0, np.nan)
+    return ratio.mask(range_.eq(0), 0.0)
 
 
 def _compute_candle_direction(df: pd.DataFrame) -> pd.Series:
@@ -1601,25 +1614,31 @@ def _compute_long_short_ratio(df: pd.DataFrame) -> pd.Series:
     """Long/Short ratio (raw)"""
     if "longShortRatio" not in df.columns:
         return pd.Series(np.nan, index=df.index)
-    return df["longShortRatio"]
+    ls = df["longShortRatio"].replace([np.inf, -np.inf], np.nan)
+    return ls.mask(ls <= 0, np.nan)
 
 
 def _compute_long_short_zscore(df: pd.DataFrame, n: int) -> pd.Series:
     """Long/Short ratio z-score"""
-    if "longShortRatio" not in df.columns:
-        return pd.Series(np.nan, index=df.index)
-    ls = df["longShortRatio"]
+    ls = _compute_long_short_ratio(df)
     mean = ls.rolling(n).mean()
     std = ls.rolling(n).std()
-    return ((ls - mean) / std.replace(0, np.nan)).clip(-5, 5)
+    zscore = pd.Series(np.nan, index=df.index, dtype=np.float64)
+    ready = mean.notna() & std.notna()
+    nonflat = ready & (std > 0)
+    flat = ready & (std == 0)
+
+    zscore.loc[nonflat] = (ls.loc[nonflat] - mean.loc[nonflat]) / std.loc[nonflat]
+    # A fully flat rolling window is a neutral crowding state, not a missing
+    # observation. Emit 0.0 so downstream model inputs stay usable.
+    zscore.loc[flat] = 0.0
+    return zscore.clip(-5, 5)
 
 
 def _compute_long_short_change(df: pd.DataFrame, n: int) -> pd.Series:
     """Long/Short ratio change"""
-    if "longShortRatio" not in df.columns:
-        return pd.Series(np.nan, index=df.index)
-    ls = df["longShortRatio"]
-    return ((ls / ls.shift(n)) - 1).clip(-1, 1)
+    ls = _compute_long_short_ratio(df)
+    return ((ls / ls.shift(n)).replace([np.inf, -np.inf], np.nan) - 1).clip(-1, 1)
 
 
 def _compute_basis(df: pd.DataFrame) -> pd.Series:
@@ -1659,9 +1678,8 @@ def _rolling_mean_product(lhs: pd.Series, rhs: pd.Series, n: int) -> pd.Series:
 
 def _compute_long_short_pct_change(df: pd.DataFrame) -> pd.Series:
     """One-step percentage change on the broadcast-aligned long/short ratio."""
-    if "longShortRatio" not in df.columns:
-        return pd.Series(np.nan, index=df.index)
-    return df["longShortRatio"].pct_change().replace([np.inf, -np.inf], np.nan)
+    ls = _compute_long_short_ratio(df)
+    return ls.pct_change(fill_method=None).replace([np.inf, -np.inf], np.nan)
 
 
 # =============================================================================

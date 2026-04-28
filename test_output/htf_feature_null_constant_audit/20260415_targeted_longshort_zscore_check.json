@@ -1,0 +1,68 @@
+[
+  {
+    "root": "8h/B",
+    "rows": 1350555,
+    "scanned_batch_count": 5628,
+    "first_scanned_batch": 43,
+    "last_scanned_batch": 5670,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  },
+  {
+    "root": "8h/C",
+    "rows": 1350480,
+    "scanned_batch_count": 5627,
+    "first_scanned_batch": 43,
+    "last_scanned_batch": 5669,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  },
+  {
+    "root": "24h/B",
+    "rows": 1350720,
+    "scanned_batch_count": 1876,
+    "first_scanned_batch": 15,
+    "last_scanned_batch": 1890,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  },
+  {
+    "root": "24h/C",
+    "rows": 1350315,
+    "scanned_batch_count": 1876,
+    "first_scanned_batch": 15,
+    "last_scanned_batch": 1890,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  },
+  {
+    "root": "7d/B",
+    "rows": 1350720,
+    "scanned_batch_count": 268,
+    "first_scanned_batch": 4,
+    "last_scanned_batch": 271,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  },
+  {
+    "root": "7d/C",
+    "rows": 1345995,
+    "scanned_batch_count": 268,
+    "first_scanned_batch": 4,
+    "last_scanned_batch": 271,
+    "null_counts": {
+      "S_N_longShortZscore_long_zsc": 0,
+      "S_N_longShortZscore_xlong_zsc": 0
+    }
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live",
+  "combo_metric_step_files": 186,
+  "step_summary_files": 186,
+  "selected_features_files": 186,
+  "pred_batch_min": 5170,
+  "pred_batch_max": 5355,
+  "steps_seen": 186,
+  "combo_rows": 1488,
+  "combo_count": 8,
+  "winner_change_steps": 148,
+  "winner_change_rate": 0.7956989247311828,
+  "baseline_winner_counts": {
+    "f2_v2_t8": 23,
+    "f2_v1_t6": 22,
+    "f2_v1_t3": 27,
+    "f2_v1_t5": 21,
+    "f7_v1_t4": 14,
+    "f2_v3_t9": 24,
+    "f2_v2_t10": 30,
+    "f2_v2_t4": 25
+  },
+  "selected_winner_counts": {
+    "f7_v1_t4": 21,
+    "f2_v2_t10": 22,
+    "f2_v1_t3": 29,
+    "f2_v3_t9": 26,
+    "f2_v1_t5": 17,
+    "f2_v1_t6": 21,
+    "f2_v2_t8": 24,
+    "f2_v2_t4": 26
+  },
+  "root_stage1_progress_rows": 186,
+  "root_stage1_v2_progress_rows": 44,
+  "root_stage1_v2_progress_is_partial_vs_step_files": true
+}

@@ -56,6 +56,26 @@ FINAL_OUTPUT_FEATURE_RULES: tuple[FinalOutputFeatureRule, ...] = (
             "front-half 1m saved rows"
         ),
     ),
+    FinalOutputFeatureRule(
+        pattern="H_*_egarch_asymmetry",
+        applies_to=("helpers",),
+        category="needs_redesign",
+        reason=(
+            "Nelson 1991 leverage parameter trace is emitted as a fitted constant "
+            "array in the current helper contract; source-backed audit on 2026-04-12 "
+            "found it globally degenerate for model-facing HTF helper outputs"
+        ),
+    ),
+    FinalOutputFeatureRule(
+        pattern="H_*_egarch_persistence",
+        applies_to=("helpers",),
+        category="needs_redesign",
+        reason=(
+            "Nelson 1991 persistence parameter trace is emitted as a fitted constant "
+            "array in the current helper contract; source-backed audit on 2026-04-12 "
+            "found it globally degenerate for model-facing HTF helper outputs"
+        ),
+    ),
 )
 
 

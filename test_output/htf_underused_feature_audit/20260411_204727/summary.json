@@ -1,0 +1,13 @@
+{
+  "timestamp_utc": "2026-04-11T18:47:27.710477+00:00",
+  "merged_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260411_153744_merged",
+  "output_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_underused_feature_audit/20260411_204727",
+  "rows": {
+    "all_features": 1032,
+    "suspiciously_underused_clean": 212,
+    "expected_underused": 0,
+    "family_summary": 72,
+    "consistently_underused_clean": 36,
+    "expected_feature_panel": 132
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "reason": "shutdown",
+  "run_id": "htf_pythonscript_20260413_211601_pid709706",
+  "pid": 709706,
+  "stage": "HTF / all/-/validation",
+  "detail": "pipeline | elapsed_seconds=191.781",
+  "run_elapsed_seconds": 191.931,
+  "stage_elapsed_seconds": 191.752,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_211601_pid709706.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_211601_pid709706_status.json",
+  "updated_at": "2026-04-13T21:19:13"
+}

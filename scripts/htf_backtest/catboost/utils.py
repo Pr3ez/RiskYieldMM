@@ -17,6 +17,9 @@ import numpy as np
 import polars as pl
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import f1_score
+from scripts.feature_engineering.htf_feature_acceptance import (
+    get_final_output_excluded_columns,
+)
 
 
 # ============================================================================
@@ -30,6 +33,35 @@ BASE_CLASS_NAMES = (
     "UP_BALANCED",
     "UP_EXPANSION",
 )
+
+# These fields are part of the HTF artifact contract, but they are not meant to
+# be learned as model features. They encode bookkeeping or batch indexing state
+# rather than market state. `bar_in_batch_norm` is intentionally not excluded:
+# it is part of the downstream training contract and is used separately for
+# causal tail filtering.
+MODEL_METADATA_EXCLUDE = {
+    "timestamp",
+    "batch_id",
+    "target_breakfree",
+    "target_name",
+    "period_8h_start",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours",
+}
+
+
 @dataclass
 class BaseOptimizerConfig:
     """Base configuration for HTF optimizer."""
@@ -37,13 +69,19 @@ class BaseOptimizerConfig:
     project_root: Path = field(
         default_factory=lambda: Path("/media/przem/linux_data/RiskYieldMM (Copy)")
     )
+    features_dir_override: Path | None = None
+    labels_dir_override: Path | None = None
 
     @property
     def features_dir(self) -> Path:
+        if self.features_dir_override is not None:
+            return Path(self.features_dir_override)
         return self.project_root / "data" / "htf_with_helpers"
 
     @property
     def labels_dir(self) -> Path:
+        if self.labels_dir_override is not None:
+            return Path(self.labels_dir_override)
         return self.project_root / "data" / "htf_4class_labels"
 
     @property
@@ -466,13 +504,37 @@ def get_feature_columns(
     df: pl.DataFrame, target_col: str = "target_4class"
 ) -> list[str]:
     """Extract feature column names (exclude metadata and labels)."""
-    exclude = {
-        "timestamp",
-        "batch_id",
-        target_col,
-        "target_name",
+    exclude = set(MODEL_METADATA_EXCLUDE)
+    exclude.add(target_col)
+    # Model-facing HTF helper outputs follow the explicit final-output policy.
+    # This currently blocks degenerate helper traces such as constant EGARCH
+    # parameter arrays identified in the 2026-04-12 source-backed helper audit.
+    exclude.update(get_final_output_excluded_columns(df.columns, stage="helpers"))
+    numeric_dtypes = {
+        pl.Float32,
+        pl.Float64,
+        pl.Int8,
+        pl.Int16,
+        pl.Int32,
+        pl.Int64,
+        pl.UInt8,
+        pl.UInt16,
+        pl.UInt32,
+        pl.UInt64,
+        pl.Boolean,
     }
-    return [c for c in df.columns if c not in exclude and not c.endswith("_right")]
+    feature_cols: list[str] = []
+    for col_name, dtype in df.schema.items():
+        if col_name in exclude:
+            continue
+        if col_name.startswith("target_"):
+            continue
+        if col_name.endswith("_right"):
+            continue
+        if dtype not in numeric_dtypes:
+            continue
+        feature_cols.append(col_name)
+    return feature_cols
 
 
 def prepare_features_target(

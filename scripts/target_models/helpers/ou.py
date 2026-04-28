@@ -27,7 +27,11 @@ Mean reversion requires |φ| < 1
 
 References:
 - Vasicek (1977) - OU rate model
-- Hamilton (1994) - Time Series Analysis
+  https://www.sciencedirect.com/science/article/abs/pii/0304405X77900162
+- Zhang et al. (2018) - OU / AR(1) estimation discussion
+  https://arxiv.org/abs/1803.06460
+- The strict no-lookahead contract used here is documented in
+  notebooks/notes/htf_helper_source_backed_validity_audit_2026-04-12.md
 """
 
 from dataclasses import dataclass
@@ -106,7 +110,8 @@ class OUHelper(BaseHelper):
     LEAKAGE PREVENTION:
     - Rolling OLS uses only data [t-window:t] (backward-only)
     - Z-score uses only past data
-    - No centered windows or backfill
+    - No centered windows or future-to-past fill
+    - Early rows remain undefined until enough trailing history exists
     """
 
     def __init__(self, config: OUConfig | None = None):
@@ -254,13 +259,20 @@ class OUHelper(BaseHelper):
             regime = 1.0  # OPTIMAL
         halflife_regime_arr = np.full(n_samples, regime)
 
-        # Z-score features: computed per-sample using rolling window (fast)
+        # Z-score-derived OU timing features should not appear before the helper
+        # has seen one full OU estimation window. This keeps the dynamic timing
+        # outputs aligned with the same trailing-history contract as phi/kappa /
+        # half-life and avoids chunk-local early rows becoming "defined" sooner
+        # than they would under a prefix-only live transform.
+        min_history = max(int(self.config.rolling_window), int(zscore_window))
+
+        # Z-score features: computed per-sample using trailing-only statistics.
         zscore_arr = np.full(n_samples, np.nan)
         zscore_abs_arr = np.full(n_samples, np.nan)
-        reverting_arr = np.zeros(n_samples)
+        reverting_arr = np.full(n_samples, np.nan)
 
         # Vectorized z-score calculation using rolling statistics
-        for t in range(zscore_window, n_samples):
+        for t in range(min_history, n_samples):
             window_data = series[t - zscore_window : t]
             valid_data = window_data[~np.isnan(window_data)]
 
@@ -275,22 +287,13 @@ class OUHelper(BaseHelper):
                 zscore_arr[t] = z
                 zscore_abs_arr[t] = abs(z)
 
-                # Reverting: z and delta_z have opposite signs
-                if t > 0 and not np.isnan(series[t - 1]):
-                    z_prev = (series[t - 1] - mean) / std
+                # Reverting uses the previously emitted OU z-score, not a
+                # re-estimate under the current row's window, so the signal is
+                # stable under prefix-only causal transforms.
+                if t > 0 and np.isfinite(zscore_arr[t - 1]):
+                    z_prev = zscore_arr[t - 1]
                     delta_z = z - z_prev
                     reverting_arr[t] = 1.0 if z * delta_z < 0 else 0.0
-
-        # Fill early values
-        first_valid = zscore_window
-        if first_valid < n_samples:
-            first_z = (
-                zscore_arr[first_valid]
-                if not np.isnan(zscore_arr[first_valid])
-                else 0.0
-            )
-            zscore_arr[:first_valid] = first_z
-            zscore_abs_arr[:first_valid] = abs(first_z)
 
         # Stack all features
         features = np.column_stack(

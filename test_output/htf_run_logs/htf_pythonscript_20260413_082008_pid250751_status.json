@@ -1,0 +1,13 @@
+{
+  "reason": "stage_change",
+  "run_id": "htf_pythonscript_20260413_082008_pid250751",
+  "pid": 250751,
+  "stage": "HTF / 8h/B/15m/combined",
+  "detail": "regime=8h, family=B, tf=15m, detail=",
+  "run_elapsed_seconds": 3.514,
+  "stage_elapsed_seconds": 0.0,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_082008_pid250751.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260413_082008_pid250751_status.json",
+  "updated_at": "2026-04-13T08:20:12"
+}

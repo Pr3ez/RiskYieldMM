@@ -1,0 +1,134 @@
+{
+  "8h/B": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels/1m",
+    "batches": 5670,
+    "first_batch": "batch_0001",
+    "last_batch": "batch_5670",
+    "total_rows": 2721207,
+    "valid_target_4class_rows": 1360635,
+    "withheld_target_4class_rows": 1360572,
+    "target_4class_counts": {
+      "-1": 1360572,
+      "0": 346775,
+      "1": 324015,
+      "2": 374866,
+      "3": 314979
+    },
+    "target_breakfree_counts": {
+      "-1": 1360572,
+      "0": 534488,
+      "1": 507017,
+      "2": 319130
+    }
+  },
+  "8h/C": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels_shift4h/1m",
+    "batches": 5669,
+    "first_batch": "batch_0001",
+    "last_batch": "batch_5669",
+    "total_rows": 2720967,
+    "valid_target_4class_rows": 1360560,
+    "withheld_target_4class_rows": 1360407,
+    "target_4class_counts": {
+      "-1": 1360407,
+      "0": 351995,
+      "1": 322626,
+      "2": 375409,
+      "3": 310530
+    },
+    "target_breakfree_counts": {
+      "-1": 1360407,
+      "0": 539040,
+      "1": 518650,
+      "2": 302870
+    }
+  },
+  "24h/B": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels_24h/1m",
+    "batches": 1890,
+    "first_batch": "batch_0001",
+    "last_batch": "batch_1890",
+    "total_rows": 2721207,
+    "valid_target_4class_rows": 1360800,
+    "withheld_target_4class_rows": 1360407,
+    "target_4class_counts": {
+      "-1": 1360407,
+      "0": 223748,
+      "1": 453767,
+      "2": 227630,
+      "3": 455655
+    },
+    "target_breakfree_counts": {
+      "-1": 1360407,
+      "0": 561859,
+      "1": 552069,
+      "2": 246872
+    }
+  },
+  "24h/C": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels_24h_shift12h/1m",
+    "batches": 1890,
+    "first_batch": "batch_0001",
+    "last_batch": "batch_1890",
+    "total_rows": 2720487,
+    "valid_target_4class_rows": 1360395,
+    "withheld_target_4class_rows": 1360092,
+    "target_4class_counts": {
+      "-1": 1360092,
+      "0": 265228,
+      "1": 397004,
+      "2": 294555,
+      "3": 403608
+    },
+    "target_breakfree_counts": {
+      "-1": 1360092,
+      "0": 577544,
+      "1": 525944,
+      "2": 256907
+    }
+  },
+  "7d/B": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels_7d/1m",
+    "batches": 270,
+    "first_batch": "batch_0002",
+    "last_batch": "batch_0271",
+    "total_rows": 2716887,
+    "valid_target_4class_rows": 1360800,
+    "withheld_target_4class_rows": 1356087,
+    "target_4class_counts": {
+      "-1": 1356087,
+      "0": 46191,
+      "1": 620925,
+      "2": 42102,
+      "3": 651582
+    },
+    "target_breakfree_counts": {
+      "-1": 1356087,
+      "0": 601848,
+      "1": 556224,
+      "2": 202728
+    }
+  },
+  "7d/C": {
+    "root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels_7d_shift84h/1m",
+    "batches": 270,
+    "first_batch": "batch_0002",
+    "last_batch": "batch_0271",
+    "total_rows": 2711847,
+    "valid_target_4class_rows": 1356075,
+    "withheld_target_4class_rows": 1355772,
+    "target_4class_counts": {
+      "-1": 1355772,
+      "0": 33333,
+      "1": 600806,
+      "2": 31449,
+      "3": 690487
+    },
+    "target_breakfree_counts": {
+      "-1": 1355772,
+      "0": 619845,
+      "1": 505926,
+      "2": 230304
+    }
+  }
+}

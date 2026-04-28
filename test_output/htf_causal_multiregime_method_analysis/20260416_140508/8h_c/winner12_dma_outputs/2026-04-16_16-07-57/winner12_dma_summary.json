@@ -1,0 +1,117 @@
+{
+  "run_id": "stage1_catboost_8h_c_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "source": {
+    "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_probability_outputs/2026-04-16_16-06-37",
+    "pred_rows_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_probability_outputs/2026-04-16_16-06-37/winner12_predictions_filtered.parquet",
+    "winners_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_c_live/catboost/1m/target_4class/winners_all_steps.parquet"
+  },
+  "config": {
+    "gamma_grid": [
+      0.9,
+      0.95,
+      0.975,
+      0.99
+    ],
+    "eta_model": 4.0,
+    "eta_gamma": 2.0,
+    "gamma_meta_discount": 0.995,
+    "combo_loss_acc_weight": 0.7,
+    "combo_loss_cde_weight": 0.3,
+    "meta_loss_type": "nll",
+    "meta_loss_acc_weight": 0.7,
+    "meta_loss_cde_weight": 0.3,
+    "holdout_steps": 200,
+    "min_weight_floor": 1e-08,
+    "combo_count": 8,
+    "gamma_count": 4
+  },
+  "rows": {
+    "batches": 500,
+    "row_predictions": 120000,
+    "gamma_history_rows": 2000,
+    "combo_history_rows": 16000,
+    "effective_weight_rows": 4000
+  },
+  "metrics": {
+    "all_batches": {
+      "dma_accuracy": 0.2845083333333333,
+      "uniform_accuracy": 0.28857499999999997,
+      "delta_accuracy_dma_vs_uniform": -0.0040666666666666655,
+      "dma_macro_f1": 0.1395046501841184,
+      "uniform_macro_f1": 0.1365837903871689,
+      "delta_macro_f1_dma_vs_uniform": 0.002920859796949503,
+      "dma_cross_direction_error": 0.4927166666666667,
+      "uniform_cross_direction_error": 0.49360833333333337,
+      "delta_cross_direction_error_dma_vs_uniform": -0.0008916666666666689,
+      "share_dma_beats_uniform_accuracy": 0.382
+    },
+    "holdout_last_steps": {
+      "steps": 200,
+      "dma_accuracy": 0.29735416666666664,
+      "uniform_accuracy": 0.3014374999999999,
+      "delta_accuracy_dma_vs_uniform": -0.004083333333333332,
+      "dma_macro_f1": 0.14064637730655535,
+      "uniform_macro_f1": 0.13885932622975022,
+      "delta_macro_f1_dma_vs_uniform": 0.0017870510768051464,
+      "dma_cross_direction_error": 0.4911666666666667,
+      "uniform_cross_direction_error": 0.49772916666666667,
+      "delta_cross_direction_error_dma_vs_uniform": -0.0065625,
+      "share_dma_beats_uniform_accuracy": 0.375
+    }
+  },
+  "final_state": {
+    "gamma_weights": {
+      "0.9": 0.9934982742569991,
+      "0.95": 0.006334210139374982,
+      "0.975": 0.00012605028780439482,
+      "0.99": 4.146531582140368e-05
+    },
+    "top5_effective_combo_weights": [
+      {
+        "pred_batch": 5669,
+        "action_key": "f2_v2_t10",
+        "effective_weight_before_update": 0.3067218118627179,
+        "effective_weight_after_update": 0.4213892975166204
+      },
+      {
+        "pred_batch": 5669,
+        "action_key": "f2_v3_t9",
+        "effective_weight_before_update": 0.5285210973211996,
+        "effective_weight_after_update": 0.3512719772677295
+      },
+      {
+        "pred_batch": 5669,
+        "action_key": "f2_v1_t6",
+        "effective_weight_before_update": 0.04638080167370215,
+        "effective_weight_after_update": 0.11011096841692722
+      },
+      {
+        "pred_batch": 5669,
+        "action_key": "f2_v1_t3",
+        "effective_weight_before_update": 0.0541817674049598,
+        "effective_weight_after_update": 0.03826327393350999
+      },
+      {
+        "pred_batch": 5669,
+        "action_key": "f2_v2_t4",
+        "effective_weight_before_update": 0.015548109022585724,
+        "effective_weight_after_update": 0.032490555690663205
+      }
+    ]
+  },
+  "artifacts": {
+    "winner12_dma_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_batch_metrics.parquet",
+    "winner12_dma_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_batch_metrics.csv",
+    "winner12_dma_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_row_predictions.parquet",
+    "winner12_dma_row_predictions_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_row_predictions.csv",
+    "winner12_dma_gamma_weight_history_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_gamma_weight_history.parquet",
+    "winner12_dma_gamma_weight_history_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_gamma_weight_history.csv",
+    "winner12_dma_combo_weight_history_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_combo_weight_history.parquet",
+    "winner12_dma_combo_weight_history_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_combo_weight_history.csv",
+    "winner12_dma_effective_combo_weights_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_effective_combo_weights.parquet",
+    "winner12_dma_effective_combo_weights_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_effective_combo_weights.csv",
+    "winner12_dma_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_causal_multiregime_method_analysis/20260416_140508/8h_c/winner12_dma_outputs/2026-04-16_16-07-57/winner12_dma_summary.json"
+  }
+}

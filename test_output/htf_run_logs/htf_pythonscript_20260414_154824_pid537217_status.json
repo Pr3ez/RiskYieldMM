@@ -1,0 +1,13 @@
+{
+  "reason": "heartbeat",
+  "run_id": "htf_pythonscript_20260414_154824_pid537217",
+  "pid": 537217,
+  "stage": "HTF / 24h/B/1m/features",
+  "detail": "regime=24h, family=B, tf=1m, detail=",
+  "run_elapsed_seconds": 2055.439,
+  "stage_elapsed_seconds": 114.281,
+  "silence_seconds": 0.0,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260414_154824_pid537217.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260414_154824_pid537217_status.json",
+  "updated_at": "2026-04-14T16:22:40"
+}

@@ -220,6 +220,7 @@ pub struct EGARCHConfig {
     pub low_vol_percentile: f64,
     pub high_vol_percentile: f64,
     pub recent_shock_window: usize,
+    pub recent_shock_z_threshold: f64,
 }
 
 impl Default for EGARCHConfig {
@@ -229,8 +230,147 @@ impl Default for EGARCHConfig {
             low_vol_percentile: 25.0,
             high_vol_percentile: 75.0,
             recent_shock_window: 5,
+            recent_shock_z_threshold: 1.0,
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub struct EGARCHStreamingState {
+    pub log_var: f64,
+    pub vol_count: usize,
+    pub vol_sum: f64,
+    pub vol_sum_sq: f64,
+    pub recent_shock_flags: Vec<f64>,
+}
+
+impl EGARCHStreamingState {
+    pub fn cold_start(
+        config: &EGARCHConfig,
+        params: &EGARCHParams,
+        mean_return: f64,
+        returns: &[f64],
+    ) -> Self {
+        let finite_centered: Vec<f64> = returns
+            .iter()
+            .filter_map(|&r| if r.is_finite() { Some(r - mean_return) } else { None })
+            .collect();
+
+        let sample_var = if finite_centered.is_empty() {
+            1e-10
+        } else {
+            finite_centered.iter().map(|r| r * r).sum::<f64>() / finite_centered.len() as f64
+        }
+        .max(1e-10);
+
+        let log_var = if params.beta.abs() < 0.999 {
+            params.omega / (1.0 - params.beta)
+        } else {
+            sample_var.ln()
+        };
+
+        Self {
+            log_var,
+            vol_count: 0,
+            vol_sum: 0.0,
+            vol_sum_sq: 0.0,
+            recent_shock_flags: vec![0.0; config.recent_shock_window],
+        }
+    }
+}
+
+fn update_running_zscore(count: &mut usize, sum: &mut f64, sum_sq: &mut f64, value: f64) -> f64 {
+    *count += 1;
+    *sum += value;
+    *sum_sq += value * value;
+    let count_f = *count as f64;
+    let mean = *sum / count_f;
+    let var = (*sum_sq / count_f - mean * mean).max(1e-10);
+    (value - mean) / var.sqrt()
+}
+
+pub fn egarch_transform_with_state(
+    returns: &[f64],
+    config: &EGARCHConfig,
+    params: &EGARCHParams,
+    mean_return: f64,
+    low_vol_threshold: f64,
+    high_vol_threshold: f64,
+    initial_state: Option<&EGARCHStreamingState>,
+) -> (EGARCHFeatures, EGARCHStreamingState) {
+    let n = returns.len();
+    let mut features = EGARCHFeatures::new(n);
+    let mut state = initial_state
+        .cloned()
+        .unwrap_or_else(|| EGARCHStreamingState::cold_start(config, params, mean_return, returns));
+
+    if state.recent_shock_flags.len() != config.recent_shock_window {
+        let mut flags = vec![0.0; config.recent_shock_window];
+        let src = state.recent_shock_flags.clone();
+        let take = src.len().min(config.recent_shock_window);
+        if take > 0 {
+            let start_dst = config.recent_shock_window - take;
+            let start_src = src.len() - take;
+            flags[start_dst..].copy_from_slice(&src[start_src..]);
+        }
+        state.recent_shock_flags = flags;
+    }
+
+    for t in 0..n {
+        let r = returns[t];
+        let mut news_impact = 0.0;
+        let mut shock_flag = 0.0;
+
+        if r.is_finite() {
+            let sigma_pre = (0.5 * state.log_var).exp().max(1e-10);
+            let centered = r - mean_return;
+            let eps = centered / sigma_pre;
+            news_impact = params.alpha * (eps.abs() - EXPECTED_ABS_NORMAL) + params.gamma * eps;
+            if eps < -config.recent_shock_z_threshold {
+                shock_flag = 1.0;
+            }
+        }
+
+        state.log_var = (params.omega + news_impact + params.beta * state.log_var).clamp(-20.0, 10.0);
+        let vol = (0.5 * state.log_var).exp();
+        let vol_zscore = update_running_zscore(
+            &mut state.vol_count,
+            &mut state.vol_sum,
+            &mut state.vol_sum_sq,
+            vol,
+        );
+
+        let vol_regime = if vol < low_vol_threshold {
+            0.0
+        } else if vol > high_vol_threshold {
+            2.0
+        } else {
+            1.0
+        };
+
+        if config.recent_shock_window > 0 {
+            state.recent_shock_flags.rotate_left(1);
+            if let Some(last) = state.recent_shock_flags.last_mut() {
+                *last = shock_flag;
+            }
+        }
+        let leverage_active = if state.recent_shock_flags.iter().any(|&v| v > 0.5) {
+            1.0
+        } else {
+            0.0
+        };
+
+        features.vol[t] = vol;
+        features.log_vol[t] = state.log_var;
+        features.asymmetry[t] = params.gamma;
+        features.persistence[t] = params.beta;
+        features.news_impact[t] = news_impact;
+        features.vol_zscore[t] = vol_zscore;
+        features.vol_regime[t] = vol_regime;
+        features.leverage_active[t] = leverage_active;
+    }
+
+    (features, state)
 }
 
 /// Compute EGARCH features using rolling parameter estimation.
@@ -498,6 +638,13 @@ pub fn egarch_rolling_transform_full(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn max_abs_diff(lhs: &[f64], rhs: &[f64]) -> f64 {
+        lhs.iter()
+            .zip(rhs.iter())
+            .map(|(a, b)| (a - b).abs())
+            .fold(0.0_f64, f64::max)
+    }
     
     #[test]
     fn test_egarch_ll() {
@@ -522,5 +669,68 @@ mod tests {
         assert!(params.beta.is_finite());
         assert!(params.gamma.is_finite());
         assert!(params.beta > 0.5);  // Should have high persistence
+    }
+
+    #[test]
+    fn test_streaming_state_handoff_matches_one_pass() {
+        let returns: Vec<f64> = (0..512)
+            .map(|i| {
+                let t = i as f64;
+                0.01 * (t * 0.07).sin() + 0.004 * (t * 0.013).cos()
+            })
+            .collect();
+
+        let params = estimate_egarch_params(&returns[..256]);
+        let config = EGARCHConfig::default();
+        let mean_return = returns[..256].iter().sum::<f64>() / 256.0;
+
+        let (full_features, full_state) = egarch_transform_with_state(
+            &returns[256..],
+            &config,
+            &params,
+            mean_return,
+            0.01,
+            0.03,
+            None,
+        );
+
+        let (part_a, state_a) = egarch_transform_with_state(
+            &returns[256..384],
+            &config,
+            &params,
+            mean_return,
+            0.01,
+            0.03,
+            None,
+        );
+        let (part_b, state_b) = egarch_transform_with_state(
+            &returns[384..],
+            &config,
+            &params,
+            mean_return,
+            0.01,
+            0.03,
+            Some(&state_a),
+        );
+
+        assert_eq!(part_a.vol.len() + part_b.vol.len(), full_features.vol.len());
+        assert!(max_abs_diff(&part_a.vol, &full_features.vol[..part_a.vol.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.vol, &full_features.vol[part_a.vol.len()..]) < 1e-12);
+        assert!(max_abs_diff(&part_a.log_vol, &full_features.log_vol[..part_a.log_vol.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.log_vol, &full_features.log_vol[part_a.log_vol.len()..]) < 1e-12);
+        assert!(max_abs_diff(&part_a.news_impact, &full_features.news_impact[..part_a.news_impact.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.news_impact, &full_features.news_impact[part_a.news_impact.len()..]) < 1e-12);
+        assert!(max_abs_diff(&part_a.vol_zscore, &full_features.vol_zscore[..part_a.vol_zscore.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.vol_zscore, &full_features.vol_zscore[part_a.vol_zscore.len()..]) < 1e-12);
+        assert!(max_abs_diff(&part_a.vol_regime, &full_features.vol_regime[..part_a.vol_regime.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.vol_regime, &full_features.vol_regime[part_a.vol_regime.len()..]) < 1e-12);
+        assert!(max_abs_diff(&part_a.leverage_active, &full_features.leverage_active[..part_a.leverage_active.len()]) < 1e-12);
+        assert!(max_abs_diff(&part_b.leverage_active, &full_features.leverage_active[part_a.leverage_active.len()..]) < 1e-12);
+
+        assert!((full_state.log_var - state_b.log_var).abs() < 1e-12);
+        assert_eq!(full_state.vol_count, state_b.vol_count);
+        assert!((full_state.vol_sum - state_b.vol_sum).abs() < 1e-12);
+        assert!((full_state.vol_sum_sq - state_b.vol_sum_sq).abs() < 1e-12);
+        assert_eq!(full_state.recent_shock_flags, state_b.recent_shock_flags);
     }
 }

@@ -1,7 +1,15 @@
 //! Kalman Filter - Rust Implementation
 //!
 //! 3D State-space Kalman filter for level, velocity, acceleration estimation.
-//! Provides ~175x speedup over Python/filterpy implementation.
+//! Provides ~175x speedup over Python implementations while preserving the
+//! same explicit streaming-state contract as the Python fallback.
+//!
+//! Source contract:
+//! - Kalman (1960): https://www.cs.unc.edu/~welch/kalman/media/pdf/Kalman1960.pdf
+//! - helper live-parity rationale:
+//!   notebooks/notes/htf_helper_source_backed_validity_audit_2026-04-12.md
+//! - streaming-state redesign plan:
+//!   notebooks/notes/htf_kalman_streaming_state_implementation_plan_2026-04-13.md
 //!
 //! State model: [position, velocity, acceleration]
 //! Measurement: position only
@@ -12,10 +20,9 @@
 //! - acceleration: Rate of change of trend
 //! - pred_error: Prediction error after update
 //! - innovation: Prediction error before update
-//! - zscore: Z-score of innovation
-//! - regime: Trend regime (0=bearish, 1=neutral, 2=bullish)
+//! - zscore: Expanding z-score of innovation
+//! - regime: Trend regime from expanding velocity z-score
 
-/// Kalman filter configuration
 #[derive(Clone, Debug)]
 pub struct KalmanConfig {
     pub process_noise: f64,
@@ -33,7 +40,6 @@ impl Default for KalmanConfig {
     }
 }
 
-/// Kalman filter output features
 #[derive(Clone, Debug)]
 pub struct KalmanFeatures {
     pub filtered_dev: Vec<f64>,
@@ -45,7 +51,47 @@ pub struct KalmanFeatures {
     pub regime: Vec<f64>,
 }
 
-/// 3x3 Matrix operations (fixed size, no ndarray dependency)
+#[derive(Clone, Debug, Default)]
+pub struct RunningMoments {
+    pub count: usize,
+    pub sum: f64,
+    pub sum_sq: f64,
+}
+
+impl RunningMoments {
+    fn update(&mut self, value: f64) -> f64 {
+        if !value.is_finite() {
+            return 0.0;
+        }
+        self.count += 1;
+        self.sum += value;
+        self.sum_sq += value * value;
+        let count = self.count as f64;
+        let mean = self.sum / count;
+        let var = (self.sum_sq / count - mean * mean).max(1e-10);
+        (value - mean) / var.sqrt()
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct KalmanStreamingState {
+    pub x: [f64; 3],
+    pub p: [[f64; 3]; 3],
+    pub innovation_stats: RunningMoments,
+    pub velocity_stats: RunningMoments,
+}
+
+impl KalmanStreamingState {
+    pub fn cold_start(first_observation: f64) -> Self {
+        Self {
+            x: [first_observation, 0.0, 0.0],
+            p: Mat3::identity().data,
+            innovation_stats: RunningMoments::default(),
+            velocity_stats: RunningMoments::default(),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 struct Mat3 {
     data: [[f64; 3]; 3],
@@ -68,16 +114,6 @@ impl Mat3 {
                 [0.0, 0.0, 1.0],
             ],
         }
-    }
-
-    fn scale(&self, s: f64) -> Self {
-        let mut result = Self::zeros();
-        for i in 0..3 {
-            for j in 0..3 {
-                result.data[i][j] = self.data[i][j] * s;
-            }
-        }
-        result
     }
 
     fn add(&self, other: &Mat3) -> Self {
@@ -122,7 +158,6 @@ impl Mat3 {
         result
     }
 
-    /// Multiply matrix by 3x1 vector
     fn mul_vec(&self, v: &[f64; 3]) -> [f64; 3] {
         [
             self.data[0][0] * v[0] + self.data[0][1] * v[1] + self.data[0][2] * v[2],
@@ -132,7 +167,6 @@ impl Mat3 {
     }
 }
 
-/// 3x1 Vector operations
 #[derive(Clone, Debug)]
 struct Vec3 {
     data: [f64; 3],
@@ -141,10 +175,6 @@ struct Vec3 {
 impl Vec3 {
     fn new(data: [f64; 3]) -> Self {
         Self { data }
-    }
-
-    fn zeros() -> Self {
-        Self { data: [0.0; 3] }
     }
 
     fn add(&self, other: &Vec3) -> Self {
@@ -159,39 +189,17 @@ impl Vec3 {
 
     fn scale(&self, s: f64) -> Self {
         Self {
-            data: [
-                self.data[0] * s,
-                self.data[1] * s,
-                self.data[2] * s,
-            ],
+            data: [self.data[0] * s, self.data[1] * s, self.data[2] * s],
         }
-    }
-
-    /// Outer product: v * v^T -> 3x3 matrix
-    fn outer(&self, other: &Vec3) -> Mat3 {
-        let mut result = Mat3::zeros();
-        for i in 0..3 {
-            for j in 0..3 {
-                result.data[i][j] = self.data[i] * other.data[j];
-            }
-        }
-        result
     }
 }
 
-/// Kalman Filter state
 struct KalmanFilter {
-    // State vector [position, velocity, acceleration]
     x: Vec3,
-    // State covariance (3x3)
     p: Mat3,
-    // State transition matrix
     f: Mat3,
-    // Process noise covariance
     q: Mat3,
-    // Measurement noise
     r: f64,
-    // Measurement matrix H = [1, 0, 0] (we only measure position)
 }
 
 impl KalmanFilter {
@@ -199,18 +207,12 @@ impl KalmanFilter {
         let dt = config.dt;
         let q = config.process_noise;
 
-        // State transition matrix (constant acceleration model)
-        // x[t+1] = F * x[t]
-        // position[t+1] = position[t] + velocity[t]*dt + 0.5*accel[t]*dt^2
-        // velocity[t+1] = velocity[t] + accel[t]*dt
-        // accel[t+1] = accel[t]
         let f = Mat3::new([
             [1.0, dt, 0.5 * dt * dt],
             [0.0, 1.0, dt],
             [0.0, 0.0, 1.0],
         ]);
 
-        // Process noise covariance (continuous white noise acceleration model)
         let dt2 = dt * dt;
         let dt3 = dt2 * dt;
         let dt4 = dt3 * dt;
@@ -221,49 +223,41 @@ impl KalmanFilter {
             [q * dt3 / 6.0, q * dt2 / 2.0, q * dt],
         ]);
 
-        // Initial state covariance
-        let p = Mat3::identity();
-
         Self {
-            x: Vec3::zeros(),
-            p,
+            x: Vec3::new([0.0, 0.0, 0.0]),
+            p: Mat3::identity(),
             f,
             q: q_matrix,
             r: config.measurement_noise,
         }
     }
 
+    fn from_state(config: &KalmanConfig, state: &KalmanStreamingState) -> Self {
+        let mut filter = Self::new(config);
+        filter.x = Vec3::new(state.x);
+        filter.p = Mat3::new(state.p);
+        filter
+    }
+
     fn predict(&mut self) {
-        // Predicted state: x_pred = F * x
         let x_pred = self.f.mul_vec(&self.x.data);
         self.x = Vec3::new(x_pred);
 
-        // Predicted covariance: P_pred = F * P * F^T + Q
         let f_t = self.f.transpose();
         self.p = self.f.mul(&self.p).mul(&f_t).add(&self.q);
     }
 
     fn update(&mut self, z: f64) -> (f64, f64) {
-        // Innovation: y = z - H * x_pred (H = [1, 0, 0])
-        let y = z - self.x.data[0];
-        let innovation = y;
-
-        // Innovation covariance: S = H * P * H^T + R = P[0,0] + R
+        let innovation = z - self.x.data[0];
         let s = self.p.data[0][0] + self.r;
-
-        // Kalman gain: K = P * H^T / S
-        // Since H = [1, 0, 0], K = [P[0,0]/S, P[1,0]/S, P[2,0]/S]
         let k = Vec3::new([
             self.p.data[0][0] / s,
             self.p.data[1][0] / s,
             self.p.data[2][0] / s,
         ]);
 
-        // State update: x = x + K * y
-        self.x = self.x.add(&k.scale(y));
+        self.x = self.x.add(&k.scale(innovation));
 
-        // Covariance update: P = (I - K * H) * P
-        // K * H is a 3x3 matrix where only first column is non-zero
         let kh = Mat3::new([
             [k.data[0], 0.0, 0.0],
             [k.data[1], 0.0, 0.0],
@@ -272,37 +266,80 @@ impl KalmanFilter {
         let i_kh = Mat3::identity().sub(&kh);
         self.p = i_kh.mul(&self.p);
 
-        // Prediction error after update
         let pred_error = z - self.x.data[0];
-
         (innovation, pred_error)
     }
 }
 
-/// Main Kalman filter transform function
-///
-/// Runs Kalman filter on signal and extracts features.
-///
-/// # Arguments
-/// * `signal` - 1D array of observations (e.g., prices)
-/// * `config` - Kalman filter configuration
-///
-/// # Returns
-/// KalmanFeatures with 7 feature vectors
 pub fn kalman_transform(signal: &[f64], config: &KalmanConfig) -> KalmanFeatures {
-    let n = signal.len();
+    let (features, _) = kalman_transform_with_state(signal, config, None);
+    features
+}
 
-    // Initialize output vectors
+pub fn kalman_transform_with_state(
+    signal: &[f64],
+    config: &KalmanConfig,
+    initial_state: Option<&KalmanStreamingState>,
+) -> (KalmanFeatures, KalmanStreamingState) {
+    let n = signal.len();
     let mut filtered_dev = vec![0.0; n];
     let mut velocity = vec![0.0; n];
     let mut acceleration = vec![0.0; n];
     let mut pred_error = vec![0.0; n];
     let mut innovation = vec![0.0; n];
     let mut zscore = vec![0.0; n];
-    let mut regime = vec![1.0; n]; // Default: neutral
+    let mut regime = vec![1.0; n];
+
+    let mut state = if let Some(existing) = initial_state {
+        existing.clone()
+    } else {
+        KalmanStreamingState::cold_start(signal.first().copied().unwrap_or(0.0))
+    };
 
     if n == 0 {
-        return KalmanFeatures {
+        return (
+            KalmanFeatures {
+                filtered_dev,
+                velocity,
+                acceleration,
+                pred_error,
+                innovation,
+                zscore,
+                regime,
+            },
+            state,
+        );
+    }
+
+    let mut kf = KalmanFilter::from_state(config, &state);
+
+    for i in 0..n {
+        let z = signal[i];
+        kf.predict();
+        let (innov, err) = kf.update(z);
+
+        filtered_dev[i] = kf.x.data[0] - z;
+        velocity[i] = kf.x.data[1];
+        acceleration[i] = kf.x.data[2];
+        pred_error[i] = err;
+        innovation[i] = innov;
+        zscore[i] = state.innovation_stats.update(innov);
+
+        let velocity_z = state.velocity_stats.update(kf.x.data[1]);
+        regime[i] = if velocity_z > 1.0 {
+            2.0
+        } else if velocity_z < -1.0 {
+            0.0
+        } else {
+            1.0
+        };
+    }
+
+    state.x = kf.x.data;
+    state.p = kf.p.data;
+
+    (
+        KalmanFeatures {
             filtered_dev,
             velocity,
             acceleration,
@@ -310,127 +347,71 @@ pub fn kalman_transform(signal: &[f64], config: &KalmanConfig) -> KalmanFeatures
             innovation,
             zscore,
             regime,
-        };
-    }
-
-    // Initialize filter
-    let mut kf = KalmanFilter::new(config);
-
-    // Initialize state with first observation
-    kf.x = Vec3::new([signal[0], 0.0, 0.0]);
-
-    // Run filter on all observations
-    for i in 0..n {
-        let z = signal[i];
-
-        // Predict
-        kf.predict();
-
-        // Update and get innovation/error
-        let (innov, err) = kf.update(z);
-
-        // Store features
-        filtered_dev[i] = kf.x.data[0] - z;  // Filtered - raw
-        velocity[i] = kf.x.data[1];
-        acceleration[i] = kf.x.data[2];
-        pred_error[i] = err;
-        innovation[i] = innov;
-    }
-
-    // Compute causal expanding z-score of innovations (no look-ahead)
-    let mut inn_sum = 0.0;
-    let mut inn_sum_sq = 0.0;
-    let mut inn_count = 0.0;
-    for i in 0..n {
-        let v = innovation[i];
-        if v.is_finite() {
-            inn_count += 1.0;
-            inn_sum += v;
-            inn_sum_sq += v * v;
-            let mean = inn_sum / inn_count;
-            let var = (inn_sum_sq / inn_count - mean * mean).max(1e-10);
-            let std = var.sqrt();
-            zscore[i] = (v - mean) / std;
-        } else {
-            zscore[i] = 0.0;
-        }
-    }
-
-    // Compute regime based on velocity (causal expanding z-score)
-    let mut vel_sum = 0.0;
-    let mut vel_sum_sq = 0.0;
-    let mut vel_count = 0.0;
-    for i in 0..n {
-        let v = velocity[i];
-        let vel_zscore = if v.is_finite() {
-            vel_count += 1.0;
-            vel_sum += v;
-            vel_sum_sq += v * v;
-            let mean = vel_sum / vel_count;
-            let var = (vel_sum_sq / vel_count - mean * mean).max(1e-10);
-            let std = var.sqrt();
-            (v - mean) / std
-        } else {
-            0.0
-        };
-
-        regime[i] = if vel_zscore > 1.0 {
-            2.0 // Bullish
-        } else if vel_zscore < -1.0 {
-            0.0 // Bearish
-        } else {
-            1.0 // Neutral
-        };
-    }
-
-    KalmanFeatures {
-        filtered_dev,
-        velocity,
-        acceleration,
-        pred_error,
-        innovation,
-        zscore,
-        regime,
-    }
+        },
+        state,
+    )
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn assert_close(lhs: f64, rhs: f64, tol: f64) {
+        assert!(
+            (lhs - rhs).abs() <= tol,
+            "lhs={} rhs={} tol={}",
+            lhs,
+            rhs,
+            tol
+        );
+    }
+
     #[test]
     fn test_kalman_basic() {
         let signal = vec![1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.4, 1.3, 1.2, 1.1];
         let config = KalmanConfig::default();
-
         let features = kalman_transform(&signal, &config);
-
         assert_eq!(features.velocity.len(), signal.len());
         assert_eq!(features.filtered_dev.len(), signal.len());
-
-        // Velocity should be positive during uptrend
         assert!(features.velocity[5] > 0.0);
     }
 
     #[test]
-    fn test_mat3_operations() {
-        let a = Mat3::identity();
-        let b = Mat3::identity();
-        let c = a.mul(&b);
-
-        // Identity * Identity = Identity
-        assert!((c.data[0][0] - 1.0).abs() < 1e-10);
-        assert!((c.data[1][1] - 1.0).abs() < 1e-10);
-        assert!((c.data[2][2] - 1.0).abs() < 1e-10);
-    }
-
-    #[test]
-    fn test_empty_signal() {
-        let signal: Vec<f64> = vec![];
+    fn test_state_handoff_matches_one_pass() {
+        let signal: Vec<f64> = (0..120)
+            .map(|i| 100.0 + (i as f64) * 0.05 + ((i % 7) as f64) * 0.01)
+            .collect();
         let config = KalmanConfig::default();
 
-        let features = kalman_transform(&signal, &config);
+        let (full_features, full_state) = kalman_transform_with_state(&signal, &config, None);
+        let (first_features, first_state) = kalman_transform_with_state(&signal[..70], &config, None);
+        let (second_features, second_state) =
+            kalman_transform_with_state(&signal[70..], &config, Some(&first_state));
 
-        assert_eq!(features.velocity.len(), 0);
+        assert_eq!(first_features.velocity.len(), 70);
+        assert_eq!(second_features.velocity.len(), 50);
+
+        for idx in 0..50 {
+            assert_close(full_features.filtered_dev[70 + idx], second_features.filtered_dev[idx], 1e-10);
+            assert_close(full_features.velocity[70 + idx], second_features.velocity[idx], 1e-10);
+            assert_close(full_features.acceleration[70 + idx], second_features.acceleration[idx], 1e-10);
+            assert_close(full_features.pred_error[70 + idx], second_features.pred_error[idx], 1e-10);
+            assert_close(full_features.innovation[70 + idx], second_features.innovation[idx], 1e-10);
+            assert_close(full_features.zscore[70 + idx], second_features.zscore[idx], 1e-10);
+            assert_close(full_features.regime[70 + idx], second_features.regime[idx], 1e-10);
+        }
+
+        for i in 0..3 {
+            assert_close(full_state.x[i], second_state.x[i], 1e-10);
+            for j in 0..3 {
+                assert_close(full_state.p[i][j], second_state.p[i][j], 1e-10);
+            }
+        }
+        assert_eq!(full_state.innovation_stats.count, second_state.innovation_stats.count);
+        assert_eq!(full_state.velocity_stats.count, second_state.velocity_stats.count);
+        assert_close(full_state.innovation_stats.sum, second_state.innovation_stats.sum, 1e-10);
+        assert_close(full_state.innovation_stats.sum_sq, second_state.innovation_stats.sum_sq, 1e-10);
+        assert_close(full_state.velocity_stats.sum, second_state.velocity_stats.sum, 1e-10);
+        assert_close(full_state.velocity_stats.sum_sq, second_state.velocity_stats.sum_sq, 1e-10);
     }
 }

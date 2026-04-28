@@ -1,0 +1,182 @@
+{
+  "timestamp_utc": "2026-04-11T15:37:44.952425+00:00",
+  "base_audit_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_181239",
+  "source_roots": [
+    "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+    "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_030231",
+    "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_065956",
+    "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260408_132339",
+    "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260409_213110"
+  ],
+  "selected_blocks": [
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "24h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260408_132339",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260408_132339/step2/root_topk/LossFunctionChange/24h_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "24h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260408_132339",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260408_132339/step2/root_topk/LossFunctionChange/24h_c"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "7d/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260409_213110",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260409_213110/step2/root_topk/LossFunctionChange/7d_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "7d/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260409_213110",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260409_213110/step2/root_topk/LossFunctionChange/7d_c"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "8h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_065956",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_065956/step2/root_topk/LossFunctionChange/8h_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "8h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_065956",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_065956/step2/root_topk/LossFunctionChange/8h_c"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "24h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/root_topk/PredictionValuesChange/24h_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "24h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/root_topk/PredictionValuesChange/24h_c"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "7d/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/root_topk/PredictionValuesChange/7d_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "7d/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_030231",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260407_030231/step2/root_topk/PredictionValuesChange/7d_c"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "8h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/root_topk/PredictionValuesChange/8h_b"
+    },
+    {
+      "selection_scope": "root_topk",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "8h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/root_topk/PredictionValuesChange/8h_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "24h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/24h_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "24h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/24h_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "7d/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/7d_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "7d/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/7d_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "8h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/8h_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "LossFunctionChange",
+      "root": "8h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/LossFunctionChange/8h_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "24h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/24h_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "24h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/24h_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "7d/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/7d_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "7d/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/7d_c"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "8h/B",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/8h_b"
+    },
+    {
+      "selection_scope": "winner_only",
+      "feature_importance_type": "PredictionValuesChange",
+      "root": "8h/C",
+      "source_root": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558",
+      "source_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_walkforward_diagnostics/20260402_183558/step2/winner_only/PredictionValuesChange/8h_c"
+    }
+  ],
+  "missing_blocks": []
+}

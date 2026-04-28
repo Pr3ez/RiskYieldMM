@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-SHARED_PIPELINE_ARTIFACT_VERSION = "2026-03-06-repair-01"
+SHARED_PIPELINE_ARTIFACT_VERSION = "2026-04-14-prefit-longshort-zscore-fix-01"
 
 SHARED_THRESHOLDS_BY_TF: dict[str, dict[str, float]] = {
     "5m": {"BREAKOUT": 1.6, "RISK_RATIO": 2.5},

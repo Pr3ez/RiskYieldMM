@@ -1,0 +1,91 @@
+{
+  "generated_at": "2026-04-19T22:51:53.270981Z",
+  "reference_run_id": "stage1_catboost_live",
+  "selected_roots": [
+    "8h/B"
+  ],
+  "n_steps": 1,
+  "resume_mode": "skip_completed",
+  "runtime_mode": "routine",
+  "stage1_version": "v2",
+  "stage1_v2_selector_config": {
+    "feature_selector_method": "recursive_shap",
+    "selector_shap_calc_type": "Regular",
+    "selector_steps": 3,
+    "selector_keep_ratio": 0.7,
+    "selector_fold_vote_min_frac": 0.5,
+    "selector_step_vote_min_frac": 0.5,
+    "min_features_keep": 24,
+    "feature_importance_type": "PredictionValuesChange",
+    "execution_mode": "parity",
+    "collect_step_diagnostics": true,
+    "persist_prediction_rows": true
+  },
+  "triplet_report": {
+    "source": "auto",
+    "selected_triplets": [
+      [
+        2,
+        1,
+        3
+      ],
+      [
+        2,
+        3,
+        9
+      ],
+      [
+        2,
+        1,
+        6
+      ],
+      [
+        2,
+        2,
+        8
+      ],
+      [
+        2,
+        1,
+        5
+      ],
+      [
+        2,
+        2,
+        4
+      ],
+      [
+        2,
+        2,
+        10
+      ],
+      [
+        7,
+        1,
+        4
+      ]
+    ],
+    "manual_metrics": {
+      "mean_best_acc": 0.46747500000000003,
+      "cov70": 0.174,
+      "cov80": 0.088,
+      "n_contexts": 500
+    },
+    "selected_metrics": {
+      "mean_best_acc": 0.5048416666666667,
+      "cov70": 0.214,
+      "cov80": 0.108,
+      "n_contexts": 500
+    },
+    "build_result": null
+  },
+  "roots": {
+    "8h/B": {
+      "regime": "8h",
+      "family": "B",
+      "run_id": "stage1_catboost_8h_b_v2_live",
+      "features_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers",
+      "labels_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels"
+    }
+  }
+}

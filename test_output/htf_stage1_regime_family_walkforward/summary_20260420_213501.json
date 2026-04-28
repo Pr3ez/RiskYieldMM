@@ -1,0 +1,4760 @@
+[
+  {
+    "root_key": "8h/B",
+    "regime": "8h",
+    "family": "B",
+    "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live",
+    "features_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_with_helpers",
+    "labels_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_4class_labels",
+    "resume": true,
+    "n_steps": 500,
+    "runtime_mode": "routine",
+    "stage1_version": "v2",
+    "stage1_v2_selector_config": {
+      "feature_selector_method": "recursive_shap",
+      "selector_shap_calc_type": "Regular",
+      "selector_steps": 3,
+      "selector_keep_ratio": 0.7,
+      "selector_fold_vote_min_frac": 0.5,
+      "selector_step_vote_min_frac": 0.5,
+      "min_features_keep": 24,
+      "feature_importance_type": "PredictionValuesChange",
+      "execution_mode": "fixed_policy",
+      "collect_step_diagnostics": true,
+      "persist_prediction_rows": true,
+      "fixed_policy_registry_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_live/stage1_v2_fixed_policy_registry.json"
+    },
+    "pred_batch_min": 5170,
+    "pred_batch_max": 5355,
+    "triplet_grid": [
+      [
+        2,
+        1,
+        3
+      ],
+      [
+        2,
+        3,
+        9
+      ],
+      [
+        2,
+        1,
+        6
+      ],
+      [
+        2,
+        2,
+        8
+      ],
+      [
+        2,
+        1,
+        5
+      ],
+      [
+        2,
+        2,
+        4
+      ],
+      [
+        2,
+        2,
+        10
+      ],
+      [
+        7,
+        1,
+        4
+      ]
+    ],
+    "result": {
+      "run_id": "stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live",
+      "mode": "stage1_isolated_v2",
+      "stage1_version": "v2",
+      "model_name": "catboost",
+      "n_steps": 186,
+      "stage1_runtime_mode": "routine",
+      "stage1_quality_accuracy_threshold": 0.7,
+      "stage1_probe_enabled": false,
+      "stage1_probe_tier_sizes": [
+        0
+      ],
+      "stage1_probe_max_extra_candidates": 0,
+      "stage1_probe_source_scope": "current",
+      "stage1_backfill_low_quality_completed": false,
+      "stage1_promotion_mode": "global",
+      "stage1_promoted_combo_cap_per_unit": 8,
+      "timeframes": [
+        "1m"
+      ],
+      "step_batches": [
+        5170,
+        5171,
+        5172,
+        5173,
+        5174,
+        5175,
+        5176,
+        5177,
+        5178,
+        5179,
+        5180,
+        5181,
+        5182,
+        5183,
+        5184,
+        5185,
+        5186,
+        5187,
+        5188,
+        5189,
+        5190,
+        5191,
+        5192,
+        5193,
+        5194,
+        5195,
+        5196,
+        5197,
+        5198,
+        5199,
+        5200,
+        5201,
+        5202,
+        5203,
+        5204,
+        5205,
+        5206,
+        5207,
+        5208,
+        5209,
+        5210,
+        5211,
+        5212,
+        5213,
+        5214,
+        5215,
+        5216,
+        5217,
+        5218,
+        5219,
+        5220,
+        5221,
+        5222,
+        5223,
+        5224,
+        5225,
+        5226,
+        5227,
+        5228,
+        5229,
+        5230,
+        5231,
+        5232,
+        5233,
+        5234,
+        5235,
+        5236,
+        5237,
+        5238,
+        5239,
+        5240,
+        5241,
+        5242,
+        5243,
+        5244,
+        5245,
+        5246,
+        5247,
+        5248,
+        5249,
+        5250,
+        5251,
+        5252,
+        5253,
+        5254,
+        5255,
+        5256,
+        5257,
+        5258,
+        5259,
+        5260,
+        5261,
+        5262,
+        5263,
+        5264,
+        5265,
+        5266,
+        5267,
+        5268,
+        5269,
+        5270,
+        5271,
+        5272,
+        5273,
+        5274,
+        5275,
+        5276,
+        5277,
+        5278,
+        5279,
+        5280,
+        5281,
+        5282,
+        5283,
+        5284,
+        5285,
+        5286,
+        5287,
+        5288,
+        5289,
+        5290,
+        5291,
+        5292,
+        5293,
+        5294,
+        5295,
+        5296,
+        5297,
+        5298,
+        5299,
+        5300,
+        5301,
+        5302,
+        5303,
+        5304,
+        5305,
+        5306,
+        5307,
+        5308,
+        5309,
+        5310,
+        5311,
+        5312,
+        5313,
+        5314,
+        5315,
+        5316,
+        5317,
+        5318,
+        5319,
+        5320,
+        5321,
+        5322,
+        5323,
+        5324,
+        5325,
+        5326,
+        5327,
+        5328,
+        5329,
+        5330,
+        5331,
+        5332,
+        5333,
+        5334,
+        5335,
+        5336,
+        5337,
+        5338,
+        5339,
+        5340,
+        5341,
+        5342,
+        5343,
+        5344,
+        5345,
+        5346,
+        5347,
+        5348,
+        5349,
+        5350,
+        5351,
+        5352,
+        5353,
+        5354,
+        5355
+      ],
+      "results": {
+        "catboost/1m/target_4class": [
+          {
+            "step": 143,
+            "pred_batch": 5312,
+            "train_end": 5311,
+            "runtime_s": 12.502640724182129,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5311,
+              "pred_batch": 5312,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4862,
+              "lookback_range_end_batch": 5311,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.49160302997916,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.44166666666666665,
+              "winner_macro_f1": 0.1531791907514451,
+              "winner_cross_direction_error": 0.058333333333333334,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 144,
+            "pred_batch": 5313,
+            "train_end": 5312,
+            "runtime_s": 11.874926090240479,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5312,
+              "pred_batch": 5313,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4863,
+              "lookback_range_end_batch": 5312,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.867965436016675,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.575,
+              "winner_macro_f1": 0.3201352386486701,
+              "winner_cross_direction_error": 0.25,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 145,
+            "pred_batch": 5314,
+            "train_end": 5313,
+            "runtime_s": 11.482983589172363,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5313,
+              "pred_batch": 5314,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4864,
+              "lookback_range_end_batch": 5313,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.475744295981713,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.6666666666666666,
+              "winner_macro_f1": 0.3602577453788076,
+              "winner_cross_direction_error": 0.041666666666666664,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 146,
+            "pred_batch": 5315,
+            "train_end": 5314,
+            "runtime_s": 11.43740200996399,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5314,
+              "pred_batch": 5315,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4865,
+              "lookback_range_end_batch": 5314,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.43077070300933,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.3,
+              "winner_macro_f1": 0.23224119542031257,
+              "winner_cross_direction_error": 0.5833333333333334,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 147,
+            "pred_batch": 5316,
+            "train_end": 5315,
+            "runtime_s": 14.664453983306885,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5315,
+              "pred_batch": 5316,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4866,
+              "lookback_range_end_batch": 5315,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.657859020982869,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.16666666666666666,
+              "winner_macro_f1": 0.10721284293035875,
+              "winner_cross_direction_error": 0.5208333333333334,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 148,
+            "pred_batch": 5317,
+            "train_end": 5316,
+            "runtime_s": 13.715006828308105,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5316,
+              "pred_batch": 5317,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4867,
+              "lookback_range_end_batch": 5316,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.707541483978275,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.8375,
+              "winner_macro_f1": 0.22789115646258504,
+              "winner_cross_direction_error": 0.1125,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 149,
+            "pred_batch": 5318,
+            "train_end": 5317,
+            "runtime_s": 12.237323522567749,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5317,
+              "pred_batch": 5318,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4868,
+              "lookback_range_end_batch": 5317,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.23013271598029,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.8875,
+              "winner_macro_f1": 0.23878923766816146,
+              "winner_cross_direction_error": 0.07083333333333333,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 150,
+            "pred_batch": 5319,
+            "train_end": 5318,
+            "runtime_s": 13.495647430419922,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5318,
+              "pred_batch": 5319,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4869,
+              "lookback_range_end_batch": 5318,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.488541251979768,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.10416666666666667,
+              "winner_macro_f1": 0.057286271027576344,
+              "winner_cross_direction_error": 0.8958333333333334,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 151,
+            "pred_batch": 5320,
+            "train_end": 5319,
+            "runtime_s": 16.270893573760986,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5319,
+              "pred_batch": 5320,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4870,
+              "lookback_range_end_batch": 5319,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 16.263456432003295,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.43333333333333335,
+              "winner_macro_f1": 0.3365133509389671,
+              "winner_cross_direction_error": 0.1875,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 152,
+            "pred_batch": 5321,
+            "train_end": 5320,
+            "runtime_s": 14.880536079406738,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5320,
+              "pred_batch": 5321,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4871,
+              "lookback_range_end_batch": 5320,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.873300690000178,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.7041666666666667,
+              "winner_macro_f1": 0.35168524108041177,
+              "winner_cross_direction_error": 0.04583333333333333,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 153,
+            "pred_batch": 5322,
+            "train_end": 5321,
+            "runtime_s": 14.703974962234497,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5321,
+              "pred_batch": 5322,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4872,
+              "lookback_range_end_batch": 5321,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.696805351995863,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.425,
+              "winner_macro_f1": 0.14912280701754385,
+              "winner_cross_direction_error": 0.125,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 154,
+            "pred_batch": 5323,
+            "train_end": 5322,
+            "runtime_s": 14.123701572418213,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5322,
+              "pred_batch": 5323,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4873,
+              "lookback_range_end_batch": 5322,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.116019365988905,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.6583333333333333,
+              "winner_macro_f1": 0.22235978704964715,
+              "winner_cross_direction_error": 0.1875,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 155,
+            "pred_batch": 5324,
+            "train_end": 5323,
+            "runtime_s": 12.81686019897461,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5323,
+              "pred_batch": 5324,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4874,
+              "lookback_range_end_batch": 5323,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.80956847500056,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.6875,
+              "winner_macro_f1": 0.3096887550200803,
+              "winner_cross_direction_error": 0.11666666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 156,
+            "pred_batch": 5325,
+            "train_end": 5324,
+            "runtime_s": 14.123505592346191,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5324,
+              "pred_batch": 5325,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4875,
+              "lookback_range_end_batch": 5324,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.116397520003375,
+              "winner_combo_key": "f2_v1_t3",
+              "winner_accuracy": 0.5791666666666667,
+              "winner_macro_f1": 0.18337730870712404,
+              "winner_cross_direction_error": 0.275,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 157,
+            "pred_batch": 5326,
+            "train_end": 5325,
+            "runtime_s": 11.764104843139648,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5325,
+              "pred_batch": 5326,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4876,
+              "lookback_range_end_batch": 5325,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.756932566000614,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.22083333333333333,
+              "winner_macro_f1": 0.19766930965934762,
+              "winner_cross_direction_error": 0.25,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 158,
+            "pred_batch": 5327,
+            "train_end": 5326,
+            "runtime_s": 12.800003290176392,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5326,
+              "pred_batch": 5327,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4877,
+              "lookback_range_end_batch": 5326,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.793234444019618,
+              "winner_combo_key": "f2_v1_t3",
+              "winner_accuracy": 0.6458333333333334,
+              "winner_macro_f1": 0.20182291666666669,
+              "winner_cross_direction_error": 0.325,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 159,
+            "pred_batch": 5328,
+            "train_end": 5327,
+            "runtime_s": 13.7062668800354,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5327,
+              "pred_batch": 5328,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4878,
+              "lookback_range_end_batch": 5327,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.698835299990606,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.7333333333333333,
+              "winner_macro_f1": 0.3558897243107769,
+              "winner_cross_direction_error": 0.12916666666666668,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 160,
+            "pred_batch": 5329,
+            "train_end": 5328,
+            "runtime_s": 12.656443357467651,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5328,
+              "pred_batch": 5329,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4879,
+              "lookback_range_end_batch": 5328,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.649265985004604,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.45,
+              "winner_macro_f1": 0.2974725274725275,
+              "winner_cross_direction_error": 0.22916666666666666,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 161,
+            "pred_batch": 5330,
+            "train_end": 5329,
+            "runtime_s": 11.633038759231567,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5329,
+              "pred_batch": 5330,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4880,
+              "lookback_range_end_batch": 5329,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.626029375009239,
+              "winner_combo_key": "f2_v1_t3",
+              "winner_accuracy": 0.2,
+              "winner_macro_f1": 0.10572687224669602,
+              "winner_cross_direction_error": 0.4,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 162,
+            "pred_batch": 5331,
+            "train_end": 5330,
+            "runtime_s": 11.60623288154602,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5330,
+              "pred_batch": 5331,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4881,
+              "lookback_range_end_batch": 5330,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.5990056200244,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.30416666666666664,
+              "winner_macro_f1": 0.190359477124183,
+              "winner_cross_direction_error": 0.4,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 163,
+            "pred_batch": 5332,
+            "train_end": 5331,
+            "runtime_s": 11.611247301101685,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5331,
+              "pred_batch": 5332,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4882,
+              "lookback_range_end_batch": 5331,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.604291361989453,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.5125,
+              "winner_macro_f1": 0.2957631649291633,
+              "winner_cross_direction_error": 0.32083333333333336,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 164,
+            "pred_batch": 5333,
+            "train_end": 5332,
+            "runtime_s": 11.558480978012085,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5332,
+              "pred_batch": 5333,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4883,
+              "lookback_range_end_batch": 5332,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.551384318998316,
+              "winner_combo_key": "f2_v1_t3",
+              "winner_accuracy": 0.7291666666666666,
+              "winner_macro_f1": 0.3404057425482558,
+              "winner_cross_direction_error": 0.020833333333333332,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 165,
+            "pred_batch": 5334,
+            "train_end": 5333,
+            "runtime_s": 11.993336200714111,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5333,
+              "pred_batch": 5334,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4884,
+              "lookback_range_end_batch": 5333,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.986213883006712,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.25416666666666665,
+              "winner_macro_f1": 0.10132890365448505,
+              "winner_cross_direction_error": 0.6208333333333333,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 166,
+            "pred_batch": 5335,
+            "train_end": 5334,
+            "runtime_s": 13.704380512237549,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5334,
+              "pred_batch": 5335,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4885,
+              "lookback_range_end_batch": 5334,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.697187590005342,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.2875,
+              "winner_macro_f1": 0.11165048543689318,
+              "winner_cross_direction_error": 0.30833333333333335,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 167,
+            "pred_batch": 5336,
+            "train_end": 5335,
+            "runtime_s": 12.594597578048706,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5335,
+              "pred_batch": 5336,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4886,
+              "lookback_range_end_batch": 5335,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.587128201994346,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.39166666666666666,
+              "winner_macro_f1": 0.14826498422712936,
+              "winner_cross_direction_error": 0.475,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 168,
+            "pred_batch": 5337,
+            "train_end": 5336,
+            "runtime_s": 13.174352884292603,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5336,
+              "pred_batch": 5337,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4887,
+              "lookback_range_end_batch": 5336,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.167448724008864,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.6291666666666667,
+              "winner_macro_f1": 0.3164115304519382,
+              "winner_cross_direction_error": 0.029166666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 169,
+            "pred_batch": 5338,
+            "train_end": 5337,
+            "runtime_s": 12.38146424293518,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5337,
+              "pred_batch": 5338,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4888,
+              "lookback_range_end_batch": 5337,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.374241394019919,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.775,
+              "winner_macro_f1": 0.37800779674687457,
+              "winner_cross_direction_error": 0.041666666666666664,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 170,
+            "pred_batch": 5339,
+            "train_end": 5338,
+            "runtime_s": 13.591418743133545,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5338,
+              "pred_batch": 5339,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4889,
+              "lookback_range_end_batch": 5338,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.584114496014081,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.2708333333333333,
+              "winner_macro_f1": 0.10655737704918032,
+              "winner_cross_direction_error": 0.3416666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 171,
+            "pred_batch": 5340,
+            "train_end": 5339,
+            "runtime_s": 13.030488729476929,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5339,
+              "pred_batch": 5340,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4890,
+              "lookback_range_end_batch": 5339,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.022992216981947,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.4041666666666667,
+              "winner_macro_f1": 0.3095238095238095,
+              "winner_cross_direction_error": 0.5041666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 172,
+            "pred_batch": 5341,
+            "train_end": 5340,
+            "runtime_s": 13.843677520751953,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5340,
+              "pred_batch": 5341,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4891,
+              "lookback_range_end_batch": 5340,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.836344755982282,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.20416666666666666,
+              "winner_macro_f1": 0.11471273291925466,
+              "winner_cross_direction_error": 0.7375,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 173,
+            "pred_batch": 5342,
+            "train_end": 5341,
+            "runtime_s": 12.68370270729065,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5341,
+              "pred_batch": 5342,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4892,
+              "lookback_range_end_batch": 5341,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.676806960022077,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.575,
+              "winner_macro_f1": 0.28841521278925475,
+              "winner_cross_direction_error": 0.03333333333333333,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 174,
+            "pred_batch": 5343,
+            "train_end": 5342,
+            "runtime_s": 11.862909317016602,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5342,
+              "pred_batch": 5343,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4893,
+              "lookback_range_end_batch": 5342,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.85592083100346,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.5708333333333333,
+              "winner_macro_f1": 0.39469298679824993,
+              "winner_cross_direction_error": 0.16666666666666666,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 175,
+            "pred_batch": 5344,
+            "train_end": 5343,
+            "runtime_s": 12.169816017150879,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5343,
+              "pred_batch": 5344,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4894,
+              "lookback_range_end_batch": 5343,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.16267816600157,
+              "winner_combo_key": "f2_v2_t4",
+              "winner_accuracy": 0.5291666666666667,
+              "winner_macro_f1": 0.29930311994591546,
+              "winner_cross_direction_error": 0.30833333333333335,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 176,
+            "pred_batch": 5345,
+            "train_end": 5344,
+            "runtime_s": 12.580632209777832,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5344,
+              "pred_batch": 5345,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4895,
+              "lookback_range_end_batch": 5344,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.573238295008196,
+              "winner_combo_key": "f2_v1_t3",
+              "winner_accuracy": 0.3458333333333333,
+              "winner_macro_f1": 0.22386054841897232,
+              "winner_cross_direction_error": 0.4125,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 177,
+            "pred_batch": 5346,
+            "train_end": 5345,
+            "runtime_s": 12.063390731811523,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5345,
+              "pred_batch": 5346,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4896,
+              "lookback_range_end_batch": 5345,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.055480385024566,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.7958333333333333,
+              "winner_macro_f1": 0.4154600563728329,
+              "winner_cross_direction_error": 0.07916666666666666,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 178,
+            "pred_batch": 5347,
+            "train_end": 5346,
+            "runtime_s": 12.618713855743408,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5346,
+              "pred_batch": 5347,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4897,
+              "lookback_range_end_batch": 5346,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.611328606988536,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.4625,
+              "winner_macro_f1": 0.2163788592360021,
+              "winner_cross_direction_error": 0.2916666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 179,
+            "pred_batch": 5348,
+            "train_end": 5347,
+            "runtime_s": 11.962538719177246,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5347,
+              "pred_batch": 5348,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4898,
+              "lookback_range_end_batch": 5347,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 11.953693641989958,
+              "winner_combo_key": "f2_v1_t6",
+              "winner_accuracy": 0.43333333333333335,
+              "winner_macro_f1": 0.20486111111111108,
+              "winner_cross_direction_error": 0.0,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 180,
+            "pred_batch": 5349,
+            "train_end": 5348,
+            "runtime_s": 14.09822702407837,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5348,
+              "pred_batch": 5349,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4899,
+              "lookback_range_end_batch": 5348,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.090845452999929,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.5416666666666666,
+              "winner_macro_f1": 0.2226939075116222,
+              "winner_cross_direction_error": 0.09583333333333334,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 181,
+            "pred_batch": 5350,
+            "train_end": 5349,
+            "runtime_s": 13.202872514724731,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5349,
+              "pred_batch": 5350,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4900,
+              "lookback_range_end_batch": 5349,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.19417286600219,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.8583333333333333,
+              "winner_macro_f1": 0.36988136241867586,
+              "winner_cross_direction_error": 0.0,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 182,
+            "pred_batch": 5351,
+            "train_end": 5350,
+            "runtime_s": 12.776267766952515,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5350,
+              "pred_batch": 5351,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4901,
+              "lookback_range_end_batch": 5350,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 12.767274849989917,
+              "winner_combo_key": "f2_v1_t5",
+              "winner_accuracy": 0.475,
+              "winner_macro_f1": 0.16285714285714284,
+              "winner_cross_direction_error": 0.4166666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 183,
+            "pred_batch": 5352,
+            "train_end": 5351,
+            "runtime_s": 13.215108394622803,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5351,
+              "pred_batch": 5352,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4902,
+              "lookback_range_end_batch": 5351,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.207609402015805,
+              "winner_combo_key": "f7_v1_t4",
+              "winner_accuracy": 0.1875,
+              "winner_macro_f1": 0.09915873222903351,
+              "winner_cross_direction_error": 0.6166666666666667,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 184,
+            "pred_batch": 5353,
+            "train_end": 5352,
+            "runtime_s": 14.08124589920044,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5352,
+              "pred_batch": 5353,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4903,
+              "lookback_range_end_batch": 5352,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 14.074178609997034,
+              "winner_combo_key": "f2_v2_t10",
+              "winner_accuracy": 0.3541666666666667,
+              "winner_macro_f1": 0.25646432522123896,
+              "winner_cross_direction_error": 0.3625,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 185,
+            "pred_batch": 5354,
+            "train_end": 5353,
+            "runtime_s": 13.068225860595703,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5353,
+              "pred_batch": 5354,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4904,
+              "lookback_range_end_batch": 5353,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.060608161991695,
+              "winner_combo_key": "f2_v3_t9",
+              "winner_accuracy": 0.9416666666666667,
+              "winner_macro_f1": 0.24248927038626608,
+              "winner_cross_direction_error": 0.0,
+              "quality_threshold": 0.7,
+              "quality_pass": true,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          },
+          {
+            "step": 186,
+            "pred_batch": 5355,
+            "train_end": 5354,
+            "runtime_s": 13.150891065597534,
+            "summary": {
+              "window_selection_mode": "stage1_fold_cv_v2",
+              "leakage_guard": "pass",
+              "train_end_batch": 5354,
+              "pred_batch": 5355,
+              "target": "target_4class",
+              "feature_target": "target_4class",
+              "n_classes": 4,
+              "combo_count_total": 8,
+              "combo_count_completed": 8,
+              "combo_count_failed": 0,
+              "combo_count_new_this_run": 8,
+              "append_mode": false,
+              "candidate_source": "base_grid",
+              "probe_tier": 0,
+              "discovered_from": "active_triplet_grid",
+              "fold_windows_total": 21,
+              "fold_windows_completed": 21,
+              "val_payload_rows": 7440,
+              "pred_payload_rows": 1920,
+              "train_model_cache_hits": 2,
+              "train_model_cache_misses": 19,
+              "train_model_cache_unique": 19,
+              "lookback_range_start_batch": 4905,
+              "lookback_range_end_batch": 5354,
+              "stage1_grid": {
+                "folds_min": 2,
+                "folds_max": 9,
+                "fold_grid": [],
+                "val_batches_grid": [
+                  1,
+                  2,
+                  3,
+                  4
+                ],
+                "triplet_grid": [
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 3
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 5
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 6
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 4
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 8
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 2,
+                    "train_batches_per_fold": 10
+                  },
+                  {
+                    "fold_count": 2,
+                    "val_batches_per_fold": 3,
+                    "train_batches_per_fold": 9
+                  },
+                  {
+                    "fold_count": 7,
+                    "val_batches_per_fold": 1,
+                    "train_batches_per_fold": 4
+                  }
+                ],
+                "pair_grid": [],
+                "train_multiplier_grid": [],
+                "train_batches_grid": []
+              },
+              "fail_reasons": {},
+              "runtime_s": 13.143421086977469,
+              "winner_combo_key": "f2_v2_t8",
+              "winner_accuracy": 0.32916666666666666,
+              "winner_macro_f1": 0.19416996047430835,
+              "winner_cross_direction_error": 0.5625,
+              "quality_threshold": 0.7,
+              "quality_pass": false,
+              "quality_unresolved": false,
+              "probe_exhausted": false,
+              "probe_enabled": false,
+              "probe_tiers_run": 0,
+              "probe_candidates_evaluated": 0
+            }
+          }
+        ]
+      },
+      "runtime_s": 890.7729513645172,
+      "dynamic_combo_registry": null,
+      "completed_at": "2026-04-20T21:35:01.841468",
+      "pred_batch_min": 5170,
+      "pred_batch_max": 5355,
+      "stage1_v2_artifact_contract_version": "2026-04-20-stage1-v2-contract-v1",
+      "stage1_v2_selector_config": {
+        "feature_selector_method": "recursive_shap",
+        "selector_shap_calc_type": "Regular",
+        "selector_steps": 3,
+        "selector_keep_ratio": 0.7,
+        "selector_fold_vote_min_frac": 0.5,
+        "selector_step_vote_min_frac": 0.5,
+        "min_features_keep": 24,
+        "feature_importance_type": "PredictionValuesChange",
+        "execution_mode": "fixed_policy",
+        "collect_step_diagnostics": true,
+        "persist_prediction_rows": true,
+        "fixed_policy_registry_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_live/stage1_v2_fixed_policy_registry.json"
+      },
+      "stage1_v2_execution_mode": "fixed_policy",
+      "stage1_v2_root_artifacts": {
+        "progress": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_progress.parquet",
+        "baseline_vs_selected_root": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_baseline_vs_selected_root.parquet",
+        "winner_change_summary": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_winner_change_summary.parquet",
+        "feature_importance_global": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_feature_importance_global.parquet",
+        "feature_mask_global": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_feature_mask_global.parquet",
+        "feature_stability": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_feature_stability.parquet",
+        "run_summary": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_fixed_policy_pb5170_5355_live/stage1_v2_run_summary.json"
+      },
+      "stage1_v2_fixed_policy_registry_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_8h_b_v2_live/stage1_v2_fixed_policy_registry.json"
+    }
+  }
+]

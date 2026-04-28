@@ -1,7 +1,14 @@
-//! OU (Ornstein-Uhlenbeck / AR(1)) rolling estimation
-//! 
-//! Estimates mean-reversion strength using rolling window AR(1) model.
-//! Each sample t gets AR(1) coefficient estimated from window [t-w:t].
+//! OU (Ornstein-Uhlenbeck / AR(1)) rolling estimation.
+//!
+//! Source contract:
+//! - Vasicek (1977): https://www.sciencedirect.com/science/article/abs/pii/0304405X77900162
+//! - Zhang et al. (2018): https://arxiv.org/abs/1803.06460
+//!
+//! Strict no-lookahead rule for this implementation:
+//! - each sample t estimates AR(1) from trailing window [t-w:t)
+//! - early rows remain NaN until enough trailing history exists
+//! - we intentionally do not forward-fill early rows from the first later valid value
+//!   because that would leak future chunk information back into earlier timestamps
 
 use rayon::prelude::*;
 
@@ -119,7 +126,7 @@ impl OUFeatures {
             zscore_abs: vec![f64::NAN; n],
             is_stationary: vec![f64::NAN; n],
             halflife_regime: vec![f64::NAN; n],
-            reverting: vec![0.0; n],
+            reverting: vec![f64::NAN; n],
         }
     }
 }
@@ -156,6 +163,7 @@ pub fn ou_rolling_transform(
     let n = series.len();
     let window = config.rolling_window;
     let zscore_window = config.zscore_window;
+    let min_history = window.max(zscore_window);
     
     if n < window {
         return OUFeatures::new(n);
@@ -214,7 +222,7 @@ pub fn ou_rolling_transform(
     }
     
     // Compute z-scores (sequential due to dependency on previous z-score)
-    for t in zscore_window..n {
+    for t in min_history..n {
         let win_start = t - zscore_window;
         let win_data = &series[win_start..t];
         
@@ -225,37 +233,14 @@ pub fn ou_rolling_transform(
             features.zscore[t] = z;
             features.zscore_abs[t] = z.abs();
             
-            // Reverting: z and delta_z have opposite signs
-            if t > 0 && series[t - 1].is_finite() {
-                let z_prev = (series[t - 1] - stats.mean) / stats.std;
+            // Reverting uses the previously emitted OU z-score rather than
+            // recomputing the previous row under the current row's window.
+            // That keeps the feature stable under prefix-only causal transforms.
+            if t > 0 && features.zscore[t - 1].is_finite() {
+                let z_prev = features.zscore[t - 1];
                 let delta_z = z - z_prev;
                 features.reverting[t] = if z * delta_z < 0.0 { 1.0 } else { 0.0 };
             }
-        }
-    }
-    
-    // Fill early values with first valid
-    if window < n && features.phi[window].is_finite() {
-        let first_phi = features.phi[window];
-        let first_kappa = features.kappa[window];
-        let first_halflife = features.halflife[window];
-        let first_stationary = features.is_stationary[window];
-        let first_regime = features.halflife_regime[window];
-        
-        for t in 0..window {
-            features.phi[t] = first_phi;
-            features.kappa[t] = first_kappa;
-            features.halflife[t] = first_halflife;
-            features.is_stationary[t] = first_stationary;
-            features.halflife_regime[t] = first_regime;
-        }
-    }
-    
-    if zscore_window < n && features.zscore[zscore_window].is_finite() {
-        let first_z = features.zscore[zscore_window];
-        for t in 0..zscore_window {
-            features.zscore[t] = first_z;
-            features.zscore_abs[t] = first_z.abs();
         }
     }
     
@@ -289,6 +274,9 @@ mod tests {
         let features = ou_rolling_transform(&series, &config);
         
         assert_eq!(features.phi.len(), 200);
+        assert!(features.phi[0].is_nan());
+        assert!(features.zscore[0].is_nan());
+        assert!(features.reverting[0].is_nan());
         assert!(features.phi[100].is_finite());
         assert!(features.zscore[100].is_finite());
     }
