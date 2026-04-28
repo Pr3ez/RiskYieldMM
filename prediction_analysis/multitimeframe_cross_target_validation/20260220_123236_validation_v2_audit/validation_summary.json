@@ -1,0 +1,277 @@
+{
+  "timestamp_utc": "2026-02-20T12:32:36.717140+00:00",
+  "input_run": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260220_082046_backfill_fix",
+  "script_path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_ensemble_search_v2.py",
+  "phases": {
+    "phase1_integrity_gate": {
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs_v2/20260220_122212_validation_phase1",
+      "exists": true,
+      "summary_exists": true,
+      "integrity_exists": true,
+      "integrity_status": "passed",
+      "integrity_counts": {
+        "unit_rows_filtered": 3648000,
+        "precheck_rows": 36000,
+        "precheck_bad_rows": 0,
+        "invalid_truth_breakfree_rows": 0,
+        "invalid_truth_4class_rows": 0,
+        "expected_batches": 500,
+        "discovered_batches": 500,
+        "anchor_rows": 8000,
+        "anchor_batches": 500,
+        "anchor_bad_batches": 0,
+        "anchor_rows_expected": 8000,
+        "aligned_rows": 576000,
+        "aligned_bad_row_count": 0,
+        "expected_anchor_candidate_rows": 576000,
+        "missing_anchor_candidate_rows": 0,
+        "candidate_count": 72,
+        "feature_count_total": 468,
+        "feature_count_base": 252,
+        "feature_count_derived": 216
+      },
+      "integrity_validations": {
+        "pre_batch_row_count_match": true,
+        "truth_breakfree_domain_valid": true,
+        "truth_4class_domain_valid": true,
+        "batch_count_matches_expected": true,
+        "anchor_rows_per_batch_is_16": true,
+        "anchor_total_matches_expected": true,
+        "aligned_row_count_match": true,
+        "anchor_candidate_completeness": true,
+        "feature_core_probs_no_nan": true,
+        "candidate_count_is_72": true,
+        "feature_count_base_is_252": true
+      },
+      "summary_counts": {
+        "anchor_rows_total": 8000,
+        "batches_total": 500,
+        "batches_walkforward": 1,
+        "candidate_count": 72,
+        "feature_count_total": 468,
+        "target_prediction_rows": 16,
+        "final_prediction_rows": 16,
+        "trials_breakfree_rows": 1,
+        "trials_4dir_rows": 1,
+        "selected_params_rows": 2,
+        "selected_features_rows": 692,
+        "calibration_rows": 2
+      },
+      "leakage_checks": {
+        "history_max_batch_lt_pred_batch": true,
+        "bad_rows": 0,
+        "lookback_effective_le_history_available": true,
+        "lookback_bad_rows": 0
+      },
+      "fallback_usage": {
+        "fallback_rows": 1,
+        "fallback_rate": 0.5
+      },
+      "best_metrics": {
+        "rank": 1,
+        "method_name": "meta_v2_twohead_optuna_agreement_hold",
+        "alignment_mode": "same_period_close",
+        "weight_method": "meta_model",
+        "final_rule": "agreement_hold_locked",
+        "macro_f1": 0.14035087719298248,
+        "balanced_accuracy": 0.16666666666666666,
+        "directional_balanced_recall": 0.25,
+        "accuracy_covered": 0.25,
+        "coverage": 1.0,
+        "eligible_count": 16,
+        "covered_count": 16,
+        "custom_mean_cost": 1.0,
+        "custom_utility": 0.5
+      },
+      "artifact_missing_count": 0,
+      "artifact_missing_keys": [],
+      "status": "pass"
+    },
+    "phase2_lookback_fallback_gate": {
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs_v2/20260220_122258_validation_phase2",
+      "exists": true,
+      "summary_exists": true,
+      "integrity_exists": true,
+      "integrity_status": "passed",
+      "integrity_counts": {
+        "unit_rows_filtered": 3648000,
+        "precheck_rows": 36000,
+        "precheck_bad_rows": 0,
+        "invalid_truth_breakfree_rows": 0,
+        "invalid_truth_4class_rows": 0,
+        "expected_batches": 500,
+        "discovered_batches": 500,
+        "anchor_rows": 8000,
+        "anchor_batches": 500,
+        "anchor_bad_batches": 0,
+        "anchor_rows_expected": 8000,
+        "aligned_rows": 576000,
+        "aligned_bad_row_count": 0,
+        "expected_anchor_candidate_rows": 576000,
+        "missing_anchor_candidate_rows": 0,
+        "candidate_count": 72,
+        "feature_count_total": 468,
+        "feature_count_base": 252,
+        "feature_count_derived": 216
+      },
+      "integrity_validations": {
+        "pre_batch_row_count_match": true,
+        "truth_breakfree_domain_valid": true,
+        "truth_4class_domain_valid": true,
+        "batch_count_matches_expected": true,
+        "anchor_rows_per_batch_is_16": true,
+        "anchor_total_matches_expected": true,
+        "aligned_row_count_match": true,
+        "anchor_candidate_completeness": true,
+        "feature_core_probs_no_nan": true,
+        "candidate_count_is_72": true,
+        "feature_count_base_is_252": true
+      },
+      "summary_counts": {
+        "anchor_rows_total": 8000,
+        "batches_total": 500,
+        "batches_walkforward": 5,
+        "candidate_count": 72,
+        "feature_count_total": 468,
+        "target_prediction_rows": 80,
+        "final_prediction_rows": 80,
+        "trials_breakfree_rows": 10,
+        "trials_4dir_rows": 10,
+        "selected_params_rows": 10,
+        "selected_features_rows": 2136,
+        "calibration_rows": 10
+      },
+      "leakage_checks": {
+        "history_max_batch_lt_pred_batch": true,
+        "bad_rows": 0,
+        "lookback_effective_le_history_available": true,
+        "lookback_bad_rows": 0
+      },
+      "fallback_usage": {
+        "fallback_rows": 1,
+        "fallback_rate": 0.1
+      },
+      "best_metrics": {
+        "rank": 1,
+        "method_name": "meta_v2_twohead_optuna_agreement_hold",
+        "alignment_mode": "same_period_close",
+        "weight_method": "meta_model",
+        "final_rule": "agreement_hold_locked",
+        "macro_f1": 0.2574074074074074,
+        "balanced_accuracy": 0.2512800417972832,
+        "directional_balanced_recall": 0.3314655172413793,
+        "accuracy_covered": 0.325,
+        "coverage": 1.0,
+        "eligible_count": 80,
+        "covered_count": 80,
+        "custom_mean_cost": 0.875,
+        "custom_utility": 0.5625
+      },
+      "artifact_missing_count": 0,
+      "artifact_missing_keys": [],
+      "status": "pass"
+    },
+    "phase3_full_production_gate": {
+      "path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs_v2/20260220_123004_validation_phase3_fullgate",
+      "exists": true,
+      "summary_exists": false,
+      "integrity_exists": false,
+      "status": "incomplete"
+    }
+  },
+  "tests": {
+    "candidate_universe": {
+      "status": "pass",
+      "unit_count": 6,
+      "details": {
+        "1m/target_4class": {
+          "count": 12,
+          "unique": 12
+        },
+        "1m/target_breakfree": {
+          "count": 12,
+          "unique": 12
+        },
+        "5m/target_4class": {
+          "count": 12,
+          "unique": 12
+        },
+        "5m/target_breakfree": {
+          "count": 12,
+          "unique": 12
+        },
+        "15m/target_4class": {
+          "count": 12,
+          "unique": 12
+        },
+        "15m/target_breakfree": {
+          "count": 12,
+          "unique": 12
+        }
+      }
+    },
+    "upstream_row_contract": {
+      "status": "pass",
+      "groups_checked": 36000,
+      "bad_groups": 0,
+      "sample_bad": []
+    },
+    "lookback_effective_guard": {
+      "status": "pass",
+      "bad_rows": 0,
+      "sample_bad": []
+    },
+    "trial_resilience_hard_fail_probe": {
+      "status": "pass",
+      "note": "hard_fail probe with invalid GPU device terminated immediately (non-zero), demonstrating fail-fast path; process ended with segfault exit in CatBoost/CUDA stack.",
+      "log_path": "/tmp/mt_v2_hard_fail_probe.log",
+      "log_exists": true
+    },
+    "logic_invariant_code_audit": {
+      "status": "fail",
+      "checks": {
+        "same_period_close_alignment": false,
+        "strict_missing_pairs_anti_join": true,
+        "lookback_clipping_functions_present": true,
+        "leakage_guard_history_lt_pred": true,
+        "fallback_policy_present": true,
+        "optuna_history_only_split": true
+      }
+    }
+  },
+  "documentation_gaps": {
+    "module_docstring_present": true,
+    "function_count": 32,
+    "functions_missing_docstrings_count": 32,
+    "high_risk_missing_docstrings": [
+      {
+        "function": "_build_prepared_data",
+        "line": 313
+      },
+      {
+        "function": "_run_head_optuna",
+        "line": 1196
+      },
+      {
+        "function": "_resolve_best_trial_or_fallback",
+        "line": 1365
+      },
+      {
+        "function": "_refit_head_from_params",
+        "line": 1397
+      },
+      {
+        "function": "main",
+        "line": 1488
+      }
+    ],
+    "note": "Audit-only pass: no code comments/docs changed in this execution."
+  },
+  "overall_status": "fail",
+  "critical_failures": [
+    "logic_invariant_code_audit"
+  ],
+  "blockers": [
+    "phase3_full_production_gate_not_completed"
+  ]
+}

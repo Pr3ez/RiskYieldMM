@@ -1,0 +1,2196 @@
+{
+  "timeframe": "1m",
+  "target": "target_4class",
+  "method": "rolling_rank_winsorize",
+  "config": {
+    "window": 960,
+    "p_min": 0.01,
+    "p_max": 0.99,
+    "post_transform": "uniform"
+  },
+  "best_config_summary": "L=960, clip=(0.01,0.99), post=uniform (IC=0.0850, score=0.0818)",
+  "best_mean_ic": 0.08496101523771259,
+  "best_std_ic": 0.006268319838258957,
+  "best_score": 0.08182685531858311,
+  "target_type": "multiclass",
+  "n_classes": 4,
+  "n_batches": 168,
+  "total_rows": 40320,
+  "last_processed_batch": 168,
+  "last_processed_timestamp": "2021-02-28T19:59:00+00:00",
+  "resume_reason": "full_recompute",
+  "saved_batches": 168,
+  "reused_batches": 0,
+  "skipped_batches": 0,
+  "start_batch": 1,
+  "end_batch": 168,
+  "feature_cols": [
+    "M_P_logReturn_pct",
+    "M_P_roc_short_pct",
+    "M_P_V_momAtr_short_rat",
+    "M_P_roc_med_pct",
+    "M_P_V_momAtr_med_rat",
+    "M_P_roc_long_pct",
+    "M_P_V_momAtr_long_rat",
+    "V_atrPct_short_pct",
+    "V_returnStd_short_pct",
+    "V_parkinson_short_pct",
+    "V_garmanKlass_short_pct",
+    "V_yangZhang_short_pct",
+    "V_atrPct_med_pct",
+    "V_returnStd_med_pct",
+    "V_parkinson_med_pct",
+    "V_garmanKlass_med_pct",
+    "V_yangZhang_med_pct",
+    "V_atrPct_long_pct",
+    "V_returnStd_long_pct",
+    "V_parkinson_long_pct",
+    "V_garmanKlass_long_pct",
+    "V_yangZhang_long_pct",
+    "N_V_bollingerBW_long_pct",
+    "N_V_bollingerBW_xlong_pct",
+    "N_P_V_pctB_short_bnd",
+    "N_P_V_pctB_med_bnd",
+    "N_P_V_pctB_long_bnd",
+    "M_T_ppo_short_long_pct",
+    "M_T_ppo_med_xlong_pct",
+    "N_P_T_priceSmaDeviation_short_pct",
+    "N_P_T_priceEmaDeviation_short_pct",
+    "N_P_T_priceSmaDeviation_med_pct",
+    "N_P_T_priceEmaDeviation_med_pct",
+    "N_P_T_priceSmaDeviation_long_pct",
+    "N_P_T_priceEmaDeviation_long_pct",
+    "M_N_rsi_short_bnd",
+    "M_N_stochasticK_short_bnd",
+    "M_N_T_stochasticD_short_bnd",
+    "M_N_rsi_med_bnd",
+    "M_N_stochasticK_med_bnd",
+    "M_N_T_stochasticD_med_bnd",
+    "M_N_rsi_long_bnd",
+    "M_N_stochasticK_long_bnd",
+    "M_N_T_stochasticD_long_bnd",
+    "L_M_N_volumeRoc_short_pct",
+    "L_N_volumeRatio_short_rat",
+    "L_M_N_volumeRoc_med_pct",
+    "L_N_volumeRatio_med_rat",
+    "L_M_N_volumeRoc_long_pct",
+    "L_N_volumeRatio_long_rat",
+    "L_M_S_obv_long_zsc",
+    "L_M_S_mfi_long_bnd",
+    "L_M_S_cmf_long_bnd",
+    "L_M_S_obv_xlong_zsc",
+    "L_M_S_mfi_xlong_bnd",
+    "L_M_S_cmf_xlong_bnd",
+    "M_T_V_adx_short_bnd",
+    "M_T_V_diDiff_short_bnd",
+    "N_M_cci_short_zsc",
+    "M_T_V_adx_med_bnd",
+    "M_T_V_diDiff_med_bnd",
+    "N_M_cci_med_zsc",
+    "V_autocorr_med_bnd",
+    "N_P_zScore_med_zsc",
+    "V_volMomentum_med_pct",
+    "V_autocorr_long_bnd",
+    "N_P_zScore_long_zsc",
+    "V_volMomentum_long_pct",
+    "V_skew_med_rat",
+    "V_kurtosis_med_rat",
+    "V_skew_long_rat",
+    "V_kurtosis_long_rat",
+    "V_skew_xlong_rat",
+    "V_kurtosis_xlong_rat",
+    "V_maxDrawdown_long_pct",
+    "M_V_sharpe_long_rat",
+    "M_V_sortino_long_rat",
+    "V_maxDrawdown_xlong_pct",
+    "M_V_sharpe_xlong_rat",
+    "M_V_sortino_xlong_rat",
+    "C_N_bodySize_bnd",
+    "C_N_upperShadow_bnd",
+    "C_N_lowerShadow_bnd",
+    "B_C_candleDirection_bin",
+    "B_consecutiveUp_bnd",
+    "B_consecutiveDown_bnd",
+    "M_winRate_short_bnd",
+    "M_winRate_med_bnd",
+    "M_winRate_long_bnd",
+    "L_M_N_S_oiPctChange_pct",
+    "L_N_volOiRatio_rat",
+    "L_M_N_S_oiRoc_short_pct",
+    "L_M_N_S_oiRoc_med_pct",
+    "L_M_N_S_oiRoc_long_pct",
+    "F_I_fundingCumulative_short_pct",
+    "F_I_T_fundingMa_short_pct",
+    "F_I_fundingCumulative_med_pct",
+    "F_I_T_fundingMa_med_pct",
+    "F_I_fundingCumulative_long_pct",
+    "F_I_T_fundingMa_long_pct",
+    "F_I_N_S_fundingZscore_long_zsc",
+    "F_I_N_S_fundingZscore_xlong_zsc",
+    "S_longShortRatio_rat",
+    "S_M_longShortChange_short_pct",
+    "S_M_longShortChange_med_pct",
+    "S_N_longShortZscore_long_zsc",
+    "S_N_longShortZscore_xlong_zsc",
+    "D_F_basis_pct",
+    "D_N_markCloseDeviation_pct",
+    "D_F_T_premiumMa_short_pct",
+    "D_F_T_premiumMa_med_pct",
+    "D_F_T_premiumMa_long_pct",
+    "D_F_N_S_premiumZscore_long_zsc",
+    "D_F_N_S_premiumZscore_xlong_zsc",
+    "X_D_oiRetPressure_short_pct",
+    "X_D_oiRetPressure_med_pct",
+    "X_D_oiRetPressure_long_pct",
+    "X_D_basisRetPressure_short_pct",
+    "X_D_basisRetPressure_med_pct",
+    "X_D_basisRetPressure_long_pct",
+    "X_D_fundingBasisPressure_long_pct",
+    "X_D_fundingBasisPressure_xlong_pct",
+    "X_D_longShortRetPressure_long_pct",
+    "X_D_longShortRetPressure_xlong_pct",
+    "D_dist_bot5_low_w120",
+    "D_dist_avg_high_w240",
+    "D_dist_avg_low_w240",
+    "D_dist_top5_high_w240",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "bar_in_batch_norm"
+  ],
+  "batch_fingerprints": {
+    "1": {
+      "feature": {
+        "mtime_ns": 1773807941621550803,
+        "size_bytes": 308716
+      },
+      "label": {
+        "mtime_ns": 1773807945336473900,
+        "size_bytes": 56008
+      }
+    },
+    "2": {
+      "feature": {
+        "mtime_ns": 1773807941630550617,
+        "size_bytes": 427860
+      },
+      "label": {
+        "mtime_ns": 1773807945339473837,
+        "size_bytes": 57224
+      }
+    },
+    "3": {
+      "feature": {
+        "mtime_ns": 1773807941636550492,
+        "size_bytes": 438048
+      },
+      "label": {
+        "mtime_ns": 1773807945343473755,
+        "size_bytes": 56411
+      }
+    },
+    "4": {
+      "feature": {
+        "mtime_ns": 1773807941641550389,
+        "size_bytes": 433831
+      },
+      "label": {
+        "mtime_ns": 1773807945345473713,
+        "size_bytes": 56938
+      }
+    },
+    "5": {
+      "feature": {
+        "mtime_ns": 1773807941647550265,
+        "size_bytes": 438283
+      },
+      "label": {
+        "mtime_ns": 1773807945347473672,
+        "size_bytes": 56381
+      }
+    },
+    "6": {
+      "feature": {
+        "mtime_ns": 1773807941652550161,
+        "size_bytes": 432546
+      },
+      "label": {
+        "mtime_ns": 1773807945352473568,
+        "size_bytes": 56714
+      }
+    },
+    "7": {
+      "feature": {
+        "mtime_ns": 1773807941656550078,
+        "size_bytes": 436824
+      },
+      "label": {
+        "mtime_ns": 1773807945354473527,
+        "size_bytes": 56549
+      }
+    },
+    "8": {
+      "feature": {
+        "mtime_ns": 1773807941662549954,
+        "size_bytes": 435830
+      },
+      "label": {
+        "mtime_ns": 1773807945356473485,
+        "size_bytes": 56746
+      }
+    },
+    "9": {
+      "feature": {
+        "mtime_ns": 1773807941668549830,
+        "size_bytes": 434884
+      },
+      "label": {
+        "mtime_ns": 1773807945358473444,
+        "size_bytes": 56598
+      }
+    },
+    "10": {
+      "feature": {
+        "mtime_ns": 1773807941675549685,
+        "size_bytes": 436176
+      },
+      "label": {
+        "mtime_ns": 1773807945359473423,
+        "size_bytes": 56941
+      }
+    },
+    "11": {
+      "feature": {
+        "mtime_ns": 1773807941683549519,
+        "size_bytes": 432916
+      },
+      "label": {
+        "mtime_ns": 1773807945362473361,
+        "size_bytes": 56239
+      }
+    },
+    "12": {
+      "feature": {
+        "mtime_ns": 1773807941688549416,
+        "size_bytes": 439247
+      },
+      "label": {
+        "mtime_ns": 1773807945364473320,
+        "size_bytes": 57125
+      }
+    },
+    "13": {
+      "feature": {
+        "mtime_ns": 1773807941694549292,
+        "size_bytes": 433066
+      },
+      "label": {
+        "mtime_ns": 1773807945366473278,
+        "size_bytes": 57101
+      }
+    },
+    "14": {
+      "feature": {
+        "mtime_ns": 1773807941699549188,
+        "size_bytes": 442884
+      },
+      "label": {
+        "mtime_ns": 1773807945369473216,
+        "size_bytes": 57133
+      }
+    },
+    "15": {
+      "feature": {
+        "mtime_ns": 1773807941705549064,
+        "size_bytes": 431379
+      },
+      "label": {
+        "mtime_ns": 1773807945373473134,
+        "size_bytes": 57213
+      }
+    },
+    "16": {
+      "feature": {
+        "mtime_ns": 1773807941713548898,
+        "size_bytes": 442377
+      },
+      "label": {
+        "mtime_ns": 1773807945375473092,
+        "size_bytes": 56579
+      }
+    },
+    "17": {
+      "feature": {
+        "mtime_ns": 1773807941719548774,
+        "size_bytes": 427559
+      },
+      "label": {
+        "mtime_ns": 1773807945377473051,
+        "size_bytes": 56920
+      }
+    },
+    "18": {
+      "feature": {
+        "mtime_ns": 1773807941725548650,
+        "size_bytes": 436213
+      },
+      "label": {
+        "mtime_ns": 1773807945381472968,
+        "size_bytes": 55527
+      }
+    },
+    "19": {
+      "feature": {
+        "mtime_ns": 1773807941730548546,
+        "size_bytes": 427097
+      },
+      "label": {
+        "mtime_ns": 1773807945385472885,
+        "size_bytes": 56331
+      }
+    },
+    "20": {
+      "feature": {
+        "mtime_ns": 1773807941736548422,
+        "size_bytes": 441533
+      },
+      "label": {
+        "mtime_ns": 1773807945387472844,
+        "size_bytes": 56694
+      }
+    },
+    "21": {
+      "feature": {
+        "mtime_ns": 1773807941741548319,
+        "size_bytes": 431047
+      },
+      "label": {
+        "mtime_ns": 1773807945391472761,
+        "size_bytes": 57278
+      }
+    },
+    "22": {
+      "feature": {
+        "mtime_ns": 1773807941746548215,
+        "size_bytes": 444138
+      },
+      "label": {
+        "mtime_ns": 1773807945393472720,
+        "size_bytes": 57574
+      }
+    },
+    "23": {
+      "feature": {
+        "mtime_ns": 1773807941755548029,
+        "size_bytes": 434261
+      },
+      "label": {
+        "mtime_ns": 1773807945396472657,
+        "size_bytes": 57307
+      }
+    },
+    "24": {
+      "feature": {
+        "mtime_ns": 1773807941763547863,
+        "size_bytes": 443778
+      },
+      "label": {
+        "mtime_ns": 1773807945398472616,
+        "size_bytes": 57692
+      }
+    },
+    "25": {
+      "feature": {
+        "mtime_ns": 1773807941768547760,
+        "size_bytes": 431184
+      },
+      "label": {
+        "mtime_ns": 1773807945400472575,
+        "size_bytes": 57079
+      }
+    },
+    "26": {
+      "feature": {
+        "mtime_ns": 1773807941774547636,
+        "size_bytes": 441169
+      },
+      "label": {
+        "mtime_ns": 1773807945401472554,
+        "size_bytes": 56957
+      }
+    },
+    "27": {
+      "feature": {
+        "mtime_ns": 1773807941779547532,
+        "size_bytes": 433234
+      },
+      "label": {
+        "mtime_ns": 1773807945403472513,
+        "size_bytes": 57031
+      }
+    },
+    "28": {
+      "feature": {
+        "mtime_ns": 1773807941784547429,
+        "size_bytes": 440985
+      },
+      "label": {
+        "mtime_ns": 1773807945405472471,
+        "size_bytes": 56831
+      }
+    },
+    "29": {
+      "feature": {
+        "mtime_ns": 1773807941790547304,
+        "size_bytes": 432490
+      },
+      "label": {
+        "mtime_ns": 1773807945409472388,
+        "size_bytes": 56695
+      }
+    },
+    "30": {
+      "feature": {
+        "mtime_ns": 1773807941798547139,
+        "size_bytes": 436408
+      },
+      "label": {
+        "mtime_ns": 1773807945413472306,
+        "size_bytes": 56773
+      }
+    },
+    "31": {
+      "feature": {
+        "mtime_ns": 1773807941803547035,
+        "size_bytes": 433703
+      },
+      "label": {
+        "mtime_ns": 1773807945415472264,
+        "size_bytes": 56011
+      }
+    },
+    "32": {
+      "feature": {
+        "mtime_ns": 1773807941809546911,
+        "size_bytes": 436221
+      },
+      "label": {
+        "mtime_ns": 1773807945419472181,
+        "size_bytes": 56241
+      }
+    },
+    "33": {
+      "feature": {
+        "mtime_ns": 1773807941814546808,
+        "size_bytes": 435960
+      },
+      "label": {
+        "mtime_ns": 1773807945421472140,
+        "size_bytes": 56463
+      }
+    },
+    "34": {
+      "feature": {
+        "mtime_ns": 1773807941819546704,
+        "size_bytes": 433878
+      },
+      "label": {
+        "mtime_ns": 1773807945423472099,
+        "size_bytes": 56593
+      }
+    },
+    "35": {
+      "feature": {
+        "mtime_ns": 1773807941824546601,
+        "size_bytes": 438529
+      },
+      "label": {
+        "mtime_ns": 1773807945426472036,
+        "size_bytes": 56389
+      }
+    },
+    "36": {
+      "feature": {
+        "mtime_ns": 1773807941829546497,
+        "size_bytes": 434601
+      },
+      "label": {
+        "mtime_ns": 1773807945428471995,
+        "size_bytes": 56716
+      }
+    },
+    "37": {
+      "feature": {
+        "mtime_ns": 1773807941835546373,
+        "size_bytes": 439176
+      },
+      "label": {
+        "mtime_ns": 1773807945430471954,
+        "size_bytes": 56666
+      }
+    },
+    "38": {
+      "feature": {
+        "mtime_ns": 1773807941842546228,
+        "size_bytes": 430594
+      },
+      "label": {
+        "mtime_ns": 1773807945432471912,
+        "size_bytes": 56330
+      }
+    },
+    "39": {
+      "feature": {
+        "mtime_ns": 1773807941847546124,
+        "size_bytes": 428617
+      },
+      "label": {
+        "mtime_ns": 1773807945434471871,
+        "size_bytes": 56808
+      }
+    },
+    "40": {
+      "feature": {
+        "mtime_ns": 1773807941852546021,
+        "size_bytes": 429543
+      },
+      "label": {
+        "mtime_ns": 1773807945437471809,
+        "size_bytes": 56371
+      }
+    },
+    "41": {
+      "feature": {
+        "mtime_ns": 1773807941858545897,
+        "size_bytes": 443696
+      },
+      "label": {
+        "mtime_ns": 1773807945439471767,
+        "size_bytes": 56689
+      }
+    },
+    "42": {
+      "feature": {
+        "mtime_ns": 1773807941862545814,
+        "size_bytes": 426722
+      },
+      "label": {
+        "mtime_ns": 1773807945440471747,
+        "size_bytes": 55488
+      }
+    },
+    "43": {
+      "feature": {
+        "mtime_ns": 1773807941866545731,
+        "size_bytes": 440322
+      },
+      "label": {
+        "mtime_ns": 1773807945442471705,
+        "size_bytes": 56221
+      }
+    },
+    "44": {
+      "feature": {
+        "mtime_ns": 1773807941873545586,
+        "size_bytes": 413925
+      },
+      "label": {
+        "mtime_ns": 1773807945444471664,
+        "size_bytes": 56212
+      }
+    },
+    "45": {
+      "feature": {
+        "mtime_ns": 1773807941879545462,
+        "size_bytes": 424693
+      },
+      "label": {
+        "mtime_ns": 1773807945446471622,
+        "size_bytes": 55892
+      }
+    },
+    "46": {
+      "feature": {
+        "mtime_ns": 1773807941885545338,
+        "size_bytes": 428058
+      },
+      "label": {
+        "mtime_ns": 1773807945447471602,
+        "size_bytes": 55746
+      }
+    },
+    "47": {
+      "feature": {
+        "mtime_ns": 1773807941891545214,
+        "size_bytes": 437854
+      },
+      "label": {
+        "mtime_ns": 1773807945451471519,
+        "size_bytes": 55901
+      }
+    },
+    "48": {
+      "feature": {
+        "mtime_ns": 1773807941896545110,
+        "size_bytes": 430041
+      },
+      "label": {
+        "mtime_ns": 1773807945454471457,
+        "size_bytes": 56214
+      }
+    },
+    "49": {
+      "feature": {
+        "mtime_ns": 1773807941901545007,
+        "size_bytes": 438071
+      },
+      "label": {
+        "mtime_ns": 1773807945457471395,
+        "size_bytes": 56054
+      }
+    },
+    "50": {
+      "feature": {
+        "mtime_ns": 1773807941905544924,
+        "size_bytes": 432007
+      },
+      "label": {
+        "mtime_ns": 1773807945460471333,
+        "size_bytes": 56741
+      }
+    },
+    "51": {
+      "feature": {
+        "mtime_ns": 1773807941911544800,
+        "size_bytes": 438961
+      },
+      "label": {
+        "mtime_ns": 1773807945463471271,
+        "size_bytes": 56115
+      }
+    },
+    "52": {
+      "feature": {
+        "mtime_ns": 1773807941919544634,
+        "size_bytes": 431047
+      },
+      "label": {
+        "mtime_ns": 1773807945466471208,
+        "size_bytes": 56101
+      }
+    },
+    "53": {
+      "feature": {
+        "mtime_ns": 1773807941925544510,
+        "size_bytes": 441907
+      },
+      "label": {
+        "mtime_ns": 1773807945468471167,
+        "size_bytes": 57312
+      }
+    },
+    "54": {
+      "feature": {
+        "mtime_ns": 1773807941929544427,
+        "size_bytes": 423322
+      },
+      "label": {
+        "mtime_ns": 1773807945470471126,
+        "size_bytes": 57194
+      }
+    },
+    "55": {
+      "feature": {
+        "mtime_ns": 1773807941934544324,
+        "size_bytes": 428339
+      },
+      "label": {
+        "mtime_ns": 1773807945471471105,
+        "size_bytes": 57281
+      }
+    },
+    "56": {
+      "feature": {
+        "mtime_ns": 1773807941938544241,
+        "size_bytes": 434164
+      },
+      "label": {
+        "mtime_ns": 1773807945474471043,
+        "size_bytes": 56677
+      }
+    },
+    "57": {
+      "feature": {
+        "mtime_ns": 1773807941943544137,
+        "size_bytes": 434668
+      },
+      "label": {
+        "mtime_ns": 1773807945476471001,
+        "size_bytes": 56229
+      }
+    },
+    "58": {
+      "feature": {
+        "mtime_ns": 1773807941950543992,
+        "size_bytes": 423643
+      },
+      "label": {
+        "mtime_ns": 1773807945478470960,
+        "size_bytes": 56580
+      }
+    },
+    "59": {
+      "feature": {
+        "mtime_ns": 1773807941957543847,
+        "size_bytes": 422760
+      },
+      "label": {
+        "mtime_ns": 1773807945480470919,
+        "size_bytes": 56738
+      }
+    },
+    "60": {
+      "feature": {
+        "mtime_ns": 1773807941964543703,
+        "size_bytes": 422354
+      },
+      "label": {
+        "mtime_ns": 1773807945481470898,
+        "size_bytes": 55162
+      }
+    },
+    "61": {
+      "feature": {
+        "mtime_ns": 1773807941968543620,
+        "size_bytes": 416271
+      },
+      "label": {
+        "mtime_ns": 1773807945483470857,
+        "size_bytes": 55731
+      }
+    },
+    "62": {
+      "feature": {
+        "mtime_ns": 1773807941974543496,
+        "size_bytes": 424686
+      },
+      "label": {
+        "mtime_ns": 1773807945485470815,
+        "size_bytes": 55061
+      }
+    },
+    "63": {
+      "feature": {
+        "mtime_ns": 1773807941979543392,
+        "size_bytes": 417922
+      },
+      "label": {
+        "mtime_ns": 1773807945486470794,
+        "size_bytes": 55851
+      }
+    },
+    "64": {
+      "feature": {
+        "mtime_ns": 1773807941984543289,
+        "size_bytes": 439515
+      },
+      "label": {
+        "mtime_ns": 1773807945489470732,
+        "size_bytes": 56146
+      }
+    },
+    "65": {
+      "feature": {
+        "mtime_ns": 1773807941990543164,
+        "size_bytes": 424166
+      },
+      "label": {
+        "mtime_ns": 1773807945492470670,
+        "size_bytes": 55879
+      }
+    },
+    "66": {
+      "feature": {
+        "mtime_ns": 1773807941996543040,
+        "size_bytes": 429724
+      },
+      "label": {
+        "mtime_ns": 1773807945495470608,
+        "size_bytes": 56459
+      }
+    },
+    "67": {
+      "feature": {
+        "mtime_ns": 1773807942002542916,
+        "size_bytes": 416061
+      },
+      "label": {
+        "mtime_ns": 1773807945497470567,
+        "size_bytes": 56463
+      }
+    },
+    "68": {
+      "feature": {
+        "mtime_ns": 1773807942006542833,
+        "size_bytes": 442127
+      },
+      "label": {
+        "mtime_ns": 1773807945500470505,
+        "size_bytes": 56513
+      }
+    },
+    "69": {
+      "feature": {
+        "mtime_ns": 1773807942013542688,
+        "size_bytes": 427377
+      },
+      "label": {
+        "mtime_ns": 1773807945503470443,
+        "size_bytes": 55933
+      }
+    },
+    "70": {
+      "feature": {
+        "mtime_ns": 1773807942017542605,
+        "size_bytes": 439347
+      },
+      "label": {
+        "mtime_ns": 1773807945505470401,
+        "size_bytes": 56154
+      }
+    },
+    "71": {
+      "feature": {
+        "mtime_ns": 1773807942021542523,
+        "size_bytes": 419378
+      },
+      "label": {
+        "mtime_ns": 1773807945507470360,
+        "size_bytes": 56691
+      }
+    },
+    "72": {
+      "feature": {
+        "mtime_ns": 1773807942026542419,
+        "size_bytes": 429141
+      },
+      "label": {
+        "mtime_ns": 1773807945509470318,
+        "size_bytes": 56898
+      }
+    },
+    "73": {
+      "feature": {
+        "mtime_ns": 1773807942030542336,
+        "size_bytes": 418263
+      },
+      "label": {
+        "mtime_ns": 1773807945511470277,
+        "size_bytes": 56239
+      }
+    },
+    "74": {
+      "feature": {
+        "mtime_ns": 1773807942036542212,
+        "size_bytes": 438991
+      },
+      "label": {
+        "mtime_ns": 1773807945513470235,
+        "size_bytes": 55936
+      }
+    },
+    "75": {
+      "feature": {
+        "mtime_ns": 1773807942042542088,
+        "size_bytes": 428962
+      },
+      "label": {
+        "mtime_ns": 1773807945515470194,
+        "size_bytes": 56126
+      }
+    },
+    "76": {
+      "feature": {
+        "mtime_ns": 1773807942048541964,
+        "size_bytes": 427526
+      },
+      "label": {
+        "mtime_ns": 1773807945517470153,
+        "size_bytes": 56206
+      }
+    },
+    "77": {
+      "feature": {
+        "mtime_ns": 1773807942053541860,
+        "size_bytes": 419597
+      },
+      "label": {
+        "mtime_ns": 1773807945518470132,
+        "size_bytes": 57575
+      }
+    },
+    "78": {
+      "feature": {
+        "mtime_ns": 1773807942058541757,
+        "size_bytes": 441115
+      },
+      "label": {
+        "mtime_ns": 1773807945520470091,
+        "size_bytes": 57208
+      }
+    },
+    "79": {
+      "feature": {
+        "mtime_ns": 1773807942064541632,
+        "size_bytes": 433337
+      },
+      "label": {
+        "mtime_ns": 1773807945522470049,
+        "size_bytes": 56874
+      }
+    },
+    "80": {
+      "feature": {
+        "mtime_ns": 1773807942069541529,
+        "size_bytes": 435587
+      },
+      "label": {
+        "mtime_ns": 1773807945524470008,
+        "size_bytes": 56011
+      }
+    },
+    "81": {
+      "feature": {
+        "mtime_ns": 1773807942074541425,
+        "size_bytes": 432042
+      },
+      "label": {
+        "mtime_ns": 1773807945527469946,
+        "size_bytes": 55499
+      }
+    },
+    "82": {
+      "feature": {
+        "mtime_ns": 1773807942078541343,
+        "size_bytes": 431025
+      },
+      "label": {
+        "mtime_ns": 1773807945530469884,
+        "size_bytes": 55294
+      }
+    },
+    "83": {
+      "feature": {
+        "mtime_ns": 1773807942085541198,
+        "size_bytes": 433906
+      },
+      "label": {
+        "mtime_ns": 1773807945534469801,
+        "size_bytes": 55190
+      }
+    },
+    "84": {
+      "feature": {
+        "mtime_ns": 1773807942092541053,
+        "size_bytes": 432751
+      },
+      "label": {
+        "mtime_ns": 1773807945536469759,
+        "size_bytes": 55710
+      }
+    },
+    "85": {
+      "feature": {
+        "mtime_ns": 1773807942098540929,
+        "size_bytes": 433666
+      },
+      "label": {
+        "mtime_ns": 1773807945541469656,
+        "size_bytes": 55833
+      }
+    },
+    "86": {
+      "feature": {
+        "mtime_ns": 1773807942103540825,
+        "size_bytes": 422117
+      },
+      "label": {
+        "mtime_ns": 1773807945543469614,
+        "size_bytes": 55932
+      }
+    },
+    "87": {
+      "feature": {
+        "mtime_ns": 1773807942107540742,
+        "size_bytes": 437279
+      },
+      "label": {
+        "mtime_ns": 1773807945545469573,
+        "size_bytes": 55180
+      }
+    },
+    "88": {
+      "feature": {
+        "mtime_ns": 1773807942113540618,
+        "size_bytes": 425444
+      },
+      "label": {
+        "mtime_ns": 1773807945547469532,
+        "size_bytes": 54985
+      }
+    },
+    "89": {
+      "feature": {
+        "mtime_ns": 1773807942117540535,
+        "size_bytes": 439131
+      },
+      "label": {
+        "mtime_ns": 1773807945549469490,
+        "size_bytes": 56180
+      }
+    },
+    "90": {
+      "feature": {
+        "mtime_ns": 1773807942121540453,
+        "size_bytes": 425631
+      },
+      "label": {
+        "mtime_ns": 1773807945552469428,
+        "size_bytes": 55735
+      }
+    },
+    "91": {
+      "feature": {
+        "mtime_ns": 1773807942128540308,
+        "size_bytes": 435841
+      },
+      "label": {
+        "mtime_ns": 1773807945554469387,
+        "size_bytes": 55610
+      }
+    },
+    "92": {
+      "feature": {
+        "mtime_ns": 1773807942133540204,
+        "size_bytes": 426045
+      },
+      "label": {
+        "mtime_ns": 1773807945556469345,
+        "size_bytes": 55791
+      }
+    },
+    "93": {
+      "feature": {
+        "mtime_ns": 1773807942140540059,
+        "size_bytes": 438044
+      },
+      "label": {
+        "mtime_ns": 1773807945557469325,
+        "size_bytes": 55685
+      }
+    },
+    "94": {
+      "feature": {
+        "mtime_ns": 1773807942149539873,
+        "size_bytes": 427805
+      },
+      "label": {
+        "mtime_ns": 1773807945559469283,
+        "size_bytes": 55766
+      }
+    },
+    "95": {
+      "feature": {
+        "mtime_ns": 1773807942154539769,
+        "size_bytes": 441176
+      },
+      "label": {
+        "mtime_ns": 1773807945561469242,
+        "size_bytes": 56460
+      }
+    },
+    "96": {
+      "feature": {
+        "mtime_ns": 1773807942160539645,
+        "size_bytes": 428854
+      },
+      "label": {
+        "mtime_ns": 1773807945563469200,
+        "size_bytes": 56382
+      }
+    },
+    "97": {
+      "feature": {
+        "mtime_ns": 1773807942165539542,
+        "size_bytes": 437419
+      },
+      "label": {
+        "mtime_ns": 1773807945565469159,
+        "size_bytes": 55338
+      }
+    },
+    "98": {
+      "feature": {
+        "mtime_ns": 1773807942170539438,
+        "size_bytes": 426802
+      },
+      "label": {
+        "mtime_ns": 1773807945567469118,
+        "size_bytes": 55254
+      }
+    },
+    "99": {
+      "feature": {
+        "mtime_ns": 1773807942175539335,
+        "size_bytes": 435814
+      },
+      "label": {
+        "mtime_ns": 1773807945572469014,
+        "size_bytes": 54831
+      }
+    },
+    "100": {
+      "feature": {
+        "mtime_ns": 1773807942181539210,
+        "size_bytes": 428821
+      },
+      "label": {
+        "mtime_ns": 1773807945576468931,
+        "size_bytes": 56315
+      }
+    },
+    "101": {
+      "feature": {
+        "mtime_ns": 1773807942190539024,
+        "size_bytes": 436693
+      },
+      "label": {
+        "mtime_ns": 1773807945577468911,
+        "size_bytes": 56074
+      }
+    },
+    "102": {
+      "feature": {
+        "mtime_ns": 1773807942196538900,
+        "size_bytes": 424391
+      },
+      "label": {
+        "mtime_ns": 1773807945580468849,
+        "size_bytes": 55282
+      }
+    },
+    "103": {
+      "feature": {
+        "mtime_ns": 1773807942201538796,
+        "size_bytes": 436605
+      },
+      "label": {
+        "mtime_ns": 1773807945582468807,
+        "size_bytes": 56451
+      }
+    },
+    "104": {
+      "feature": {
+        "mtime_ns": 1773807942208538652,
+        "size_bytes": 433927
+      },
+      "label": {
+        "mtime_ns": 1773807945584468766,
+        "size_bytes": 56396
+      }
+    },
+    "105": {
+      "feature": {
+        "mtime_ns": 1773807942215538507,
+        "size_bytes": 434746
+      },
+      "label": {
+        "mtime_ns": 1773807945586468724,
+        "size_bytes": 55999
+      }
+    },
+    "106": {
+      "feature": {
+        "mtime_ns": 1773807942221538382,
+        "size_bytes": 431586
+      },
+      "label": {
+        "mtime_ns": 1773807945588468683,
+        "size_bytes": 55832
+      }
+    },
+    "107": {
+      "feature": {
+        "mtime_ns": 1773807942228538238,
+        "size_bytes": 430173
+      },
+      "label": {
+        "mtime_ns": 1773807945590468642,
+        "size_bytes": 56260
+      }
+    },
+    "108": {
+      "feature": {
+        "mtime_ns": 1773807942237538051,
+        "size_bytes": 435704
+      },
+      "label": {
+        "mtime_ns": 1773807945592468600,
+        "size_bytes": 56861
+      }
+    },
+    "109": {
+      "feature": {
+        "mtime_ns": 1773807942243537927,
+        "size_bytes": 433674
+      },
+      "label": {
+        "mtime_ns": 1773807945595468538,
+        "size_bytes": 56670
+      }
+    },
+    "110": {
+      "feature": {
+        "mtime_ns": 1773807942250537782,
+        "size_bytes": 440104
+      },
+      "label": {
+        "mtime_ns": 1773807945597468497,
+        "size_bytes": 56982
+      }
+    },
+    "111": {
+      "feature": {
+        "mtime_ns": 1773807942254537699,
+        "size_bytes": 431104
+      },
+      "label": {
+        "mtime_ns": 1773807945598468476,
+        "size_bytes": 56984
+      }
+    },
+    "112": {
+      "feature": {
+        "mtime_ns": 1773807942261537554,
+        "size_bytes": 439301
+      },
+      "label": {
+        "mtime_ns": 1773807945600468435,
+        "size_bytes": 55980
+      }
+    },
+    "113": {
+      "feature": {
+        "mtime_ns": 1773807942268537410,
+        "size_bytes": 429383
+      },
+      "label": {
+        "mtime_ns": 1773807945602468393,
+        "size_bytes": 56452
+      }
+    },
+    "114": {
+      "feature": {
+        "mtime_ns": 1773807942275537265,
+        "size_bytes": 441014
+      },
+      "label": {
+        "mtime_ns": 1773807945604468352,
+        "size_bytes": 56215
+      }
+    },
+    "115": {
+      "feature": {
+        "mtime_ns": 1773807942281537140,
+        "size_bytes": 422402
+      },
+      "label": {
+        "mtime_ns": 1773807945607468290,
+        "size_bytes": 56219
+      }
+    },
+    "116": {
+      "feature": {
+        "mtime_ns": 1773807942286537037,
+        "size_bytes": 439123
+      },
+      "label": {
+        "mtime_ns": 1773807945610468228,
+        "size_bytes": 56572
+      }
+    },
+    "117": {
+      "feature": {
+        "mtime_ns": 1773807942291536933,
+        "size_bytes": 427149
+      },
+      "label": {
+        "mtime_ns": 1773807945614468145,
+        "size_bytes": 56534
+      }
+    },
+    "118": {
+      "feature": {
+        "mtime_ns": 1773807942296536830,
+        "size_bytes": 441170
+      },
+      "label": {
+        "mtime_ns": 1773807945616468103,
+        "size_bytes": 56622
+      }
+    },
+    "119": {
+      "feature": {
+        "mtime_ns": 1773807942301536726,
+        "size_bytes": 428273
+      },
+      "label": {
+        "mtime_ns": 1773807945618468062,
+        "size_bytes": 56019
+      }
+    },
+    "120": {
+      "feature": {
+        "mtime_ns": 1773807942309536561,
+        "size_bytes": 437678
+      },
+      "label": {
+        "mtime_ns": 1773807945620468021,
+        "size_bytes": 55237
+      }
+    },
+    "121": {
+      "feature": {
+        "mtime_ns": 1773807942316536416,
+        "size_bytes": 425747
+      },
+      "label": {
+        "mtime_ns": 1773807945622467979,
+        "size_bytes": 54566
+      }
+    },
+    "122": {
+      "feature": {
+        "mtime_ns": 1773807942322536292,
+        "size_bytes": 438947
+      },
+      "label": {
+        "mtime_ns": 1773807945626467896,
+        "size_bytes": 56645
+      }
+    },
+    "123": {
+      "feature": {
+        "mtime_ns": 1773807942327536188,
+        "size_bytes": 426312
+      },
+      "label": {
+        "mtime_ns": 1773807945628467855,
+        "size_bytes": 55121
+      }
+    },
+    "124": {
+      "feature": {
+        "mtime_ns": 1773807942333536064,
+        "size_bytes": 434457
+      },
+      "label": {
+        "mtime_ns": 1773807945630467814,
+        "size_bytes": 54669
+      }
+    },
+    "125": {
+      "feature": {
+        "mtime_ns": 1773807942338535960,
+        "size_bytes": 428943
+      },
+      "label": {
+        "mtime_ns": 1773807945632467772,
+        "size_bytes": 55813
+      }
+    },
+    "126": {
+      "feature": {
+        "mtime_ns": 1773807942342535878,
+        "size_bytes": 434966
+      },
+      "label": {
+        "mtime_ns": 1773807945634467731,
+        "size_bytes": 55027
+      }
+    },
+    "127": {
+      "feature": {
+        "mtime_ns": 1773807942347535774,
+        "size_bytes": 426553
+      },
+      "label": {
+        "mtime_ns": 1773807945635467710,
+        "size_bytes": 56709
+      }
+    },
+    "128": {
+      "feature": {
+        "mtime_ns": 1773807942353535650,
+        "size_bytes": 433222
+      },
+      "label": {
+        "mtime_ns": 1773807945637467669,
+        "size_bytes": 55442
+      }
+    },
+    "129": {
+      "feature": {
+        "mtime_ns": 1773807942360535505,
+        "size_bytes": 430208
+      },
+      "label": {
+        "mtime_ns": 1773807945639467627,
+        "size_bytes": 55202
+      }
+    },
+    "130": {
+      "feature": {
+        "mtime_ns": 1773807942368535339,
+        "size_bytes": 436213
+      },
+      "label": {
+        "mtime_ns": 1773807945645467503,
+        "size_bytes": 56771
+      }
+    },
+    "131": {
+      "feature": {
+        "mtime_ns": 1773807942374535215,
+        "size_bytes": 434514
+      },
+      "label": {
+        "mtime_ns": 1773807945649467420,
+        "size_bytes": 56271
+      }
+    },
+    "132": {
+      "feature": {
+        "mtime_ns": 1773807942379535112,
+        "size_bytes": 433127
+      },
+      "label": {
+        "mtime_ns": 1773807945652467358,
+        "size_bytes": 55844
+      }
+    },
+    "133": {
+      "feature": {
+        "mtime_ns": 1773807942385534988,
+        "size_bytes": 436910
+      },
+      "label": {
+        "mtime_ns": 1773807945654467317,
+        "size_bytes": 55943
+      }
+    },
+    "134": {
+      "feature": {
+        "mtime_ns": 1773807942390534884,
+        "size_bytes": 431979
+      },
+      "label": {
+        "mtime_ns": 1773807945656467275,
+        "size_bytes": 56378
+      }
+    },
+    "135": {
+      "feature": {
+        "mtime_ns": 1773807942395534781,
+        "size_bytes": 436410
+      },
+      "label": {
+        "mtime_ns": 1773807945659467213,
+        "size_bytes": 55858
+      }
+    },
+    "136": {
+      "feature": {
+        "mtime_ns": 1773807942399534698,
+        "size_bytes": 424714
+      },
+      "label": {
+        "mtime_ns": 1773807945661467172,
+        "size_bytes": 54180
+      }
+    },
+    "137": {
+      "feature": {
+        "mtime_ns": 1773807942407534532,
+        "size_bytes": 435927
+      },
+      "label": {
+        "mtime_ns": 1773807945662467151,
+        "size_bytes": 55464
+      }
+    },
+    "138": {
+      "feature": {
+        "mtime_ns": 1773807942421534242,
+        "size_bytes": 423776
+      },
+      "label": {
+        "mtime_ns": 1773807945664467110,
+        "size_bytes": 54442
+      }
+    },
+    "139": {
+      "feature": {
+        "mtime_ns": 1773807942428534097,
+        "size_bytes": 439234
+      },
+      "label": {
+        "mtime_ns": 1773807945666467068,
+        "size_bytes": 55168
+      }
+    },
+    "140": {
+      "feature": {
+        "mtime_ns": 1773807942433533994,
+        "size_bytes": 423420
+      },
+      "label": {
+        "mtime_ns": 1773807945668467027,
+        "size_bytes": 54619
+      }
+    },
+    "141": {
+      "feature": {
+        "mtime_ns": 1773807942440533849,
+        "size_bytes": 440210
+      },
+      "label": {
+        "mtime_ns": 1773807945670466985,
+        "size_bytes": 56433
+      }
+    },
+    "142": {
+      "feature": {
+        "mtime_ns": 1773807942445533746,
+        "size_bytes": 425876
+      },
+      "label": {
+        "mtime_ns": 1773807945672466944,
+        "size_bytes": 55514
+      }
+    },
+    "143": {
+      "feature": {
+        "mtime_ns": 1773807942449533663,
+        "size_bytes": 439709
+      },
+      "label": {
+        "mtime_ns": 1773807945673466923,
+        "size_bytes": 55917
+      }
+    },
+    "144": {
+      "feature": {
+        "mtime_ns": 1773807942455533538,
+        "size_bytes": 428139
+      },
+      "label": {
+        "mtime_ns": 1773807945675466882,
+        "size_bytes": 56284
+      }
+    },
+    "145": {
+      "feature": {
+        "mtime_ns": 1773807942461533414,
+        "size_bytes": 434417
+      },
+      "label": {
+        "mtime_ns": 1773807945678466820,
+        "size_bytes": 55616
+      }
+    },
+    "146": {
+      "feature": {
+        "mtime_ns": 1773807942470533228,
+        "size_bytes": 427197
+      },
+      "label": {
+        "mtime_ns": 1773807945682466737,
+        "size_bytes": 56028
+      }
+    },
+    "147": {
+      "feature": {
+        "mtime_ns": 1773807942475533124,
+        "size_bytes": 437298
+      },
+      "label": {
+        "mtime_ns": 1773807945686466654,
+        "size_bytes": 56013
+      }
+    },
+    "148": {
+      "feature": {
+        "mtime_ns": 1773807942482532980,
+        "size_bytes": 430839
+      },
+      "label": {
+        "mtime_ns": 1773807945688466613,
+        "size_bytes": 56275
+      }
+    },
+    "149": {
+      "feature": {
+        "mtime_ns": 1773807942488532855,
+        "size_bytes": 438965
+      },
+      "label": {
+        "mtime_ns": 1773807945691466551,
+        "size_bytes": 57315
+      }
+    },
+    "150": {
+      "feature": {
+        "mtime_ns": 1773807942493532752,
+        "size_bytes": 429838
+      },
+      "label": {
+        "mtime_ns": 1773807945693466509,
+        "size_bytes": 57003
+      }
+    },
+    "151": {
+      "feature": {
+        "mtime_ns": 1773807942498532648,
+        "size_bytes": 441413
+      },
+      "label": {
+        "mtime_ns": 1773807945695466468,
+        "size_bytes": 57479
+      }
+    },
+    "152": {
+      "feature": {
+        "mtime_ns": 1773807942505532503,
+        "size_bytes": 436685
+      },
+      "label": {
+        "mtime_ns": 1773807945697466427,
+        "size_bytes": 57657
+      }
+    },
+    "153": {
+      "feature": {
+        "mtime_ns": 1773807942514532317,
+        "size_bytes": 440204
+      },
+      "label": {
+        "mtime_ns": 1773807945699466385,
+        "size_bytes": 57558
+      }
+    },
+    "154": {
+      "feature": {
+        "mtime_ns": 1773807942520532193,
+        "size_bytes": 436600
+      },
+      "label": {
+        "mtime_ns": 1773807945701466344,
+        "size_bytes": 57187
+      }
+    },
+    "155": {
+      "feature": {
+        "mtime_ns": 1773807942526532069,
+        "size_bytes": 435985
+      },
+      "label": {
+        "mtime_ns": 1773807945703466302,
+        "size_bytes": 56876
+      }
+    },
+    "156": {
+      "feature": {
+        "mtime_ns": 1773807942532531945,
+        "size_bytes": 424025
+      },
+      "label": {
+        "mtime_ns": 1773807945705466261,
+        "size_bytes": 56868
+      }
+    },
+    "157": {
+      "feature": {
+        "mtime_ns": 1773807942537531841,
+        "size_bytes": 433832
+      },
+      "label": {
+        "mtime_ns": 1773807945707466220,
+        "size_bytes": 56088
+      }
+    },
+    "158": {
+      "feature": {
+        "mtime_ns": 1773807942542531738,
+        "size_bytes": 439800
+      },
+      "label": {
+        "mtime_ns": 1773807945709466178,
+        "size_bytes": 57148
+      }
+    },
+    "159": {
+      "feature": {
+        "mtime_ns": 1773807942547531634,
+        "size_bytes": 433783
+      },
+      "label": {
+        "mtime_ns": 1773807945710466157,
+        "size_bytes": 56941
+      }
+    },
+    "160": {
+      "feature": {
+        "mtime_ns": 1773807942552531531,
+        "size_bytes": 443085
+      },
+      "label": {
+        "mtime_ns": 1773807945713466095,
+        "size_bytes": 57344
+      }
+    },
+    "161": {
+      "feature": {
+        "mtime_ns": 1773807942568907503,
+        "size_bytes": 432164
+      },
+      "label": {
+        "mtime_ns": 1773807945716466033,
+        "size_bytes": 56779
+      }
+    },
+    "162": {
+      "feature": {
+        "mtime_ns": 1773807942574531075,
+        "size_bytes": 443225
+      },
+      "label": {
+        "mtime_ns": 1773807945721465930,
+        "size_bytes": 56736
+      }
+    },
+    "163": {
+      "feature": {
+        "mtime_ns": 1773807942579530971,
+        "size_bytes": 428903
+      },
+      "label": {
+        "mtime_ns": 1773807945723465888,
+        "size_bytes": 56094
+      }
+    },
+    "164": {
+      "feature": {
+        "mtime_ns": 1773807942583530889,
+        "size_bytes": 442101
+      },
+      "label": {
+        "mtime_ns": 1773807945726465826,
+        "size_bytes": 56315
+      }
+    },
+    "165": {
+      "feature": {
+        "mtime_ns": 1773807942589530764,
+        "size_bytes": 428408
+      },
+      "label": {
+        "mtime_ns": 1773807945729465764,
+        "size_bytes": 56182
+      }
+    },
+    "166": {
+      "feature": {
+        "mtime_ns": 1773807942594530661,
+        "size_bytes": 442606
+      },
+      "label": {
+        "mtime_ns": 1773807945731465723,
+        "size_bytes": 56876
+      }
+    },
+    "167": {
+      "feature": {
+        "mtime_ns": 1773807942598530578,
+        "size_bytes": 427598
+      },
+      "label": {
+        "mtime_ns": 1773807945733465681,
+        "size_bytes": 56338
+      }
+    },
+    "168": {
+      "feature": {
+        "mtime_ns": 1773807942608530371,
+        "size_bytes": 437555
+      },
+      "label": {
+        "mtime_ns": 1773807945735465640,
+        "size_bytes": 56363
+      }
+    }
+  },
+  "per_batch_rows": {
+    "1": 240,
+    "2": 240,
+    "3": 240,
+    "4": 240,
+    "5": 240,
+    "6": 240,
+    "7": 240,
+    "8": 240,
+    "9": 240,
+    "10": 240,
+    "11": 240,
+    "12": 240,
+    "13": 240,
+    "14": 240,
+    "15": 240,
+    "16": 240,
+    "17": 240,
+    "18": 240,
+    "19": 240,
+    "20": 240,
+    "21": 240,
+    "22": 240,
+    "23": 240,
+    "24": 240,
+    "25": 240,
+    "26": 240,
+    "27": 240,
+    "28": 240,
+    "29": 240,
+    "30": 240,
+    "31": 240,
+    "32": 240,
+    "33": 240,
+    "34": 240,
+    "35": 240,
+    "36": 240,
+    "37": 240,
+    "38": 240,
+    "39": 240,
+    "40": 240,
+    "41": 240,
+    "42": 240,
+    "43": 240,
+    "44": 240,
+    "45": 240,
+    "46": 240,
+    "47": 240,
+    "48": 240,
+    "49": 240,
+    "50": 240,
+    "51": 240,
+    "52": 240,
+    "53": 240,
+    "54": 240,
+    "55": 240,
+    "56": 240,
+    "57": 240,
+    "58": 240,
+    "59": 240,
+    "60": 240,
+    "61": 240,
+    "62": 240,
+    "63": 240,
+    "64": 240,
+    "65": 240,
+    "66": 240,
+    "67": 240,
+    "68": 240,
+    "69": 240,
+    "70": 240,
+    "71": 240,
+    "72": 240,
+    "73": 240,
+    "74": 240,
+    "75": 240,
+    "76": 240,
+    "77": 240,
+    "78": 240,
+    "79": 240,
+    "80": 240,
+    "81": 240,
+    "82": 240,
+    "83": 240,
+    "84": 240,
+    "85": 240,
+    "86": 240,
+    "87": 240,
+    "88": 240,
+    "89": 240,
+    "90": 240,
+    "91": 240,
+    "92": 240,
+    "93": 240,
+    "94": 240,
+    "95": 240,
+    "96": 240,
+    "97": 240,
+    "98": 240,
+    "99": 240,
+    "100": 240,
+    "101": 240,
+    "102": 240,
+    "103": 240,
+    "104": 240,
+    "105": 240,
+    "106": 240,
+    "107": 240,
+    "108": 240,
+    "109": 240,
+    "110": 240,
+    "111": 240,
+    "112": 240,
+    "113": 240,
+    "114": 240,
+    "115": 240,
+    "116": 240,
+    "117": 240,
+    "118": 240,
+    "119": 240,
+    "120": 240,
+    "121": 240,
+    "122": 240,
+    "123": 240,
+    "124": 240,
+    "125": 240,
+    "126": 240,
+    "127": 240,
+    "128": 240,
+    "129": 240,
+    "130": 240,
+    "131": 240,
+    "132": 240,
+    "133": 240,
+    "134": 240,
+    "135": 240,
+    "136": 240,
+    "137": 240,
+    "138": 240,
+    "139": 240,
+    "140": 240,
+    "141": 240,
+    "142": 240,
+    "143": 240,
+    "144": 240,
+    "145": 240,
+    "146": 240,
+    "147": 240,
+    "148": 240,
+    "149": 240,
+    "150": 240,
+    "151": 240,
+    "152": 240,
+    "153": 240,
+    "154": 240,
+    "155": 240,
+    "156": 240,
+    "157": 240,
+    "158": 240,
+    "159": 240,
+    "160": 240,
+    "161": 240,
+    "162": 240,
+    "163": 240,
+    "164": 240,
+    "165": 240,
+    "166": 240,
+    "167": 240,
+    "168": 240
+  },
+  "per_batch_last_timestamp": {
+    "1": "2021-01-04 03:59:00+00:00",
+    "2": "2021-01-04 11:59:00+00:00",
+    "3": "2021-01-04 19:59:00+00:00",
+    "4": "2021-01-05 03:59:00+00:00",
+    "5": "2021-01-05 11:59:00+00:00",
+    "6": "2021-01-05 19:59:00+00:00",
+    "7": "2021-01-06 03:59:00+00:00",
+    "8": "2021-01-06 11:59:00+00:00",
+    "9": "2021-01-06 19:59:00+00:00",
+    "10": "2021-01-07 03:59:00+00:00",
+    "11": "2021-01-07 11:59:00+00:00",
+    "12": "2021-01-07 19:59:00+00:00",
+    "13": "2021-01-08 03:59:00+00:00",
+    "14": "2021-01-08 11:59:00+00:00",
+    "15": "2021-01-08 19:59:00+00:00",
+    "16": "2021-01-09 03:59:00+00:00",
+    "17": "2021-01-09 11:59:00+00:00",
+    "18": "2021-01-09 19:59:00+00:00",
+    "19": "2021-01-10 03:59:00+00:00",
+    "20": "2021-01-10 11:59:00+00:00",
+    "21": "2021-01-10 19:59:00+00:00",
+    "22": "2021-01-11 03:59:00+00:00",
+    "23": "2021-01-11 11:59:00+00:00",
+    "24": "2021-01-11 19:59:00+00:00",
+    "25": "2021-01-12 03:59:00+00:00",
+    "26": "2021-01-12 11:59:00+00:00",
+    "27": "2021-01-12 19:59:00+00:00",
+    "28": "2021-01-13 03:59:00+00:00",
+    "29": "2021-01-13 11:59:00+00:00",
+    "30": "2021-01-13 19:59:00+00:00",
+    "31": "2021-01-14 03:59:00+00:00",
+    "32": "2021-01-14 11:59:00+00:00",
+    "33": "2021-01-14 19:59:00+00:00",
+    "34": "2021-01-15 03:59:00+00:00",
+    "35": "2021-01-15 11:59:00+00:00",
+    "36": "2021-01-15 19:59:00+00:00",
+    "37": "2021-01-16 03:59:00+00:00",
+    "38": "2021-01-16 11:59:00+00:00",
+    "39": "2021-01-16 19:59:00+00:00",
+    "40": "2021-01-17 03:59:00+00:00",
+    "41": "2021-01-17 11:59:00+00:00",
+    "42": "2021-01-17 19:59:00+00:00",
+    "43": "2021-01-18 03:59:00+00:00",
+    "44": "2021-01-18 11:59:00+00:00",
+    "45": "2021-01-18 19:59:00+00:00",
+    "46": "2021-01-19 03:59:00+00:00",
+    "47": "2021-01-19 11:59:00+00:00",
+    "48": "2021-01-19 19:59:00+00:00",
+    "49": "2021-01-20 03:59:00+00:00",
+    "50": "2021-01-20 11:59:00+00:00",
+    "51": "2021-01-20 19:59:00+00:00",
+    "52": "2021-01-21 03:59:00+00:00",
+    "53": "2021-01-21 11:59:00+00:00",
+    "54": "2021-01-21 19:59:00+00:00",
+    "55": "2021-01-22 03:59:00+00:00",
+    "56": "2021-01-22 11:59:00+00:00",
+    "57": "2021-01-22 19:59:00+00:00",
+    "58": "2021-01-23 03:59:00+00:00",
+    "59": "2021-01-23 11:59:00+00:00",
+    "60": "2021-01-23 19:59:00+00:00",
+    "61": "2021-01-24 03:59:00+00:00",
+    "62": "2021-01-24 11:59:00+00:00",
+    "63": "2021-01-24 19:59:00+00:00",
+    "64": "2021-01-25 03:59:00+00:00",
+    "65": "2021-01-25 11:59:00+00:00",
+    "66": "2021-01-25 19:59:00+00:00",
+    "67": "2021-01-26 03:59:00+00:00",
+    "68": "2021-01-26 11:59:00+00:00",
+    "69": "2021-01-26 19:59:00+00:00",
+    "70": "2021-01-27 03:59:00+00:00",
+    "71": "2021-01-27 11:59:00+00:00",
+    "72": "2021-01-27 19:59:00+00:00",
+    "73": "2021-01-28 03:59:00+00:00",
+    "74": "2021-01-28 11:59:00+00:00",
+    "75": "2021-01-28 19:59:00+00:00",
+    "76": "2021-01-29 03:59:00+00:00",
+    "77": "2021-01-29 11:59:00+00:00",
+    "78": "2021-01-29 19:59:00+00:00",
+    "79": "2021-01-30 03:59:00+00:00",
+    "80": "2021-01-30 11:59:00+00:00",
+    "81": "2021-01-30 19:59:00+00:00",
+    "82": "2021-01-31 03:59:00+00:00",
+    "83": "2021-01-31 11:59:00+00:00",
+    "84": "2021-01-31 19:59:00+00:00",
+    "85": "2021-02-01 03:59:00+00:00",
+    "86": "2021-02-01 11:59:00+00:00",
+    "87": "2021-02-01 19:59:00+00:00",
+    "88": "2021-02-02 03:59:00+00:00",
+    "89": "2021-02-02 11:59:00+00:00",
+    "90": "2021-02-02 19:59:00+00:00",
+    "91": "2021-02-03 03:59:00+00:00",
+    "92": "2021-02-03 11:59:00+00:00",
+    "93": "2021-02-03 19:59:00+00:00",
+    "94": "2021-02-04 03:59:00+00:00",
+    "95": "2021-02-04 11:59:00+00:00",
+    "96": "2021-02-04 19:59:00+00:00",
+    "97": "2021-02-05 03:59:00+00:00",
+    "98": "2021-02-05 11:59:00+00:00",
+    "99": "2021-02-05 19:59:00+00:00",
+    "100": "2021-02-06 03:59:00+00:00",
+    "101": "2021-02-06 11:59:00+00:00",
+    "102": "2021-02-06 19:59:00+00:00",
+    "103": "2021-02-07 03:59:00+00:00",
+    "104": "2021-02-07 11:59:00+00:00",
+    "105": "2021-02-07 19:59:00+00:00",
+    "106": "2021-02-08 03:59:00+00:00",
+    "107": "2021-02-08 11:59:00+00:00",
+    "108": "2021-02-08 19:59:00+00:00",
+    "109": "2021-02-09 03:59:00+00:00",
+    "110": "2021-02-09 11:59:00+00:00",
+    "111": "2021-02-09 19:59:00+00:00",
+    "112": "2021-02-10 03:59:00+00:00",
+    "113": "2021-02-10 11:59:00+00:00",
+    "114": "2021-02-10 19:59:00+00:00",
+    "115": "2021-02-11 03:59:00+00:00",
+    "116": "2021-02-11 11:59:00+00:00",
+    "117": "2021-02-11 19:59:00+00:00",
+    "118": "2021-02-12 03:59:00+00:00",
+    "119": "2021-02-12 11:59:00+00:00",
+    "120": "2021-02-12 19:59:00+00:00",
+    "121": "2021-02-13 03:59:00+00:00",
+    "122": "2021-02-13 11:59:00+00:00",
+    "123": "2021-02-13 19:59:00+00:00",
+    "124": "2021-02-14 03:59:00+00:00",
+    "125": "2021-02-14 11:59:00+00:00",
+    "126": "2021-02-14 19:59:00+00:00",
+    "127": "2021-02-15 03:59:00+00:00",
+    "128": "2021-02-15 11:59:00+00:00",
+    "129": "2021-02-15 19:59:00+00:00",
+    "130": "2021-02-16 03:59:00+00:00",
+    "131": "2021-02-16 11:59:00+00:00",
+    "132": "2021-02-16 19:59:00+00:00",
+    "133": "2021-02-17 03:59:00+00:00",
+    "134": "2021-02-17 11:59:00+00:00",
+    "135": "2021-02-17 19:59:00+00:00",
+    "136": "2021-02-18 03:59:00+00:00",
+    "137": "2021-02-18 11:59:00+00:00",
+    "138": "2021-02-18 19:59:00+00:00",
+    "139": "2021-02-19 03:59:00+00:00",
+    "140": "2021-02-19 11:59:00+00:00",
+    "141": "2021-02-19 19:59:00+00:00",
+    "142": "2021-02-20 03:59:00+00:00",
+    "143": "2021-02-20 11:59:00+00:00",
+    "144": "2021-02-20 19:59:00+00:00",
+    "145": "2021-02-21 03:59:00+00:00",
+    "146": "2021-02-21 11:59:00+00:00",
+    "147": "2021-02-21 19:59:00+00:00",
+    "148": "2021-02-22 03:59:00+00:00",
+    "149": "2021-02-22 11:59:00+00:00",
+    "150": "2021-02-22 19:59:00+00:00",
+    "151": "2021-02-23 03:59:00+00:00",
+    "152": "2021-02-23 11:59:00+00:00",
+    "153": "2021-02-23 19:59:00+00:00",
+    "154": "2021-02-24 03:59:00+00:00",
+    "155": "2021-02-24 11:59:00+00:00",
+    "156": "2021-02-24 19:59:00+00:00",
+    "157": "2021-02-25 03:59:00+00:00",
+    "158": "2021-02-25 11:59:00+00:00",
+    "159": "2021-02-25 19:59:00+00:00",
+    "160": "2021-02-26 03:59:00+00:00",
+    "161": "2021-02-26 11:59:00+00:00",
+    "162": "2021-02-26 19:59:00+00:00",
+    "163": "2021-02-27 03:59:00+00:00",
+    "164": "2021-02-27 11:59:00+00:00",
+    "165": "2021-02-27 19:59:00+00:00",
+    "166": "2021-02-28 03:59:00+00:00",
+    "167": "2021-02-28 11:59:00+00:00",
+    "168": "2021-02-28 19:59:00+00:00"
+  },
+  "validation": {
+    "n_early_batches": 24,
+    "n_val_folds": 2,
+    "stability_lambda": 0.5
+  },
+  "run_options": {
+    "recompute": true,
+    "incremental_update": false,
+    "max_state_snapshots": 8
+  },
+  "timestamp": "2026-03-18T04:27:43.003851+00:00"
+}

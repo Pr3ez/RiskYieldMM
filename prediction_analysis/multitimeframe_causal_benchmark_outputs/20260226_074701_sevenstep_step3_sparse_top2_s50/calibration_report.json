@@ -1,0 +1,17 @@
+{
+  "rows": 136,
+  "by_method_head": {
+    "online_sparse_ewaf_brier::breakfree": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    },
+    "online_sparse_ewaf_brier::dir4": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    }
+  }
+}

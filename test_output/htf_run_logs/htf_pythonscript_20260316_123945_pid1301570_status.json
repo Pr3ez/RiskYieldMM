@@ -1,0 +1,13 @@
+{
+  "reason": "heartbeat",
+  "run_id": "htf_pythonscript_20260316_123945_pid1301570",
+  "pid": 1301570,
+  "stage": "Legacy hybrid 1m labels",
+  "detail": "family B 1m entry + 15m future path",
+  "run_elapsed_seconds": 720.48,
+  "stage_elapsed_seconds": 625.05,
+  "silence_seconds": 0.034,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260316_123945_pid1301570.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260316_123945_pid1301570_status.json",
+  "updated_at": "2026-03-16T12:51:45"
+}

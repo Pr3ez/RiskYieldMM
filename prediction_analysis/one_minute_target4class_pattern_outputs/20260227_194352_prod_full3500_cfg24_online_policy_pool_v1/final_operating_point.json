@@ -1,0 +1,62 @@
+{
+  "pool_topn": 6,
+  "policy_eta": 0.25,
+  "policy_hold_loss": 0.05,
+  "selection_mode": "online_policy_pool",
+  "selection_batches": 200,
+  "batch_count": 200,
+  "active_batches": 18,
+  "coverage": 0.09,
+  "batches_per_signal": 11.11111111111111,
+  "cadence_target_hit": true,
+  "directional_active_safe_accuracy": 0.6111111111111112,
+  "opposite_fp_rate_active": 0.3888888888888889,
+  "opposite_fp_rate_covered": 0.035,
+  "opposite_fp_count": 7,
+  "opp_active_ucb": 0.8601121615273117,
+  "opp_covered_ucb": 0.10957388033498347,
+  "safe_acc_lcb": 0.3064160114953023,
+  "opp_active_weighted_hat": 0.4333473827582864,
+  "opp_covered_weighted_hat": 0.03639743749172408,
+  "safe_acc_weighted_hat": 0.5666526172417136,
+  "n_eff_total": 192.35953132604007,
+  "n_eff_active": 17.196173748878827,
+  "n_eff_up": 13.304589688326,
+  "n_eff_down": 3.9191632890056947,
+  "feasible": false,
+  "violation_score": 3.8599222526282904,
+  "viol_opp_active": 0.6101121615273117,
+  "viol_opp_covered": 0.07957388033498347,
+  "viol_safe_acc": 0.39358398850469767,
+  "viol_cadence": 0.0,
+  "selection_status": "best_near_feasible",
+  "router_model": "gbm",
+  "router_lookback": 768,
+  "pool_policy_count": 6,
+  "pool_policy_keys": [
+    {
+      "consensus_k": 4,
+      "activation_threshold": 0.25
+    },
+    {
+      "consensus_k": 4,
+      "activation_threshold": 0.2
+    },
+    {
+      "consensus_k": 3,
+      "activation_threshold": 0.3
+    },
+    {
+      "consensus_k": 4,
+      "activation_threshold": 0.3
+    },
+    {
+      "consensus_k": 3,
+      "activation_threshold": 0.25
+    },
+    {
+      "consensus_k": 3,
+      "activation_threshold": 0.2
+    }
+  ]
+}

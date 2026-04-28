@@ -1,0 +1,7 @@
+interface:
+  display_name: "Cross Target Ensemble Audit"
+  short_description: "Validate cross-target alignment checks"
+  default_prompt: "Use $cross-target-ensemble-audit to validate 15/3/1 alignment and confusion integrity."
+
+policy:
+  allow_implicit_invocation: false

@@ -1,0 +1,19 @@
+{
+  "activation_threshold": 0.85,
+  "batch_count": 577,
+  "active_batches": 60,
+  "coverage": 0.10398613518197573,
+  "batches_per_signal": 9.616666666666667,
+  "cadence_target_hit": false,
+  "directional_active_safe_accuracy": 0.5666666666666667,
+  "opposite_fp_rate_active": 0.4166666666666667,
+  "opposite_fp_rate_covered": 0.043327556325823226,
+  "opposite_fp_count": 25,
+  "feasible": false,
+  "violation_score": 1.1449826689774698,
+  "viol_opp_active": 0.16666666666666669,
+  "viol_opp_covered": 0.013327556325823227,
+  "viol_safe_acc": 0.1333333333333333,
+  "viol_cadence": 0.03833333333333329,
+  "selection_status": "best_near_feasible"
+}

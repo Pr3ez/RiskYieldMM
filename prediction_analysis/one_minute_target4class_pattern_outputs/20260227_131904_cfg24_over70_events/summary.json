@@ -1,0 +1,29 @@
+{
+  "created_utc": "2026-02-27T13:19:11.096783+00:00",
+  "unit": "1m/target_4class",
+  "threshold_directional_accuracy": 0.7,
+  "total_batches": 3500,
+  "total_configs": 24,
+  "total_hit_events": 22740,
+  "configs_with_any_hits": 24,
+  "best_config_by_hit_count": {
+    "batches_over_0p7": 1032,
+    "mean_dir_acc_over_hits": 0.8527454780361757,
+    "max_dir_acc_over_hits": 1.0,
+    "mean_pred_up_rate_over_hits": 0.4412144702842377,
+    "mean_pred_down_rate_over_hits": 0.5587855297157622,
+    "up_dom_hit_count": 452,
+    "down_dom_hit_count": 576,
+    "first_hit_batch": 2075,
+    "last_hit_batch": 5570,
+    "action_key": "f1_v1_t3",
+    "hit_rate_over_batches": 0.2948571428571429
+  },
+  "artifacts": {
+    "config_batch_events_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_131904_cfg24_over70_events/config_batch_events_diracc_gt_0p7.parquet",
+    "config_batch_events_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_131904_cfg24_over70_events/config_batch_events_diracc_gt_0p7.csv",
+    "config_hit_summary_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_131904_cfg24_over70_events/config_hit_summary_diracc_gt_0p7.parquet",
+    "config_hit_summary_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_131904_cfg24_over70_events/config_hit_summary_diracc_gt_0p7.csv",
+    "config_hit_events_nested_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/one_minute_target4class_pattern_outputs/20260227_131904_cfg24_over70_events/config_hit_events_nested.json"
+  }
+}

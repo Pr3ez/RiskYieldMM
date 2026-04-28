@@ -1,0 +1,27 @@
+{
+  "configs": 24,
+  "mean_baseline_hold_dir_acc": 0.5149114583333334,
+  "mean_weighted_hold_dir_acc": 0.5026010416666666,
+  "mean_logit_hold_dir_acc": 0.49680277777777765,
+  "mean_weighted_delta_vs_baseline": -0.012310416666666664,
+  "mean_logit_delta_vs_baseline": -0.01810868055555555,
+  "configs_improved_weighted": 1,
+  "configs_improved_logit": 0,
+  "best_weighted_config": {
+    "action_key": "f1_v4_t8",
+    "weighted_hold_delta_vs_baseline": 0.0008250000000000757,
+    "weighted_hold_dir_acc": 0.5020416666666667,
+    "weighted_best_w1_class1": 1.0,
+    "weighted_best_w3_class3": 1.75
+  },
+  "worst_weighted_config": {
+    "action_key": "f2_v1_t6",
+    "weighted_hold_delta_vs_baseline": -0.02400000000000002,
+    "weighted_hold_dir_acc": 0.500975
+  },
+  "most_common_weight_pair": {
+    "weighted_best_w1_class1": 0.5,
+    "weighted_best_w3_class3": 2.0,
+    "len": 8
+  }
+}

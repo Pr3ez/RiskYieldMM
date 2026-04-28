@@ -1,0 +1,7 @@
+{
+  "created_at_utc": "2026-02-27T14:42:15.818576+00:00",
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-64",
+  "notion_page_url": "https://www.notion.so/314105246d4a81568eb5e2b45da05e5f",
+  "run_command": "prediction_analysis/one_minute_target4class_config_activation_meta.py --mode full_pipeline --batches-tail 3500 --holdout-batches 500 --lookback-grid 32,64,128,256,512 --router-lookback-grid 128,256,512,768 --router-models logit,gbm --router-target dir_acc --retrain-every 25 --router-retrain-every 25 --objective brier --activation-threshold-grid 0.50,0.55,0.60,0.65,0.70,0.75,0.80,0.85,0.90 --target-cadence-min 10 --target-cadence-max 15 --max-opposite-fp-active 0.25 --max-opposite-fp-covered 0.03 --min-safe-accuracy 0.70 --output-tag prod_full3500_cfg24_rank_router --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-64 --notion-page-url https://www.notion.so/314105246d4a81568eb5e2b45da05e5f --verbose",
+  "git_commit_hash": "9592c4a1a6f2055a7343fee2ea9f688b9f90f7c3"
+}

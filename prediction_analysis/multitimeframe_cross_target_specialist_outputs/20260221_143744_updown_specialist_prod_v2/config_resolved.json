@@ -1,0 +1,12 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "input_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260221_141257_fullprod_fullsupport_risk_riskaware_finetune_cov12_20260221_1513",
+  "alignment_mode": "same_period_close",
+  "min_signal_rate_up": 0.12,
+  "min_signal_rate_down": 0.12,
+  "min_safe_precision_up": 0.5,
+  "min_safe_precision_down": 0.5,
+  "objective_opposite_penalty": 2.0,
+  "objective_hold_side_penalty": 1.0,
+  "objective_signal_rate_weight": 0.2
+}

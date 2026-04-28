@@ -1,0 +1,7 @@
+{
+  "linear_issue_url": "https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-53/1mtarget-4class-3500-step-directional-pattern-audit-before-ensemble",
+  "notion_page_url": "https://www.notion.so/313105246d4a81eea366cb86e41ec4fc",
+  "run_command": "python prediction_analysis/one_minute_target4class_pattern_audit.py --ensemble-run-dir prediction_analysis/multitimeframe_ensemble_outputs/20260225_173235_all6_3500_current_periodclose_nolive_ram --output-tag full3500_focus --high-accuracy-threshold 0.70 --rolling-window-short 25 --rolling-window-long 100 --max-period-lag 60 --linear-issue-url https://linear.app/riskyieldmetamodelalgorithm/issue/RIS-53/1mtarget-4class-3500-step-directional-pattern-audit-before-ensemble --notion-page-url https://www.notion.so/313105246d4a81eea366cb86e41ec4fc --verbose",
+  "cwd": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "timestamp_utc": "2026-02-26T17:46:33.893628+00:00"
+}

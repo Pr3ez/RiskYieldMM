@@ -1,0 +1,17 @@
+{
+  "alignment_mode": "same_period_close",
+  "weight_method": "diversity_weighted",
+  "final_rule": "strict_agreement_margin",
+  "config_id": "diversity_weighted||strict_agreement_margin",
+  "anchor_rows": 6688,
+  "signal_count": 392,
+  "signal_rate": 0.05861244019138756,
+  "safe_precision": 0.5229591836734694,
+  "strict_precision": 0.4030612244897959,
+  "safe_recall": 0.061989718778348954,
+  "opposite_rate_signal": 0.32908163265306123,
+  "hold_side_rate_signal": 0.14795918367346939,
+  "objective": -0.27144077726784493,
+  "fallback_used": false,
+  "selection_reason": "constraints_satisfied"
+}

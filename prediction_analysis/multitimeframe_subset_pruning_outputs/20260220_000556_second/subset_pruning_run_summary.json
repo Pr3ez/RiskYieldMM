@@ -1,0 +1,38 @@
+{
+  "timestamp_utc": "2026-02-20T00:09:20.476052+00:00",
+  "input_ensemble_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_ensemble_outputs/20260219_235802_aligncmp3",
+  "config": {
+    "alignment_mode": "both",
+    "variant": "both",
+    "objective_truth": "both",
+    "min_candidates_per_unit": 4,
+    "max_removals_total": 48
+  },
+  "rows": {
+    "summary_rows": 4,
+    "removal_log_rows": 35
+  },
+  "best_row": {
+    "alignment_mode": "same_period_close",
+    "variant": "uniform",
+    "objective_truth": "both",
+    "full_objective": 0.5127095588235294,
+    "final_objective": 0.5296625816993464,
+    "objective_gain": 0.016953022875817014,
+    "removed_count": 12,
+    "truth_a_hit_full": 0.515125,
+    "truth_a_hit_final": 0.52975,
+    "truth_b_hit_full": 0.5102941176470588,
+    "truth_b_hit_final": 0.5295751633986928,
+    "truth_a_cov_final": 1.0,
+    "truth_b_cov_final": 1.0
+  },
+  "artifacts": {
+    "subset_pruning_summary_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_summary.parquet",
+    "subset_pruning_summary_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_summary.csv",
+    "subset_pruning_removal_log_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_removal_log.parquet",
+    "subset_pruning_removal_log_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_removal_log.csv",
+    "subset_pruning_selected_candidates_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_selected_candidates.json",
+    "subset_pruning_run_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_subset_pruning_outputs/20260220_000556_second/subset_pruning_run_summary.json"
+  }
+}

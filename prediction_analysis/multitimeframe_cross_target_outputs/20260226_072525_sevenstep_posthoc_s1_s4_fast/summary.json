@@ -1,0 +1,31 @@
+{
+  "timestamp_utc": "2026-02-26T07:26:04.430147+00:00",
+  "inputs": {
+    "strict_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260225_203425_full3500_strict_winner_011059_live",
+    "dual_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_011654_full3500_dual_diversity_141257_live",
+    "meta_lookback_batches": 240,
+    "router_lookback_batches": 240,
+    "meta_retrain_every_batches": 32,
+    "router_retrain_every_batches": 16
+  },
+  "step1_meta": {
+    "opposite_fp_rate_active": 0.4177215189873418,
+    "opposite_fp_rate_covered": 0.00305103550295858,
+    "directional_active_safe_accuracy": 0.4936708860759494,
+    "batches_per_signal": 43.333333333333336,
+    "active_batch_rate": 0.023076923076923078,
+    "cadence_target_hit": false
+  },
+  "step4_router": {
+    "opposite_fp_rate_active": 0.3645293315143247,
+    "opposite_fp_rate_covered": 0.02470414201183432,
+    "directional_active_safe_accuracy": 0.5274215552523874,
+    "batches_per_signal": 4.801136363636363,
+    "active_batch_rate": 0.20828402366863905,
+    "cadence_target_hit": false
+  },
+  "artifacts": {
+    "step1_meta_predictions": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_072525_sevenstep_posthoc_s1_s4_fast/step1_meta_predictions.parquet",
+    "step4_router_predictions": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_072525_sevenstep_posthoc_s1_s4_fast/step4_router_predictions.parquet"
+  }
+}

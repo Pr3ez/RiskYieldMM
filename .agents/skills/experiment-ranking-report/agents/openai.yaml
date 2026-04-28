@@ -1,0 +1,7 @@
+interface:
+  display_name: "Experiment Ranking Report"
+  short_description: "Rank runs with deterministic ties"
+  default_prompt: "Use $experiment-ranking-report to compare runs and generate a deterministic ranking report."
+
+policy:
+  allow_implicit_invocation: false

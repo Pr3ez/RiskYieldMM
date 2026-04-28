@@ -1,0 +1,28 @@
+{
+  "timestamp_utc": "2026-02-26T07:54:40.161926+00:00",
+  "inputs": {
+    "step1_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260226_072525_sevenstep_posthoc_s1_s4_fast",
+    "step2_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_073421_sevenstep_step2_purged_baselines_s50",
+    "step3_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074701_sevenstep_step3_sparse_top2_s50",
+    "step5_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_074908_sevenstep_step5_calibrated_logit_s50",
+    "step7_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_causal_benchmark_outputs/20260226_075139_sevenstep_step7_attention_s50"
+  },
+  "rows": 9,
+  "best_stability": {
+    "step": "Step1_meta_labeler",
+    "method_name": "Step1_meta_labeler",
+    "opposite_fp_rate_active": 0.4177215189873418,
+    "opposite_fp_rate_covered": 0.00305103550295858,
+    "directional_active_safe_accuracy": 0.4936708860759494,
+    "batches_per_signal": 43.333333333333336,
+    "cadence_target_hit": false,
+    "max_roll50_opp_active": 0.07,
+    "min_roll50_safe": 0.0
+  },
+  "artifacts": {
+    "seven_step_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_075438_sevenstep_report/seven_step_metrics.csv",
+    "seven_step_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_075438_sevenstep_report/seven_step_metrics.parquet",
+    "step6_stability_ranking_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_075438_sevenstep_report/step6_stability_ranking.csv",
+    "step6_stability_ranking_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_validation/20260226_075438_sevenstep_report/step6_stability_ranking.parquet"
+  }
+}

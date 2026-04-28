@@ -1,0 +1,20 @@
+{
+  "batch_count": 500,
+  "active_batches": 0,
+  "coverage": 0.0,
+  "batches_per_signal": Infinity,
+  "cadence_target_hit": false,
+  "directional_active_safe_accuracy": 0.0,
+  "opposite_fp_rate_active": 0.0,
+  "opposite_fp_rate_covered": 0.0,
+  "opposite_fp_count": 0,
+  "pass_production_gate": false,
+  "violation_score": 3.0999999999999996,
+  "viol_opp_active": 0.0,
+  "viol_opp_covered": 0.0,
+  "viol_safe_acc": 0.7,
+  "viol_cadence": 1.0,
+  "activation_threshold": 0.6,
+  "router_model": "logit",
+  "router_lookback": 768
+}

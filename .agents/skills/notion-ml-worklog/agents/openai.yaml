@@ -1,0 +1,7 @@
+interface:
+  display_name: "Notion ML Worklog"
+  short_description: "Write structured ML worklog entries"
+  default_prompt: "Use $notion-ml-worklog to write a structured worklog entry in Notion."
+
+policy:
+  allow_implicit_invocation: false

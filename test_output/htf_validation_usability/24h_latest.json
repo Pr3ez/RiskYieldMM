@@ -1,0 +1,2283 @@
+{
+  "generated_at": "2026-03-31T07:59:35.791395+00:00",
+  "regime": "24h",
+  "null_rate_threshold": 0.25,
+  "report_top_n": 20,
+  "helper_prefix_batches": 20,
+  "reports": [
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "1m",
+      "stage": "features",
+      "rows": 2721207,
+      "columns": 133,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 1764403,
+          "rows": 2721207,
+          "null_rate": 0.6483898505332376
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 1300800,
+          "rows": 2721207,
+          "null_rate": 0.478023171335367
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 1300800,
+          "rows": 2721207,
+          "null_rate": 0.478023171335367
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 803683,
+          "rows": 2721207,
+          "null_rate": 0.29534063377023506
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 1764403,
+          "rows": 2721207,
+          "null_rate": 0.6483898505332376
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 1300800,
+          "rows": 2721207,
+          "null_rate": 0.478023171335367
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 1300800,
+          "rows": 2721207,
+          "null_rate": 0.478023171335367
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 803683,
+          "rows": 2721207,
+          "null_rate": 0.29534063377023506
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 650400,
+          "rows": 2721207,
+          "null_rate": 0.2390115856676835
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 650400,
+          "rows": 2721207,
+          "null_rate": 0.2390115856676835
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 650400,
+          "rows": 2721207,
+          "null_rate": 0.2390115856676835
+        },
+        {
+          "column": "D_dist_avg_high_w240",
+          "nulls": 453600,
+          "rows": 2721207,
+          "null_rate": 0.1666907368678678
+        },
+        {
+          "column": "D_dist_avg_low_w240",
+          "nulls": 453600,
+          "rows": 2721207,
+          "null_rate": 0.1666907368678678
+        },
+        {
+          "column": "D_dist_top5_high_w240",
+          "nulls": 453600,
+          "rows": 2721207,
+          "null_rate": 0.1666907368678678
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 325200,
+          "rows": 2721207,
+          "null_rate": 0.11950579283384175
+        },
+        {
+          "column": "D_dist_bot5_low_w120",
+          "nulls": 226800,
+          "rows": 2721207,
+          "null_rate": 0.0833453684339339
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 162600,
+          "rows": 2721207,
+          "null_rate": 0.05975289641692087
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 2710,
+          "rows": 2721207,
+          "null_rate": 0.0009958816069486813
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 2710,
+          "rows": 2721207,
+          "null_rate": 0.0009958816069486813
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 1738,
+          "rows": 2721207,
+          "null_rate": 0.0006386871708032502
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 1441,
+          "rows": 2721207,
+          "null_rate": 0.0005295444264254796
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 1380,
+          "rows": 2721207,
+          "null_rate": 0.0005071279031694391
+        },
+        {
+          "column": "X_D_longShortRetPressure_long_pct",
+          "nulls": 1018,
+          "rows": 2721207,
+          "null_rate": 0.0003740986995844124
+        },
+        {
+          "column": "C_N_bodySize_bnd",
+          "nulls": 708,
+          "rows": 2721207,
+          "null_rate": 0.00026017866336519054
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "15m",
+      "stage": "features",
+      "rows": 181414,
+      "columns": 133,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 121363,
+          "rows": 181414,
+          "null_rate": 0.668983650655407
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 57315,
+          "rows": 181414,
+          "null_rate": 0.3159348231117775
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 121363,
+          "rows": 181414,
+          "null_rate": 0.668983650655407
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 57315,
+          "rows": 181414,
+          "null_rate": 0.3159348231117775
+        },
+        {
+          "column": "D_dist_avg_high_w16",
+          "nulls": 30240,
+          "rows": 181414,
+          "null_rate": 0.16669055309954028
+        },
+        {
+          "column": "D_dist_avg_low_w16",
+          "nulls": 30240,
+          "rows": 181414,
+          "null_rate": 0.16669055309954028
+        },
+        {
+          "column": "D_dist_top5_high_w16",
+          "nulls": 30240,
+          "rows": 181414,
+          "null_rate": 0.16669055309954028
+        },
+        {
+          "column": "D_dist_bot5_low_w8",
+          "nulls": 15120,
+          "rows": 181414,
+          "null_rate": 0.08334527654977014
+        },
+        {
+          "column": "M_N_rsi_short_bnd",
+          "nulls": 8750,
+          "rows": 181414,
+          "null_rate": 0.04823222022556142
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 5696,
+          "rows": 181414,
+          "null_rate": 0.03139779730340547
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 5664,
+          "rows": 181414,
+          "null_rate": 0.031221405183723416
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 2852,
+          "rows": 181414,
+          "null_rate": 0.01572094766666299
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 2832,
+          "rows": 181414,
+          "null_rate": 0.015610702591861708
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 2832,
+          "rows": 181414,
+          "null_rate": 0.015610702591861708
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 1416,
+          "rows": 181414,
+          "null_rate": 0.007805351295930854
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 708,
+          "rows": 181414,
+          "null_rate": 0.003902675647965427
+        },
+        {
+          "column": "M_N_rsi_med_bnd",
+          "nulls": 299,
+          "rows": 181414,
+          "null_rate": 0.0016481638682791847
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 177,
+          "rows": 181414,
+          "null_rate": 0.0009756689119913567
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 177,
+          "rows": 181414,
+          "null_rate": 0.0009756689119913567
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 114,
+          "rows": 181414,
+          "null_rate": 0.0006283969263673145
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 97,
+          "rows": 181414,
+          "null_rate": 0.0005346886127862237
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 92,
+          "rows": 181414,
+          "null_rate": 0.000507127344085903
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "1m",
+      "stage": "optimized",
+      "rows": 1360800,
+      "columns": 128,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650533,
+          "rows": 1360800,
+          "null_rate": 0.4780518812463257
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650528,
+          "rows": 1360800,
+          "null_rate": 0.4780482069370958
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650533,
+          "rows": 1360800,
+          "null_rate": 0.4780518812463257
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650528,
+          "rows": 1360800,
+          "null_rate": 0.4780482069370958
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 325253,
+          "rows": 1360800,
+          "null_rate": 0.2390160199882422
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 325253,
+          "rows": 1360800,
+          "null_rate": 0.2390160199882422
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 325249,
+          "rows": 1360800,
+          "null_rate": 0.23901308054085832
+        },
+        {
+          "column": "D_dist_bot5_low_w120",
+          "nulls": 226801,
+          "rows": 1360800,
+          "null_rate": 0.16666740152851264
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 162629,
+          "rows": 1360800,
+          "null_rate": 0.11950984714873604
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 81310,
+          "rows": 1360800,
+          "null_rate": 0.05975161669606114
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 1357,
+          "rows": 1360800,
+          "null_rate": 0.0009972075249853028
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 1357,
+          "rows": 1360800,
+          "null_rate": 0.0009972075249853028
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 961,
+          "rows": 1360800,
+          "null_rate": 0.0007062022339800118
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 960,
+          "rows": 1360800,
+          "null_rate": 0.0007054673721340388
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 781,
+          "rows": 1360800,
+          "null_rate": 0.0005739271017048794
+        },
+        {
+          "column": "L_M_S_obv_xlong_zsc",
+          "nulls": 481,
+          "rows": 1360800,
+          "null_rate": 0.00035346854791299233
+        },
+        {
+          "column": "M_V_sharpe_xlong_rat",
+          "nulls": 481,
+          "rows": 1360800,
+          "null_rate": 0.00035346854791299233
+        },
+        {
+          "column": "M_V_sortino_xlong_rat",
+          "nulls": 481,
+          "rows": 1360800,
+          "null_rate": 0.00035346854791299233
+        },
+        {
+          "column": "V_kurtosis_xlong_rat",
+          "nulls": 481,
+          "rows": 1360800,
+          "null_rate": 0.00035346854791299233
+        },
+        {
+          "column": "V_skew_xlong_rat",
+          "nulls": 481,
+          "rows": 1360800,
+          "null_rate": 0.00035346854791299233
+        },
+        {
+          "column": "L_M_S_cmf_xlong_bnd",
+          "nulls": 480,
+          "rows": 1360800,
+          "null_rate": 0.0003527336860670194
+        },
+        {
+          "column": "L_M_S_mfi_xlong_bnd",
+          "nulls": 480,
+          "rows": 1360800,
+          "null_rate": 0.0003527336860670194
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "1m",
+      "stage": "helpers",
+      "rows": 1360800,
+      "columns": 171,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650533,
+          "rows": 1360800,
+          "null_rate": 0.4780518812463257
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650528,
+          "rows": 1360800,
+          "null_rate": 0.4780482069370958
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650533,
+          "rows": 1360800,
+          "null_rate": 0.4780518812463257
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650528,
+          "rows": 1360800,
+          "null_rate": 0.4780482069370958
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 325253,
+          "rows": 1360800,
+          "null_rate": 0.2390160199882422
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 325253,
+          "rows": 1360800,
+          "null_rate": 0.2390160199882422
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 325249,
+          "rows": 1360800,
+          "null_rate": 0.23901308054085832
+        },
+        {
+          "column": "D_dist_bot5_low_w120",
+          "nulls": 226801,
+          "rows": 1360800,
+          "null_rate": 0.16666740152851264
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 162629,
+          "rows": 1360800,
+          "null_rate": 0.11950984714873604
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 81310,
+          "rows": 1360800,
+          "null_rate": 0.05975161669606114
+        },
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "1m",
+      "stage": "helpers_helper_only",
+      "rows": 1360800,
+      "columns": 43,
+      "all_null_columns": [],
+      "high_null_columns": [],
+      "top_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 1360800,
+          "null_rate": 0.007407407407407408
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "B",
+      "tf": "1m",
+      "stage": "helpers_prefix",
+      "prefix_batches": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "rows": 14400,
+      "columns": 43,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_asymmetry",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_leverage_active",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_log_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_news_impact",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_acceleration",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_filtered_dev",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_innovation",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_pred_error",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_velocity",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_halflife",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_halflife_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_is_stationary",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_kappa",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_phi",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_reverting",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_zscore_abs",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "1m",
+      "stage": "features",
+      "rows": 2720487,
+      "columns": 133,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 1763922,
+          "rows": 2720487,
+          "null_rate": 0.6483846458373078
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 1300320,
+          "rows": 2720487,
+          "null_rate": 0.4779732452314604
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 1300320,
+          "rows": 2720487,
+          "null_rate": 0.4779732452314604
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 803203,
+          "rows": 2720487,
+          "null_rate": 0.29524235918054376
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 1763922,
+          "rows": 2720487,
+          "null_rate": 0.6483846458373078
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 1300320,
+          "rows": 2720487,
+          "null_rate": 0.4779732452314604
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 1300320,
+          "rows": 2720487,
+          "null_rate": 0.4779732452314604
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 803203,
+          "rows": 2720487,
+          "null_rate": 0.29524235918054376
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 650160,
+          "rows": 2720487,
+          "null_rate": 0.2389866226157302
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 650160,
+          "rows": 2720487,
+          "null_rate": 0.2389866226157302
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 650160,
+          "rows": 2720487,
+          "null_rate": 0.2389866226157302
+        },
+        {
+          "column": "D_dist_avg_high_w240",
+          "nulls": 453360,
+          "rows": 2720487,
+          "null_rate": 0.16664663348878345
+        },
+        {
+          "column": "D_dist_avg_low_w240",
+          "nulls": 453360,
+          "rows": 2720487,
+          "null_rate": 0.16664663348878345
+        },
+        {
+          "column": "D_dist_top5_high_w240",
+          "nulls": 453360,
+          "rows": 2720487,
+          "null_rate": 0.16664663348878345
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 325080,
+          "rows": 2720487,
+          "null_rate": 0.1194933113078651
+        },
+        {
+          "column": "D_dist_bot5_low_w120",
+          "nulls": 226680,
+          "rows": 2720487,
+          "null_rate": 0.08332331674439172
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 162540,
+          "rows": 2720487,
+          "null_rate": 0.05974665565393255
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 2709,
+          "rows": 2720487,
+          "null_rate": 0.0009957775942322092
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 2709,
+          "rows": 2720487,
+          "null_rate": 0.0009957775942322092
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 1258,
+          "rows": 2720487,
+          "null_rate": 0.00046241720691920233
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 1202,
+          "rows": 2720487,
+          "null_rate": 0.00044183265716763213
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 901,
+          "rows": 2720487,
+          "null_rate": 0.0003311907022529422
+        },
+        {
+          "column": "X_D_longShortRetPressure_long_pct",
+          "nulls": 778,
+          "rows": 2720487,
+          "null_rate": 0.00028597820904860047
+        },
+        {
+          "column": "C_N_bodySize_bnd",
+          "nulls": 688,
+          "rows": 2720487,
+          "null_rate": 0.00025289589694786266
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "15m",
+      "stage": "features",
+      "rows": 181366,
+      "columns": 133,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 121330,
+          "rows": 181366,
+          "null_rate": 0.6689787501516271
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 57283,
+          "rows": 181366,
+          "null_rate": 0.31584199905164145
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "F_I_N_S_fundingZscore_long_zsc",
+          "nulls": 121330,
+          "rows": 181366,
+          "null_rate": 0.6689787501516271
+        },
+        {
+          "column": "F_I_N_S_fundingZscore_xlong_zsc",
+          "nulls": 57283,
+          "rows": 181366,
+          "null_rate": 0.31584199905164145
+        },
+        {
+          "column": "D_dist_avg_high_w16",
+          "nulls": 30224,
+          "rows": 181366,
+          "null_rate": 0.16664644972045478
+        },
+        {
+          "column": "D_dist_avg_low_w16",
+          "nulls": 30224,
+          "rows": 181366,
+          "null_rate": 0.16664644972045478
+        },
+        {
+          "column": "D_dist_top5_high_w16",
+          "nulls": 30224,
+          "rows": 181366,
+          "null_rate": 0.16664644972045478
+        },
+        {
+          "column": "D_dist_bot5_low_w8",
+          "nulls": 15112,
+          "rows": 181366,
+          "null_rate": 0.08332322486022739
+        },
+        {
+          "column": "M_N_rsi_short_bnd",
+          "nulls": 8743,
+          "rows": 181366,
+          "null_rate": 0.04820638929016464
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 5664,
+          "rows": 181366,
+          "null_rate": 0.031229668184775537
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 5632,
+          "rows": 181366,
+          "null_rate": 0.03105322938147172
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 2836,
+          "rows": 181366,
+          "null_rate": 0.015636888942800745
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 2816,
+          "rows": 181366,
+          "null_rate": 0.01552661469073586
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 2816,
+          "rows": 181366,
+          "null_rate": 0.01552661469073586
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 1408,
+          "rows": 181366,
+          "null_rate": 0.00776330734536793
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 704,
+          "rows": 181366,
+          "null_rate": 0.003881653672683965
+        },
+        {
+          "column": "M_N_rsi_med_bnd",
+          "nulls": 292,
+          "rows": 181366,
+          "null_rate": 0.0016100040801473264
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 176,
+          "rows": 181366,
+          "null_rate": 0.0009704134181709913
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 176,
+          "rows": 181366,
+          "null_rate": 0.0009704134181709913
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 82,
+          "rows": 181366,
+          "null_rate": 0.00045212443346603003
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 82,
+          "rows": 181366,
+          "null_rate": 0.00045212443346603003
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 61,
+          "rows": 181366,
+          "null_rate": 0.00033633646879790036
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "1m",
+      "stage": "optimized",
+      "rows": 1360395,
+      "columns": 128,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650274,
+          "rows": 1360395,
+          "null_rate": 0.4780038150684176
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650269,
+          "rows": 1360395,
+          "null_rate": 0.4780001396653178
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650274,
+          "rows": 1360395,
+          "null_rate": 0.4780038150684176
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650269,
+          "rows": 1360395,
+          "null_rate": 0.4780001396653178
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 325153,
+          "rows": 1360395,
+          "null_rate": 0.23901366882412828
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 325149,
+          "rows": 1360395,
+          "null_rate": 0.23901072850164842
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 325149,
+          "rows": 1360395,
+          "null_rate": 0.23901072850164842
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 162573,
+          "rows": 1360395,
+          "null_rate": 0.11950426162989426
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 81292,
+          "rows": 1360395,
+          "null_rate": 0.05975617375835695
+        },
+        {
+          "column": "D_F_basis_pct",
+          "nulls": 1355,
+          "rows": 1360395,
+          "null_rate": 0.000996034240055278
+        },
+        {
+          "column": "D_N_markCloseDeviation_pct",
+          "nulls": 1355,
+          "rows": 1360395,
+          "null_rate": 0.000996034240055278
+        },
+        {
+          "column": "X_D_longShortRetPressure_xlong_pct",
+          "nulls": 779,
+          "rows": 1360395,
+          "null_rate": 0.000572627802954289
+        },
+        {
+          "column": "S_N_longShortZscore_long_zsc",
+          "nulls": 662,
+          "rows": 1360395,
+          "null_rate": 0.0004866233704181506
+        },
+        {
+          "column": "X_D_longShortRetPressure_long_pct",
+          "nulls": 599,
+          "rows": 1360395,
+          "null_rate": 0.00044031329136022995
+        },
+        {
+          "column": "S_N_longShortZscore_xlong_zsc",
+          "nulls": 422,
+          "rows": 1360395,
+          "null_rate": 0.0003102040216260718
+        },
+        {
+          "column": "C_N_bodySize_bnd",
+          "nulls": 367,
+          "rows": 1360395,
+          "null_rate": 0.0002697745875278871
+        },
+        {
+          "column": "C_N_lowerShadow_bnd",
+          "nulls": 367,
+          "rows": 1360395,
+          "null_rate": 0.0002697745875278871
+        },
+        {
+          "column": "C_N_upperShadow_bnd",
+          "nulls": 367,
+          "rows": 1360395,
+          "null_rate": 0.0002697745875278871
+        },
+        {
+          "column": "S_M_longShortChange_med_pct",
+          "nulls": 61,
+          "rows": 1360395,
+          "null_rate": 4.483991781798669e-05
+        },
+        {
+          "column": "S_M_longShortChange_short_pct",
+          "nulls": 61,
+          "rows": 1360395,
+          "null_rate": 4.483991781798669e-05
+        },
+        {
+          "column": "L_M_N_volumeRoc_short_pct",
+          "nulls": 2,
+          "rows": 1360395,
+          "null_rate": 1.4701612399339898e-06
+        },
+        {
+          "column": "B_C_candleDirection_bin",
+          "nulls": 1,
+          "rows": 1360395,
+          "null_rate": 7.350806199669949e-07
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "1m",
+      "stage": "helpers",
+      "rows": 1360395,
+      "columns": 171,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650274,
+          "rows": 1360395,
+          "null_rate": 0.4780038150684176
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650269,
+          "rows": 1360395,
+          "null_rate": 0.4780001396653178
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "D_F_N_S_premiumZscore_xlong_zsc",
+          "nulls": 650274,
+          "rows": 1360395,
+          "null_rate": 0.4780038150684176
+        },
+        {
+          "column": "X_D_fundingBasisPressure_xlong_pct",
+          "nulls": 650269,
+          "rows": 1360395,
+          "null_rate": 0.4780001396653178
+        },
+        {
+          "column": "D_F_N_S_premiumZscore_long_zsc",
+          "nulls": 325153,
+          "rows": 1360395,
+          "null_rate": 0.23901366882412828
+        },
+        {
+          "column": "X_D_basisRetPressure_long_pct",
+          "nulls": 325149,
+          "rows": 1360395,
+          "null_rate": 0.23901072850164842
+        },
+        {
+          "column": "X_D_fundingBasisPressure_long_pct",
+          "nulls": 325149,
+          "rows": 1360395,
+          "null_rate": 0.23901072850164842
+        },
+        {
+          "column": "X_D_basisRetPressure_med_pct",
+          "nulls": 162573,
+          "rows": 1360395,
+          "null_rate": 0.11950426162989426
+        },
+        {
+          "column": "X_D_basisRetPressure_short_pct",
+          "nulls": 81292,
+          "rows": 1360395,
+          "null_rate": 0.05975617375835695
+        },
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "1m",
+      "stage": "helpers_helper_only",
+      "rows": 1360395,
+      "columns": 43,
+      "all_null_columns": [],
+      "high_null_columns": [],
+      "top_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 1360395,
+          "null_rate": 0.007409612649267309
+        }
+      ]
+    },
+    {
+      "regime": "24h",
+      "family": "C",
+      "tf": "1m",
+      "stage": "helpers_prefix",
+      "prefix_batches": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20
+      ],
+      "rows": 14400,
+      "columns": 43,
+      "all_null_columns": [],
+      "high_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_asymmetry",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_leverage_active",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_log_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_news_impact",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_egarch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_acceleration",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_filtered_dev",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_innovation",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_pred_error",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_velocity",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_kalman_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_halflife",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_halflife_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_is_stationary",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_kappa",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_phi",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_reverting",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4class_1_ou_zscore_abs",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        }
+      ],
+      "top_null_columns": [
+        {
+          "column": "H_4cl_1_cp_any",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_count_21",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_magnitude",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_ret_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_down",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cp_vol_up",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_ret_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_neg",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_cusum_vol_pos",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_days_since_cp",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_cond_vol",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_persistence",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_change",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_forecast",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_ratio",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_regime",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_shock",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        },
+        {
+          "column": "H_4cl_1_garch_vol_zscore",
+          "nulls": 10080,
+          "rows": 14400,
+          "null_rate": 0.7
+        }
+      ]
+    }
+  ]
+}

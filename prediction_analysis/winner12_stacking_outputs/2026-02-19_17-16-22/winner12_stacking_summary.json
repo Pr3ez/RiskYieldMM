@@ -1,0 +1,78 @@
+{
+  "run_id": "stage1_catboost_live",
+  "unit": "1m/target_4class",
+  "model_name": "catboost",
+  "source": {
+    "probability_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_probability_outputs/2026-02-19_16-32-01",
+    "pred_rows_path": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_probability_outputs/2026-02-19_16-32-01/winner12_predictions_filtered.parquet",
+    "winners_path": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/1m/target_4class/winners_all_steps.parquet"
+  },
+  "config": {
+    "holdout_steps": 200,
+    "wf_warmup_steps": 120,
+    "wf_retrain_every_steps": 25,
+    "max_train_batches": null,
+    "logreg_c": 1.0,
+    "logreg_max_iter": 120,
+    "random_seed": 42,
+    "feature_count": 48,
+    "combo_count": 12
+  },
+  "rows": {
+    "pred_rows_long": 1440000,
+    "row_feature_rows": 120000,
+    "holdout_rows": 48000,
+    "walkforward_rows": 91200,
+    "batches_total": 500,
+    "batches_holdout": 200,
+    "batches_walkforward": 380
+  },
+  "metrics": {
+    "holdout": {
+      "model": {
+        "accuracy": 0.30591666666666667,
+        "macro_recall": 0.24495535495895265,
+        "macro_f1": 0.19299149625084308,
+        "cross_direction_error": 0.5107083333333333
+      },
+      "uniform": {
+        "accuracy": 0.3056041666666667,
+        "macro_recall": 0.2703265818572486,
+        "macro_f1": 0.26619286309536166,
+        "cross_direction_error": 0.476625
+      },
+      "mean_delta_accuracy_model_vs_uniform": 0.0003125,
+      "share_model_beats_uniform_accuracy": 0.5,
+      "fit_time_s": 2.4726500511169434
+    },
+    "walkforward": {
+      "model": {
+        "accuracy": 0.2956469298245614,
+        "macro_recall": 0.24029078764180886,
+        "macro_f1": 0.19198337474772117,
+        "cross_direction_error": 0.5132456140350877
+      },
+      "uniform": {
+        "accuracy": 0.30219298245614035,
+        "macro_recall": 0.27451013401200586,
+        "macro_f1": 0.27193909601583754,
+        "cross_direction_error": 0.47228070175438597
+      },
+      "mean_delta_accuracy_model_vs_uniform": -0.0065460526315789455,
+      "share_model_beats_uniform_accuracy": 0.45263157894736844,
+      "retrain_count": 16,
+      "mean_fit_time_s_when_retrain": 2.83995521068573
+    }
+  },
+  "artifacts": {
+    "winner12_stacking_feature_table_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_feature_table.parquet",
+    "winner12_stacking_feature_columns_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_feature_columns.json",
+    "winner12_stacking_holdout_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_holdout_batch_metrics.parquet",
+    "winner12_stacking_holdout_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_holdout_batch_metrics.csv",
+    "winner12_stacking_holdout_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_holdout_row_predictions.parquet",
+    "winner12_stacking_walkforward_batch_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_walkforward_batch_metrics.parquet",
+    "winner12_stacking_walkforward_batch_metrics_csv": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_walkforward_batch_metrics.csv",
+    "winner12_stacking_walkforward_row_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_walkforward_row_predictions.parquet",
+    "winner12_stacking_summary_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/winner12_stacking_outputs/2026-02-19_17-16-22/winner12_stacking_summary.json"
+  }
+}

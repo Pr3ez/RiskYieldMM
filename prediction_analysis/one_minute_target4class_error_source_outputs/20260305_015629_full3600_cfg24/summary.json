@@ -1,0 +1,64 @@
+{
+  "dataset": {
+    "valid_batch_count": 3600,
+    "configs_per_batch_expected": 24,
+    "rows_per_config_per_batch_expected": 240
+  },
+  "overall_dir_acc": 0.5077012442129629,
+  "overall_opp_rate": 0.492298755787037,
+  "class_metrics": [
+    {
+      "class_id": 0,
+      "rows": 5958216,
+      "dir_acc": 0.555489428379233,
+      "opp_rate": 0.444510571620767,
+      "opp_error_share": 0.25944458762848727
+    },
+    {
+      "class_id": 1,
+      "rows": 4167240,
+      "dir_acc": 0.5431906969600983,
+      "opp_rate": 0.4568093030399017,
+      "opp_error_share": 0.1864789136925447
+    },
+    {
+      "class_id": 2,
+      "rows": 6489408,
+      "dir_acc": 0.4750114340167855,
+      "opp_rate": 0.5249885659832145,
+      "opp_error_share": 0.33373457518470007
+    },
+    {
+      "class_id": 3,
+      "rows": 4121136,
+      "dir_acc": 0.4541995216852829,
+      "opp_rate": 0.5458004783147171,
+      "opp_error_share": 0.22034192349426795
+    }
+  ],
+  "up_classes_opp_error_share": 0.554076498678968,
+  "worst_true_class_counts": {
+    "3": 22,
+    "2": 1,
+    "1": 1
+  },
+  "classmix_corr_with_mean_opp_rate": {
+    "share_up_total": 0.16732763929340846,
+    "share_cls3_up_exp": 0.11255720830713994,
+    "share_cls2_up_bal": 0.10799780344565893,
+    "share_cls1_down_exp": -0.08159175099928007,
+    "share_cls0_down_bal": -0.13269025314058305,
+    "share_down_total": -0.1673276392934085
+  },
+  "decile_summary": {
+    "valid_batch_count": 3600.0,
+    "low_decile_mean_dir_acc": 0.196977237654321,
+    "high_decile_mean_dir_acc": 0.7898056520061729,
+    "low_decile_share_cls2": 0.3776273148148149,
+    "high_decile_share_cls2": 0.2299884259259259,
+    "low_decile_share_cls3": 0.2652893518518518,
+    "high_decile_share_cls3": 0.16630787037037037,
+    "low_decile_share_up_total": 0.6429166666666665,
+    "high_decile_share_up_total": 0.39629629629629626
+  }
+}

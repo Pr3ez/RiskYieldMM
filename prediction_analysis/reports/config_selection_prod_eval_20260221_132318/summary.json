@@ -1,0 +1,11 @@
+{
+  "generated_utc": "2026-02-21T13:23:18.719939+00:00",
+  "runs": {
+    "baseline": "prediction_analysis/multitimeframe_cross_target_outputs/20260221_110140_full500_baseline_strict_brier",
+    "fullsupport_risk": "prediction_analysis/multitimeframe_cross_target_outputs/20260221_130452_full500_fullsupport_risk_strict_brier",
+    "fullsupport_stability": "prediction_analysis/multitimeframe_cross_target_outputs/20260221_131010_full500_fullsupport_stability_strict_brier",
+    "fullsupport_diverse_risk": "prediction_analysis/multitimeframe_cross_target_outputs/20260221_131634_full500_fullsupport_diverse_risk_strict_brier"
+  },
+  "recommendation": "fullsupport_risk",
+  "ranking_table": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/reports/config_selection_prod_eval_20260221_132318/candidate_set_ranking.csv"
+}

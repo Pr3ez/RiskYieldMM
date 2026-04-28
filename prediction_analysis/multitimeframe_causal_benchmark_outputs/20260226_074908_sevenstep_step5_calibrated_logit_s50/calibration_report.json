@@ -1,0 +1,17 @@
+{
+  "rows": 136,
+  "by_method_head": {
+    "regularized_stacker_logit::dir4": {
+      "temperature_mean": 2.2279411764705883,
+      "val_nll_before_mean": 0.6961453558891633,
+      "val_nll_after_mean": 0.6925754480708008,
+      "fallback_share": 0.0
+    },
+    "regularized_stacker_logit::breakfree": {
+      "temperature_mean": 1.552941176470588,
+      "val_nll_before_mean": 1.0894415629013772,
+      "val_nll_after_mean": 1.0838240657211684,
+      "fallback_share": 0.0
+    }
+  }
+}

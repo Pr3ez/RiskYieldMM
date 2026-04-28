@@ -1,0 +1,41 @@
+[
+  {
+    "tag": "shiftrej_focus_A",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_021204_shiftrej_focus_A",
+    "safe_acc": 0.5263157894736842,
+    "coverage": 0.038,
+    "opp_active": 0.47368421052631576,
+    "opp_covered": 0.018,
+    "active_batches": 19,
+    "router_model": "gbm",
+    "router_lookback": 96,
+    "rolling_quantile": 0.96,
+    "consensus_k": 1
+  },
+  {
+    "tag": "shiftrej_focus_B",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_021716_shiftrej_focus_B",
+    "safe_acc": 0.631578947368421,
+    "coverage": 0.038,
+    "opp_active": 0.3684210526315789,
+    "opp_covered": 0.014,
+    "active_batches": 19,
+    "router_model": "gbm",
+    "router_lookback": 96,
+    "rolling_quantile": 0.94,
+    "consensus_k": 3
+  },
+  {
+    "tag": "shiftrej_focus_C",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_022243_shiftrej_focus_C",
+    "safe_acc": 0.5161290322580645,
+    "coverage": 0.062,
+    "opp_active": 0.4838709677419355,
+    "opp_covered": 0.03,
+    "active_batches": 31,
+    "router_model": "gbm",
+    "router_lookback": 96,
+    "rolling_quantile": 0.94,
+    "consensus_k": 1
+  }
+]

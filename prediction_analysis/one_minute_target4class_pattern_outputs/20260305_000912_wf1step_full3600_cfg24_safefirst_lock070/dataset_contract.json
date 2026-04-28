@@ -1,0 +1,14 @@
+{
+  "pass": true,
+  "missing_required_columns": [],
+  "batch_monotonic": true,
+  "batch_count": 3600,
+  "batch_id_first": 1972,
+  "batch_id_last": 5571,
+  "config_count_unique": 24,
+  "bad_cfg_count_batches": [],
+  "bad_row_count_batches": [],
+  "required_cfg_per_batch": 24,
+  "required_rows_per_batch_config": 240,
+  "payload_files": 3600
+}

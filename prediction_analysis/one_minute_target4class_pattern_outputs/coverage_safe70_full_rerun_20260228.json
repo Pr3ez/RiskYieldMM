@@ -1,0 +1,36 @@
+[
+  {
+    "tag": "coverage_safe70_rq_v1",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_041421_coverage_safe70_rq_v1",
+    "safe_acc": 0.65,
+    "coverage": 0.04,
+    "active_batches": 20,
+    "batches_per_signal": 25.0,
+    "opp_active": 0.35,
+    "opp_covered": 0.014,
+    "activation_threshold": 0.95,
+    "activation_threshold_up": 0.95,
+    "activation_threshold_down": 0.95,
+    "rolling_quantile": 0.95,
+    "consensus_k": 3,
+    "gate_method": "rolling_quantile",
+    "pass_gate": false
+  },
+  {
+    "tag": "coverage_safe70_dirabs_v1",
+    "run_dir": "prediction_analysis/one_minute_target4class_pattern_outputs/20260228_041755_coverage_safe70_dirabs_v1",
+    "safe_acc": 1.0,
+    "coverage": 0.012,
+    "active_batches": 6,
+    "batches_per_signal": 83.33333333333333,
+    "opp_active": 0.0,
+    "opp_covered": 0.0,
+    "activation_threshold": 0.935,
+    "activation_threshold_up": 0.88,
+    "activation_threshold_down": 0.99,
+    "rolling_quantile": null,
+    "consensus_k": 2,
+    "gate_method": "absolute",
+    "pass_gate": true
+  }
+]

@@ -1,0 +1,118 @@
+{
+  "run_timestamp_utc": "2026-02-21T14:37:44.498766+00:00",
+  "config": {
+    "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+    "input_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_outputs/20260221_141257_fullprod_fullsupport_risk_riskaware_finetune_cov12_20260221_1513",
+    "alignment_mode": "same_period_close",
+    "min_signal_rate_up": 0.12,
+    "min_signal_rate_down": 0.12,
+    "min_safe_precision_up": 0.5,
+    "min_safe_precision_down": 0.5,
+    "objective_opposite_penalty": 2.0,
+    "objective_hold_side_penalty": 1.0,
+    "objective_signal_rate_weight": 0.2
+  },
+  "counts": {
+    "input_rows": 187264,
+    "up_configs": 28,
+    "down_configs": 28,
+    "dual_rows": 6688
+  },
+  "selected_up_config": {
+    "alignment_mode": "same_period_close",
+    "weight_method": "diversity_weighted",
+    "final_rule": "dual_ova_thresholds",
+    "anchor_rows": 6688,
+    "signal_count": 132,
+    "signal_rate": 0.019736842105263157,
+    "safe_precision": 0.6666666666666666,
+    "strict_precision": 0.5606060606060606,
+    "safe_recall": 0.026610220743876624,
+    "opposite_rate_signal": 0.19696969696969696,
+    "hold_side_rate_signal": 0.13636363636363635,
+    "objective": 0.140311004784689,
+    "fallback_used": true,
+    "selection_reason": "fallback_no_rows_met_constraints"
+  },
+  "selected_down_config": {
+    "alignment_mode": "same_period_close",
+    "weight_method": "acc_logloss_blend",
+    "final_rule": "dual_ova_thresholds",
+    "anchor_rows": 6688,
+    "signal_count": 807,
+    "signal_rate": 0.12066387559808613,
+    "safe_precision": 0.5687732342007435,
+    "strict_precision": 0.44981412639405205,
+    "safe_recall": 0.13575865128660158,
+    "opposite_rate_signal": 0.3073110285006196,
+    "hold_side_rate_signal": 0.12391573729863693,
+    "objective": -0.14563178497951532,
+    "fallback_used": false,
+    "selection_reason": "constraints_satisfied"
+  },
+  "evaluation": {
+    "dual_specialist": {
+      "rows": 6688,
+      "macro_f1_3class": 0.2127023311399967,
+      "macro_f1": 0.2127023311399967,
+      "custom_mean_cost": 0.774671052631579,
+      "directional_active_coverage": 0.14040071770334928,
+      "directional_active_safe_accuracy": 0.582534611288605,
+      "directional_active_strict_accuracy": 0.4653887113951012,
+      "opposite_fp_rate_covered": 0.0409688995215311,
+      "hold_side_cross_error_rate_covered": 0.017643540669856458,
+      "pred_up_rate": 0.019736842105263157,
+      "pred_down_rate": 0.12066387559808613,
+      "pred_hold_rate": 0.8595992822966507
+    },
+    "up_selected_stream": {
+      "rows": 6688,
+      "macro_f1_3class": 0.20956903701415022,
+      "macro_f1": 0.20956903701415022,
+      "custom_mean_cost": 0.7767643540669856,
+      "directional_active_coverage": 0.1368122009569378,
+      "directional_active_safe_accuracy": 0.5704918032786885,
+      "directional_active_strict_accuracy": 0.4568306010928962,
+      "opposite_fp_rate_covered": 0.04111842105263158,
+      "hold_side_cross_error_rate_covered": 0.017643540669856458,
+      "pred_up_rate": 0.019736842105263157,
+      "pred_down_rate": 0.11707535885167464,
+      "pred_hold_rate": 0.8631877990430622
+    },
+    "down_selected_stream": {
+      "rows": 6688,
+      "macro_f1_3class": 0.19912832040132503,
+      "macro_f1": 0.19912832040132503,
+      "custom_mean_cost": 0.7816985645933014,
+      "directional_active_coverage": 0.1303827751196172,
+      "directional_active_safe_accuracy": 0.5493119266055045,
+      "directional_active_strict_accuracy": 0.43577981651376146,
+      "opposite_fp_rate_covered": 0.04201555023923445,
+      "hold_side_cross_error_rate_covered": 0.01674641148325359,
+      "pred_up_rate": 0.009718899521531101,
+      "pred_down_rate": 0.12066387559808613,
+      "pred_hold_rate": 0.8696172248803827
+    },
+    "baseline_single_best_setup_if_available": {
+      "rows": 6688,
+      "macro_f1_3class": 0.20956903701415022,
+      "macro_f1": 0.20956903701415022,
+      "custom_mean_cost": 0.7767643540669856,
+      "directional_active_coverage": 0.1368122009569378,
+      "directional_active_safe_accuracy": 0.5704918032786885,
+      "directional_active_strict_accuracy": 0.4568306010928962,
+      "opposite_fp_rate_covered": 0.04111842105263158,
+      "hold_side_cross_error_rate_covered": 0.017643540669856458,
+      "pred_up_rate": 0.019736842105263157,
+      "pred_down_rate": 0.11707535885167464,
+      "pred_hold_rate": 0.8631877990430622
+    }
+  },
+  "artifacts": {
+    "per_config_up_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_specialist_outputs/20260221_143744_updown_specialist_prod_v2/per_config_up_metrics.parquet",
+    "per_config_down_metrics_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_specialist_outputs/20260221_143744_updown_specialist_prod_v2/per_config_down_metrics.parquet",
+    "dual_specialist_predictions_parquet": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_specialist_outputs/20260221_143744_updown_specialist_prod_v2/dual_specialist_predictions.parquet",
+    "selected_up_config_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_specialist_outputs/20260221_143744_updown_specialist_prod_v2/selected_up_config.json",
+    "selected_down_config_json": "/media/przem/linux_data/RiskYieldMM (Copy)/prediction_analysis/multitimeframe_cross_target_specialist_outputs/20260221_143744_updown_specialist_prod_v2/selected_down_config.json"
+  }
+}

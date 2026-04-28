@@ -1,0 +1,60 @@
+{
+  "artifact_version": "2026-03-06-repair-01-combined-c-v1",
+  "family": "C",
+  "timeframe": "15m",
+  "source_fingerprint": {
+    "base_combined": {
+      "count": 2,
+      "digest": "56013a02acaaca43b7de03e22ad83d9fc32dbc85299cb9ae2369d666b6ed7c12",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/feature_expansion_smoke_data/htf_backtest_7d/15m_HTF_combined.parquet",
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/feature_expansion_smoke_data/htf_backtest_7d/15m_HTF_combined_meta.json"
+      ]
+    }
+  },
+  "schema_columns": [
+    "timestamp",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "period_8h_start",
+    "batch_id",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "bar_in_batch_norm",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours"
+  ],
+  "rebuild_mode": "full",
+  "updated_at": "2026-03-18T10:18:43.480771+00:00",
+  "stage": "combined",
+  "batch_regime": "7d",
+  "batch_duration_hours": 168,
+  "family_shift_hours": 84,
+  "anchor_utc": "1970-01-05T00:00:00+00:00",
+  "entry_window_hours": 84,
+  "status": "created",
+  "update_reason": "source_refresh",
+  "rebuild_reasons": [
+    "artifact_version",
+    "source_fingerprint"
+  ],
+  "rows": 181414,
+  "batches": 271,
+  "rows_per_batch": 672,
+  "output_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/feature_expansion_smoke_data/htf_backtest_7d_shift84h/15m_HTF_combined.parquet",
+  "min_ts": "2021-01-01 00:00:00+00:00",
+  "max_ts": "2026-03-05 17:15:00+00:00"
+}

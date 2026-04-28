@@ -1,0 +1,13 @@
+{
+  "reason": "shutdown",
+  "run_id": "htf_pythonscript_20260318_104508_pid32425",
+  "pid": 32425,
+  "stage": "CELL 14: multi-regime pipeline",
+  "detail": "regimes=('8h', '24h', '7d'), helpers=True, optimization=True",
+  "run_elapsed_seconds": 0.009,
+  "stage_elapsed_seconds": 0.001,
+  "silence_seconds": 0.001,
+  "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260318_104508_pid32425.log",
+  "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260318_104508_pid32425_status.json",
+  "updated_at": "2026-03-18T10:45:08"
+}

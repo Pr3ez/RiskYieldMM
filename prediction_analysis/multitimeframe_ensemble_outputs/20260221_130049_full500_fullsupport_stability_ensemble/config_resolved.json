@@ -1,0 +1,43 @@
+{
+  "project_root": "/media/przem/linux_data/RiskYieldMM (Copy)",
+  "run_id": "stage1_catboost_live",
+  "model_name": "catboost",
+  "candidate_run_dir": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260221_002905_p0p1_fullvalidate",
+  "candidate_sets_json": "prediction_analysis/reports/config_selection_search_20260221_125840/candidate_sets_fullsupport_stability.json",
+  "source_scope": "current+archive",
+  "units": [
+    "1m/target_4class",
+    "1m/target_breakfree",
+    "5m/target_4class",
+    "5m/target_breakfree",
+    "15m/target_4class",
+    "15m/target_breakfree"
+  ],
+  "targets": [
+    "target_4class",
+    "target_breakfree"
+  ],
+  "variants": [
+    "uniform",
+    "winner_weighted"
+  ],
+  "timeframe_row_weights": {
+    "1m": 15,
+    "5m": 3,
+    "15m": 1
+  },
+  "all_target_weights": {
+    "target_4class": 0.5,
+    "target_breakfree": 0.5
+  },
+  "breakfree_neutral_policy": "exclude_class_2_from_truth_b_denominator",
+  "alignment": "timestamp_floor_15m_same_interval",
+  "anchor_row_alignment": "both",
+  "anchor_row_alignment_modes": [
+    "anchor_mean",
+    "same_period_close"
+  ],
+  "live_walkforward_enabled": true,
+  "live_beta_prior": 1.0,
+  "live_min_history": 0
+}

@@ -1,0 +1,7 @@
+interface:
+  display_name: "Lookahead Leakage Audit"
+  short_description: "Detect lookahead leakage risks"
+  default_prompt: "Use $lookahead-leakage-audit to detect future-data leakage risks."
+
+policy:
+  allow_implicit_invocation: false

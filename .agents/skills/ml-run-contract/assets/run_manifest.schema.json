@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "RunManifest",
+  "type": "object",
+  "required": ["run_dir", "required_artifacts", "existing_artifacts"],
+  "properties": {
+    "run_dir": {"type": "string"},
+    "required_artifacts": {
+      "type": "array",
+      "items": {"type": "string"},
+      "minItems": 1
+    },
+    "existing_artifacts": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "additionalProperties": false
+}

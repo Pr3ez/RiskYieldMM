@@ -1,0 +1,27 @@
+{
+  "selected_config_ids": [
+    "winner_history_blend||dual_ova_thresholds",
+    "winner_history_blend||strict_agreement_margin",
+    "acc_logloss_blend||weighted_band",
+    "dma_logscore||strict_agreement_margin"
+  ],
+  "selected_configs": [
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "dual_ova_thresholds"
+    },
+    {
+      "weight_method": "winner_history_blend",
+      "final_rule": "strict_agreement_margin"
+    },
+    {
+      "weight_method": "acc_logloss_blend",
+      "final_rule": "weighted_band"
+    },
+    {
+      "weight_method": "dma_logscore",
+      "final_rule": "strict_agreement_margin"
+    }
+  ],
+  "min_votes": 3
+}

@@ -1,0 +1,30 @@
+{
+  "alignment": {
+    "holdout_batches": 500,
+    "exact_8h_match_rows": 500,
+    "missing_feature_rows": 0,
+    "batch_start_min": "2025-08-18T08:00:00.000",
+    "batch_start_max": "2026-01-31T16:00:00.000"
+  },
+  "feature_inventory": {
+    "analysis_8h_rows": 5574,
+    "analysis_8h_cols": 189,
+    "trend_label_col_present": true,
+    "volatility_regime_col_present": true
+  },
+  "batch_direction_model_8h": {
+    "walkforward_retrain_every_batches": 25,
+    "holdout_batch_accuracy": 0.784,
+    "holdout_up_label_share": 0.496
+  },
+  "down_specialist_combo": {
+    "base_method": "f1_v4_t8 DOWN q0.96",
+    "base_active_batches": 36,
+    "base_batch_precision": 0.6944444444444444,
+    "base_cadence": 13.88888888888889,
+    "best_with_8h_gate_threshold": 0.3,
+    "best_with_8h_gate_active_batches": 24,
+    "best_with_8h_gate_batch_precision": 0.875,
+    "best_with_8h_gate_cadence": 20.833333333333332
+  }
+}

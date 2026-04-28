@@ -1,0 +1,53 @@
+{
+  "rows": 544,
+  "by_method_head": {
+    "regularized_stacker_gbm::breakfree": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": 1.1292525858673081,
+      "val_nll_after_mean": 1.1292525858673081,
+      "fallback_share": 0.0
+    },
+    "online_ewaf_logloss::breakfree": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    },
+    "regularized_stacker_logit::dir4": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": 0.6961453558891633,
+      "val_nll_after_mean": 0.6961453558891633,
+      "fallback_share": 0.0
+    },
+    "regularized_stacker_gbm::dir4": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": 0.7125947826806742,
+      "val_nll_after_mean": 0.7125947826806742,
+      "fallback_share": 0.0
+    },
+    "online_ewaf_logloss::dir4": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    },
+    "regularized_stacker_logit::breakfree": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": 1.0894415629013772,
+      "val_nll_after_mean": 1.0894415629013772,
+      "fallback_share": 0.0
+    },
+    "online_ewaf_brier::dir4": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    },
+    "online_ewaf_brier::breakfree": {
+      "temperature_mean": 1.0,
+      "val_nll_before_mean": null,
+      "val_nll_after_mean": null,
+      "fallback_share": 0.0
+    }
+  }
+}

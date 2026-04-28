@@ -260,14 +260,23 @@ class KalmanHelper(BaseHelper):
             # Prediction error after update
             pred_errors[i] = z - positions[i]
 
-        # Calculate z-score of innovations
-        inn_mean = np.mean(innovations)
-        inn_std = np.std(innovations) + 1e-10
+        # Calculate causal expanding z-score of innovations (no look-ahead)
+        inn_cumsum = np.cumsum(innovations)
+        inn_cumsum_sq = np.cumsum(innovations**2)
+        counts = np.arange(1, n_samples + 1)
+        inn_mean = inn_cumsum / counts
+        inn_var = inn_cumsum_sq / counts - inn_mean**2
+        inn_std = np.sqrt(np.maximum(inn_var, 1e-10))
         zscores = (innovations - inn_mean) / inn_std
 
-        # Regime based on velocity sign and magnitude
+        # Regime based on velocity sign and magnitude (causal expanding z-score)
         # 0=bearish, 1=neutral, 2=bullish
-        vel_zscore = (velocities - np.mean(velocities)) / (np.std(velocities) + 1e-10)
+        vel_cumsum = np.cumsum(velocities)
+        vel_cumsum_sq = np.cumsum(velocities**2)
+        vel_mean = vel_cumsum / counts
+        vel_var = vel_cumsum_sq / counts - vel_mean**2
+        vel_std = np.sqrt(np.maximum(vel_var, 1e-10))
+        vel_zscore = (velocities - vel_mean) / vel_std
         regime = np.where(vel_zscore > 1, 2, np.where(vel_zscore < -1, 0, 1))
 
         # Pack features

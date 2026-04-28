@@ -1,0 +1,13 @@
+{
+  "threshold": 0.5625,
+  "train_safe": 0.47782546494992845,
+  "train_opp_active": 0.51931330472103,
+  "train_opp_cov": 0.12112112112112113,
+  "train_bps": 4.28755364806867,
+  "train_active": 699.0,
+  "hold_safe": 0.6530612244897959,
+  "hold_opp_active": 0.3469387755102041,
+  "hold_opp_cov": 0.034,
+  "hold_bps": 10.204081632653061,
+  "hold_active": 49.0
+}

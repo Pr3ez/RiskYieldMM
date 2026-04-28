@@ -1,0 +1,96 @@
+{
+  "artifact_version": "2026-03-06-repair-01-labels-b-v1",
+  "family": "B",
+  "timeframe": "1m",
+  "source_fingerprint": {
+    "combined_1m": {
+      "count": 1,
+      "digest": "cb7a96dd74f49e67fdd3329b19323114a06809160b49b81c7cb1bba97af8a52d",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_24h/1m_HTF_combined.parquet"
+      ]
+    },
+    "combined_15m": {
+      "count": 1,
+      "digest": "d6cc0d06b8302e2520e3bad1affa89dca4c793c7ac33abe455fef2467da5a6c5",
+      "paths": [
+        "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/phase8_resume_fixture/htf_backtest_24h/15m_HTF_combined.parquet"
+      ]
+    }
+  },
+  "schema_columns": [
+    "timestamp",
+    "open",
+    "high",
+    "low",
+    "close",
+    "volume",
+    "batch_id",
+    "bar_pos_1m",
+    "bar_pos_15m",
+    "remaining_bars",
+    "bb_upper",
+    "bb_lower",
+    "bb_middle",
+    "bb_position_pct",
+    "segment_2h",
+    "dist_avg_high",
+    "dist_avg_low",
+    "dist_top5_high",
+    "dist_bot5_low",
+    "close_end",
+    "end_return",
+    "target_4class",
+    "target_name",
+    "target_breakfree",
+    "period_8h_start",
+    "batch_family",
+    "family_batch_id",
+    "family_period_start",
+    "family_period_end",
+    "family_bar_pos",
+    "source_base_batch_id",
+    "source_base_period_start",
+    "source_half_in_base",
+    "is_label_half",
+    "bar_in_batch_norm",
+    "batch_regime",
+    "batch_duration_hours",
+    "family_shift_hours",
+    "anchor_utc",
+    "entry_window_hours"
+  ],
+  "rebuild_mode": "full",
+  "updated_at": "2026-03-18T09:59:58.790113+00:00",
+  "stage": "labels",
+  "batch_regime": "24h",
+  "batch_duration_hours": 24,
+  "family_shift_hours": 0,
+  "anchor_utc": "1970-01-01T00:00:00+00:00",
+  "entry_window_hours": 12,
+  "rebuild_reasons": [
+    "missing_meta"
+  ],
+  "rows": 20160,
+  "valid_labels": 10080,
+  "updated_batches": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14
+  ],
+  "updated_batches_count": 14,
+  "missing_backfill_count": 0,
+  "expected_valid_rows_per_full_batch": 720,
+  "run_mode": "full_first_build"
+}

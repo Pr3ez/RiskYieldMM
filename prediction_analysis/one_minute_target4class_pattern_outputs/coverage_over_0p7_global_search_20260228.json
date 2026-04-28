@@ -1,0 +1,65 @@
+[
+  {
+    "run": "20260227_215602_prod_full3500_cfg24_shift_reject_rollingq_covcon_v1",
+    "best_cov": 0.062,
+    "best_safe": 0.7096774193548387,
+    "best_active": 31,
+    "best_opp_active": 0.2903225806451613,
+    "best_opp_covered": 0.018,
+    "method": "rq",
+    "k": 1,
+    "up": 0.94,
+    "dn": 0.94,
+    "feasible_count": 318
+  },
+  {
+    "run": "20260228_040511_prod_full3500_cfg24_compat_legacy_safefirst_v1",
+    "best_cov": 0.036,
+    "best_safe": 0.7222222222222222,
+    "best_active": 18,
+    "best_opp_active": 0.2777777777777778,
+    "best_opp_covered": 0.01,
+    "method": "dir_abs",
+    "k": 1,
+    "up": 0.85,
+    "dn": 0.88,
+    "feasible_count": 269
+  },
+  {
+    "run": "20260228_033857_prod_full3500_cfg24_safety_lock_v1",
+    "best_cov": 0.036,
+    "best_safe": 0.7222222222222222,
+    "best_active": 18,
+    "best_opp_active": 0.2777777777777778,
+    "best_opp_covered": 0.01,
+    "method": "rq",
+    "k": 1,
+    "up": 0.97,
+    "dn": 0.97,
+    "feasible_count": 306
+  },
+  {
+    "run": "20260228_041421_coverage_safe70_rq_v1",
+    "best_cov": null,
+    "best_safe": null,
+    "best_active": null,
+    "method": null,
+    "k": null,
+    "up": null,
+    "dn": null,
+    "feasible_count": 0
+  },
+  {
+    "run": "20260228_041755_coverage_safe70_dirabs_v1",
+    "best_cov": 0.052,
+    "best_safe": 0.7307692307692307,
+    "best_active": 26,
+    "best_opp_active": 0.2692307692307692,
+    "best_opp_covered": 0.014,
+    "method": "abs",
+    "k": 1,
+    "up": 0.8,
+    "dn": 0.8,
+    "feasible_count": 323
+  }
+]

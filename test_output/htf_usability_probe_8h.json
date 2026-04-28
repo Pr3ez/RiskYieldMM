@@ -1,0 +1,164 @@
+[
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "features",
+    "check": "usability_all_null_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "features",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=8 first=F_I_N_S_fundingZscore_long_zsc:64.84%, D_dist_avg_high_w240:50.00%, D_dist_avg_low_w240:50.00%, D_dist_top5_high_w240:50.00%, D_F_N_S_premiumZscore_xlong_zsc:47.86%"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "15m",
+    "stage": "features",
+    "check": "usability_all_null_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "15m",
+    "stage": "features",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=6 first=F_I_N_S_fundingZscore_long_zsc:66.90%, D_dist_avg_high_w16:50.00%, D_dist_avg_low_w16:50.00%, D_dist_top5_high_w16:50.00%, F_I_N_S_fundingZscore_xlong_zsc:31.59%"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "optimized",
+    "check": "usability_all_null_columns",
+    "ok": false,
+    "detail": "count=3 first=D_dist_avg_high_w240:100.00%, D_dist_avg_low_w240:100.00%, D_dist_top5_high_w240:100.00%"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "optimized",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=8 first=D_dist_avg_high_w240:100.00%, D_dist_avg_low_w240:100.00%, D_dist_top5_high_w240:100.00%, D_dist_bot5_low_w120:50.00%, D_F_N_S_premiumZscore_xlong_zsc:47.85%"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_all_null_helper_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_high_null_helper_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "B",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_prefix_all_null_helper_columns",
+    "ok": false,
+    "detail": "count=43 first=H_4class_1_ou_phi:100.00%, H_4class_1_ou_kappa:100.00%, H_4class_1_ou_halflife:100.00%, H_4class_1_ou_zscore:100.00%, H_4class_1_ou_zscore_abs:100.00%"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "features",
+    "check": "usability_all_null_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "features",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=8 first=F_I_N_S_fundingZscore_long_zsc:64.84%, D_dist_avg_high_w240:50.00%, D_dist_avg_low_w240:50.00%, D_dist_top5_high_w240:50.00%, D_F_N_S_premiumZscore_xlong_zsc:47.85%"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "15m",
+    "stage": "features",
+    "check": "usability_all_null_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "15m",
+    "stage": "features",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=6 first=F_I_N_S_fundingZscore_long_zsc:66.90%, D_dist_avg_high_w16:50.00%, D_dist_avg_low_w16:50.00%, D_dist_top5_high_w16:50.00%, F_I_N_S_fundingZscore_xlong_zsc:31.59%"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "optimized",
+    "check": "usability_all_null_columns",
+    "ok": false,
+    "detail": "count=1 first=F_I_N_S_fundingZscore_long_zsc:100.00%"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "optimized",
+    "check": "usability_high_null_columns",
+    "ok": true,
+    "detail": "count=4 first=F_I_N_S_fundingZscore_long_zsc:100.00%, D_F_N_S_premiumZscore_xlong_zsc:47.86%, X_D_fundingBasisPressure_xlong_pct:47.86%, F_I_N_S_fundingZscore_xlong_zsc:29.68%"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_all_null_helper_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_high_null_helper_columns",
+    "ok": true,
+    "detail": "count=0"
+  },
+  {
+    "regime": "8h",
+    "family": "C",
+    "tf": "1m",
+    "stage": "helpers",
+    "check": "usability_prefix_all_null_helper_columns",
+    "ok": false,
+    "detail": "count=43 first=H_4class_1_ou_phi:100.00%, H_4class_1_ou_kappa:100.00%, H_4class_1_ou_halflife:100.00%, H_4class_1_ou_zscore:100.00%, H_4class_1_ou_zscore_abs:100.00%"
+  }
+]

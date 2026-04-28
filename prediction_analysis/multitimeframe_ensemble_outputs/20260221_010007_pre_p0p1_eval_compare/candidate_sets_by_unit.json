@@ -1,0 +1,488 @@
+{
+  "1m/target_4class": {
+    "source": "winners_all_steps_top12",
+    "action_keys": [
+      "f2_v1_t3",
+      "f2_v3_t9",
+      "f2_v2_t6",
+      "f2_v2_t10",
+      "f2_v2_t8",
+      "f2_v1_t6",
+      "f2_v1_t4",
+      "f2_v2_t4",
+      "f2_v1_t5",
+      "f3_v2_t4",
+      "f3_v1_t3",
+      "f7_v1_t4"
+    ],
+    "winner_wins": {
+      "f2_v1_t3": 75,
+      "f2_v3_t9": 60,
+      "f2_v2_t6": 57,
+      "f2_v2_t10": 53,
+      "f2_v2_t8": 53,
+      "f2_v1_t6": 50,
+      "f2_v1_t4": 45,
+      "f2_v2_t4": 45,
+      "f2_v1_t5": 42,
+      "f3_v2_t4": 18,
+      "f3_v1_t3": 1,
+      "f7_v1_t4": 1
+    },
+    "weights": {
+      "f2_v1_t3": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.1484375
+      },
+      "f2_v3_t9": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.119140625
+      },
+      "f2_v2_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.11328125
+      },
+      "f2_v2_t10": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.10546875
+      },
+      "f2_v2_t8": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.10546875
+      },
+      "f2_v1_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.099609375
+      },
+      "f2_v1_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.08984375
+      },
+      "f2_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.08984375
+      },
+      "f2_v1_t5": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.083984375
+      },
+      "f3_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.037109375
+      },
+      "f3_v1_t3": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.00390625
+      },
+      "f7_v1_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.00390625
+      }
+    }
+  },
+  "1m/target_breakfree": {
+    "source": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260220_235408_post_backfill_20260220_191829/1m/target_breakfree/candidate12_v2.parquet",
+    "action_keys": [
+      "f1_v2_t16",
+      "f1_v4_t28",
+      "f1_v4_t12",
+      "f1_v4_t32",
+      "f1_v2_t18",
+      "f1_v3_t21",
+      "f1_v3_t27",
+      "f1_v4_t16",
+      "f1_v3_t15",
+      "f1_v3_t24",
+      "f1_v3_t18",
+      "f2_v4_t16"
+    ],
+    "winner_wins": {
+      "f1_v2_t16": 56,
+      "f1_v4_t28": 53,
+      "f1_v4_t12": 49,
+      "f1_v4_t32": 48,
+      "f1_v2_t18": 47,
+      "f1_v3_t21": 47,
+      "f1_v3_t27": 45,
+      "f1_v4_t16": 39,
+      "f1_v3_t15": 37,
+      "f1_v3_t24": 31,
+      "f1_v3_t18": 31,
+      "f2_v4_t16": 17
+    },
+    "weights": {
+      "f1_v2_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.111328125
+      },
+      "f1_v4_t28": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.10546875
+      },
+      "f1_v4_t12": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09765625
+      },
+      "f1_v4_t32": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.095703125
+      },
+      "f1_v2_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09375
+      },
+      "f1_v3_t21": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09375
+      },
+      "f1_v3_t27": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.08984375
+      },
+      "f1_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.078125
+      },
+      "f1_v3_t15": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.07421875
+      },
+      "f1_v3_t24": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0625
+      },
+      "f1_v3_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0625
+      },
+      "f2_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.03515625
+      }
+    }
+  },
+  "5m/target_4class": {
+    "source": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260220_235408_post_backfill_20260220_191829/5m/target_4class/candidate12_v2.parquet",
+    "action_keys": [
+      "f1_v1_t3",
+      "f1_v1_t4",
+      "f1_v2_t8",
+      "f1_v1_t6",
+      "f1_v2_t4",
+      "f1_v3_t9",
+      "f1_v1_t5",
+      "f1_v2_t10",
+      "f1_v2_t6",
+      "f2_v2_t4",
+      "f2_v2_t6",
+      "f9_v2_t10"
+    ],
+    "winner_wins": {
+      "f1_v1_t3": 70,
+      "f1_v1_t4": 60,
+      "f1_v2_t8": 58,
+      "f1_v1_t6": 52,
+      "f1_v2_t4": 50,
+      "f1_v3_t9": 50,
+      "f1_v1_t5": 49,
+      "f1_v2_t10": 48,
+      "f1_v2_t6": 46,
+      "f2_v2_t4": 10,
+      "f2_v2_t6": 7,
+      "f9_v2_t10": 0
+    },
+    "weights": {
+      "f1_v1_t3": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.138671875
+      },
+      "f1_v1_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.119140625
+      },
+      "f1_v2_t8": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.115234375
+      },
+      "f1_v1_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.103515625
+      },
+      "f1_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.099609375
+      },
+      "f1_v3_t9": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.099609375
+      },
+      "f1_v1_t5": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09765625
+      },
+      "f1_v2_t10": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.095703125
+      },
+      "f1_v2_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.091796875
+      },
+      "f2_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.021484375
+      },
+      "f2_v2_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.015625
+      },
+      "f9_v2_t10": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.001953125
+      }
+    }
+  },
+  "5m/target_breakfree": {
+    "source": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260220_235408_post_backfill_20260220_191829/5m/target_breakfree/candidate12_v2.parquet",
+    "action_keys": [
+      "f1_v2_t16",
+      "f1_v4_t28",
+      "f1_v3_t27",
+      "f1_v2_t18",
+      "f1_v3_t24",
+      "f1_v4_t32",
+      "f1_v4_t12",
+      "f1_v4_t16",
+      "f1_v3_t21",
+      "f1_v3_t18",
+      "f1_v3_t15",
+      "f2_v4_t16"
+    ],
+    "winner_wins": {
+      "f1_v2_t16": 59,
+      "f1_v4_t28": 52,
+      "f1_v3_t27": 46,
+      "f1_v2_t18": 45,
+      "f1_v3_t24": 45,
+      "f1_v4_t32": 45,
+      "f1_v4_t12": 43,
+      "f1_v4_t16": 40,
+      "f1_v3_t21": 39,
+      "f1_v3_t18": 38,
+      "f1_v3_t15": 38,
+      "f2_v4_t16": 8
+    },
+    "weights": {
+      "f1_v2_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.11764705882352941
+      },
+      "f1_v4_t28": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.10392156862745099
+      },
+      "f1_v3_t27": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09215686274509804
+      },
+      "f1_v2_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09019607843137255
+      },
+      "f1_v3_t24": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09019607843137255
+      },
+      "f1_v4_t32": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.09019607843137255
+      },
+      "f1_v4_t12": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.08627450980392157
+      },
+      "f1_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0803921568627451
+      },
+      "f1_v3_t21": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0784313725490196
+      },
+      "f1_v3_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.07647058823529412
+      },
+      "f1_v3_t15": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.07647058823529412
+      },
+      "f2_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.01764705882352941
+      }
+    }
+  },
+  "15m/target_4class": {
+    "source": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260220_235408_post_backfill_20260220_191829/15m/target_4class/candidate12_v2.parquet",
+    "action_keys": [
+      "f1_v1_t4",
+      "f1_v2_t8",
+      "f1_v1_t6",
+      "f1_v2_t4",
+      "f1_v1_t5",
+      "f1_v2_t10",
+      "f1_v3_t9",
+      "f1_v2_t6",
+      "f2_v2_t4",
+      "f2_v2_t6",
+      "f2_v2_t8",
+      "f3_v2_t8"
+    ],
+    "winner_wins": {
+      "f1_v1_t4": 80,
+      "f1_v2_t8": 66,
+      "f1_v1_t6": 61,
+      "f1_v2_t4": 56,
+      "f1_v1_t5": 56,
+      "f1_v2_t10": 54,
+      "f1_v3_t9": 52,
+      "f1_v2_t6": 46,
+      "f2_v2_t4": 15,
+      "f2_v2_t6": 14,
+      "f2_v2_t8": 0,
+      "f3_v2_t8": 0
+    },
+    "weights": {
+      "f1_v1_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.158203125
+      },
+      "f1_v2_t8": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.130859375
+      },
+      "f1_v1_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.12109375
+      },
+      "f1_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.111328125
+      },
+      "f1_v1_t5": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.111328125
+      },
+      "f1_v2_t10": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.107421875
+      },
+      "f1_v3_t9": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.103515625
+      },
+      "f1_v2_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.091796875
+      },
+      "f2_v2_t4": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.03125
+      },
+      "f2_v2_t6": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.029296875
+      },
+      "f2_v2_t8": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.001953125
+      },
+      "f3_v2_t8": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.001953125
+      }
+    }
+  },
+  "15m/target_breakfree": {
+    "source": "/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_backtest_results/stage1_catboost_live/catboost/candidate_search_v2/run_20260220_235408_post_backfill_20260220_191829/15m/target_breakfree/candidate12_v2.parquet",
+    "action_keys": [
+      "f1_v2_t16",
+      "f1_v4_t32",
+      "f1_v3_t24",
+      "f1_v3_t15",
+      "f1_v2_t18",
+      "f1_v4_t28",
+      "f1_v4_t12",
+      "f1_v3_t27",
+      "f1_v3_t21",
+      "f1_v3_t18",
+      "f1_v4_t16",
+      "f2_v4_t16"
+    ],
+    "winner_wins": {
+      "f1_v2_t16": 63,
+      "f1_v4_t32": 58,
+      "f1_v3_t24": 51,
+      "f1_v3_t15": 48,
+      "f1_v2_t18": 43,
+      "f1_v4_t28": 42,
+      "f1_v4_t12": 40,
+      "f1_v3_t27": 39,
+      "f1_v3_t21": 38,
+      "f1_v3_t18": 37,
+      "f1_v4_t16": 31,
+      "f2_v4_t16": 10
+    },
+    "weights": {
+      "f1_v2_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.125
+      },
+      "f1_v4_t32": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.115234375
+      },
+      "f1_v3_t24": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.1015625
+      },
+      "f1_v3_t15": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.095703125
+      },
+      "f1_v2_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0859375
+      },
+      "f1_v4_t28": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.083984375
+      },
+      "f1_v4_t12": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.080078125
+      },
+      "f1_v3_t27": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.078125
+      },
+      "f1_v3_t21": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.076171875
+      },
+      "f1_v3_t18": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.07421875
+      },
+      "f1_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.0625
+      },
+      "f2_v4_t16": {
+        "uniform": 0.08333333333333333,
+        "winner_weighted": 0.021484375
+      }
+    }
+  }
+}
