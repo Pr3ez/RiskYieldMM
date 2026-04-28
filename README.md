@@ -376,12 +376,6 @@ Development tools:
 - VS Code
 - Ruff
 
-## Notes on Repository Hygiene
-
-- `cv_tmp/` is ignored because it contains private CV/certificate files.
-- Most generated data and model-output directories are ignored for future commits.
-- Some historical `test_output/`, `prediction_analysis/`, and data snapshots may remain as committed audit/reference artifacts.
-- GitHub may warn about historical large files. Future cleanup can move large market-data snapshots to external storage or Git LFS if the repository needs to be made lightweight.
 
 ## License
 
