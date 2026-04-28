@@ -6,7 +6,7 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange.svg)](https://rust-lang.org)
 
-RiskYieldMM is a research and portfolio project for building leakage-aware financial time-series ML workflows. The repository covers data ingestion, feature engineering, target generation, helper/regime modelling, walk-forward validation, model-selection audits, uncertainty estimation, and Rust-accelerated helper computation.
+RiskYieldMM is a research and portfolio project for building leakage-aware financial time-series ML workflows. The active workflow is a multi-regime HTF pipeline for cryptocurrency perpetual futures: it builds higher-timeframe batches, generates current prediction labels, attaches helper/regime features, runs CatBoost walk-forward Stage-1 experiments, and audits model-selection behavior from saved artifacts.
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
@@ -17,33 +17,47 @@ This repository demonstrates the ability to build and reason about a non-trivial
 | Area | Evidence |
 |------|----------|
 | **Data engineering** | Bybit market-data ingestion, multi-source aggregation, Parquet/JSON artifact workflows |
-| **Feature engineering** | 166+ technical/time-series features plus helper/regime feature families |
-| **ML modelling** | CatBoost, LightGBM, PyTorch LSTM experiments, Ridge/linear baselines, ensemble tooling |
+| **Feature engineering** | Multi-regime HTF feature materialization, helper/regime features, technical/time-series feature families |
+| **ML modelling** | CatBoost Stage-1 selection, LightGBM/PyTorch experiments, Ridge/linear baselines, ensemble tooling |
 | **Time-series validation** | Walk-forward splits, purged windows, chronological train/test separation, leakage checks |
 | **Uncertainty estimation** | Conformal prediction, Adaptive Conformal Inference, coverage monitoring |
 | **Performance engineering** | Rust/PyO3 helper implementations for Kalman, GARCH, EGARCH, CUSUM, OU, EVT, BOCPD |
-| **Experiment analysis** | Stage-1 CatBoost selector audits, pairwise disagreement analysis, discounted-loss policy replay |
+| **Experiment analysis** | HTF Stage-1 CatBoost selector audits, pairwise disagreement analysis, discounted-loss policy replay |
 | **Documentation** | Architecture notes, validation findings, run summaries, artifact specifications, implementation plans |
 
 Generated data, model outputs, private CV files, and local run artifacts are not required to review the code. Some historical output snapshots may exist in the repository as audit/reference material, but new generated data is ignored by default.
 
-## Current Project Tracks
+## Main Workflow
 
-### 1. HTF Feature and Backtest Pipeline
+### 1. Multi-Regime HTF Pipeline
 
-The higher-timeframe workflow builds features and labels for multiple market roots/timeframes such as 8h, 24h, and 7d variants. It emphasizes batch completeness, helper-cache reuse, feature acceptance checks, and walk-forward diagnostics.
+The HTF workflow is the current main path. It builds leakage-aware higher-timeframe batches for the 8h, 24h, and 7d regimes, generates the active labels, attaches helper features, and produces saved artifacts for walk-forward CatBoost evaluation.
+
+Current regimes:
+
+| Regime | Batch duration | Shift | Entry window | Current usage |
+|--------|----------------|-------|--------------|---------------|
+| `8h` | 8 hours | 4 hours | 4 hours | intraday HTF root |
+| `24h` | 24 hours | 12 hours | 12 hours | daily HTF root |
+| `7d` | 168 hours | 84 hours | 84 hours | weekly HTF root |
+
+The active analysis roots are the six regime/family variants `8h_b`, `8h_c`, `24h_b`, `24h_c`, `7d_b`, and `7d_c`, evaluated primarily through `1m/target_4class`.
 
 Key locations:
 
 - `scripts/feature_engineering/compute_htf_features.py`
 - `scripts/feature_engineering/htf_multiregime_pipeline.py`
+- `scripts/feature_engineering/htf_kernels.py`
 - `scripts/feature_engineering/htf_helper_cache.py`
 - `scripts/htf_backtest/`
+- `notebooks/htf_pythonscript.py`
 - `notebooks/notes/`
 
 ### 2. Stage-1 CatBoost Selection Audits
 
-Stage-1 is an offline audit and dataset-generation framework for CatBoost window/action-key selection. It stores raw validation and prediction-batch payloads so model-selection behavior can be studied after the run without leaking future information into selector decisions.
+Stage-1 is the main model-selection audit layer for the HTF workflow. It is an offline dataset-generation framework for CatBoost window/action-key selection. It stores raw validation and prediction-batch payloads so model-selection behavior can be studied after the run without leaking future information into selector decisions.
+
+Stage-1 specs cover `1m`, `5m`, and `15m` units for `target_4class` and `target_breakfree`. Current production-style audits focus on `1m/target_4class` across the six HTF regime/family roots.
 
 Recent Stage-1 v2 analysis includes:
 
@@ -65,9 +79,9 @@ Key locations:
 - `docs/htf_stage1_logic.md`
 - `docs/htf_stage1_artifacts.md`
 
-### 3. Target-Model and Conformal Prediction Layer
+### 3. Secondary Target-Model and Conformal Layer
 
-The target-model layer contains the older L2 modelling system and conformal uncertainty module. It includes multi-target configuration, helper features, model wrappers, validation tooling, conformal classification/regression wrappers, and Adaptive Conformal Inference.
+The target-model layer is the older L2 modelling system and conformal uncertainty module. It is useful as supporting engineering evidence, but it is no longer the main HTF workflow. It includes multi-target configuration, helper features, model wrappers, validation tooling, conformal classification/regression wrappers, and Adaptive Conformal Inference.
 
 Validated conformal outputs documented in `docs/conformal/` include regression coverage around **90.7-96.3%** against a 90% target.
 
@@ -122,7 +136,7 @@ RiskYieldMM/
 └── cv_tmp/                      # Private CV/certificate files, ignored by git
 ```
 
-## Data Sources and Targets
+## Data Sources and Prediction Targets
 
 The project uses Bybit perpetual-futures data and related market sources such as:
 
@@ -134,15 +148,26 @@ The project uses Bybit perpetual-futures data and related market sources such as
 - index price
 - premium price data
 
-The modelling work explores target families including:
+### Current HTF Targets
 
-- next-period direction
-- volatility and volatility regime
-- trend regime
-- path labels
-- strategy/action labels
-- triple-barrier outcomes
-- return/volatility regression targets
+The current HTF workflow centers on `target_4class`, generated from forward distance and breakout/risk metrics inside the HTF batch structure.
+
+| Value | Class | Meaning |
+|-------|-------|---------|
+| `0` | `DOWN_BALANCED` | downside outcome without expansion/risk trigger |
+| `1` | `DOWN_EXPANSION` | downside outcome with expansion/risk behavior |
+| `2` | `UP_BALANCED` | upside outcome without expansion/risk trigger |
+| `3` | `UP_EXPANSION` | upside outcome with expansion/risk behavior |
+
+Invalid or unresolved rows are marked as `-1` and excluded from training/evaluation where required.
+
+`target_breakfree` is a secondary Stage-1 target derived from the current HTF labeling surface. It uses three classes:
+
+- `UP_ABOVE_BREAKFREE`
+- `DOWN_ABOVE_BREAKFREE`
+- `IN_BETWEEN_BELOW_BREAKFREE`
+
+Older targets such as next-period direction, volatility regime, trend regime, triple-barrier outcomes, and return/volatility regression belong to the legacy L2 target-model layer. They remain in the repository for research history and conformal-prediction work, but they should not be read as the current main HTF objective.
 
 ## Quick Start for Reviewers
 
@@ -178,6 +203,9 @@ Useful entry points for review:
 
 - `docs/htf_stage1_logic.md`
 - `docs/htf_stage1_artifacts.md`
+- `scripts/feature_engineering/htf_multiregime_pipeline.py`
+- `scripts/feature_engineering/htf_kernels.py`
+- `notebooks/htf_stage1.py`
 - `docs/conformal/README.md`
 - `docs/validation/`
 - `scripts/analysis/`
@@ -275,4 +303,3 @@ Apache License 2.0. See [LICENSE](LICENSE).
 
 Przemysław Augustyniak  
 GitHub: https://github.com/Pr3ez/RiskYieldMM
-
