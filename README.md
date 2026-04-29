@@ -14,6 +14,8 @@ This is not trading advice and is not a live trading bot. The focus is ML engine
 
 This repository demonstrates the ability to build and reason about a non-trivial ML system rather than only train a single notebook model.
 
+For a concise example of the audit workflow, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B_WALKFORWARD_ANALYSIS.md).
+
 | Area | Evidence |
 |------|----------|
 | **Data engineering** | Bybit market-data ingestion, multi-source aggregation, Parquet/JSON artifact workflows |
