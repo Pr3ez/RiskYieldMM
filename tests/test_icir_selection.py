@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+pytest.importorskip("polars")
+
 from scripts.target_models.helpers.icir_config import (
     DEFAULT_ICIR_CONFIG,
     ICIR_CONFIG_DISABLED,

@@ -252,10 +252,17 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 python -m pip install \
   polars pandas numpy scipy scikit-learn catboost lightgbm xgboost torch \
-  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic
+  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic pytest
 
 # Basic source smoke check.
 python -m compileall scripts riskyield_rust -q
+
+# Lightweight HTF workflow contract check.
+python -m pytest tests/test_htf_workflow_contract.py -q
+
+# Full test discovery. Some registry/data tests require generated parquet
+# datasets under data/datasets/.
+python -m pytest --collect-only -q
 ```
 
 Optional Rust helper build:

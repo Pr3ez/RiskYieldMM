@@ -5,6 +5,8 @@ Tests for target_models registry and data loading.
 import pandas as pd
 import pytest
 
+pytest.importorskip("polars")
+
 from scripts.target_models.core import (
     DualLayerEngine,
     create_dual_config,

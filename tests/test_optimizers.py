@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
+pytest.importorskip("polars")
+
 from scripts.analysis.optimizers import (
     InteractionOptimizer,
     OptimizationPipeline,

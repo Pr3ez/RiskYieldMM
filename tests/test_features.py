@@ -12,6 +12,8 @@ import pytest
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 
+pytest.importorskip("polars")
+
 from scripts.analysis.features import compute_permutation_importance
 
 

@@ -11,6 +11,8 @@ import pandas as pd
 import pytest
 from sklearn.model_selection import TimeSeriesSplit
 
+pytest.importorskip("polars")
+
 from scripts.analysis.models import PurgedKFold
 
 
