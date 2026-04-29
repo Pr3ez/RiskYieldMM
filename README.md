@@ -180,7 +180,7 @@ RiskYieldMM/
 ├── docs/                        # Architecture, validation, conformal, and research notes
 ├── notebooks/notes/             # Session-level research and audit notes
 ├── Archive/                     # Legacy implementations kept for reference
-└── cv_tmp/                      # Private CV/certificate files, ignored by git
+
 ```
 
 ## Data Sources and Prediction Targets
