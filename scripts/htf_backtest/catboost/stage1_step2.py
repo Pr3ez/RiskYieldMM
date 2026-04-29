@@ -25,6 +25,8 @@ from typing import Any
 
 import numpy as np
 import polars as pl
+from scripts.project_paths import resolve_project_root
+
 from .stage1_selector_kernel import (
     _combo_key_from_row,
     _compute_metrics,
@@ -499,7 +501,7 @@ def _build_unit_configs(
 def run_stage1_step2_feature_pruning(
     *,
     stage1_run_id_or_path: str | Path,
-    project_root: str | Path = "/media/przem/linux_data/RiskYieldMM (Copy)",
+    project_root: str | Path | None = None,
     model_name: str = "catboost",
     timeframes: list[str] | None = None,
     targets_by_model: dict | None = None,
@@ -543,7 +545,11 @@ def run_stage1_step2_feature_pruning(
     """
     Run Stage-1 Step-2 feature pruning and baseline-vs-filtered comparison.
     """
-    project_root = Path(project_root)
+    project_root = (
+        Path(project_root).expanduser().resolve()
+        if project_root is not None
+        else resolve_project_root(Path(__file__))
+    )
     feature_selector_method = str(feature_selector_method).strip().lower()
     if feature_selector_method != "recursive_shap":
         raise ValueError(

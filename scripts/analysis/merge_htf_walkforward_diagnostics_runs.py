@@ -15,9 +15,13 @@ from typing import Any
 
 import polars as pl
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 
 from scripts.analysis.htf_walkforward_diagnostics import (  # noqa: E402
     ROOTS,

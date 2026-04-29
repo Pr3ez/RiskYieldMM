@@ -20,7 +20,13 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-DEFAULT_PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
 DEFAULT_OUTPUT_ROOT = "prediction_analysis/candidate_directional_quality_outputs"
 EXPECTED_UNITS = [
     "1m/target_4class",

@@ -1,0 +1,45 @@
+name: Research or experiment task
+description: Propose an ML, feature, backtest, or analysis experiment.
+title: "[Research]: "
+labels: ["research"]
+body:
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      description: What hypothesis, metric, or failure mode should be investigated?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Timeframes, targets, roots, model families, helper sets, and artifact locations.
+      placeholder: |
+        Roots:
+        Timeframes:
+        Targets:
+        Run IDs:
+    validations:
+      required: true
+  - type: textarea
+    id: methodology
+    attributes:
+      label: Proposed methodology
+      description: Walk-forward design, splits, leakage controls, baselines, and acceptance metrics.
+    validations:
+      required: true
+  - type: textarea
+    id: data
+    attributes:
+      label: Data requirements
+      description: Required parquet trees, fixture options, batch ranges, and generated artifacts.
+    validations:
+      required: false
+  - type: textarea
+    id: outputs
+    attributes:
+      label: Expected outputs
+      description: Reports, tables, plots, model artifacts, manifests, or follow-up decisions.
+    validations:
+      required: false

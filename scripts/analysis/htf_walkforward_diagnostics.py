@@ -29,14 +29,20 @@ import numpy as np
 import polars as pl
 from sklearn.metrics import confusion_matrix, f1_score, precision_recall_fscore_support
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
 
-from scripts.feature_engineering.htf_feature_acceptance import (
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
+
+from scripts.feature_engineering.htf_feature_acceptance import (  # noqa: E402
     describe_final_output_exclusions,
 )
-from scripts.htf_backtest.catboost.stage1_step2 import run_stage1_step2_feature_pruning
+from scripts.htf_backtest.catboost.stage1_step2 import (  # noqa: E402
+    run_stage1_step2_feature_pruning,
+)
 
 
 CLASS_NAMES_4 = [

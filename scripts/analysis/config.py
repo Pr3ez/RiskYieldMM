@@ -5,14 +5,21 @@ Centralized Configuration for Analysis
 All constants, paths, and parameters in one place.
 """
 
+import sys
 from dataclasses import dataclass
 from pathlib import Path
+
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
 
 # =============================================================================
 # PATHS
 # =============================================================================
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+PROJECT_ROOT = resolve_project_root(Path(__file__))
 DATA_DIR = PROJECT_ROOT / "data"
 PLOTS_DIR = DATA_DIR / "analysis" / "plots"
 RESULTS_DIR = DATA_DIR / "analysis" / "results"

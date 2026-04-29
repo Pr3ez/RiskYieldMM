@@ -377,6 +377,13 @@ Development tools:
 - Ruff
 
 
+## Community And Governance
+
+- Contributions: see [CONTRIBUTING.md](CONTRIBUTING.md).
+- Code of conduct: see [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- Security-sensitive reports: see [SECURITY.md](SECURITY.md).
+- GitHub issue and pull request templates live under [.github/](.github/).
+
 ## License
 
 Apache License 2.0. See [LICENSE](LICENSE).

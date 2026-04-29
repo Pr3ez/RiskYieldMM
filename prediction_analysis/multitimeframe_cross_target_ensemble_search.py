@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -24,7 +25,13 @@ from typing import Any
 import numpy as np
 import polars as pl
 
-DEFAULT_PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
 DEFAULT_OUTPUT_DIR = "prediction_analysis/multitimeframe_cross_target_outputs"
 DEFAULT_ALIGNMENTS = ["same_period_close", "anchor_mean"]
 DEFAULT_WEIGHT_METHODS = [

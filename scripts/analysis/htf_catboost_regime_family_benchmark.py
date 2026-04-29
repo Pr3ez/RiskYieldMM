@@ -20,16 +20,20 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
 
-from scripts.htf_backtest.catboost.utils import (
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
+
+from scripts.htf_backtest.catboost.utils import (  # noqa: E402
     BASE_CLASS_NAMES,
     compute_directional_accuracy,
     load_batch,
 )
-from scripts.feature_engineering.htf_feature_acceptance import (
+from scripts.feature_engineering.htf_feature_acceptance import (  # noqa: E402
     get_final_output_excluded_columns,
 )
 

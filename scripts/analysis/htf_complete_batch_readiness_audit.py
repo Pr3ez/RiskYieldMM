@@ -1,16 +1,22 @@
 from __future__ import annotations
 
 import json
+import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
 import polars as pl
 
-from scripts.htf_backtest.catboost.utils import get_feature_columns
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+from scripts.htf_backtest.catboost.utils import get_feature_columns  # noqa: E402
 
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 TARGET = "target_4class"
 TF = "1m"
 

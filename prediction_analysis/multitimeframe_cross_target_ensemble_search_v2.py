@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 import time
 import warnings
 from dataclasses import dataclass
@@ -37,7 +38,13 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score
 from sklearn.preprocessing import StandardScaler
 
-DEFAULT_PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
 DEFAULT_OUTPUT_DIR = "prediction_analysis/multitimeframe_cross_target_outputs_v2"
 DEFAULT_LOOKBACK_GRID = [120, 180, 240, 300, -1]  # -1 => all_history
 DEFAULT_FEATURE_METHODS = ["none", "l1_nonzero", "mi_topk", "tree_topk"]

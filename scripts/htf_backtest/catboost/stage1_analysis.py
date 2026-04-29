@@ -26,6 +26,8 @@ from typing import Any, Literal
 import numpy as np
 import polars as pl
 
+from scripts.project_paths import resolve_project_root
+
 
 def _as_int_key(value: Any) -> int:
     if isinstance(value, tuple):
@@ -192,9 +194,9 @@ def analyze_stage1_run(
             f"selection_source must be 'prediction' or 'validation', got {selection_source!r}"
         )
     project_root_path = (
-        Path(project_root)
+        Path(project_root).expanduser().resolve()
         if project_root is not None
-        else Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+        else resolve_project_root(Path(__file__))
     )
     run_dir = _resolve_stage1_run_dir(run_id_or_path, project_root=project_root_path)
     run_id = run_dir.name
@@ -794,9 +796,9 @@ def build_stage1_winner_portfolio(
     fallback_triplet_grid_by_unit = fallback_triplet_grid_by_unit or {}
 
     project_root_path = (
-        Path(project_root)
+        Path(project_root).expanduser().resolve()
         if project_root is not None
-        else Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+        else resolve_project_root(Path(__file__))
     )
     run_dir = _resolve_stage1_run_dir(run_id_or_path, project_root=project_root_path)
     run_id = run_dir.name

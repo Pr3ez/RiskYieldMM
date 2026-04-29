@@ -2,13 +2,19 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 import polars as pl
 
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 DEFAULT_MERGED_ROOT = (
     PROJECT_ROOT
     / "test_output"

@@ -11,10 +11,20 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
+
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Sparse EWAF sweep with gated post-optimization.")
-    p.add_argument("--project-root", default="/media/przem/linux_data/RiskYieldMM (Copy)")
+    p = argparse.ArgumentParser(
+        description="Sparse EWAF sweep with gated post-optimization."
+    )
+    p.add_argument("--project-root", default=str(DEFAULT_PROJECT_ROOT))
     p.add_argument("--ensemble-run-dir", required=True)
     p.add_argument("--candidate-search-run-dir", required=True)
     p.add_argument("--combos", default="1:2,2:2,3:2,2:4")

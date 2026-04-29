@@ -20,6 +20,7 @@ from sklearn.metrics import f1_score
 from scripts.feature_engineering.htf_feature_acceptance import (
     get_final_output_excluded_columns,
 )
+from scripts.project_paths import resolve_project_root
 
 
 # ============================================================================
@@ -67,7 +68,7 @@ class BaseOptimizerConfig:
     """Base configuration for HTF optimizer."""
 
     project_root: Path = field(
-        default_factory=lambda: Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+        default_factory=lambda: resolve_project_root(Path(__file__))
     )
     features_dir_override: Path | None = None
     labels_dir_override: Path | None = None

@@ -26,7 +26,13 @@ import polars as pl
 from sklearn.ensemble import HistGradientBoostingClassifier
 from sklearn.linear_model import LogisticRegression
 
-DEFAULT_PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
 DEFAULT_OUTPUT_ROOT = "prediction_analysis/multitimeframe_causal_benchmark_outputs"
 EXPECTED_UNITS = [
     "1m/target_4class",

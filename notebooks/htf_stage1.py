@@ -16,12 +16,44 @@
 
 import importlib
 import json
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
 
+
+def _resolve_stage1_project_root() -> Path:
+    env_root = os.environ.get("RISKYIELDMM_PROJECT_ROOT")
+    if env_root:
+        return Path(env_root).expanduser().resolve()
+
+    starts: list[Path] = []
+    if "__file__" in globals():
+        starts.append(Path(__file__).resolve())
+    starts.append(Path.cwd().resolve())
+
+    seen: set[Path] = set()
+    for start in starts:
+        root = start if start.is_dir() else start.parent
+        for candidate in [root, *root.parents]:
+            if candidate in seen:
+                continue
+            seen.add(candidate)
+            if (candidate / "pyproject.toml").is_file() and (
+                candidate / "scripts"
+            ).is_dir():
+                return candidate
+
+    raise RuntimeError(
+        "Could not resolve RiskYieldMM project root. "
+        "Set RISKYIELDMM_PROJECT_ROOT or run from inside the repository."
+    )
+
+
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
+else:
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -512,9 +544,9 @@ import polars as pl
 
 # Standalone-safe bootstrap (so Cell 14A can run without Cell 14).
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
 else:
-    PROJECT_ROOT = Path(PROJECT_ROOT)
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if "STAGE1_RUN_ID" not in dir():
     STAGE1_RUN_ID = "stage1_catboost_live"
@@ -1485,9 +1517,9 @@ import polars as pl
 
 # Standalone-safe bootstrap (so Cell 14B can run without earlier cells).
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
 else:
-    PROJECT_ROOT = Path(PROJECT_ROOT)
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -2174,9 +2206,9 @@ import polars as pl
 
 # Standalone-safe bootstrap (so Cell 14C can run independently).
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
 else:
-    PROJECT_ROOT = Path(PROJECT_ROOT)
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -3874,9 +3906,9 @@ import polars as pl
 
 # Standalone-safe bootstrap (so Cell 14D can run independently).
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
 else:
-    PROJECT_ROOT = Path(PROJECT_ROOT)
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
@@ -4423,9 +4455,9 @@ from pathlib import Path
 import polars as pl
 
 if "PROJECT_ROOT" not in dir():
-    PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    PROJECT_ROOT = _resolve_stage1_project_root()
 else:
-    PROJECT_ROOT = Path(PROJECT_ROOT)
+    PROJECT_ROOT = Path(PROJECT_ROOT).expanduser().resolve()
 
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))

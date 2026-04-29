@@ -1,0 +1,33 @@
+name: Documentation issue
+description: Report stale, missing, or unclear documentation.
+title: "[Docs]: "
+labels: ["documentation"]
+body:
+  - type: textarea
+    id: location
+    attributes:
+      label: Documentation location
+      description: Link or path to the affected file/section.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing, stale, misleading, or hard to follow?
+    validations:
+      required: true
+  - type: textarea
+    id: source_of_truth
+    attributes:
+      label: Current source of truth
+      description: Relevant code paths, artifacts, commands, or reports that should drive the correction.
+    validations:
+      required: false
+  - type: textarea
+    id: proposed_update
+    attributes:
+      label: Proposed update
+      description: Suggested wording or structure.
+    validations:
+      required: false

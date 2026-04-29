@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import math
+import sys
 from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
@@ -28,8 +29,13 @@ from typing import Any
 import numpy as np
 import polars as pl
 
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[1]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
 
-DEFAULT_PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+DEFAULT_PROJECT_ROOT = resolve_project_root(Path(__file__))
 DEFAULT_RUN_ID = "stage1_catboost_live"
 DEFAULT_MODEL_NAME = "catboost"
 DEFAULT_SOURCE_SCOPE = "current+archive"

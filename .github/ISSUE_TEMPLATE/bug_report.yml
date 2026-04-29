@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a reproducible code, data, or artifact bug.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough context to reproduce it without private data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What failed, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Commands, notebook cells, config, and minimal data/artifact assumptions.
+      placeholder: |
+        1. Run ...
+        2. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, Rust/maturin status, GPU/CPU, and key package versions.
+      placeholder: |
+        OS:
+        Python:
+        GPU/CPU:
+        riskyield_rust:
+        polars/catboost/optuna:
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: Data and artifacts
+      description: Artifact paths, batch ranges, timestamp ranges, and whether data is synthetic, fixture, or private.
+    validations:
+      required: false
+  - type: textarea
+    id: temporal_checks
+    attributes:
+      label: Temporal/leakage checks
+      description: If relevant, explain whether the failure affects train/validation/test separation, purge/embargo, labels, helper cache, or prediction-time availability.
+    validations:
+      required: false
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or traceback
+      render: shell
+    validations:
+      required: false

@@ -10,13 +10,20 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import sys
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import resolve_project_root  # noqa: E402
+
+PROJECT_ROOT = resolve_project_root(Path(__file__))
 
 
 def load_results(csv_paths: list[str]) -> pd.DataFrame:

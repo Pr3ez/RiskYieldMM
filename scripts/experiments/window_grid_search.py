@@ -25,15 +25,27 @@ from pathlib import Path
 import pandas as pd
 
 # Setup path
-PROJECT_ROOT = Path("/media/przem/linux_data/RiskYieldMM (Copy)")
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "scripts" / "target_models" / "validation"))
+_REPO_BOOTSTRAP_ROOT = Path(__file__).resolve().parents[2]
+if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
+    sys.path.insert(0, str(_REPO_BOOTSTRAP_ROOT))
+
+from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
+
+PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
+_VALIDATION_PATH = PROJECT_ROOT / "scripts" / "target_models" / "validation"
+if str(_VALIDATION_PATH) not in sys.path:
+    sys.path.insert(0, str(_VALIDATION_PATH))
 os.chdir(PROJECT_ROOT)
 
-from backtest.domain.config import PerModelConfig, SyncBacktestConfig
+from backtest.domain.config import PerModelConfig, SyncBacktestConfig  # noqa: E402
 
-from scripts.target_models.validation.l2_backtest_sync import run_sync_backtest
-from scripts.workflow.config import L2BacktestDefaults, get_workflow_configs
+from scripts.target_models.validation.l2_backtest_sync import (  # noqa: E402
+    run_sync_backtest,
+)
+from scripts.workflow.config import (  # noqa: E402
+    L2BacktestDefaults,
+    get_workflow_configs,
+)
 
 # =============================================================================
 # GRID SEARCH CONFIGURATION

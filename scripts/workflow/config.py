@@ -26,6 +26,8 @@ Adding a new target:
 from dataclasses import dataclass
 from pathlib import Path
 
+from scripts.project_paths import resolve_project_root
+
 # ============================================================================
 # WORKFLOW TARGETS AND HORIZONS
 # ============================================================================
@@ -205,8 +207,7 @@ def get_workflow_config() -> WorkflowConfig:
 
 def get_project_root() -> Path:
     """Get the project root path."""
-    # HARDCODED to Copy workspace due to space in path name
-    return Path("/media/przem/linux_data/RiskYieldMM (Copy)")
+    return resolve_project_root(Path(__file__))
 
 
 def get_workflow_configs() -> list[str]:
