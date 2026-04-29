@@ -1,4 +1,0 @@
-  File "<stdin>", line 20
-    '
-    ^
-SyntaxError: unterminated string literal (detected at line 20)

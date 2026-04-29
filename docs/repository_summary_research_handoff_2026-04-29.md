@@ -413,16 +413,21 @@ Researcher should decide which of these still matters for the active HTF path.
 
 ### P2: Repo Hygiene Issues
 
-Observed hygiene issues:
+Cleanup applied on 2026-04-29:
 
-- root file named `''` containing a Python syntax error fragment
-- root-level zero-byte `.codex`
-- generated logs and caches present locally
+- removed tracked stray root files: `''`, `.codex`, `a.drawio copy.svg`, and `test_ruff.py`
+- removed tracked generated CatBoost training output under `catboost_info/`
+- moved `a.drawio.svg` to `docs/diagrams/riskyieldmm_workflow.drawio.svg`
+- moved root-level research reports to `docs/research/`
+- archived `todobkup.md` under `Archive/root_cleanup_20260429/`
+- removed local generated logs and caches from the working tree
+
+Remaining local-only hygiene notes:
+
+- `.gitignore` now covers `.ruff_cache/` and `catboost_info/`
 - `cv_tmp/` private files present locally but ignored
 - `extensions/astra-workflow/node_modules/` exists locally
 - no detected CI workflow
-
-Researcher should recommend cleanup rules before sharing or publication.
 
 ## Research Questions To Send Out
 
@@ -510,4 +515,3 @@ Ask the researcher for these outputs:
 5. Decide whether to fix or disable inactive adaptive probing.
 6. Run a target-labeling review before adding more modeling complexity.
 7. Implement one clean dynamic selector baseline driven by the chosen loss.
-

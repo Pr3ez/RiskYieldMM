@@ -63,10 +63,14 @@ Thumbs.db
 
 # Test / coverage
 .pytest_cache/
+.ruff_cache/
 .cache/
 .tox/
 .coverage
 htmlcov/
+
+# ML training side effects
+catboost_info/
 
 # Docs
 docs/_build/
