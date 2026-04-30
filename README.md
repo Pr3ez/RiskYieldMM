@@ -10,7 +10,7 @@ RiskYieldMM is a research project for building leakage-aware financial time-seri
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
-## Reviewer Overview
+## Technical Overview
 
 This repository demonstrates the ability to build and reason about a non-trivial ML system rather than only train a single notebook model.
 
