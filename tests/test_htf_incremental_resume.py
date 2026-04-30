@@ -11,6 +11,8 @@ import polars as pl
 from scripts.feature_engineering.htf_multiregime_pipeline import (
     MultiRegimeHTFConfig,
     _build_shifted_feature_batches_from_base,
+    _label_batches_needing_repair,
+    _select_incremental_label_batches,
 )
 
 
@@ -130,3 +132,40 @@ def test_shifted_feature_resume_skips_unchanged_existing_batches(tmp_path: Path)
     assert result["skipped"] == 1
     assert existing_output_1.stat().st_mtime_ns == existing_mtime
     assert (output_dir / "batch_0002.parquet").exists()
+
+
+def test_incremental_label_selection_repairs_former_partial_tail(tmp_path: Path) -> None:
+    label_dir = tmp_path / "labels"
+    label_dir.mkdir()
+    pl.DataFrame(
+        {
+            "timestamp": [datetime(2021, 1, 1, tzinfo=timezone.utc)],
+            "batch_id": [2],
+            "target_4class": [0],
+        }
+    ).write_parquet(label_dir / "batch_0002.parquet")
+
+    counts_1m = pl.DataFrame(
+        {
+            "batch_id": [1, 2, 3, 4],
+            "n": [480, 480, 480, 120],
+        }
+    )
+
+    repair_batches = _label_batches_needing_repair(
+        label_dir=label_dir,
+        label_batches={1, 2, 3, 4},
+        counts_1m=counts_1m,
+        regime="8h",
+    )
+    target_batches, compute_batches, missing_batches = _select_incremental_label_batches(
+        label_batches={1, 2, 3, 4},
+        existing_label_files=sorted(label_dir.glob("batch_*.parquet")),
+        tail_batches=1,
+        repair_batches=repair_batches,
+    )
+
+    assert repair_batches == {2}
+    assert target_batches == {1, 2, 3, 4}
+    assert compute_batches == {1, 2, 3, 4}
+    assert missing_batches == [1, 3, 4]

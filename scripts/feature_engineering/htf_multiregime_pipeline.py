@@ -589,6 +589,7 @@ def _select_incremental_label_batches(
     label_batches: set[int],
     existing_label_files: list[Path],
     tail_batches: int,
+    repair_batches: set[int] | None = None,
 ) -> tuple[set[int], set[int], list[int]]:
     sorted_label_batches = sorted(label_batches)
     if not sorted_label_batches:
@@ -600,8 +601,9 @@ def _select_incremental_label_batches(
         if path.stem.startswith("batch_")
     }
     missing_batches = sorted(set(sorted_label_batches) - existing_ids)
+    repair_targets = sorted((repair_batches or set()) & set(sorted_label_batches))
     tail_targets = sorted_label_batches[-tail_batches:]
-    target_batches = set(tail_targets) | set(missing_batches)
+    target_batches = set(tail_targets) | set(missing_batches) | set(repair_targets)
 
     min_target = min(target_batches)
     max_target = max(target_batches)
@@ -610,6 +612,60 @@ def _select_incremental_label_batches(
         bid for bid in label_batches if (warmup_batch <= bid <= max_target)
     }
     return target_batches, compute_batches, missing_batches
+
+
+def _label_batches_needing_repair(
+    label_dir: Path,
+    label_batches: set[int],
+    counts_1m: pl.DataFrame,
+    regime: str,
+) -> set[int]:
+    if not label_batches or not list(label_dir.glob("batch_*.parquet")):
+        return set()
+
+    label_batch_set = set(label_batches)
+    last_label_batch = max(label_batch_set)
+    expected_valid = _expected_valid_1m_rows(regime)
+    full_rows = _bars_per_batch(regime, "1m")
+    expected_rows_by_batch = {
+        int(batch_id): int(n_rows)
+        for batch_id, n_rows in counts_1m.select(["batch_id", "n"]).iter_rows()
+        if int(batch_id) in label_batch_set
+    }
+    existing_counts = (
+        pl.scan_parquet(str(label_dir / "batch_*.parquet"))
+        .group_by("batch_id")
+        .agg(
+            [
+                pl.len().alias("rows"),
+                (pl.col("target_4class") >= 0).sum().alias("n_valid"),
+            ]
+        )
+        .collect()
+    )
+
+    repair_batches: set[int] = set()
+    for row in existing_counts.iter_rows(named=True):
+        batch_id = int(row["batch_id"])
+        if batch_id not in label_batch_set:
+            continue
+        expected_rows = expected_rows_by_batch.get(batch_id)
+        rows = int(row["rows"])
+        n_valid = int(row["n_valid"])
+
+        if expected_rows is not None and rows != expected_rows:
+            repair_batches.add(batch_id)
+            continue
+
+        is_full_batch = expected_rows == full_rows
+        if is_full_batch and n_valid != expected_valid:
+            repair_batches.add(batch_id)
+        elif batch_id != last_label_batch and n_valid != expected_valid:
+            repair_batches.add(batch_id)
+        elif batch_id == last_label_batch and n_valid > expected_valid:
+            repair_batches.add(batch_id)
+
+    return repair_batches
 
 
 def _bars_per_batch(regime: str, tf: str) -> int:
@@ -1892,11 +1948,18 @@ def _build_1m_labels(
             for path in existing_label_files
             if path.stem.startswith("batch_")
         }
+    repair_label_ids = _label_batches_needing_repair(
+        label_dir=label_dir,
+        label_batches=set(label_batches),
+        counts_1m=counts_1m,
+        regime=regime,
+    )
     if (
         existing_label_files
         and label_batches
         and not rebuild_reasons
         and not stale_label_ids
+        and not repair_label_ids
         and existing_label_ids.issuperset(label_batches)
         and rebuild_mode != "full"
     ):
@@ -1931,6 +1994,7 @@ def _build_1m_labels(
             label_batches=set(label_batches),
             existing_label_files=existing_label_files,
             tail_batches=config.incremental_label_tail_batches_by_tf.get("1m", 8),
+            repair_batches=repair_label_ids,
         )
         run_mode = "incremental_tail"
     else:
@@ -2102,6 +2166,8 @@ def _build_1m_labels(
                 "updated_batches": [int(batch_id) for batch_id in batch_ids],
                 "updated_batches_count": int(len(batch_ids)),
                 "missing_backfill_count": int(len(missing_batches)),
+                "repair_batches": [int(batch_id) for batch_id in sorted(repair_label_ids)],
+                "repair_batches_count": int(len(repair_label_ids)),
                 "expected_valid_rows_per_full_batch": int(_expected_valid_1m_rows(regime)),
                 "run_mode": run_mode,
             },
