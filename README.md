@@ -6,15 +6,15 @@
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange.svg)](https://rust-lang.org)
 
-RiskYieldMM is a research and portfolio project for building leakage-aware financial time-series ML workflows. The active workflow is a multi-regime HTF pipeline for cryptocurrency perpetual futures: it builds higher-timeframe batches, generates current prediction labels, attaches helper/regime features, runs CatBoost walk-forward Stage-1 experiments, and audits model-selection behavior from saved artifacts.
+RiskYieldMM is a research project for building leakage-aware financial time-series ML workflows. The active workflow is a multi-regime HTF pipeline for cryptocurrency perpetual futures: it builds higher-timeframe batches, generates current prediction labels, attaches helper/regime features, runs CatBoost walk-forward Stage-1 experiments, and audits model-selection behavior from saved artifacts.
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
-## Recruiter Overview
+## Reviewer Overview
 
 This repository demonstrates the ability to build and reason about a non-trivial ML system rather than only train a single notebook model.
 
-For concise examples of the GitHub-facing evidence layer, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B_WALKFORWARD_ANALYSIS.md) and [Feature and Dataset Snapshot](FEATURE_AND_DATASET_SNAPSHOT.md).
+For concise review artifacts, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B_WALKFORWARD_ANALYSIS.md) and [Feature and Dataset Snapshot](FEATURE_AND_DATASET_SNAPSHOT.md).
 
 | Area | Evidence |
 |------|----------|
@@ -28,7 +28,7 @@ For concise examples of the GitHub-facing evidence layer, see [8h/B Walk-Forward
 | **Experiment analysis** | Six-root HTF walk-forward diagnostics, causal ensemble comparison, selector-policy audits |
 | **Documentation** | Architecture notes, validation findings, run summaries, artifact specifications, implementation plans |
 
-Generated data, model outputs, private CV files, and local run artifacts are not required to review the code. Some historical output snapshots may exist in the repository as audit/reference material, but new generated data is ignored by default.
+Generated data, model outputs, personal documents, and local run artifacts are not required to review the code. Some historical output snapshots may exist in the repository as audit/reference material, but new generated data is ignored by default.
 
 ## Main Workflow
 
@@ -220,7 +220,7 @@ Older targets such as next-period direction, volatility regime, trend regime, tr
 
 ## Review Path
 
-For a recruiter or engineer reviewing the project, the highest-signal path is:
+For a technical reviewer, the highest-signal path is:
 
 1. Read the production launcher and shared HTF pipeline:
    - `notebooks/htf_pythonscript.py`
@@ -241,7 +241,7 @@ For a recruiter or engineer reviewing the project, the highest-signal path is:
 
 ## Quick Start for Reviewers
 
-Full reproduction requires local market data under `data/` and `fetchingByBit/`. For a code review or recruiter review, start with a lightweight environment and run import/syntax checks.
+Full reproduction requires local market data under `data/` and `fetchingByBit/`. For lightweight technical review, start with a lightweight environment and run import/syntax checks.
 
 ```bash
 git clone https://github.com/Pr3ez/RiskYieldMM.git

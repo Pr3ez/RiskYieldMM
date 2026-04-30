@@ -54,7 +54,7 @@ export RISKYIELDMM_PROJECT_ROOT="/path/to/RiskYieldMM"
 - Preserve artifact metadata when changing schemas or output paths.
 - For parquet/data changes, document the source, batch range, timestamp range,
   and whether the data is synthetic, fixture, or real historical data.
-- Do not commit secrets, exchange credentials, personal CV files, or local
+- Do not commit secrets, exchange credentials, personal documents, or local
   machine paths.
 
 ## Temporal ML Requirements

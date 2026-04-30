@@ -483,9 +483,9 @@ Remaining local-only hygiene notes:
 
 1. Which credentials were exposed in archive/history, and have they been revoked?
 2. Should repository history be rewritten before public sharing?
-3. Are private CV/certificate files or logs accidentally tracked?
+3. Are personal documents, certificates, or logs accidentally tracked?
 4. Are generated logs free of secrets and account identifiers?
-5. What public/private split should exist for portfolio sharing?
+5. What public/private split should exist for public sharing?
 
 ## Recommended Research Deliverables
 
