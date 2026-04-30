@@ -52,8 +52,15 @@ OI_INTERVAL_MAP = {"5": "5min", "15": "15min", "60": "1h", "240": "4h", "D": "1d
 
 # Long/Short Ratio API periods (not standard intervals)
 # Maps our interval to API period: 5min, 15min, 30min, 1h, 4h, 1d
-# Note: 8h not available, closest is 4h
-LS_RATIO_PERIOD_MAP = {"60": "1h", "240": "4h", "D": "1d"}
+# Note: 1m and 8h are not available. The HTF workflow uses 5m for 1m
+# broadcast and 15m natively for 15m feature rows.
+LS_RATIO_PERIOD_MAP = {
+    "5": "5min",
+    "15": "15min",
+    "60": "1h",
+    "240": "4h",
+    "D": "1d",
+}
 
 BYBIT_URL = "https://api.bybit.com/v5/market/kline"
 SESSION = requests.Session()

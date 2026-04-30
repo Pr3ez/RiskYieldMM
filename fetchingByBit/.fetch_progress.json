@@ -1,22 +1,22 @@
 {
   "BTCUSDT_linear_klines_1m": {
-    "last_timestamp_ms": 1772731560000,
-    "last_update": "2026-03-05T17:26:49.431663+00:00",
+    "last_timestamp_ms": 1777538280000,
+    "last_update": "2026-04-30T08:38:49.636730+00:00",
     "status": "complete"
   },
   "BTCUSDT_linear_klines_5m": {
-    "last_timestamp_ms": 1772640600000,
-    "last_update": "2026-03-04T16:12:36.299173+00:00",
+    "last_timestamp_ms": 1777538100000,
+    "last_update": "2026-04-30T08:38:56.298321+00:00",
     "status": "complete"
   },
   "BTCUSDT_linear_klines_15m": {
-    "last_timestamp_ms": 1772640000000,
-    "last_update": "2026-03-04T16:12:37.351926+00:00",
+    "last_timestamp_ms": 1777537800000,
+    "last_update": "2026-04-30T08:38:58.538484+00:00",
     "status": "complete"
   },
   "BTCUSDT_linear_klines_1h": {
-    "last_timestamp_ms": 1769544000000,
-    "last_update": "2026-01-27T20:44:45.665209+00:00",
+    "last_timestamp_ms": 1777536000000,
+    "last_update": "2026-04-30T08:38:59.159741+00:00",
     "status": "complete"
   },
   "BTCUSDT_linear_klines_4h": {

@@ -1268,6 +1268,14 @@ def _build_shifted_feature_batches_from_base(
         output_targets=[output_dir, meta_path],
         inspect_batch_dir=output_dir,
         required_batch_columns=set(["timestamp", "batch_id", *FAMILY_META_COLS]),
+        full_rebuild_reasons={
+            "missing_meta",
+            "artifact_version",
+            "family",
+            "timeframe",
+            "schema_columns",
+            "legacy_schema",
+        },
     )
     if config.rebuild_existing:
         rebuild_reasons = ["forced_rebuild"]
@@ -1283,13 +1291,35 @@ def _build_shifted_feature_batches_from_base(
     for idx, batch_id in enumerate(batch_ids, 1):
         meta_batch = meta_all.filter(pl.col("batch_id") == batch_id).sort("timestamp")
         out_path = output_dir / f"batch_{int(batch_id):04d}.parquet"
+        source_batch_ids = sorted(
+            meta_batch["source_base_batch_id"].drop_nulls().unique().to_list()
+        )
+        source_paths = [
+            source_dir / f"batch_{int(source_batch_id):04d}.parquet"
+            for source_batch_id in source_batch_ids
+        ]
+        existing_source_paths = [path for path in source_paths if path.exists()]
+        sources_available = bool(source_paths) and len(existing_source_paths) == len(source_paths)
+        source_inputs_newer = False
+        if out_path.exists() and sources_available:
+            out_mtime = int(out_path.stat().st_mtime_ns)
+            source_inputs_newer = any(
+                int(path.stat().st_mtime_ns) > out_mtime
+                for path in existing_source_paths
+            )
         if out_path.exists():
             existing = pl.read_parquet(out_path)
             required_raw_cols = {"open", "high", "low", "close", "volume"}
             has_required_raw_cols = required_raw_cols.issubset(existing.columns)
             same_rows = len(existing) == len(meta_batch)
             same_ts = same_rows and existing["timestamp"].to_list() == meta_batch["timestamp"].to_list()
-            if has_required_raw_cols and same_ts and not rebuild_reasons and not config.rebuild_existing:
+            if (
+                has_required_raw_cols
+                and same_ts
+                and sources_available
+                and not source_inputs_newer
+                and not config.rebuild_existing
+            ):
                 skipped += 1
                 _log_batch_progress(
                     config,
@@ -1300,10 +1330,8 @@ def _build_shifted_feature_batches_from_base(
                 )
                 continue
 
-        source_batch_ids = sorted(meta_batch["source_base_batch_id"].drop_nulls().unique().to_list())
         src_parts: list[pl.DataFrame] = []
-        for source_batch_id in source_batch_ids:
-            src_path = source_dir / f"batch_{int(source_batch_id):04d}.parquet"
+        for src_path in source_paths:
             if src_path.exists():
                 src_parts.append(pl.read_parquet(src_path))
         if not src_parts:

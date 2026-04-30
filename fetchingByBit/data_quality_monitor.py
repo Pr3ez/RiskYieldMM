@@ -68,6 +68,7 @@ class DataQualityMonitor:
         self._validate_mark_price()
         self._validate_index_price()
         self._validate_premium_index()
+        self._validate_long_short_ratio()
 
         # Cross-source validation
         self._validate_timestamp_alignment()
@@ -79,7 +80,7 @@ class DataQualityMonitor:
 
     def _validate_klines(self):
         """Validate OHLCV kline data for all intervals."""
-        print("[ 1/7 ] Validating OHLCV Klines...")
+        print("[ 1/8 ] Validating OHLCV Klines...")
 
         for interval, label in [
             ("1", "1m"),
@@ -131,7 +132,7 @@ class DataQualityMonitor:
 
     def _validate_funding_rate(self):
         """Validate funding rate data."""
-        print("[ 2/7 ] Validating Funding Rate...")
+        print("[ 2/8 ] Validating Funding Rate...")
 
         if self.category not in ["linear", "inverse"]:
             print("  ⊘ Skipped (not applicable for spot)\n")
@@ -163,14 +164,15 @@ class DataQualityMonitor:
 
     def _validate_open_interest(self):
         """Validate open interest data."""
-        print("[ 3/7 ] Validating Open Interest...")
+        print("[ 3/8 ] Validating Open Interest...")
 
         if self.category == "spot":
             print("  ⊘ Skipped (not applicable for spot)\n")
             return
 
+        # Bybit open interest does not support 1m. The HTF workflow broadcasts
+        # 5m open interest into 1m rows and uses 15m natively for 15m rows.
         for label, step_ms in [
-            ("1m", 60_000),
             ("5m", 300_000),
             ("15m", 900_000),
             ("1h", 3_600_000),
@@ -201,7 +203,7 @@ class DataQualityMonitor:
 
     def _validate_mark_price(self):
         """Validate mark price data."""
-        print("[ 4/7 ] Validating Mark Price...")
+        print("[ 4/8 ] Validating Mark Price...")
 
         if self.category == "spot":
             print("  ⊘ Skipped (not applicable for spot)\n")
@@ -239,7 +241,7 @@ class DataQualityMonitor:
 
     def _validate_index_price(self):
         """Validate index price data."""
-        print("[ 5/7 ] Validating Index Price...")
+        print("[ 5/8 ] Validating Index Price...")
 
         for label, step_ms in [
             ("1m", 60_000),
@@ -273,7 +275,7 @@ class DataQualityMonitor:
 
     def _validate_premium_index(self):
         """Validate premium index data."""
-        print("[ 6/7 ] Validating Premium Index...")
+        print("[ 6/8 ] Validating Premium Index...")
 
         if self.category not in ["linear", "inverse"]:
             print("  ⊘ Skipped (not applicable for spot)\n")
@@ -308,6 +310,45 @@ class DataQualityMonitor:
                 self.report["summary"]["critical_issues"] += 1
 
         print("  ✓ Completed premium index validation\n")
+
+    def _validate_long_short_ratio(self):
+        """Validate long/short account-ratio data."""
+        print("[ 7/8 ] Validating Long/Short Ratio...")
+
+        if self.category not in ["linear", "inverse"]:
+            print("  ⊘ Skipped (not applicable for spot)\n")
+            return
+
+        # Bybit long/short ratio does not support 1m. The HTF workflow uses
+        # 5m for 1m broadcast and 15m natively for 15m feature rows.
+        for label, step_ms in [
+            ("5m", 300_000),
+            ("15m", 900_000),
+            ("1h", 3_600_000),
+            ("4h", 14_400_000),
+            ("1d", 86_400_000),
+        ]:
+            source_key = f"long_short_ratio_{label}"
+            data_dir = self.base_dir / f"long-short-ratio-{label}-bybit-{self.category}"
+            data_file = data_dir / f"{self.symbol}_ls_ratio.parquet"
+
+            if not data_file.exists():
+                self.report["sources"][source_key] = {
+                    "status": "MISSING",
+                    "message": f"File not found: {data_file}",
+                }
+                self.report["summary"]["warnings"] += 1
+                continue
+
+            issues = self._validate_single_file(
+                data_file, step_ms, "timestamp_ms", label
+            )
+            self.report["sources"][source_key] = issues
+
+            if issues["gaps"] > 0:
+                self.report["summary"]["critical_issues"] += 1
+
+        print("  ✓ Completed long/short ratio validation\n")
 
     def _validate_time_series_files(
         self, files: list[Path], step_ms: int, label: str
@@ -538,7 +579,7 @@ class DataQualityMonitor:
 
     def _validate_timestamp_alignment(self):
         """Check if timestamps align across different data sources."""
-        print("[ 7/7 ] Validating Cross-Source Timestamp Alignment...")
+        print("[ 8/8 ] Validating Cross-Source Timestamp Alignment...")
 
         # Get timestamps from klines_1h (reference)
         klines_dir = self.base_dir / f"sorted-1h-bybit-{self.category}"
