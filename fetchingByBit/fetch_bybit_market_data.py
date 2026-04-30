@@ -1092,7 +1092,8 @@ def fetch_long_short_ratio(
 
     API: GET /v5/market/account-ratio
     Periods: 5min, 15min, 30min, 1h, 4h, 1d (8h not available)
-    Note: API uses cursor pagination, not time-based pagination
+    Uses startTime/endTime plus cursor pagination. On resume, fetches only
+    records strictly after the latest local timestamp.
     """
     if category not in ["linear", "inverse"]:
         return
@@ -1117,10 +1118,13 @@ def fetch_long_short_ratio(
     output_dir = os.path.join(BASE_DIR, f"long-short-ratio-{label}-bybit-{category}")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, f"{symbol.lower()}_ls_ratio.parquet")
+    step_ms = INTERVAL_MS[interval]
 
-    # Check existing data - for L/S ratio we fetch ALL available then merge
-    # (API doesn't support time filtering, only cursor pagination)
+    # Check resume point from the local parquet, same policy as the other
+    # time-series fetchers.
+    start_ts = req_start_ts
     existing_min_ts = None
+    existing_max_ts = None
     if os.path.exists(output_file):
         existing_df = pl.read_parquet(output_file)
         if existing_df.height > 0:
@@ -1133,12 +1137,25 @@ def fetch_long_short_ratio(
             print(
                 f"Existing data: {_fmt_ms(existing_min_ts)} to {_fmt_ms(existing_max_ts)} ({existing_df.height} rows)"
             )
+            start_ts = max(req_start_ts, existing_max_ts + step_ms)
+            print(f"Resuming from {_fmt_ms(existing_max_ts)}")
 
-    # Fetch ALL available data using cursor pagination
+    if start_ts > end_ts:
+        print("Up-to-date: no new long/short ratio data.")
+        save_progress(
+            "long_short_ratio",
+            label,
+            existing_max_ts if existing_max_ts is not None else end_ts,
+            "up-to-date",
+        )
+        return
+
+    # Fetch only the missing date range using cursor pagination.
     all_data = []
     url = "https://api.bybit.com/v5/market/account-ratio"
     cursor = None
     page = 0
+    print(f"Requesting {_fmt_ms(start_ts)} to {_fmt_ms(end_ts)}")
 
     while True:
         params = {
@@ -1146,6 +1163,8 @@ def fetch_long_short_ratio(
             "symbol": symbol,
             "period": ls_period,
             "limit": 500,
+            "startTime": str(start_ts),
+            "endTime": str(end_ts),
         }
         if cursor:
             params["cursor"] = cursor
@@ -1166,8 +1185,8 @@ def fetch_long_short_ratio(
             batch_data = []
             for rec in records:
                 ts = int(rec["timestamp"])
-                # Filter to requested date range
-                if ts >= req_start_ts and ts <= end_ts:
+                # Be defensive even though the API should honor start/end.
+                if start_ts <= ts <= end_ts:
                     batch_data.append(
                         {
                             "timestamp_ms": ts,
@@ -1179,22 +1198,21 @@ def fetch_long_short_ratio(
             all_data.extend(batch_data)
 
             # Progress
-            oldest_in_batch = int(records[-1]["timestamp"])
-            newest_in_batch = int(records[0]["timestamp"])
+            batch_times = [int(rec["timestamp"]) for rec in records]
+            oldest_in_batch = min(batch_times)
+            newest_in_batch = max(batch_times)
             page += 1
             print(
                 f"Page {page}: {len(batch_data)} in range, {_fmt_ms(oldest_in_batch)} to {_fmt_ms(newest_in_batch)}"
             )
 
-            # Stop if we've gone past our start date
-            if oldest_in_batch < req_start_ts:
-                print("Reached start date boundary")
-                break
-
             # Get next cursor
             next_cursor = data["result"].get("nextPageCursor", "")
             if not next_cursor:
                 print("No more pages available")
+                break
+            if next_cursor == cursor:
+                logger.warning("L/S ratio cursor did not advance; stopping pagination")
                 break
 
             cursor = next_cursor
@@ -1228,13 +1246,22 @@ def fetch_long_short_ratio(
             print(
                 f"✓ Updated: {combined.height} total records ({_fmt_ms(int(combined['timestamp_ms'].min()))} to {_fmt_ms(int(combined['timestamp_ms'].max()))})"
             )
+            latest_ts = int(combined["timestamp_ms"].max())
         else:
             new_df.write_parquet(output_file)
             print(
                 f"✓ Created: {new_df.height} records ({_fmt_ms(int(new_df['timestamp_ms'].min()))} to {_fmt_ms(int(new_df['timestamp_ms'].max()))})"
             )
+            latest_ts = int(new_df["timestamp_ms"].max())
+        save_progress("long_short_ratio", label, latest_ts, "complete")
     else:
         print("No new data fetched.")
+        save_progress(
+            "long_short_ratio",
+            label,
+            existing_max_ts if existing_max_ts is not None else start_ts,
+            "no-data",
+        )
 
 
 # ────────────────── MAIN ──────────────────
