@@ -186,7 +186,7 @@ RiskYieldMM/
 │   ├── modeling/                # L2/multi-model/ensemble research docs
 │   └── plans/                   # Implementation/refactor/status plans
 ├── notebooks/notes/             # Chronological research and audit notes
-├── Archive/                     # Legacy implementations kept for reference
+└── Archive/                     # Legacy implementations kept for reference
 
 ```
 
