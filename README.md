@@ -3,7 +3,6 @@
 **Machine learning research system for cryptocurrency perpetual futures**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
-[![CI](https://github.com/Pr3ez/RiskYieldMM/actions/workflows/ci.yml/badge.svg)](https://github.com/Pr3ez/RiskYieldMM/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange.svg)](https://rust-lang.org)
 
