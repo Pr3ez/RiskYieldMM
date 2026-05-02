@@ -288,7 +288,7 @@ export function createSetPlanTool(ctx: ToolContext): vscode.LanguageModelTool<Se
         const newState = ctx.stateMachine.getState();
 
         // TODO sync handling
-        let todosSynced = false;
+        const todosSynced = false;
         if (input.syncWithTodos) {
           // TODO: Could integrate with manage_todo_list here
           warnings.push('TODO sync requested - use manage_todo_list to create matching TODOs');
