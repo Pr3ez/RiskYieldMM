@@ -35,8 +35,9 @@ from scripts.target_models.helpers.base import BaseHelper, HelperConfig, HelperO
 try:
     import riskyield_rust as _rust
 
-    HAS_RUST = True
+    HAS_RUST = hasattr(_rust, "py_kalman_transform_with_state")
 except ImportError:
+    _rust = None
     HAS_RUST = False
 
 

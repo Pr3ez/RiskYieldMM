@@ -31,9 +31,12 @@ from .base import BaseHelper, HelperConfig, HelperOutput
 try:
     import riskyield_rust
 
-    HAS_RUST = True
+    HAS_RUST = hasattr(riskyield_rust, "py_egarch_transform_with_state")
+    HAS_RUST_PARAM_ESTIMATE = hasattr(riskyield_rust, "py_egarch_estimate_params")
 except ImportError:
+    riskyield_rust = None
     HAS_RUST = False
+    HAS_RUST_PARAM_ESTIMATE = False
 
 
 EXPECTED_ABS_NORMAL = float(np.sqrt(2.0 / np.pi))
@@ -320,7 +323,7 @@ class EGARCHHelper(BaseHelper):
         if n < 30:
             return self._omega, self._alpha, self._gamma, self._beta
 
-        if HAS_RUST:
+        if HAS_RUST_PARAM_ESTIMATE:
             returns_c = np.ascontiguousarray(returns, dtype=np.float64)
             return riskyield_rust.py_egarch_estimate_params(returns_c)
 

@@ -12,6 +12,25 @@ def _ms(dt: datetime) -> int:
     return int(dt.timestamp() * 1000)
 
 
+def test_timestamp_normalizer_casts_to_millisecond_utc() -> None:
+    df = pl.DataFrame(
+        {"timestamp": [datetime(2021, 1, 1, tzinfo=timezone.utc)], "value": [1.0]}
+    )
+
+    normalized = fetcher._normalize_timestamp_dtype(df)
+
+    assert normalized.schema["timestamp"] == fetcher.TIMESTAMP_DTYPE
+
+
+def test_klines_to_df_uses_persisted_timestamp_dtype() -> None:
+    df = fetcher._klines_to_df(
+        [["1609459200000", "1", "2", "0.5", "1.5", "10", "15"]],
+        "1m",
+    )
+
+    assert df.schema["timestamp"] == fetcher.TIMESTAMP_DTYPE
+
+
 class _FakeResponse:
     headers: dict[str, str] = {}
 
@@ -59,6 +78,7 @@ def test_long_short_ratio_resumes_from_latest_local_timestamp(
     ).with_columns(
         pl.from_epoch("timestamp_ms", time_unit="ms")
         .dt.replace_time_zone("UTC")
+        .cast(fetcher.TIMESTAMP_DTYPE)
         .alias("timestamp")
     ).write_parquet(output_file)
 
@@ -104,5 +124,6 @@ def test_long_short_ratio_resumes_from_latest_local_timestamp(
     )
 
     updated = pl.read_parquet(output_file)
+    assert updated.schema["timestamp"] == fetcher.TIMESTAMP_DTYPE
     assert updated["timestamp_ms"].to_list() == existing_ts + new_ts
     assert updated.height == 4

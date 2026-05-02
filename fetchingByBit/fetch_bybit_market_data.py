@@ -96,6 +96,7 @@ INTERVAL_MS = {
 
 # zero-pad width for batch indices if starting fresh
 DEFAULT_PAD_WIDTH = 6
+TIMESTAMP_DTYPE = pl.Datetime("ms", "UTC")
 
 # Performance & safety
 REQUEST_SLEEP = 0.1  # seconds between requests (was 0.25)
@@ -149,6 +150,18 @@ def _utc_from_ms(ms: int) -> datetime:
 
 def _fmt_ms(ms: int) -> str:
     return _utc_from_ms(ms).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _normalize_timestamp_dtype(df: pl.DataFrame) -> pl.DataFrame:
+    """Keep persisted timestamps stable across Polars versions.
+
+    Existing local parquet files use millisecond UTC timestamps. Recent Polars
+    constructors can infer microsecond UTC timestamps for newly fetched rows,
+    and `pl.concat` refuses to stack those schemas without an explicit cast.
+    """
+    if "timestamp" not in df.columns:
+        return df
+    return df.with_columns(pl.col("timestamp").cast(TIMESTAMP_DTYPE))
 
 
 def _to_ms(ts_like: str | datetime) -> int:
@@ -226,7 +239,7 @@ def _klines_to_df(
         )
     )
 
-    return df
+    return _normalize_timestamp_dtype(df)
 
 
 def _list_existing_files(
@@ -298,10 +311,10 @@ def save_checkpoint(
 
     checkpoint_file = os.path.join(output_dir, f".checkpoint_{checkpoint_num}.parquet")
     try:
-        df = pl.concat(page_dfs)
+        df = pl.concat([_normalize_timestamp_dtype(page) for page in page_dfs])
         df = df.unique(subset=["timestamp"], keep="last")
         df = df.sort("timestamp")
-        df.write_parquet(checkpoint_file)
+        _normalize_timestamp_dtype(df).write_parquet(checkpoint_file)
         logger.info(f"[{label}] Checkpoint {checkpoint_num}: saved {df.height} rows")
         print(f"💾 Checkpoint {checkpoint_num}: {df.height} rows saved")
     except Exception as e:
@@ -318,7 +331,7 @@ def load_checkpoint(output_dir: str) -> pl.DataFrame | None:
 
     try:
         latest = checkpoints[-1]
-        df = pl.read_parquet(latest)
+        df = _normalize_timestamp_dtype(pl.read_parquet(latest))
         logger.info(
             f"Loaded checkpoint: {df.height} rows from {os.path.basename(latest)}"
         )
@@ -600,11 +613,11 @@ def fetch_and_save(
 
     # Build new sorted block
     print(f"Merging {len(page_dfs)} pages...")
-    new_df = pl.concat(page_dfs)
+    new_df = pl.concat([_normalize_timestamp_dtype(page) for page in page_dfs])
     print(f"Deduplicating {new_df.height} rows...")
     new_df = new_df.unique(subset=["timestamp"], keep="last")
     print(f"Sorting {new_df.height} unique rows...")
-    new_df = new_df.sort("timestamp")
+    new_df = _normalize_timestamp_dtype(new_df.sort("timestamp"))
 
     # ── Initial build: create fixed-size chunks ──
     if not is_resume:
@@ -628,7 +641,7 @@ def fetch_and_save(
             out_path = os.path.join(
                 output_dir, f"{sym_prefix}{i:0{DEFAULT_PAD_WIDTH}}.parquet"
             )
-            chunk.write_parquet(out_path)
+            _normalize_timestamp_dtype(chunk).write_parquet(out_path)
             n_written += chunk.height
             print(f"✓ {os.path.basename(out_path)}  ({chunk.height} rows)")
 
@@ -637,7 +650,7 @@ def fetch_and_save(
             out_path = os.path.join(
                 output_dir, f"{sym_prefix}{n_full:0{DEFAULT_PAD_WIDTH}}.parquet"
             )
-            leftover.write_parquet(out_path)
+            _normalize_timestamp_dtype(leftover).write_parquet(out_path)
             print(f"✓ {os.path.basename(out_path)}  ({leftover.height} rows)")
 
         # Clean up checkpoints and verify integrity
@@ -670,9 +683,11 @@ def fetch_and_save(
     if last_rows < chunk_size and new_df.height > 0:
         need = min(chunk_size - last_rows, new_df.height)
         if need > 0:
-            last_df = pl.read_parquet(last_path)
-            combined = pl.concat([last_df, new_df.slice(0, need)])
-            combined = combined.sort("timestamp")
+            last_df = _normalize_timestamp_dtype(pl.read_parquet(last_path))
+            combined = pl.concat(
+                [last_df, _normalize_timestamp_dtype(new_df.slice(0, need))]
+            )
+            combined = _normalize_timestamp_dtype(combined.sort("timestamp"))
             combined.write_parquet(last_path)
             consumed = need
             print(f"↻ topped-up {last_fname}: {last_rows} → {combined.height} rows")
@@ -690,7 +705,7 @@ def fetch_and_save(
         out_path = os.path.join(
             output_dir, f"{sym_prefix}{(start_index + i):0{DEFAULT_PAD_WIDTH}}.parquet"
         )
-        chunk.write_parquet(out_path)
+        _normalize_timestamp_dtype(chunk).write_parquet(out_path)
         print(f"✓ {os.path.basename(out_path)}  ({chunk.height} rows)")
 
     leftover = remaining.slice(n_full * chunk_size)
@@ -699,7 +714,7 @@ def fetch_and_save(
             output_dir,
             f"{sym_prefix}{(start_index + n_full):0{DEFAULT_PAD_WIDTH}}.parquet",
         )
-        leftover.write_parquet(out_path)
+        _normalize_timestamp_dtype(leftover).write_parquet(out_path)
         print(f"✓ {os.path.basename(out_path)}  ({leftover.height} rows)")
 
     # Clean up checkpoints and verify integrity
@@ -807,15 +822,19 @@ def fetch_funding_rate(
             ]
         )
 
+        new_df = _normalize_timestamp_dtype(new_df)
+
         if os.path.exists(output_file):
-            old_df = pl.read_parquet(output_file)
+            old_df = _normalize_timestamp_dtype(pl.read_parquet(output_file))
             combined = pl.concat([old_df, new_df])
             combined = combined.unique(subset=["fundingRateTimestamp"], keep="last")
-            combined = combined.sort("fundingRateTimestamp")
+            combined = _normalize_timestamp_dtype(
+                combined.sort("fundingRateTimestamp")
+            )
             combined.write_parquet(output_file)
             print(f"✓ Updated: {combined.height} total records")
         else:
-            new_df = new_df.sort("fundingRateTimestamp")
+            new_df = _normalize_timestamp_dtype(new_df.sort("fundingRateTimestamp"))
             new_df.write_parquet(output_file)
             print(f"✓ Created: {new_df.height} records")
 
@@ -929,15 +948,17 @@ def fetch_open_interest(
             ]
         )
 
+        new_df = _normalize_timestamp_dtype(new_df)
+
         if os.path.exists(output_file):
-            old_df = pl.read_parquet(output_file)
+            old_df = _normalize_timestamp_dtype(pl.read_parquet(output_file))
             combined = pl.concat([old_df, new_df])
             combined = combined.unique(subset=["timestamp_ms"], keep="last")
-            combined = combined.sort("timestamp")
+            combined = _normalize_timestamp_dtype(combined.sort("timestamp"))
             combined.write_parquet(output_file)
             print(f"✓ Updated: {combined.height} total records")
         else:
-            new_df = new_df.sort("timestamp")
+            new_df = _normalize_timestamp_dtype(new_df.sort("timestamp"))
             new_df.write_parquet(output_file)
             print(f"✓ Created: {new_df.height} records")
 
@@ -1063,15 +1084,17 @@ def fetch_mark_index_premium(
             ]
         )
 
+        new_df = _normalize_timestamp_dtype(new_df)
+
         if os.path.exists(output_file):
-            old_df = pl.read_parquet(output_file)
+            old_df = _normalize_timestamp_dtype(pl.read_parquet(output_file))
             combined = pl.concat([old_df, new_df])
             combined = combined.unique(subset=["timestamp_ms"], keep="last")
-            combined = combined.sort("timestamp")
+            combined = _normalize_timestamp_dtype(combined.sort("timestamp"))
             combined.write_parquet(output_file)
             print(f"✓ Updated: {combined.height} total records")
         else:
-            new_df = new_df.sort("timestamp")
+            new_df = _normalize_timestamp_dtype(new_df.sort("timestamp"))
             new_df.write_parquet(output_file)
             print(f"✓ Created: {new_df.height} records")
 
@@ -1235,19 +1258,20 @@ def fetch_long_short_ratio(
 
         # Dedupe and sort
         new_df = new_df.unique(subset=["timestamp_ms"], keep="last")
-        new_df = new_df.sort("timestamp")
+        new_df = _normalize_timestamp_dtype(new_df.sort("timestamp"))
 
         if os.path.exists(output_file):
-            old_df = pl.read_parquet(output_file)
+            old_df = _normalize_timestamp_dtype(pl.read_parquet(output_file))
             combined = pl.concat([old_df, new_df])
             combined = combined.unique(subset=["timestamp_ms"], keep="last")
-            combined = combined.sort("timestamp")
+            combined = _normalize_timestamp_dtype(combined.sort("timestamp"))
             combined.write_parquet(output_file)
             print(
                 f"✓ Updated: {combined.height} total records ({_fmt_ms(int(combined['timestamp_ms'].min()))} to {_fmt_ms(int(combined['timestamp_ms'].max()))})"
             )
             latest_ts = int(combined["timestamp_ms"].max())
         else:
+            new_df = _normalize_timestamp_dtype(new_df)
             new_df.write_parquet(output_file)
             print(
                 f"✓ Created: {new_df.height} records ({_fmt_ms(int(new_df['timestamp_ms'].min()))} to {_fmt_ms(int(new_df['timestamp_ms'].max()))})"
