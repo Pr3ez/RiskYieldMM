@@ -11,6 +11,10 @@ build/
 dist/
 *.egg-info/
 
+# Node / extension dependencies
+node_modules/
+extensions/astra-workflow/node_modules/
+
 # Virtual environments and conda
 .venv/
 venv/
