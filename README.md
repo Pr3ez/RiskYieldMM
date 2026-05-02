@@ -726,4 +726,4 @@ Apache License 2.0. See [LICENSE](LICENSE).
 ## Author
 
 Przemysław Augustyniak  
-GitHub: https://github.com/Pr3ez/RiskYieldMM
+GitHub: https://github.com/Pr3ez
