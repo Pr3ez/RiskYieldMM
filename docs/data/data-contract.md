@@ -9,15 +9,17 @@ commit policy for uploading full datasets.
 | Source | Required timeframes | Purpose |
 |---|---|---|
 | OHLCV klines | `1m`, `15m` | Base price/volume stream for HTF batches and features |
-| Open interest | `15m` plus compatibility aggregates | Derivatives positioning context |
+| Open interest | `5m`, `15m` | Derivatives positioning context; `5m` broadcasts into `1m` rows |
 | Funding rate | native funding interval | Funding pressure features |
-| Long/short ratio | `15m` plus compatibility aggregates | Positioning/sentiment context |
+| Long/short ratio | `5m`, `15m` | Positioning/sentiment context; `5m` broadcasts into `1m` rows |
 | Mark price | `1m`, `15m` | Mark/close deviations and derivatives context |
 | Index price | `1m`, `15m` | Basis and price reference context |
-| Premium index | `15m` | Premium/basis context |
+| Premium index | `1m`, `15m` | Premium/basis context |
 
 The workflow builds `8h`, `24h`, and `7d` regimes internally. It does not depend
-on native 8h exchange candles.
+on native 8h exchange candles. Compatibility `*-8h-*` fetcher outputs, when
+present, are derived local aggregates for older/supporting scripts and are not
+the source of the current `8h` regime.
 
 ## Minimum Raw Columns
 

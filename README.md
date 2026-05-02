@@ -28,7 +28,7 @@ For concise review artifacts, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B
 | **Experiment analysis** | Six-root HTF walk-forward diagnostics, causal ensemble comparison, selector-policy audits |
 | **Documentation** | Architecture notes, validation findings, run summaries, artifact specifications, implementation plans |
 
-Generated data, model outputs, personal documents, and local run artifacts are not required to review the code. Some historical output snapshots may exist in the repository as audit/reference material, but new generated data is ignored by default.
+Generated data, precomputed caches, model outputs, personal documents, and local run artifacts are not required to review the code. Some historical output snapshots may exist in the repository as audit/reference material, but new generated data is ignored by default.
 
 ## Main Workflow
 
@@ -301,9 +301,9 @@ Useful entry points for review:
 ## End-To-End Local HTF Workflow
 
 Full reproduction is a local-data workflow. The repository intentionally does
-not upload raw Bybit data, generated feature batches, helper caches, model
-payloads, or full walk-forward outputs. To rebuild the workflow locally, run the
-stages in this order:
+not upload raw Bybit data, generated feature batches, precomputed caches, helper
+caches, model payloads, or full walk-forward outputs. To rebuild the workflow
+locally, run the stages in this order:
 
 ```mermaid
 flowchart TD
@@ -357,10 +357,12 @@ The supported data-update entry point is `fetchingByBit/update_data.py`. For the
 active HTF workflow, treat this as a source-data refresh for the Python
 materializer: native `1m` and `15m` OHLCV, native `1m`/`15m` mark, index, and
 premium price streams, `5m`/`15m` open interest, `5m`/`15m` long/short ratio, and
-the fixed funding-rate stream. The `8h` files are not downloaded source data for
-the current materializer; they are a compatibility aggregate derived from `4h`
-data for older/supporting workflows. The default fetcher configuration is
-`BTCUSDT`, `linear`, from `2021-01-01` through `now`; edit
+the fixed funding-rate stream. The current HTF materializer does not consume
+downloaded/native `8h` candles. If `fetchingByBit/sorted-8h-bybit-linear/`
+exists, treat it as a derived compatibility output built from `4h` data for
+older/supporting workflows, not as the source of the `8h` regime described
+above. The default fetcher configuration is `BTCUSDT`, `linear`, from
+`2021-01-01` through `now`; edit
 `fetchingByBit/fetch_bybit_market_data.py` only if you need a different symbol,
 market category, date range, or configured timeframe set.
 
@@ -398,8 +400,8 @@ Expected source inputs for the active HTF pipeline are:
 
 The fetcher may also refresh `5m`, `1h`, `4h`, and `1d` OHLCV roots for research
 coverage and backward compatibility. Those roots are not substitutes for the
-native `1m` and `15m` HTF inputs. `fetchingByBit/sorted-8h-bybit-linear/` is a
-derived compatibility output built from `4h`, not a primary input to
+native `1m` and `15m` HTF inputs. OHLCV and auxiliary `*-8h-*` fetcher roots are
+derived compatibility outputs built from `4h`, not primary inputs to
 `notebooks/htf_pythonscript.py`.
 
 `python update_data.py --status` prints the same local source-resolution plan

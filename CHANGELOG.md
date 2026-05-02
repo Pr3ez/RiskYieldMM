@@ -23,6 +23,8 @@ All notable repository-level changes are recorded here.
   ESLint 10 compatibility.
 - Deferred hosted CI workflow activation because GitHub Actions is currently
   blocked by an account billing lock.
+- Clarified ignored local artifact wording and the distinction between current
+  HTF `8h` regimes and legacy derived `*-8h-*` compatibility outputs.
 
 ### Security
 
