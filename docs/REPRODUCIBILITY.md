@@ -4,8 +4,9 @@ This guide describes how to reproduce the maintained workflow surfaces without
 committing local market data or generated model artifacts.
 
 The full HTF workflow expects a local Python environment with the project
-research stack installed. The CI workflow intentionally runs a smaller contract
-surface that is suitable for public pull requests.
+research stack installed. The lightweight verification surface below is suitable
+for pull-request review and future hosted CI, but hosted GitHub Actions is
+deferred until repository billing allows Actions jobs to run.
 
 ## Repository Setup
 
@@ -21,7 +22,7 @@ CatBoost and the broader research dependencies.
 
 ## Lightweight Verification
 
-These checks match the Python CI contract:
+These checks match the lightweight Python contract:
 
 ```bash
 ruff check . \

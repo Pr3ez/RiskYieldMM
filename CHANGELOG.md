@@ -6,20 +6,23 @@ All notable repository-level changes are recorded here.
 
 ### Added
 
-- GitHub Actions CI workflow for Python contract checks, VS Code extension
-  checks, and Rust helper checks.
+- Local verification checkset for Python contract checks, VS Code extension
+  checks, and Rust helper checks. Hosted GitHub Actions wiring is deferred until
+  repository Actions can run successfully.
 - `CONTRIBUTING.md` with branch, PR, artifact, and Dependabot review policy.
 - Reproducibility guide for source data refresh, HTF materialization, Stage-1
   walk-forward execution, and local verification.
 - HTF data contract with source requirements, metadata invariants, and
   incremental update expectations.
 - HTF workflow architecture overview and results card.
-- CI dependency list in `requirements-ci.txt`.
+- Lightweight verification dependency list in `requirements-ci.txt`.
 
 ### Changed
 
 - Migrated the Astra VS Code extension lint setup to ESLint flat config for
   ESLint 10 compatibility.
+- Deferred hosted CI workflow activation because GitHub Actions is currently
+  blocked by an account billing lock.
 
 ### Security
 
