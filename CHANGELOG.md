@@ -6,6 +6,10 @@ All notable repository-level changes are recorded here.
 
 ### Added
 
+- Canonical Python dependency metadata in `pyproject.toml`, including
+  lightweight `ci`/`dev` extras and heavier research/Rust extras.
+- Dataset-free repository smoke tests for CLI help surfaces, dependency
+  metadata, and tracked backup-file hygiene.
 - Local verification checkset for Python contract checks, VS Code extension
   checks, and Rust helper checks. Hosted GitHub Actions wiring is deferred until
   repository Actions can run successfully.
@@ -25,6 +29,10 @@ All notable repository-level changes are recorded here.
   blocked by an account billing lock.
 - Clarified ignored local artifact wording and the distinction between current
   HTF `8h` regimes and legacy derived `*-8h-*` compatibility outputs.
+- Replaced the Astra extension test target that pointed at a missing VS Code
+  test runner with a compile-and-lint smoke check.
+- Removed tracked local backup files from maintained source/notebook paths and
+  added backup ignore patterns.
 
 ### Security
 

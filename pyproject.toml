@@ -1,8 +1,51 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "riskyieldmm"
 version = "0.1.0"
-description = "ML trading system for perpetual futures"
+description = "Leakage-aware ML research system for cryptocurrency perpetual futures"
 requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "polars>=1.0",
+    "pyarrow>=15",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+    "requests>=2.31",
+    "tqdm>=4.66",
+    "pydantic>=2.0",
+]
+
+[project.optional-dependencies]
+ci = [
+    "pytest>=8,<10",
+    "ruff>=0.8,<1.0",
+]
+dev = [
+    "pytest>=8,<10",
+    "ruff>=0.8,<1.0",
+]
+research = [
+    "catboost>=1.2",
+    "lightgbm>=4.0",
+    "xgboost>=2.0",
+    "torch>=2.2",
+    "matplotlib>=3.8",
+    "seaborn>=0.13",
+    "optuna>=3.5",
+    "mapie>=0.8",
+    "mlflow>=2.10",
+]
+rust = [
+    "maturin>=1.7",
+]
+
+[tool.setuptools.packages.find]
+include = ["fetchingByBit*", "schemas*", "scripts*"]
+namespaces = true
 
 [tool.ruff]
 # Same as Black

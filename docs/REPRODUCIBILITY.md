@@ -18,7 +18,9 @@ python -m pip install -r requirements-ci.txt
 ```
 
 For full Stage-1 modelling runs, use the local ML environment that includes
-CatBoost and the broader research dependencies.
+CatBoost and the broader research dependencies. The lightweight setup above
+installs the `.[ci]` optional dependency set from `pyproject.toml`, keeping the
+contract-check environment tied to the canonical project dependency metadata.
 
 ## Lightweight Verification
 

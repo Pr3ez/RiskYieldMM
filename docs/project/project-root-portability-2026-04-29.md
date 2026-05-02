@@ -79,7 +79,7 @@ The following still contain absolute paths and should be handled separately:
 
 - Historical docs and notebook note files that cite old artifact paths.
 - Notebook output cells in `.ipynb` files.
-- Backup files such as `scripts/workflow/config.py.bak_phase0_20260119`.
+- Any temporary local backup files, which should remain untracked.
 - Older notebook/script exports not in this first active Stage-1 slice
   (`notebooks/Fetch_data.py`, `notebooks/main_wf.py`,
   `notebooks/htf_cell_14_backtest.py`, `notebooks/regime_trend_wf_tf_8h.py`).

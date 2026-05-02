@@ -739,7 +739,7 @@
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
     "format": "prettier --write \"src/**/*.ts\"",
-    "test": "node ./out/test/runTest.js",
+    "test": "npm run compile && npm run lint",
     "package": "vsce package"
   },
   "devDependencies": {

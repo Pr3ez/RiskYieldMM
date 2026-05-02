@@ -47,6 +47,11 @@ fetchingbinance/**/sorted-*
 logs/
 tmp/
 *.tmp
+*.bak
+*.bak_*
+*_backup.py
+*_backup/
+*_backup_*/
 
 # Jupyter
 .ipynb_checkpoints

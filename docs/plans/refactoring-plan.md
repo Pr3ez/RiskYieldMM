@@ -27,7 +27,7 @@
 scripts/target_models/validation/
 ├── l2_backtest_sync.py          ← 2941 lines (GOD MODULE)
 ├── _archived_functions.py       ← Dead functions moved here (499 lines)
-└── l2_backtest_sync.py.bak_*    ← Backups
+└── backtest/                    ← Modular package target
 ```
 
 **Line counts by section (current):**
@@ -97,8 +97,8 @@ python -c "from scripts.target_models.validation.l2_backtest_sync import run_syn
 # 2. Record file size
 wc -l scripts/target_models/validation/l2_backtest_sync.py  # Should be 2941
 
-# 3. Backup exists
-ls -la scripts/target_models/validation/l2_backtest_sync.py.bak_*
+# 3. If a temporary local backup is needed, keep it untracked.
+git status --short
 ```
 
 **Output:** ✅ or ❌ for each check
@@ -114,7 +114,7 @@ ls -la scripts/target_models/validation/l2_backtest_sync.py.bak_*
 **Checklist:**
 - [ ] 0.1 Run: `python -c "from scripts.target_models.validation.l2_backtest_sync import run_sync_backtest, SyncBacktestConfig; print('OK')"`
 - [ ] 0.2 Record: `wc -l scripts/target_models/validation/l2_backtest_sync.py` → Expected: 2941
-- [ ] 0.3 Verify backup exists: `ls scripts/target_models/validation/*.bak*`
+- [ ] 0.3 Verify any temporary backup files are untracked: `git status --short`
 - [ ] 0.4 Record git status (any uncommitted changes?)
 
 **STOP if any check fails**

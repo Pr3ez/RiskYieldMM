@@ -256,10 +256,7 @@ conda create -n riskyieldmm python=3.10 -y
 conda activate riskyieldmm
 
 python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install \
-  polars pandas numpy scipy scikit-learn catboost lightgbm xgboost torch \
-  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic pytest
+python -m pip install -e ".[research,dev]"
 
 # Basic source smoke check.
 python -m compileall scripts riskyield_rust -q
@@ -276,7 +273,7 @@ Optional Rust helper build:
 
 ```bash
 cd riskyield_rust
-python -m pip install maturin
+python -m pip install -e "../.[rust]"
 maturin develop --release
 cd ..
 ```
@@ -329,17 +326,14 @@ conda create -n riskyieldmm python=3.10 -y
 conda activate riskyieldmm
 
 python -m pip install --upgrade pip
-python -m pip install -e .
-python -m pip install \
-  polars pandas numpy scipy scikit-learn catboost lightgbm xgboost torch \
-  matplotlib seaborn optuna mapie mlflow pyarrow tqdm pydantic pytest
+python -m pip install -e ".[research,dev]"
 ```
 
 Optional Rust helper build:
 
 ```bash
 cd riskyield_rust
-python -m pip install maturin
+python -m pip install -e "../.[rust]"
 maturin develop --release
 cd ..
 ```
