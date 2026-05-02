@@ -29,7 +29,7 @@ This folder documents the complete ML pipeline for the Hull Tactical Market Pred
 | 2 | [Part_2_Features.md](Part_2_Features.md) | All features with formulas |
 | 3 | [Part_3_Models.md](Part_3_Models.md) | Models and ensembles |
 | 4 | [Part_4_Row_By_Row.md](Part_4_Row_By_Row.md) | Row-by-row calculation flow |
-| 5 | [Part_5_API_Simulation.md](Part_5_API_Simulation.md) | API inference simulation |
+| 5 | Not present in this archive | API inference simulation |
 
 ---
 

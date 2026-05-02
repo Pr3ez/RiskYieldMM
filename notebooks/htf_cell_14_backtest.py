@@ -99,9 +99,9 @@
 # - No standard backtest / no Optuna studies / no heavy metric tables.
 # - Uses fixed run_id folder and resume-in-place behavior.
 # - Stage-1 docs:
-#   - docs/htf_stage1_logic.md
-#   - docs/htf_stage1_artifacts.md
-#   - docs/htf_stage1_step2_plan.md
+#   - docs/htf/stage1-logic.md
+#   - docs/htf/stage1-artifacts.md
+#   - docs/htf/stage1-step2-plan.md
 #
 # Scope of Cell 15:
 # - Runs Stage-1 Step-2 feature pruning + baseline-vs-filtered comparison.

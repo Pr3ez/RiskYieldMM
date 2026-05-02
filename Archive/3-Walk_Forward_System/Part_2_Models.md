@@ -1,6 +1,6 @@
 # Part 2: Ensemble Models
 
-> **Input:** ~450 features from [Part 2: Kaggle Pipeline Features](../2-Kaggle_Pipeline/Part_2_Features.md)
+> **Input:** ~450 features from [Part 2: Kaggle Pipeline Features](../2-Pipeline/Part_2_Features.md)
 
 ## Complete Model Pipeline
 

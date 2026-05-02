@@ -72,7 +72,7 @@ For each unit (`timeframe/target`) and configured combo set:
 6. Build one global mask across processed combos for the same unit.
 7. Write Step-2 summaries, winner traces, and mask artifacts under `output_subdir` (default `stage1_step2`).
 
-Detailed Step-2 plan: `docs/htf_stage1_step2_plan.md`.
+Detailed Step-2 plan: `docs/htf/stage1-step2-plan.md`.
 
 ## Leakage Constraints
 Leakage guard enforced in Stage-1:

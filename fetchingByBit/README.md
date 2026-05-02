@@ -1,8 +1,12 @@
 # Bybit Data Fetching Pipeline
 
-> **Last Updated:** 2026-01-18  
+> **Last Updated:** 2026-05-02
 > **Data Range:** 2021-01-01 to present  
-> **Primary Timeframe:** 8h (for ML pipeline)
+> **Active HTF Source Contract:** native `1m`/`15m` OHLCV plus derivatives context
+
+For the current HTF workflow, the canonical operational instructions are in the
+root [`README.md`](../README.md), section "Fetch and Verify HTF Source Data".
+This file is a local reference for the Bybit fetcher directory itself.
 
 ---
 
@@ -22,7 +26,9 @@
 
 ## Overview
 
-This pipeline fetches market data from Bybit API for BTCUSDT perpetual futures and prepares it for the ML trading system.
+This pipeline fetches public market data from Bybit API for BTCUSDT linear
+perpetual futures and prepares local parquet sources for the ML research
+workflow.
 
 ### Key Facts
 
@@ -31,14 +37,18 @@ This pipeline fetches market data from Bybit API for BTCUSDT perpetual futures a
 | **Symbol** | BTCUSDT Linear Perpetual |
 | **Exchange** | Bybit |
 | **Start Date** | 2021-01-01 |
-| **ML Timeframe** | 8h (aggregated from 4h) |
+| **Active HTF inputs** | `1m` and `15m` source data plus derivative context |
+| **Compatibility output** | 8h aggregate derived from 4h data |
 | **Update Frequency** | Run daily or as needed |
 
-### Why 8H Aggregation?
+### How 8H Aggregation Fits Now
 
 **Bybit API does NOT provide 8h interval data.** Available intervals are: 1m, 3m, 5m, 15m, 30m, 1h, 2h, 4h, 6h, 12h, 1d, 1w, 1M.
 
-We aggregate 4h → 8h locally because:
+The current `notebooks/htf_pythonscript.py` materializer does not use 8h files
+as primary source data. It uses native `1m`/`15m` data and derives HTF regime
+batches internally. The 4h → 8h aggregate is retained for older/supporting
+workflows because:
 - 8h aligns with funding rate cycles (every 8 hours)
 - Reduces noise vs 4h while maintaining responsiveness
 - Matches our position holding period
@@ -54,7 +64,7 @@ We aggregate 4h → 8h locally because:
 | **OHLCV Klines** | `/v5/market/kline` | 1m, 5m, 15m, 1h, 4h, 1d | open, high, low, close, volume, turnover |
 | **Open Interest** | `/v5/market/open-interest` | 5m, 15m, 1h, 4h, 1d | openInterest |
 | **Funding Rate** | `/v5/market/funding/history` | 8h (native) | fundingRate, fundingRateTimestamp |
-| **Long/Short Ratio** | `/v5/market/account-ratio` | 1h, 4h | buyRatio, sellRatio |
+| **Long/Short Ratio** | `/v5/market/account-ratio` | 5m, 15m, 1h, 4h, 1d | buyRatio, sellRatio |
 | **Mark Price** | `/v5/market/mark-price-kline` | 1m, 5m, 15m, 1h, 4h, 1d | open, high, low, close |
 | **Index Price** | `/v5/market/index-price-kline` | 1m, 5m, 15m, 1h, 4h, 1d | open, high, low, close |
 | **Premium Price** | `/v5/market/premium-index-price-kline` | 1m, 5m, 15m, 1h, 4h, 1d | open, high, low, close |
@@ -118,25 +128,16 @@ fetchingByBit/
 ```bash
 # Fetch all sources (resumable)
 python fetch_bybit_market_data.py
-
-# Fetch specific source
-python fetch_bybit_market_data.py --source klines
-
-# Fetch specific timeframe
-python fetch_bybit_market_data.py --timeframe 4h
-
-# Check status only
-python fetch_bybit_market_data.py --status
-
-# Force re-fetch from beginning
-python fetch_bybit_market_data.py --force
 ```
 
 **Key Features:**
 - **Resumable:** Saves progress to `.fetch_progress.json`
 - **Forward pagination:** Fetches oldest → newest
 - **No overwrites:** Creates new batch files (incrementing index)
-- **Rate limiting:** Respects Bybit API limits (10 req/sec)
+- **Rate limiting:** Uses request pacing and Bybit response headers where available
+
+For normal operation use `update_data.py`; it wraps fetch, aggregation, and
+verification.
 
 ### 2. `aggregate_to_8h.py` - 8H Aggregation
 

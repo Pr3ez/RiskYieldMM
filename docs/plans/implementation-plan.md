@@ -592,4 +592,4 @@ scripts/
 ---
 
 *Document created: Methodical implementation plan for accuracy improvements*
-*Based on: Academic research review (docs/ACCURACY_IMPROVEMENT_RESEARCH.md)*
+*Based on: Academic research review (docs/modeling/accuracy-improvement-research.md)*

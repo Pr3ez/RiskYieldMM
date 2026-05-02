@@ -319,7 +319,7 @@ class TestRegimeConditioningOptimizer:
 # =============================================================================
 # NOTE: DomainPCAOptimizer was removed from the codebase because PCA
 # fundamentally requires computing the full covariance matrix, which
-# uses future data and cannot be made causal. See docs/LEAKAGE_FIXES.md
+# uses future data and cannot be made causal. See docs/validation/leakage-fixes.md
 
 
 # =============================================================================

@@ -4,7 +4,7 @@
 
 `sliding_window_evidence_based56.py` (5,500+ lines) is a **production-ready Walk-Forward prediction system** for time-series ML trading. It implements a 4-window architecture with proper temporal safeguards to prevent look-ahead bias.
 
-> **Prerequisites:** This system uses features from [Part 2: Kaggle Pipeline](../2-Kaggle_Pipeline/README.md). Read Part 2 first to understand the ~450 features that feed into these models.
+> **Prerequisites:** This system uses features from [Part 2: Pipeline](../2-Pipeline/README.md). Read Part 2 first to understand the ~450 features that feed into these models.
 
 ## Pipeline Position
 
@@ -19,7 +19,7 @@
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**← Previous:** [Part 2: Features](../2-Kaggle_Pipeline/README.md) — Where the features come from
+**← Previous:** [Part 2: Features](../2-Pipeline/README.md) — Where the features come from
 
 ## Final Prediction Architecture
 
@@ -321,6 +321,6 @@ All tunable parameters in `wf_config.py`:
 
 ## Related Documentation
 
-- **← Previous:** [Part 2: Kaggle Pipeline](../2-Kaggle_Pipeline/README.md) — Feature engineering (~450 features)
-- [Part 2: Features](../2-Kaggle_Pipeline/Part_2_Features.md) — Complete feature formulas
+- **← Previous:** [Part 2: Kaggle Pipeline](../2-Pipeline/README.md) — Feature engineering (~450 features)
+- [Part 2: Features](../2-Pipeline/Part_2_Features.md) — Complete feature formulas
 - [Part 1: Feature Engineering](../1-Feature_Eng_st1/README.md) — Naming conventions

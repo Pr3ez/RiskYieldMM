@@ -8,7 +8,7 @@ Enabled connector inventory used for this review: **github**.
 
 The largest practical blockers to reproduction are not algorithmic but operational: hardcoded absolute paths to a local Linux workspace, notebook cells that mutate `sys.path` and clear module caches, GPU-specific defaults in Stage-1 notebook execution, and an implicit dependency on local parquet datasets that are not fully described or bundled with the repository. For a fresh machine, I would rate out-of-the-box reproducibility as **medium-low**; after path/config refactoring and a fixture dataset, it could become **medium-high** quickly. fileciteturn29file0 fileciteturn32file0 fileciteturn33file0 fileciteturn34file0
 
-There is substantial documentation, but it is not perfectly synchronized with current code. A good example is `docs/DETAILED_VALIDATION_CHECKLIST.md`, which describes missing config passthrough as a major issue, while the current `scripts/workflow/config.py` already passes a much broader set of fields into `SyncBacktestConfig`. This suggests active evolution and some document drift. Repository code should therefore be treated as the source of truth, with prose docs used as design intent and historical context. fileciteturn28file0 fileciteturn29file0
+There is substantial documentation, but it is not perfectly synchronized with current code. A good example is `docs/validation/detailed-validation-checklist.md`, which describes missing config passthrough as a major issue, while the current `scripts/workflow/config.py` already passes a much broader set of fields into `SyncBacktestConfig`. This suggests active evolution and some document drift. Repository code should therefore be treated as the source of truth, with prose docs used as design intent and historical context. fileciteturn28file0 fileciteturn29file0
 
 Algorithmically, the repository combines standard gradient-boosted trees and hyperparameter optimization with classic time-series / regime-detection helpers. Its CatBoost usage matches the official description of gradient boosting on decision trees with GPU-capable training, and its Optuna usage is consistent with the framework’s `Study` lifecycle model. The BOCPD helper aligns with the original Adams–MacKay online changepoint formulation. citeturn8search1turn8search2turn8search3turn8search0
 
@@ -47,7 +47,7 @@ The most important modules I inspected directly are summarized below.
 | `scripts/htf_backtest/catboost/stage1_reward.py` | Reward-table construction from Stage-1 artifacts | `build_stage1_reward_table` | `stage1_reward.py` fileciteturn32file0 |
 | `scripts/htf_backtest/catboost/stage1_policy_dataset.py` | Offline state/action/reward dataset building | `build_stage1_policy_dataset` | `stage1_policy_dataset.py` fileciteturn33file0 |
 | `notebooks/htf_stage1.py` | Main Stage-1 execution and analysis notebook export | Cell 14 Stage-1 run, winner extraction, backfill, consensus signals, risk filter, risk model | `htf_stage1.py` fileciteturn34file0 |
-| `docs/htf_stage1_logic.md` and `docs/htf_stage1_artifacts.md` | Stage-1 design and artifact contract | Runtime artifact semantics | `htf_stage1_logic.md` fileciteturn15file0, `htf_stage1_artifacts.md` fileciteturn16file0 |
+| `docs/htf/stage1-logic.md` and `docs/htf/stage1-artifacts.md` | Stage-1 design and artifact contract | Runtime artifact semantics | `htf_stage1_logic.md` fileciteturn15file0, `htf_stage1_artifacts.md` fileciteturn16file0 |
 
 ## Core modules, algorithms, and data pipelines
 

@@ -1,7 +1,7 @@
 # Target Labeling Implementation Guide
 
 **Date:** 2026-02-05  
-**Based on:** target_labeling_analysis_2026-02-05.md  
+**Based on:** target-labeling-analysis-2026-02-05.md
 **Status:** Ready for Implementation
 
 ---

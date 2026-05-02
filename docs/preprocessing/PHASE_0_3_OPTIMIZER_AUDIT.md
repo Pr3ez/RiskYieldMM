@@ -182,7 +182,7 @@ ic_revert, _ = stats.spearmanr(x_vals[mask_r], y_vals[mask_r])
 
 **File**: `_domain_pca_DEPRECATED.py`
 
-**Status**: Already removed from active optimizers (see `docs/LEAKAGE_FIXES.md`)
+**Status**: Already removed from active optimizers (see `docs/validation/leakage-fixes.md`)
 
 **Reason for deprecation**:
 - PCA requires global covariance matrix

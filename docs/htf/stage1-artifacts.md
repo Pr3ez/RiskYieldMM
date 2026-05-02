@@ -194,4 +194,4 @@ Step-2 pruning/evaluation module:
   - does not overwrite Step-1 payload parquet files
 
 Step-2 design/operating plan:
-- `docs/htf_stage1_step2_plan.md`
+- `docs/htf/stage1-step2-plan.md`

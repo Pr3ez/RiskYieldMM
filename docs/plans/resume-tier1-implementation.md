@@ -130,7 +130,7 @@ All deferred until Tier 1 & 2 complete.
 |------|-------|---------|
 | `scripts/target_models/core/validators.py` | ~433 | Class balance & lookahead validation |
 | `docs/validation/ADAPTIVE_OPTIMIZATION_RESEARCH.md` | ~2528 | Full research documentation |
-| `docs/RESUME_TIER1_IMPLEMENTATION.md` | This file | Resume context |
+| `docs/plans/resume-tier1-implementation.md` | This file | Resume context |
 
 ### MODIFIED Files
 

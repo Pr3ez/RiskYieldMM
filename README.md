@@ -125,8 +125,8 @@ Key locations:
 - `scripts/analysis/htf_stage1_v2_loss_discounted_selector_audit.py`
 - `scripts/analysis/htf_stage1_v2_pairwise_prediction_audit.py`
 - `scripts/analysis/htf_stage1_v2_subset_reduction_audit.py`
-- `docs/htf_stage1_logic.md`
-- `docs/htf_stage1_artifacts.md`
+- `docs/htf/stage1-logic.md`
+- `docs/htf/stage1-artifacts.md`
 
 ### 3. Secondary Target-Model and Conformal Layer
 
@@ -179,8 +179,13 @@ RiskYieldMM/
 ├── prediction_analysis/         # Historical research outputs and reports
 ├── test_output/                 # Local/generated audit outputs and snapshots
 ├── data/                        # Local/generated datasets and backtest artifacts
-├── docs/                        # Architecture, validation, conformal, and research notes
-├── notebooks/notes/             # Session-level research and audit notes
+├── docs/                        # Organized documentation map and maintained topic docs
+│   ├── htf/                     # Current HTF pipeline, Stage-1, labels, artifacts
+│   ├── data/                    # Bybit/data-source and target-labeling notes
+│   ├── validation/              # Leakage, validation, and adaptive evaluation docs
+│   ├── modeling/                # L2/multi-model/ensemble research docs
+│   └── plans/                   # Implementation/refactor/status plans
+├── notebooks/notes/             # Chronological research and audit notes
 ├── Archive/                     # Legacy implementations kept for reference
 
 ```
@@ -231,7 +236,7 @@ For a technical reviewer, the highest-signal path is:
 3. Inspect the current walk-forward layer:
    - `scripts/analysis/htf_stage1_regime_family_walkforward.py`
    - `scripts/htf_backtest/catboost/stage1_runner.py`
-   - `docs/htf_stage1_artifacts.md`
+   - `docs/htf/stage1-artifacts.md`
 4. Inspect the analysis stack:
    - `scripts/analysis/htf_walkforward_diagnostics.py`
    - `scripts/analysis/htf_causal_multiregime_method_analysis.py`
@@ -278,8 +283,8 @@ cd ..
 
 Useful entry points for review:
 
-- `docs/htf_stage1_logic.md`
-- `docs/htf_stage1_artifacts.md`
+- `docs/htf/stage1-logic.md`
+- `docs/htf/stage1-artifacts.md`
 - `scripts/analysis/htf_stage1_regime_family_walkforward.py`
 - `scripts/analysis/htf_walkforward_diagnostics.py`
 - `scripts/analysis/htf_causal_multiregime_method_analysis.py`
@@ -592,8 +597,8 @@ The tracked review snapshots summarize selected local outputs:
 
 - `HTF_8H_B_WALKFORWARD_ANALYSIS.md`
 - `FEATURE_AND_DATASET_SNAPSHOT.md`
-- `docs/htf_stage1_logic.md`
-- `docs/htf_stage1_artifacts.md`
+- `docs/htf/stage1-logic.md`
+- `docs/htf/stage1-artifacts.md`
 
 ### 7. Operational Checklist
 
@@ -670,18 +675,19 @@ RiskYieldMM is built around financial time-series validation constraints:
 
 ## Documentation Index
 
-High-signal documents:
+Start with [`docs/README.md`](docs/README.md) for the organized documentation
+map. High-signal documents:
 
-- `docs/htf_stage1_logic.md` - isolated Stage-1 design and leakage constraints
-- `docs/htf_stage1_artifacts.md` - Stage-1 artifact contract
-- `docs/htf_stage1_step2_plan.md` - feature-pruning and baseline-vs-filtered analysis
-- `notebooks/notes/htf_feature_importance_collection_before_after_2026-04-19.md` - current walk-forward diagnostics and feature-importance collection flow
-- `notebooks/notes/htf_causal_multiregime_method_analysis_2026-04-02.md` - causal method analysis across the six HTF roots
-- `docs/conformal/README.md` - conformal prediction module summary
-- `docs/conformal/ARCHITECTURE.md` - conformal integration details
-- `docs/VALIDATION_TESTING_RESEARCH.md` - validation research notes
-- `docs/preprocessing/` - preprocessing and leakage-audit planning
-- `notebooks/notes/` - chronological research and implementation notes
+- [`docs/htf/stage1-logic.md`](docs/htf/stage1-logic.md) - isolated Stage-1 design and leakage constraints
+- [`docs/htf/stage1-artifacts.md`](docs/htf/stage1-artifacts.md) - Stage-1 artifact contract
+- [`docs/htf/stage1-step2-plan.md`](docs/htf/stage1-step2-plan.md) - feature-pruning and baseline-vs-filtered analysis
+- [`notebooks/notes/README.md`](notebooks/notes/README.md) - chronological research-note index
+- [`notebooks/notes/htf_feature_importance_collection_before_after_2026-04-19.md`](notebooks/notes/htf_feature_importance_collection_before_after_2026-04-19.md) - current walk-forward diagnostics and feature-importance collection flow
+- [`notebooks/notes/htf_causal_multiregime_method_analysis_2026-04-02.md`](notebooks/notes/htf_causal_multiregime_method_analysis_2026-04-02.md) - causal method analysis across the six HTF roots
+- [`docs/conformal/README.md`](docs/conformal/README.md) - conformal prediction module summary
+- [`docs/conformal/ARCHITECTURE.md`](docs/conformal/ARCHITECTURE.md) - conformal integration details
+- [`docs/validation/validation-testing-research.md`](docs/validation/validation-testing-research.md) - validation research notes
+- [`Archive/README.md`](Archive/README.md) - legacy implementation/archive index
 
 ## Technology Stack
 

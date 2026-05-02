@@ -186,8 +186,8 @@ Columns:
 
 ## Related Documents
 
-- [target_labeling_implementation.md](target_labeling_implementation.md) - Main implementation guide (15m-focused)
-- [target_labeling_analysis_2026-02-05.md](target_labeling_analysis_2026-02-05.md) - Original analysis
+- [target-labeling-implementation.md](target-labeling-implementation.md) - Main implementation guide (15m-focused)
+- [target-labeling-analysis-2026-02-05.md](target-labeling-analysis-2026-02-05.md) - Original analysis
 
 ---
 

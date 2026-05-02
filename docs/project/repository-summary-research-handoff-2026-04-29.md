@@ -297,16 +297,16 @@ Research concern:
 Start with:
 
 - `README.md`
-- `docs/htf_stage1_logic.md`
-- `docs/htf_stage1_artifacts.md`
-- `docs/htf_target_labeling_logic.md`
+- `docs/htf/stage1-logic.md`
+- `docs/htf/stage1-artifacts.md`
+- `docs/htf/target-labeling-logic.md`
 - `notebooks/notes/htf_causal_multiregime_method_analysis_2026-04-02.md`
 - `notebooks/notes/htf_stage1_current_behavior_and_improvement_plan_2026-04-19.md`
 - `notebooks/notes/htf_stage1_v2_full_diagnostic_inventory_2026-04-22.md`
 - `notebooks/notes/htf_complete_batch_readiness_audit_2026-04-13.md`
 - `docs/conformal/README.md`
-- `docs/IMPLEMENTATION_STATUS.md`
-- `docs/BACKTEST_CLEANUP_TODO.md`
+- `docs/plans/implementation-status.md`
+- `docs/plans/backtest-cleanup-todo.md`
 - `docs/preprocessing/MASTER_TODO.md`
 - `docs/target-redesign/multi-label-targets-research.md`
 
