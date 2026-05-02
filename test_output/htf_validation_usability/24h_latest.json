@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-30T13:09:38.147336+00:00",
+  "generated_at": "2026-04-30T13:40:02.420127+00:00",
   "regime": "24h",
   "null_rate_threshold": 0.25,
   "report_top_n": 20,
@@ -10,143 +10,143 @@
       "family": "B",
       "tf": "1m",
       "stage": "features",
-      "rows": 2801319,
+      "rows": 2801593,
       "columns": 133,
       "all_null_columns": [],
       "high_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 1804650,
-          "rows": 2801319,
-          "null_rate": 0.6442143861516664
+          "nulls": 1804724,
+          "rows": 2801593,
+          "null_rate": 0.6441777945618796
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 803850,
-          "rows": 2801319,
-          "null_rate": 0.2869541098318328
+          "rows": 2801593,
+          "null_rate": 0.28692604528923366
         }
       ],
       "top_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 1804650,
-          "rows": 2801319,
-          "null_rate": 0.6442143861516664
+          "nulls": 1804724,
+          "rows": 2801593,
+          "null_rate": 0.6441777945618796
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 803850,
-          "rows": 2801319,
-          "null_rate": 0.2869541098318328
+          "rows": 2801593,
+          "null_rate": 0.28692604528923366
         },
         {
           "column": "L_M_S_obv_xlong_zsc",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "M_V_sharpe_xlong_rat",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "M_V_sortino_xlong_rat",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "V_kurtosis_xlong_rat",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "V_skew_xlong_rat",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
           "nulls": 480,
-          "rows": 2801319,
-          "null_rate": 0.0001713478543500401
+          "rows": 2801593,
+          "null_rate": 0.00017133109627272768
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "L_M_S_cmf_xlong_bnd",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "L_M_S_mfi_xlong_bnd",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "N_V_bollingerBW_xlong_pct",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "S_N_longShortZscore_xlong_zsc",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "V_maxDrawdown_xlong_pct",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
           "nulls": 479,
-          "rows": 2801319,
-          "null_rate": 0.00017099087965347752
+          "rows": 2801593,
+          "null_rate": 0.0001709741564888262
         },
         {
           "column": "V_yangZhang_long_pct",
           "nulls": 478,
-          "rows": 2801319,
-          "null_rate": 0.00017063390495691494
+          "rows": 2801593,
+          "null_rate": 0.00017061721670492467
         },
         {
           "column": "V_volMomentum_long_pct",
           "nulls": 360,
-          "rows": 2801319,
-          "null_rate": 0.0001285108907625301
+          "rows": 2801593,
+          "null_rate": 0.00012849832220454576
         },
         {
           "column": "L_M_N_S_oiRoc_long_pct",
           "nulls": 245,
-          "rows": 2801319,
-          "null_rate": 8.745880065783298e-05
+          "rows": 2801593,
+          "null_rate": 8.745024705587143e-05
         },
         {
           "column": "X_D_oiRetPressure_long_pct",
           "nulls": 245,
-          "rows": 2801319,
-          "null_rate": 8.745880065783298e-05
+          "rows": 2801593,
+          "null_rate": 8.745024705587143e-05
         },
         {
           "column": "M_N_T_stochasticD_long_bnd",
           "nulls": 241,
-          "rows": 2801319,
-          "null_rate": 8.603090187158264e-05
+          "rows": 2801593,
+          "null_rate": 8.602248792026536e-05
         }
       ]
     },
@@ -155,143 +155,143 @@
       "family": "B",
       "tf": "15m",
       "stage": "features",
-      "rows": 186755,
+      "rows": 186773,
       "columns": 133,
       "all_null_columns": [],
       "high_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 124202,
-          "rows": 186755,
-          "null_rate": 0.6650531444941233
+          "nulls": 124208,
+          "rows": 186773,
+          "null_rate": 0.6650211754375632
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 57482,
-          "rows": 186755,
-          "null_rate": 0.30779363336992316
+          "rows": 186773,
+          "null_rate": 0.30776397016699414
         }
       ],
       "top_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 124202,
-          "rows": 186755,
-          "null_rate": 0.6650531444941233
+          "nulls": 124208,
+          "rows": 186773,
+          "null_rate": 0.6650211754375632
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 57482,
-          "rows": 186755,
-          "null_rate": 0.30779363336992316
+          "rows": 186773,
+          "null_rate": 0.30776397016699414
         },
         {
           "column": "M_N_rsi_short_bnd",
           "nulls": 9034,
-          "rows": 186755,
-          "null_rate": 0.048373537522422426
+          "rows": 186773,
+          "null_rate": 0.04836887558694244
         },
         {
           "column": "M_N_rsi_med_bnd",
           "nulls": 305,
-          "rows": 186755,
-          "null_rate": 0.001633155738802174
+          "rows": 186773,
+          "null_rate": 0.0016329983455852827
         },
         {
           "column": "L_M_S_mfi_long_bnd",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "L_M_S_obv_xlong_zsc",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "M_V_sharpe_xlong_rat",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "M_V_sortino_xlong_rat",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "V_kurtosis_xlong_rat",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "V_skew_xlong_rat",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
           "nulls": 32,
-          "rows": 186755,
-          "null_rate": 0.00017134748734973628
+          "rows": 186773,
+          "null_rate": 0.00017133097396304604
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "L_M_S_cmf_xlong_bnd",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "L_M_S_mfi_xlong_bnd",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "N_V_bollingerBW_xlong_pct",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "S_N_longShortZscore_xlong_zsc",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "V_maxDrawdown_xlong_pct",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
           "nulls": 31,
-          "rows": 186755,
-          "null_rate": 0.00016599287837005703
+          "rows": 186773,
+          "null_rate": 0.00016597688102670086
         },
         {
           "column": "V_yangZhang_long_pct",
           "nulls": 30,
-          "rows": 186755,
-          "null_rate": 0.00016063826939037776
+          "rows": 186773,
+          "null_rate": 0.00016062278809035566
         },
         {
           "column": "V_volMomentum_long_pct",
           "nulls": 24,
-          "rows": 186755,
-          "null_rate": 0.0001285106155123022
+          "rows": 186773,
+          "null_rate": 0.00012849823047228454
         }
       ]
     },
@@ -300,7 +300,7 @@
       "family": "B",
       "tf": "1m",
       "stage": "optimized",
-      "rows": 1400910,
+      "rows": 1401120,
       "columns": 128,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -308,122 +308,122 @@
         {
           "column": "L_M_S_obv_xlong_zsc",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "M_V_sharpe_xlong_rat",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "M_V_sortino_xlong_rat",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "V_kurtosis_xlong_rat",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "V_skew_xlong_rat",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "X_D_longShortRetPressure_xlong_pct",
           "nulls": 481,
-          "rows": 1400910,
-          "null_rate": 0.0003433482522074937
+          "rows": 1401120,
+          "null_rate": 0.00034329679113851775
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "L_M_S_cmf_xlong_bnd",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "L_M_S_mfi_xlong_bnd",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "N_V_bollingerBW_xlong_pct",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "S_N_longShortZscore_xlong_zsc",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "V_maxDrawdown_xlong_pct",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "X_D_fundingBasisPressure_xlong_pct",
           "nulls": 480,
-          "rows": 1400910,
-          "null_rate": 0.00034263443047733257
+          "rows": 1401120,
+          "null_rate": 0.00034258307639602604
         },
         {
           "column": "V_yangZhang_long_pct",
           "nulls": 479,
-          "rows": 1400910,
-          "null_rate": 0.0003419206087471715
+          "rows": 1401120,
+          "null_rate": 0.00034186936165353434
         },
         {
           "column": "V_volMomentum_long_pct",
           "nulls": 361,
-          "rows": 1400910,
-          "null_rate": 0.00025768964458816054
+          "rows": 1401120,
+          "null_rate": 0.00025765102203951124
         },
         {
           "column": "L_M_N_S_oiRoc_long_pct",
           "nulls": 246,
-          "rows": 1400910,
-          "null_rate": 0.00017560014561963296
+          "rows": 1401120,
+          "null_rate": 0.00017557382665296333
         },
         {
           "column": "X_D_oiRetPressure_long_pct",
           "nulls": 246,
-          "rows": 1400910,
-          "null_rate": 0.00017560014561963296
+          "rows": 1401120,
+          "null_rate": 0.00017557382665296333
         },
         {
           "column": "M_N_T_stochasticD_long_bnd",
           "nulls": 242,
-          "rows": 1400910,
-          "null_rate": 0.00017274485869898853
+          "rows": 1401120,
+          "null_rate": 0.00017271896768299646
         },
         {
           "column": "L_M_N_volumeRoc_long_pct",
           "nulls": 241,
-          "rows": 1400910,
-          "null_rate": 0.0001720310369688274
+          "rows": 1401120,
+          "null_rate": 0.00017200525294050473
         },
         {
           "column": "L_M_S_obv_long_zsc",
           "nulls": 241,
-          "rows": 1400910,
-          "null_rate": 0.0001720310369688274
+          "rows": 1401120,
+          "null_rate": 0.00017200525294050473
         }
       ]
     },
@@ -432,7 +432,7 @@
       "family": "B",
       "tf": "1m",
       "stage": "helpers",
-      "rows": 1400910,
+      "rows": 1401120,
       "columns": 169,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -440,122 +440,122 @@
         {
           "column": "H_4cl_1_cp_any",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_count_21",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_magnitude",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_ret_down",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_ret_up",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_vol_down",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_vol_up",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_ret_neg",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_ret_pos",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_vol_neg",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_vol_pos",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_days_since_cp",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_cond_vol",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_persistence",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_change",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_forecast",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_ratio",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_regime",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_shock",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_zscore",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         }
       ]
     },
@@ -564,7 +564,7 @@
       "family": "B",
       "tf": "1m",
       "stage": "helpers_helper_only",
-      "rows": 1400910,
+      "rows": 1401120,
       "columns": 41,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -572,122 +572,122 @@
         {
           "column": "H_4cl_1_cp_any",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_count_21",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_magnitude",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_ret_down",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_ret_up",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_vol_down",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cp_vol_up",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_ret_neg",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_ret_pos",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_vol_neg",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_cusum_vol_pos",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_days_since_cp",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_cond_vol",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_persistence",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_change",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_forecast",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_ratio",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_regime",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_shock",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         },
         {
           "column": "H_4cl_1_garch_vol_zscore",
           "nulls": 10080,
-          "rows": 1400910,
-          "null_rate": 0.007195323040023984
+          "rows": 1401120,
+          "null_rate": 0.007194244604316547
         }
       ]
     },
@@ -696,7 +696,7 @@
       "family": "B",
       "tf": "1m",
       "stage": "helpers_helper_only_constant",
-      "rows": 1400910,
+      "rows": 1401120,
       "columns": 41,
       "constant_columns": [],
       "top_constant_columns": []
@@ -740,41 +740,41 @@
       "family": "C",
       "tf": "1m",
       "stage": "features",
-      "rows": 2800599,
+      "rows": 2800873,
       "columns": 133,
       "all_null_columns": [],
       "high_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 1804169,
-          "rows": 2800599,
-          "null_rate": 0.6442082568764753
+          "nulls": 1804243,
+          "rows": 2800873,
+          "null_rate": 0.6441716564799618
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 803370,
-          "rows": 2800599,
-          "null_rate": 0.2868564903436729
+          "rows": 2800873,
+          "null_rate": 0.28682842813651316
         }
       ],
       "top_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 1804169,
-          "rows": 2800599,
-          "null_rate": 0.6442082568764753
+          "nulls": 1804243,
+          "rows": 2800873,
+          "null_rate": 0.6441716564799618
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 803370,
-          "rows": 2800599,
-          "null_rate": 0.2868564903436729
+          "rows": 2800873,
+          "null_rate": 0.28682842813651316
         },
         {
           "column": "L_M_N_volumeRoc_short_pct",
           "nulls": 2,
-          "rows": 2800599,
-          "null_rate": 7.14132940845869e-07
+          "rows": 2800873,
+          "null_rate": 7.140630796183905e-07
         }
       ]
     },
@@ -783,65 +783,65 @@
       "family": "C",
       "tf": "15m",
       "stage": "features",
-      "rows": 186707,
+      "rows": 186725,
       "columns": 133,
       "all_null_columns": [],
       "high_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 124169,
-          "rows": 186707,
-          "null_rate": 0.66504737369247
+          "nulls": 124175,
+          "rows": 186725,
+          "null_rate": 0.6650153969741599
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 57450,
-          "rows": 186707,
-          "null_rate": 0.30770137166790745
+          "rows": 186725,
+          "null_rate": 0.3076717097335654
         }
       ],
       "top_null_columns": [
         {
           "column": "F_I_N_S_fundingZscore_long_zsc",
-          "nulls": 124169,
-          "rows": 186707,
-          "null_rate": 0.66504737369247
+          "nulls": 124175,
+          "rows": 186725,
+          "null_rate": 0.6650153969741599
         },
         {
           "column": "F_I_N_S_fundingZscore_xlong_zsc",
           "nulls": 57450,
-          "rows": 186707,
-          "null_rate": 0.30770137166790745
+          "rows": 186725,
+          "null_rate": 0.3076717097335654
         },
         {
           "column": "M_N_rsi_short_bnd",
           "nulls": 9027,
-          "rows": 186707,
-          "null_rate": 0.04834848184588687
+          "rows": 186725,
+          "null_rate": 0.048343821127326284
         },
         {
           "column": "M_N_rsi_med_bnd",
           "nulls": 298,
-          "rows": 186707,
-          "null_rate": 0.0015960837033426707
+          "rows": 186725,
+          "null_rate": 0.0015959298433525237
         },
         {
           "column": "L_M_S_mfi_long_bnd",
           "nulls": 17,
-          "rows": 186707,
-          "null_rate": 9.105175488867584e-05
+          "rows": 186725,
+          "null_rate": 9.104297764091579e-05
         },
         {
           "column": "M_V_sortino_long_rat",
           "nulls": 6,
-          "rows": 186707,
-          "null_rate": 3.2135913490120884e-05
+          "rows": 186725,
+          "null_rate": 3.213281563797028e-05
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
           "nulls": 4,
-          "rows": 186707,
-          "null_rate": 2.1423942326747257e-05
+          "rows": 186725,
+          "null_rate": 2.1421877091980185e-05
         }
       ]
     },
@@ -850,7 +850,7 @@
       "family": "C",
       "tf": "1m",
       "stage": "optimized",
-      "rows": 1400400,
+      "rows": 1400460,
       "columns": 128,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -858,122 +858,122 @@
         {
           "column": "L_M_N_volumeRoc_short_pct",
           "nulls": 2,
-          "rows": 1400400,
-          "null_rate": 1.4281633818908883e-06
+          "rows": 1400460,
+          "null_rate": 1.4281021949930738e-06
         },
         {
           "column": "B_C_candleDirection_bin",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "B_consecutiveDown_bnd",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "B_consecutiveUp_bnd",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "C_N_bodySize_bnd",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "C_N_lowerShadow_bnd",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "C_N_upperShadow_bnd",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_N_S_premiumZscore_long_zsc",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_N_S_premiumZscore_xlong_zsc",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_T_premiumMa_long_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_T_premiumMa_med_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_T_premiumMa_short_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_F_basis_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_N_markCloseDeviation_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "D_dist_bot5_low_w120",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "F_I_T_fundingMa_long_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "F_I_T_fundingMa_med_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "F_I_T_fundingMa_short_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "F_I_fundingCumulative_long_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         },
         {
           "column": "F_I_fundingCumulative_med_pct",
           "nulls": 1,
-          "rows": 1400400,
-          "null_rate": 7.140816909454441e-07
+          "rows": 1400460,
+          "null_rate": 7.140510974965369e-07
         }
       ]
     },
@@ -982,7 +982,7 @@
       "family": "C",
       "tf": "1m",
       "stage": "helpers",
-      "rows": 1400400,
+      "rows": 1400460,
       "columns": 169,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -990,122 +990,122 @@
         {
           "column": "H_4cl_1_cp_any",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_count_21",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_magnitude",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_ret_down",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_ret_up",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_vol_down",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_vol_up",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_ret_neg",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_ret_pos",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_vol_neg",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_vol_pos",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_days_since_cp",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_cond_vol",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_persistence",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_change",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_forecast",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_ratio",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_regime",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_shock",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_zscore",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         }
       ]
     },
@@ -1114,7 +1114,7 @@
       "family": "C",
       "tf": "1m",
       "stage": "helpers_helper_only",
-      "rows": 1400400,
+      "rows": 1400460,
       "columns": 41,
       "all_null_columns": [],
       "high_null_columns": [],
@@ -1122,122 +1122,122 @@
         {
           "column": "H_4cl_1_cp_any",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_count_21",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_magnitude",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_ret_down",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_ret_up",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_vol_down",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cp_vol_up",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_ret_neg",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_ret_pos",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_vol_neg",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_cusum_vol_pos",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_days_since_cp",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_cond_vol",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_persistence",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_change",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_forecast",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_ratio",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_regime",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_shock",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         },
         {
           "column": "H_4cl_1_garch_vol_zscore",
           "nulls": 10080,
-          "rows": 1400400,
-          "null_rate": 0.0071979434447300775
+          "rows": 1400460,
+          "null_rate": 0.007197635062765092
         }
       ]
     },
@@ -1246,7 +1246,7 @@
       "family": "C",
       "tf": "1m",
       "stage": "helpers_helper_only_constant",
-      "rows": 1400400,
+      "rows": 1400460,
       "columns": 41,
       "constant_columns": [],
       "top_constant_columns": []

@@ -1,13 +1,13 @@
 {
-  "reason": "activity",
+  "reason": "shutdown",
   "run_id": "htf_pythonscript_20260430_151659_pid819012",
   "pid": 819012,
-  "stage": "HTF / 8h/C/1m/helpers",
-  "detail": "8h/C/1m/helpers/cache | cache_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_helper_cache/shift4h/1m/target_4class, canonical_raw_dir=/media/przem/linux_data/RiskYieldMM (Copy)/data/htf_features_shift4h/1m",
-  "run_elapsed_seconds": 614.015,
-  "stage_elapsed_seconds": 99.828,
-  "silence_seconds": 0.0,
+  "stage": "HTF / all/-/validation",
+  "detail": "pipeline | elapsed_seconds=1396.315",
+  "run_elapsed_seconds": 1396.522,
+  "stage_elapsed_seconds": 172.654,
+  "silence_seconds": 0.063,
   "log_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260430_151659_pid819012.log",
   "status_path": "/media/przem/linux_data/RiskYieldMM (Copy)/test_output/htf_run_logs/htf_pythonscript_20260430_151659_pid819012_status.json",
-  "updated_at": "2026-04-30T15:27:13"
+  "updated_at": "2026-04-30T15:40:16"
 }
