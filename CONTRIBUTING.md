@@ -1,105 +1,151 @@
 # Contributing
 
-Thank you for improving RiskYieldMM. This repository is a research-oriented ML
-system for leakage-aware cryptocurrency perpetual-futures workflows. Contributions
-should preserve reproducibility, temporal correctness, and clear artifact
-boundaries.
+RiskYieldMM is maintained as a research codebase with production-style review
+discipline. Contributions should preserve temporal correctness, artifact
+reproducibility, and reviewable repository size.
 
 ## Scope
 
 Good contributions include:
 
-- bug fixes in feature engineering, backtesting, analysis, or artifact handling
-- tests and smoke fixtures that make the workflow easier to reproduce
-- documentation that clarifies current code behavior
-- refactors that reduce hidden state, notebook coupling, or path assumptions
+- bug fixes in feature engineering, backtesting, analysis, or artifact handling,
+- tests and small fixtures that make the workflow easier to reproduce,
+- documentation that clarifies current code behavior,
+- refactors that reduce hidden state, notebook coupling, or path assumptions,
 - validation work around temporal continuity, leakage prevention, and schema
-  consistency
+  consistency.
 
 Out of scope:
 
-- trading advice, live trading signals, or profit guarantees
-- committed API keys, credentials, private datasets, or personal files
-- large generated outputs unless explicitly agreed
-- unrelated style churn that makes research history harder to review
+- trading advice, live trading signals, or profit guarantees,
+- committed API keys, credentials, private datasets, or personal files,
+- large generated outputs unless they are explicitly curated review artifacts,
+- unrelated style churn that makes research history harder to review.
 
-## Local Setup
+## Development Workflow
 
-Use Python 3.10 or newer. A typical editable setup is:
+1. Start from current `main`.
+
+   ```bash
+   git checkout main
+   git pull --ff-only origin main
+   ```
+
+2. Create a focused branch.
+
+   ```bash
+   git checkout -b docs/my-change
+   ```
+
+3. Keep changes scoped. Avoid combining documentation, dependency upgrades,
+   generated data, and behavioral code changes in one commit unless they are
+   tightly related.
+
+4. Run the relevant checks before opening a pull request.
+
+   ```bash
+   # Python contract checks
+   python -m pip install -r requirements-ci.txt
+   ruff check . --select E9,F63,F7,F82 --exclude Archive --exclude notebooks --exclude test_output
+   pytest -q tests/test_fetch_bybit_market_data.py tests/test_htf_workflow_contract.py tests/test_htf_incremental_resume.py
+
+   # VS Code extension checks
+   cd extensions/astra-workflow
+   npm ci
+   npm run compile
+   npm run lint
+   npm audit --audit-level=low
+
+   # Rust helper checks
+   cd ../../riskyield_rust
+   cargo check --locked
+   ```
+
+5. Open a pull request to `main`. The protected branch expects review before
+   regular collaborators can change `main`.
+
+## Full Local Setup
+
+Use Python 3.10 or newer. A typical lightweight setup is:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install -U pip
-pip install -e .
+python -m pip install --upgrade pip
+python -m pip install -r requirements-ci.txt
+python -m pip install -e .
 ```
 
-If you need the Rust extension:
+For the Rust helper module:
 
 ```bash
-pip install maturin
+python -m pip install maturin
 maturin develop --release -m riskyield_rust/Cargo.toml
 ```
 
-Project-root resolution supports:
+For the VS Code extension:
 
 ```bash
-export RISKYIELDMM_PROJECT_ROOT="/path/to/RiskYieldMM"
+cd extensions/astra-workflow
+npm ci
+npm run compile
 ```
 
-## Data And Artifacts
+## Data And Artifact Policy
 
-- Keep private/generated data out of commits unless the file is an intentional,
-  small fixture or audit artifact.
-- Preserve artifact metadata when changing schemas or output paths.
-- For parquet/data changes, document the source, batch range, timestamp range,
-  and whether the data is synthetic, fixture, or real historical data.
-- Do not commit secrets, exchange credentials, personal documents, or local
-  machine paths.
+Do not commit raw market data, generated Parquet datasets, model artifacts,
+local run logs, or personal working files. The repository documents the data
+contract and includes small schema/sample snippets instead of uploading full
+datasets.
 
-## Temporal ML Requirements
+Ignored by default:
 
-RiskYieldMM is sensitive to look-ahead bias. Any workflow change that touches
-features, labels, walk-forward splits, helper caches, model selection, or
-post-processing should explain:
+- `data/`
+- `datasets/`
+- `precomputed/`
+- model output directories
+- generated Parquet/CSV/HDF/NPZ files
+- extension `node_modules/`
 
-- what information is available at prediction time
-- how train/validation/test windows are separated
-- whether purge/embargo or tail-exclusion behavior changed
-- which artifacts were regenerated or invalidated
-- which leakage checks or smoke tests were run
+Tracked `test_output/` files are historical review snapshots only. New generated
+outputs should be committed only when they are intentionally curated as an audit
+artifact.
 
-## Testing And Validation
+## Dependabot PRs
 
-Run the narrowest checks that cover your change. Useful commands include:
+Dependabot may open dependency update pull requests. Review them like normal
+code:
 
-```bash
-python -m compileall -q scripts prediction_analysis notebooks
-python test_catboost_optimization_unit.py
-python test_hmm_rust.py
-```
+- confirm they are not superseded by a newer update,
+- run the affected checks,
+- approve only if compile/lint/audit or build checks pass,
+- request changes when a version update requires migration work.
 
-If a command cannot run because dependencies or data are unavailable, state that
-clearly in the pull request and include the exact failure.
+Security updates can still break tooling, so do not merge automatically unless
+the checks prove the change is safe.
 
-For documentation-only changes, check links, paths, and stale claims against the
-current code. Code is the source of truth when older notes disagree with current
-implementation.
+## Time-Series ML Requirements
 
-## Pull Request Expectations
+Any change to data, feature, label, or validation logic should explicitly
+consider:
 
-Every pull request should include:
+- chronological train/validation/test separation,
+- no look-ahead access to future rows,
+- stable feature values when new rows are appended,
+- batch and family alignment across `8h`, `24h`, and `7d`,
+- resume behavior for already-computed artifacts,
+- validation evidence in tests or audit output.
 
-- a concise summary of the change
-- affected paths and artifact contracts
-- validation commands and outcomes
-- known limitations or skipped checks
-- screenshots/plots only when they materially help review
+## Documentation Placement
 
-Keep changes focused. Separate large data migrations, notebook exports,
-algorithmic changes, and documentation cleanup when possible.
+- Put current design docs under `docs/`.
+- Put chronological investigation notes under `notebooks/notes/`.
+- Put retired designs and legacy references under `Archive/`.
+- Keep root-level markdown limited to project identity, contribution/security
+  policy, changelog, and high-signal review snapshots.
 
-## Community Standards
+## Community And Security
 
 By participating, you agree to follow `CODE_OF_CONDUCT.md`. Report
-security-sensitive issues through `SECURITY.md` rather than public issue details.
+security-sensitive issues through `SECURITY.md` or GitHub private vulnerability
+reporting rather than public issue details.

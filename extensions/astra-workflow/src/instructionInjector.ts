@@ -515,7 +515,7 @@ export class InstructionInjector {
     const uri = vscode.Uri.file(instructionsPath);
 
     // Read existing content
-    let content = "";
+    let content: string;
     try {
       const fileContent = await vscode.workspace.fs.readFile(uri);
       content = Buffer.from(fileContent).toString("utf8");

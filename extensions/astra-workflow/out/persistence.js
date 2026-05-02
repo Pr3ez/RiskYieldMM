@@ -91,7 +91,7 @@ class PersistenceManager {
         }
         catch (error) {
             console.error('Failed to save to Memento:', error);
-            throw new Error(`Memento save failed: ${error}`);
+            throw new Error(`Memento save failed: ${error}`, { cause: error });
         }
     }
     /**

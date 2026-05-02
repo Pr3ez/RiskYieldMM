@@ -726,9 +726,14 @@ def build_helper_cache_exact(
         if processed_batch_count % max(1, batch_progress_every) == 0:
             log(f"    cache batches processed {processed_batch_count}/{len(batches_to_write)}")
 
-    def _null_cache_batch(batch_id: int) -> pl.DataFrame:
-        batch_start, batch_len = batch_offsets[batch_id]
-        ts_only = raw_combined.slice(batch_start, batch_len).select(["timestamp"])
+    def _null_cache_batch(
+        batch_id: int,
+        *,
+        batch_offsets_by_id: dict[int, tuple[int, int]],
+        raw_batch_rows: pl.DataFrame,
+    ) -> pl.DataFrame:
+        batch_start, batch_len = batch_offsets_by_id[batch_id]
+        ts_only = raw_batch_rows.slice(batch_start, batch_len).select(["timestamp"])
         null_columns = [
             pl.lit(None, dtype=pl.Float64).alias(col)
             for col in helper_cols
@@ -786,12 +791,25 @@ def build_helper_cache_exact(
             if current_batch_id is not None and batch_id != current_batch_id:
                 _flush_current_batch()
             while next_batch_pos < len(batches_to_write) and batches_to_write[next_batch_pos] < batch_id:
-                _write_cache_batch(batches_to_write[next_batch_pos], _null_cache_batch(batches_to_write[next_batch_pos]))
+                _write_cache_batch(
+                    batches_to_write[next_batch_pos],
+                    _null_cache_batch(
+                        batches_to_write[next_batch_pos],
+                        batch_offsets_by_id=batch_offsets,
+                        raw_batch_rows=raw_combined,
+                    ),
+                )
             if current_batch_id is None:
                 batch_start, _batch_len = batch_offsets[batch_id]
                 segment_global_start = int(pred_start + seg_start)
                 if segment_global_start > batch_start:
-                    current_batch_parts.append(_null_cache_batch(batch_id).slice(0, segment_global_start - batch_start))
+                    current_batch_parts.append(
+                        _null_cache_batch(
+                            batch_id,
+                            batch_offsets_by_id=batch_offsets,
+                            raw_batch_rows=raw_combined,
+                        ).slice(0, segment_global_start - batch_start)
+                    )
             current_batch_id = batch_id
             helper_slice = chunk_pl.slice(int(seg_start), int(seg_end - seg_start))
             ts_slice = raw_combined.slice(int(pred_start + seg_start), int(seg_end - seg_start)).select(
@@ -801,7 +819,14 @@ def build_helper_cache_exact(
 
     _flush_current_batch()
     while helper_cols and next_batch_pos < len(batches_to_write):
-        _write_cache_batch(batches_to_write[next_batch_pos], _null_cache_batch(batches_to_write[next_batch_pos]))
+        _write_cache_batch(
+            batches_to_write[next_batch_pos],
+            _null_cache_batch(
+                batches_to_write[next_batch_pos],
+                batch_offsets_by_id=batch_offsets,
+                raw_batch_rows=raw_combined,
+            ),
+        )
 
     if helper_chunks_seen == 0 or not helper_cols:
         return HelperCacheBuildResult(

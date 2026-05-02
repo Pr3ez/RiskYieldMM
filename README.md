@@ -3,6 +3,7 @@
 **Machine learning research system for cryptocurrency perpetual futures**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![CI](https://github.com/Pr3ez/RiskYieldMM/actions/workflows/ci.yml/badge.svg)](https://github.com/Pr3ez/RiskYieldMM/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange.svg)](https://rust-lang.org)
 
@@ -14,7 +15,7 @@ This is not trading advice and is not a live trading bot. The focus is ML engine
 
 This repository demonstrates the ability to build and reason about a non-trivial ML system rather than only train a single notebook model.
 
-For concise review artifacts, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B_WALKFORWARD_ANALYSIS.md) and [Feature and Dataset Snapshot](FEATURE_AND_DATASET_SNAPSHOT.md).
+For concise review artifacts, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B_WALKFORWARD_ANALYSIS.md), [Feature and Dataset Snapshot](FEATURE_AND_DATASET_SNAPSHOT.md), [Reproducibility Guide](docs/REPRODUCIBILITY.md), [HTF Data Contract](docs/data/data-contract.md), and [HTF Workflow Architecture](docs/architecture/htf-workflow-architecture.md).
 
 | Area | Evidence |
 |------|----------|

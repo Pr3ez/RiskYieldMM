@@ -67,7 +67,7 @@ export class PersistenceManager {
       await this.context.workspaceState.update(STATE_KEY, persistedState);
     } catch (error) {
       console.error('Failed to save to Memento:', error);
-      throw new Error(`Memento save failed: ${error}`);
+      throw new Error(`Memento save failed: ${error}`, { cause: error });
     }
   }
 

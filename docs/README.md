@@ -11,9 +11,11 @@ visibility:
 
 | Area | Location | Purpose |
 |---|---|---|
+| Reproducibility | [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) | Setup, data refresh, HTF feature generation, and Stage-1 run commands |
 | HTF pipeline and Stage-1 | [`htf/`](htf/) | Current multi-regime HTF logic, labels, artifacts, and Stage-1 design |
 | Data sources and target inputs | [`data/`](data/) | Bybit source integration, target-label notes, and data/target verification |
 | Architecture | [`architecture/`](architecture/) | System-level and backtest architecture references |
+| Results summaries | [`results/`](results/) | Reviewer-facing result cards and interpretation notes |
 | Validation and leakage | [`validation/`](validation/) | Leakage audits, validation checklists, and adaptive validation research |
 | Conformal prediction | [`conformal/`](conformal/) | Conformal/ACI architecture, experiments, and integration results |
 | Preprocessing | [`preprocessing/`](preprocessing/) | Helper optimization, preprocessing design, and audit notes |
