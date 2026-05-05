@@ -9,6 +9,7 @@ truth when a plan conflicts with current implementation.
 | [`implementation-plan.md`](implementation-plan.md) | General implementation plan |
 | [`implementation-plan-detailed.md`](implementation-plan-detailed.md) | Detailed implementation plan |
 | [`implementation-plan-no-leakage.md`](implementation-plan-no-leakage.md) | No-leakage implementation plan |
+| [`htf-broadcast-availability-fix-plan-2026-05-05.md`](htf-broadcast-availability-fix-plan-2026-05-05.md) | HTF auxiliary broadcast availability fix plan |
 | [`new-l1-helpers-implementation-plan.md`](new-l1-helpers-implementation-plan.md) | L1 helper implementation plan |
 | [`permodel-refactor-plan.md`](permodel-refactor-plan.md) | Per-model refactor plan |
 | [`refactoring-plan.md`](refactoring-plan.md) | General refactoring plan |

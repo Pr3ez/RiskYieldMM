@@ -6,7 +6,7 @@ Computes features for ANY timeframe for HTF backtest.
 Adaptive design:
 - Auto-detects available data sources in fetchingByBit directory
 - Automatically finds best source for each data type (native TF or higher)
-- Broadcasts higher TF data to lower TF rows using last-complete-bar logic
+- Aligns higher TF data to lower TF rows using source availability metadata
 - Supports any timeframe: 1m, 5m, 15m, 1h, 4h, 8h, etc.
 
 Usage:
@@ -34,6 +34,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -102,6 +103,69 @@ def get_lower_or_equal_timeframes(tf: str) -> list[str]:
     return [t for t in TIMEFRAME_ORDER if parse_timeframe(t) <= tf_mins]
 
 
+TIMESTAMP_ROLES = {
+    "bar_start",
+    "available_at",
+    "settlement_at",
+    "period_start_aggregate",
+}
+
+
+def _resolve_offset_minutes(
+    offset: str | int | float | None,
+    source_tf: str,
+) -> float:
+    if offset is None:
+        return 0.0
+    if isinstance(offset, (int, float)):
+        return float(offset)
+
+    resolved = str(offset).strip().lower()
+    if resolved in {"", "none"}:
+        return 0.0
+    if resolved == "source_tf":
+        return float(parse_timeframe(source_tf))
+    return float(parse_timeframe(resolved))
+
+
+def _default_availability_offset(timestamp_role: str, source_tf: str) -> float:
+    if timestamp_role in {"bar_start", "period_start_aggregate"}:
+        return float(parse_timeframe(source_tf))
+    return 0.0
+
+
+def _normalize_timestamp_for_merge(series: pd.Series) -> pd.Series:
+    ts = pd.to_datetime(series)
+    if getattr(ts.dt, "tz", None) is not None:
+        ts = ts.dt.tz_localize(None)
+    return ts.astype("datetime64[ns]")
+
+
+def source_available_timestamps(
+    timestamps: pd.Series,
+    *,
+    source_tf: str,
+    timestamp_role: str,
+    availability_offset: str | int | float | None = None,
+    publication_lag: str | int | float | None = None,
+) -> pd.Series:
+    """Return source timestamps shifted to when their values are usable."""
+    if timestamp_role not in TIMESTAMP_ROLES:
+        raise ValueError(
+            f"Unknown timestamp_role={timestamp_role!r}; "
+            f"expected one of {sorted(TIMESTAMP_ROLES)}"
+        )
+
+    ts = _normalize_timestamp_for_merge(timestamps)
+    offset_minutes = (
+        _default_availability_offset(timestamp_role, source_tf)
+        if availability_offset is None
+        else _resolve_offset_minutes(availability_offset, source_tf)
+    )
+    lag_minutes = _resolve_offset_minutes(publication_lag, source_tf)
+    return ts + pd.to_timedelta(offset_minutes + lag_minutes, unit="m")
+
+
 # =============================================================================
 # DATA SOURCE TYPES
 # =============================================================================
@@ -133,6 +197,9 @@ DATA_SOURCE_PATTERNS = {
         ],
         "columns": ["timestamp", "open", "high", "low", "close", "volume"],
         "rename": {},
+        "timestamp_role": "bar_start",
+        "availability_offset": "source_tf",
+        "publication_lag": "0m",
     },
     "mark_price": {
         "dir_pattern": "mark-price-{tf}-bybit-linear",
@@ -147,6 +214,9 @@ DATA_SOURCE_PATTERNS = {
             "low": "markLow",
             "close": "markClose",
         },
+        "timestamp_role": "bar_start",
+        "availability_offset": "source_tf",
+        "publication_lag": "0m",
     },
     "index_price": {
         "dir_pattern": "index-price-{tf}-bybit-linear",
@@ -161,6 +231,9 @@ DATA_SOURCE_PATTERNS = {
             "low": "indexLow",
             "close": "indexClose",
         },
+        "timestamp_role": "bar_start",
+        "availability_offset": "source_tf",
+        "publication_lag": "0m",
     },
     "premium_price": {
         "dir_pattern": "premium-price-{tf}-bybit-linear",
@@ -175,6 +248,9 @@ DATA_SOURCE_PATTERNS = {
             "low": "premiumLow",
             "close": "premiumClose",
         },
+        "timestamp_role": "bar_start",
+        "availability_offset": "source_tf",
+        "publication_lag": "0m",
     },
     "open_interest": {
         "dir_pattern": "open-interest-{tf}-bybit-linear",
@@ -184,6 +260,9 @@ DATA_SOURCE_PATTERNS = {
         ],
         "columns": ["timestamp", "openInterest"],
         "rename": {},
+        "timestamp_role": "available_at",
+        "availability_offset": "0m",
+        "publication_lag": "0m",
     },
     "long_short_ratio": {
         "dir_pattern": "long-short-ratio-{tf}-bybit-linear",
@@ -191,6 +270,9 @@ DATA_SOURCE_PATTERNS = {
         "columns": ["timestamp", "buyRatio", "sellRatio"],
         "rename": {},
         "derived": {"longShortRatio": lambda df: df["buyRatio"] / df["sellRatio"]},
+        "timestamp_role": "available_at",
+        "availability_offset": "0m",
+        "publication_lag": "0m",
     },
     "funding_rate": {
         "dir_pattern": "funding-rate-bybit-linear",
@@ -199,6 +281,9 @@ DATA_SOURCE_PATTERNS = {
         "rename": {},
         "is_fixed_tf": True,  # No timeframe in directory name
         "native_tf": "8h",
+        "timestamp_role": "settlement_at",
+        "availability_offset": "0m",
+        "publication_lag": "0m",
     },
 }
 
@@ -343,7 +428,7 @@ class HTFFeatureEngine:
 
     def get_source_resolution_plan(
         self, target_tf: str
-    ) -> dict[str, dict[str, str | None]]:
+    ) -> dict[str, dict[str, Any]]:
         """
         Get a plan for how each data source will be resolved for target TF.
 
@@ -362,7 +447,14 @@ class HTFFeatureEngine:
                     method = "native"
                 else:
                     method = "broadcast"
-                plan[data_type] = {"source_tf": best_tf, "method": method}
+                source_config = DATA_SOURCE_PATTERNS[data_type]
+                plan[data_type] = {
+                    "source_tf": best_tf,
+                    "method": method,
+                    "timestamp_role": source_config.get("timestamp_role"),
+                    "availability_offset": source_config.get("availability_offset"),
+                    "publication_lag": source_config.get("publication_lag"),
+                }
             else:
                 plan[data_type] = {"source_tf": None, "method": "unavailable"}
 
@@ -634,10 +726,20 @@ class HTFFeatureEngine:
                 )
                 self.log(f"✓ {data_type} ({source_tf}): {len(df_source):,} rows")
             elif method == "broadcast":
-                df = self.broadcast_higher_tf(df, df_source, cols_to_merge, source_tf)
+                df = self.align_source_to_base(
+                    df,
+                    df_source,
+                    columns=cols_to_merge,
+                    source_tf=source_tf,
+                    data_type=data_type,
+                    timestamp_role=source_plan.get("timestamp_role"),
+                    availability_offset=source_plan.get("availability_offset"),
+                    publication_lag=source_plan.get("publication_lag"),
+                )
                 self.log(
                     f"✓ {data_type} ({source_tf} → {target_tf}): "
-                    f"{len(df_source):,} rows (broadcast)"
+                    f"{len(df_source):,} rows (broadcast, "
+                    f"role={source_plan.get('timestamp_role')})"
                 )
 
         for col in ["openInterest", "longShortRatio", "fundingRate"]:
@@ -649,48 +751,100 @@ class HTFFeatureEngine:
 
         return df
 
+    def align_source_to_base(
+        self,
+        df_base: pd.DataFrame,
+        df_source: pd.DataFrame,
+        *,
+        columns: list[str],
+        source_tf: str,
+        data_type: str,
+        timestamp_role: str | None = None,
+        availability_offset: str | int | float | None = None,
+        publication_lag: str | int | float | None = None,
+    ) -> pd.DataFrame:
+        """
+        Align an auxiliary source using explicit source availability semantics.
+
+        Base timestamps are treated as the decision/feature timestamps already
+        present in the HTF frame. Source timestamps are shifted to their
+        availability time according to `timestamp_role`, then merged with an
+        as-of backward join so a row can only see source values whose
+        availability timestamp is <= the base timestamp.
+        """
+        df_base = df_base.copy()
+        df_source = df_source.copy()
+        source_config = DATA_SOURCE_PATTERNS.get(data_type, {})
+        resolved_role = timestamp_role or source_config.get(
+            "timestamp_role", "available_at"
+        )
+
+        base_key = "_base_available_ts"
+        source_key = "_source_available_ts"
+        df_base[base_key] = _normalize_timestamp_for_merge(df_base["timestamp"])
+        df_source[source_key] = source_available_timestamps(
+            df_source["timestamp"],
+            source_tf=source_tf,
+            timestamp_role=str(resolved_role),
+            availability_offset=(
+                availability_offset
+                if availability_offset is not None
+                else source_config.get("availability_offset")
+            ),
+            publication_lag=(
+                publication_lag
+                if publication_lag is not None
+                else source_config.get("publication_lag")
+            ),
+        )
+
+        cols_to_merge = [source_key] + [c for c in columns if c in df_source.columns]
+        order_col = "_base_order"
+        df_base[order_col] = np.arange(len(df_base), dtype=np.int64)
+        left = df_base.sort_values(base_key)
+        right = (
+            df_source[cols_to_merge]
+            .dropna(subset=[source_key])
+            .sort_values(source_key)
+        )
+
+        df_merged = pd.merge_asof(
+            left,
+            right,
+            left_on=base_key,
+            right_on=source_key,
+            direction="backward",
+        )
+        df_merged = df_merged.sort_values(order_col).drop(columns=[order_col])
+        return df_merged.drop(columns=[base_key, source_key], errors="ignore")
+
     def broadcast_higher_tf(
         self,
         df_base: pd.DataFrame,
         df_high: pd.DataFrame,
         columns: list[str],
         high_tf: str,
+        *,
+        timestamp_role: str = "available_at",
+        availability_offset: str | int | float | None = "0m",
+        publication_lag: str | int | float | None = "0m",
     ) -> pd.DataFrame:
         """
-        Broadcast higher timeframe values to lower timeframe rows.
+        Compatibility wrapper for higher-timeframe source broadcasts.
 
-        Uses the LAST COMPLETE higher TF bar available at each lower TF timestamp.
-        E.g., for 1h→5m: value at 16:25 (5m) uses 1h bar that closed at 16:00.
+        New code should call `align_source_to_base()` with a real data_type so
+        timestamp availability semantics come from DATA_SOURCE_PATTERNS.
         """
-        df_base = df_base.copy()
-        df_high = df_high.copy()
-
-        # Normalize merge keys while preserving the original base timestamp dtype.
-        base_ts = df_base["timestamp"]
-        high_ts = df_high["timestamp"]
-        if base_ts.dt.tz is not None:
-            base_merge_ts = base_ts.dt.tz_localize(None)
-        else:
-            base_merge_ts = base_ts
-        if high_ts.dt.tz is not None:
-            high_merge_ts = high_ts.dt.tz_localize(None)
-        else:
-            high_merge_ts = high_ts
-
-        # Floor base timestamps to higher TF period start
-        high_mins = parse_timeframe(high_tf)
-        df_base["_merge_ts"] = base_merge_ts.dt.floor(f"{high_mins}min")
-        df_high["_merge_ts"] = high_merge_ts
-
-        # Select only merge key + requested columns
-        cols_to_merge = ["_merge_ts"] + [c for c in columns if c in df_high.columns]
-        df_merged = df_base.merge(
-            df_high[cols_to_merge],
-            on="_merge_ts",
-            how="left",
+        return self.align_source_to_base(
+            df_base,
+            df_high,
+            columns=columns,
+            source_tf=high_tf,
+            data_type="_compat_available_at",
+            timestamp_role=timestamp_role,
+            availability_offset=availability_offset,
+            publication_lag=publication_lag,
         )
-
-        return df_merged.drop(columns=["_merge_ts"])
 
     def load_data_for_timeframe(self, target_tf: str) -> pd.DataFrame:
         """

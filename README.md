@@ -407,6 +407,12 @@ resolve from `5m` into `1m` and natively for `15m`; funding rate should broadcas
 from the fixed `8h` Bybit source. A warning on long/short ratio means the local
 tree is still falling back to older `1h` files and should be refreshed.
 
+`python update_data.py --verify` is a historical data-quality check, not only a
+command-health check. The update can finish successfully while this monitor still
+reports older raw-source gaps. Treat that as a data-quality finding for affected
+training/backtest windows: fill the raw source, or restrict and validate the
+downstream run so selected HTF batches do not depend on the missing intervals.
+
 For an explicit JSON quality report:
 
 ```bash
@@ -419,9 +425,10 @@ python data_quality_monitor.py \
 cd ..
 ```
 
-If the quality monitor reports critical gaps, fix the raw data before running
-feature materialization. The downstream walk-forward scripts assume chronological
-coverage is continuous enough for the selected prediction batches.
+If the quality monitor reports critical gaps, inspect the affected source and
+date range before running feature materialization. The downstream walk-forward
+scripts assume chronological coverage is continuous enough for the selected
+prediction batches.
 
 ### 3. Build HTF Features, Labels, and Helpers
 
