@@ -40,6 +40,10 @@ models/
 models/**
 fetchingByBit/**/sorted-*
 fetchingByBit/**/*.parquet
+fetchingByBit/.fetch_progress.json
+fetchingMultiAsset/.fetch_progress.json
+fetchingMultiAsset/sorted-*
+fetchingMultiAsset/**/*.parquet
 fetchingbinance/**/sorted-*
 
 # Logs and temp files
@@ -67,6 +71,8 @@ Thumbs.db
 # Secrets
 .env
 .env.*
+local_secrets.env
+*.local.env
 *.pem
 *.key
 

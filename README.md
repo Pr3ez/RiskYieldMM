@@ -1,12 +1,25 @@
 # RiskYieldMM
 
-**Machine learning research system for cryptocurrency perpetual futures**
+**Machine learning research system for multi-asset financial time series**
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://python.org)
 [![Rust](https://img.shields.io/badge/Rust-1.70%2B-orange.svg)](https://rust-lang.org)
 
-RiskYieldMM is a research project for building leakage-aware financial time-series ML workflows. The active workflow is a multi-regime HTF pipeline for cryptocurrency perpetual futures: it builds higher-timeframe batches, generates current prediction labels, attaches helper/regime features, runs CatBoost walk-forward Stage-1 experiments, and audits model-selection behavior from saved artifacts.
+RiskYieldMM is a research project for building leakage-aware financial
+time-series ML workflows across multiple market types. The active workflow is a
+multi-regime HTF pipeline that started on crypto perpetual futures and is now
+being extended into a reproducible multi-asset source layer: crypto
+(`BTCUSDT`, `ETHUSDT`), FX futures proxies (`EURUSD`, `USDJPY`), metals
+(`GC` gold), energy (`CL` WTI crude), and equity-index futures (`ES` S&P 500,
+`NQ` Nasdaq 100). It builds higher-timeframe batches, generates current
+prediction labels, attaches helper/regime features, runs CatBoost walk-forward
+Stage-1 experiments, and audits model-selection behavior from saved artifacts.
+
+The current model-facing HTF materializer is still BTCUSDT-oriented while this
+branch prepares normalized raw sources for the broader multi-asset dataset. New
+non-crypto bars are stored in the same core OHLCV contract as Bybit klines so
+the later feature/label computation and merge layer can reuse the same logic.
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
@@ -18,7 +31,7 @@ For concise review artifacts, see [8h/B Walk-Forward Analysis Snapshot](HTF_8H_B
 
 | Area | Evidence |
 |------|----------|
-| **Data engineering** | Bybit HTF source ingestion for `1m`/`15m` OHLCV plus derivatives context, Parquet/JSON artifact workflows |
+| **Data engineering** | Bybit crypto ingestion plus normalized Databento futures proxies for FX, gold, oil, S&P 500, and Nasdaq; Parquet/JSON artifact workflows |
 | **Feature engineering** | Multi-regime HTF feature materialization, helper/regime features, technical/time-series feature families |
 | **ML modelling** | CatBoost Stage-1 selection, LightGBM/PyTorch experiments, Ridge/linear baselines, ensemble tooling |
 | **Time-series validation** | Walk-forward splits, purged windows, chronological train/test separation, leakage checks |
@@ -176,12 +189,13 @@ RiskYieldMM/
 │   └── tests/                   # Focused experiment/test scripts
 ├── riskyield_rust/              # Rust/PyO3 helper acceleration module
 ├── fetchingByBit/               # Bybit data acquisition and local market data folders
+├── fetchingMultiAsset/          # Databento/Twelve Data normalized non-crypto source layer
 ├── prediction_analysis/         # Historical research outputs and reports
 ├── test_output/                 # Local/generated audit outputs and snapshots
 ├── data/                        # Local/generated datasets and backtest artifacts
 ├── docs/                        # Organized documentation map and maintained topic docs
 │   ├── htf/                     # Current HTF pipeline, Stage-1, labels, artifacts
-│   ├── data/                    # Bybit/data-source and target-labeling notes
+│   ├── data/                    # Data-source contracts and target-labeling notes
 │   ├── validation/              # Leakage, validation, and adaptive evaluation docs
 │   ├── modeling/                # L2/multi-model/ensemble research docs
 │   └── plans/                   # Implementation/refactor/status plans
@@ -192,15 +206,28 @@ RiskYieldMM/
 
 ## Data Sources and Prediction Targets
 
-The project uses Bybit perpetual-futures data and related market sources such as:
+The project is moving from a crypto-only raw layer to a multi-asset raw layer.
+The current core source mix is:
 
-- OHLCV klines
+- Bybit crypto perpetuals: `BTCUSDT`, `ETHUSDT`
+- Databento CME FX futures proxies: `EURUSD` from `6E.v.0`, `USDJPY` from
+  inverted `6J.v.0`
+- Databento commodities: `GC.v.0` gold futures, `CL.v.0` WTI crude futures
+- Databento equity-index futures: `ES.v.0` E-mini S&P 500, `NQ.v.0` E-mini
+  Nasdaq 100
+
+Crypto sources include Bybit-specific auxiliary streams where available:
+
 - funding rates
 - open interest
 - long/short ratios
 - mark price
 - index price
 - premium price data
+
+Non-crypto sources currently use normalized OHLCV bars only. They intentionally
+do not synthesize crypto-specific auxiliary streams such as funding, account
+ratios, or Bybit mark/index premium data.
 
 ### Current HTF Targets
 
@@ -298,14 +325,16 @@ Useful entry points for review:
 ## End-To-End Local HTF Workflow
 
 Full reproduction is a local-data workflow. The repository intentionally does
-not upload raw Bybit data, generated feature batches, precomputed caches, helper
-caches, model payloads, or full walk-forward outputs. To rebuild the workflow
-locally, run the stages in this order:
+not upload raw Bybit/Databento data, generated feature batches, precomputed
+caches, helper caches, model payloads, or full walk-forward outputs. To rebuild
+the workflow locally, run the stages in this order:
 
 ```mermaid
 flowchart TD
-    A["Bybit public market data<br/>fetchingByBit/update_data.py"] --> B["HTF source parquet roots<br/>1m/15m OHLCV + auxiliary streams"]
+    A["Bybit crypto market data<br/>fetchingByBit/update_data.py"] --> B["Crypto HTF source parquet roots<br/>1m/15m OHLCV + auxiliary streams"]
+    M["Databento non-crypto futures<br/>fetchingMultiAsset/update_data.py"] --> N["Multi-asset OHLCV source roots<br/>1m native + 15m derived"]
     B --> C["HTF materialization<br/>notebooks/htf_pythonscript.py"]
+    N -. future multi-asset merge layer .-> C
     C --> D["Combined, feature, label,<br/>optimized, helper artifacts"]
     D --> E["Stage-1 CatBoost walk-forward<br/>htf_stage1_regime_family_walkforward.py"]
     E --> F["Causal method analysis"]
@@ -347,6 +376,39 @@ python -m pytest tests/test_htf_workflow_contract.py -q
 
 ### 2. Fetch and Verify HTF Source Data
 
+For the new core multi-asset dataset, use the repo-root orchestrator. The default
+period is the original Bybit period, `2021-01-01` through `now`, applied
+consistently across every core source. It runs providers in the fixed order we
+want:
+
+```text
+Bybit crypto -> Databento non-crypto futures
+```
+
+Normal dry-run:
+
+```bash
+python update_data.py --core --dry-run
+```
+
+Estimate without writes:
+
+```bash
+python update_data.py --core --estimate-only
+```
+
+Real full core fetch, same period as Bybit:
+
+```bash
+python update_data.py --core
+```
+
+The root command uses the core source mix only: Bybit `BTCUSDT,ETHUSDT` and
+Databento `EURUSD,USDJPY,GC,CL,ES,NQ`. `EURUSD` is the CME Euro FX futures proxy
+`6E.v.0`; `USDJPY` is the CME Japanese Yen futures proxy `6J.v.0` inverted into
+a USD/JPY-like price path. Twelve Data remains available only as a manual
+fallback/reference adapter, not part of the normal core fetch.
+
 The supported data-update entry point is `fetchingByBit/update_data.py`. For the
 active HTF workflow, treat this as a source-data refresh for the Python
 materializer: native `1m` and `15m` OHLCV, native `1m`/`15m` mark, index, and
@@ -355,9 +417,10 @@ the fixed funding-rate stream. The current HTF materializer does not consume
 downloaded/native `8h` candles. If `fetchingByBit/sorted-8h-bybit-linear/`
 exists, treat it as a derived compatibility output built from `4h` data for
 older/supporting workflows, not as the source of the `8h` regime described
-above. The default fetcher configuration is `BTCUSDT`, `linear`, from
-`2021-01-01` through `now`; edit
-`fetchingByBit/fetch_bybit_market_data.py` only if you need a different symbol,
+above. The default crypto fetcher configuration is `BTCUSDT` and `ETHUSDT`,
+`linear`, from `2021-01-01` through `now`; edit
+`fetchingByBit/source_config.py` only if you need a different Bybit symbol set,
+and edit `fetchingByBit/fetch_bybit_market_data.py` only if you need a different
 market category, date range, or configured timeframe set.
 
 ```bash
@@ -367,11 +430,11 @@ cd fetchingByBit
 python update_data.py --status
 
 # Preview the update plan without writing data.
-python update_data.py --dry-run
+python update_data.py --dry-run --start-date 2024-01-01 --end-date 2024-02-01
 
 # Fetch missing public market data for the HTF source contract,
 # then refresh compatibility outputs and verify.
-python update_data.py
+python update_data.py --start-date 2024-01-01 --end-date 2024-02-01
 
 # Re-run verification only.
 python update_data.py --verify
@@ -379,7 +442,11 @@ python update_data.py --verify
 cd ..
 ```
 
-Expected source inputs for the active HTF pipeline are:
+Expected source inputs for each configured Bybit symbol are:
+
+The current HTF materializer is still BTCUSDT-oriented; the ETHUSDT files are
+the first multi-asset source layer and are intended for the upcoming dataset
+unification work.
 
 | Source root | HTF role | Expected resolution |
 |---|---|---|
@@ -413,6 +480,95 @@ reports older raw-source gaps. Treat that as a data-quality finding for affected
 training/backtest windows: fill the raw source, or restrict and validate the
 downstream run so selected HTF batches do not depend on the missing intervals.
 
+### 2a. Fetch Normalized Multi-Asset OHLCV Sources
+
+Non-crypto source bars live in `fetchingMultiAsset/`. The core dataset uses
+Databento futures proxies:
+
+- `EURUSD` from CME Euro FX futures `6E.v.0`
+- `USDJPY` from CME Japanese Yen futures `6J.v.0`, inverted to USD/JPY-like prices
+- `GC` gold futures from `GC.v.0`
+- `CL` WTI crude futures from `CL.v.0`
+- `ES` E-mini S&P 500 futures from `ES.v.0`
+- `NQ` E-mini Nasdaq 100 futures from `NQ.v.0`
+
+Twelve Data remains configured for exact/cash-style symbols, but is no longer
+part of the normal core fetch because its historical request limits are too
+tight for this backfill.
+
+The model-facing parquet files intentionally use the same core OHLCV contract as
+Bybit klines:
+
+```text
+timestamp, open, high, low, close, volume, turnover, interval
+```
+
+Provider metadata stays in `fetchingMultiAsset/asset_config.py` and progress
+sidecars so later HTF feature/label materialization can reuse the same raw bar
+logic per asset without extra parquet columns.
+
+```bash
+cd fetchingMultiAsset
+
+# Create the ignored local secrets file once.
+cp local_secrets.example.env local_secrets.env
+# Then edit local_secrets.env and set DATABENTO_API_KEY=...
+# TWELVE_DATA_API_KEY is optional fallback/reference only.
+
+# Install Databento SDK if you plan to use futures data.
+python -m pip install databento
+
+# Check Databento access and optional Twelve Data fallback mappings.
+python preflight_providers.py
+
+# Inspect current local coverage for the intended production source mix:
+# Databento EURUSD/USDJPY/GC/CL/ES/NQ.
+python update_data.py --status --core --htf-only
+
+# Preview the 1m/15m HTF source plan without writes.
+python update_data.py --core --dry-run --htf-only --start-date 2024-01-01 --end-date 2024-02-01
+
+# Optional Twelve Data fallback/reference checks only.
+python update_data.py --providers twelvedata --discover-symbols
+
+# Estimate selected Databento futures before spending historical-data credits.
+python update_data.py --providers databento --core --estimate-only --htf-only
+
+# Fetch selected Databento futures. A positive cost ceiling is required; 1m is
+# fetched once and requested higher intervals are derived locally.
+python update_data.py --providers databento --core --htf-only --max-databento-cost-usd 50
+
+# Audit every configured adapter, including Twelve fallback symbols for
+# gold/oil/indexes. Do not use this as the normal production fetch command.
+python update_data.py --all --dry-run --htf-only
+
+cd ..
+```
+
+Example output roots:
+
+| Source root | HTF role | Expected resolution |
+|---|---|---|
+| `fetchingMultiAsset/sorted-1m-databento-futures/` | model-facing rows and `1m` labels per futures proxy | native `1m` |
+| `fetchingMultiAsset/sorted-15m-databento-futures/` | `15m` futures features derived from Databento `1m` bars | local aggregate |
+
+The unified multi-asset fetcher resumes from the latest local timestamp.
+Databento resumes from the latest stored `1m` bar, then derives requested higher
+intervals locally. Twelve Data resumes per asset/interval only when that
+fallback adapter is selected explicitly. `end-date=now` is capped to a
+Databento provider-safe, account-entitled available end for the normal core
+fetch. The fetcher does not synthesize candles for weekends or closed sessions.
+
+Databento can report provider-side degraded-quality days. Those warnings do not
+mean the fetch failed, but they should be kept as data-quality notes before
+training/backtesting. For a clean production backfill, remove ignored local
+probe/output batches for an asset before starting the full run; otherwise resume
+logic intentionally continues from the newest local `1m` bar it finds.
+
+These files match the core Bybit kline OHLCV schema, but non-crypto providers
+do not supply Bybit-specific auxiliary derivative streams such as funding, open
+interest, mark/index premium, or account ratios.
+
 For an explicit JSON quality report:
 
 ```bash
@@ -422,6 +578,12 @@ python data_quality_monitor.py \
   --symbol BTCUSDT \
   --category linear \
   --export-report ../test_output/bybit_data_quality_report.json
+
+python data_quality_monitor.py \
+  --base-dir . \
+  --symbol ETHUSDT \
+  --category linear \
+  --export-report ../test_output/bybit_data_quality_report_ethusdt.json
 cd ..
 ```
 

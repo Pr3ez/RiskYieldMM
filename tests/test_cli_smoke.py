@@ -6,14 +6,18 @@ from pathlib import Path
 
 import pytest
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.mark.parametrize(
     ("relative_path", "expected"),
     [
+        ("update_data.py", "Core data update orchestrator"),
         ("fetchingByBit/update_data.py", "Bybit Data Pipeline"),
+        ("fetchingMultiAsset/update_data.py", "Multi-Asset Data Pipeline"),
+        ("fetchingMultiAsset/preflight_providers.py", "Safe readiness checks"),
+        ("fetchingMultiAsset/fetch_databento.py", "Databento futures"),
+        ("fetchingMultiAsset/aggregate_ohlcv.py", "Aggregate normalized"),
         (
             "scripts/analysis/htf_stage1_v2_pairwise_prediction_audit.py",
             "pairwise relationship",

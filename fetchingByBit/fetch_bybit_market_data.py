@@ -8,6 +8,7 @@ Bybit v5 Market Data downloader → Parquet (resumable, sorted, verified)
 - Post-run integrity check across all written files
 """
 
+import argparse
 import json
 import logging
 import os
@@ -18,10 +19,26 @@ from datetime import datetime, timezone
 import polars as pl
 import requests
 
+try:
+    from .source_config import (
+        BYBIT_CATEGORY,
+        BYBIT_SYMBOLS,
+        DEFAULT_BYBIT_SYMBOL,
+        normalized_symbols,
+    )
+except ImportError:  # pragma: no cover - script execution from fetchingByBit/
+    from source_config import (  # type: ignore
+        BYBIT_CATEGORY,
+        BYBIT_SYMBOLS,
+        DEFAULT_BYBIT_SYMBOL,
+        normalized_symbols,
+    )
+
 # ────────────────── CONFIG ──────────────────
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Current script directory
-SYMBOL = "BTCUSDT"  # e.g. BTCUSDT (linear/spot), BTCUSD (inverse)
-CATEGORY = "linear"  # spot | linear | inverse
+SYMBOLS = list(BYBIT_SYMBOLS)  # e.g. BTCUSDT/ETHUSDT (linear/spot)
+SYMBOL = DEFAULT_BYBIT_SYMBOL  # Backward-compatible single-symbol default
+CATEGORY = BYBIT_CATEGORY  # spot | linear | inverse
 START_DATE = "2021-01-01"
 END_DATE = "now"  # supports "now", "today", ISO strings, YYYY-MM-DD
 
@@ -106,7 +123,15 @@ CHECKPOINT_INTERVAL = 500  # save progress every N pages
 PROGRESS_FILE = os.path.join(BASE_DIR, ".fetch_progress.json")
 
 
-def save_progress(source: str, interval: str, last_ts: int, status: str):
+def save_progress(
+    source: str,
+    interval: str,
+    last_ts: int,
+    status: str,
+    *,
+    symbol: str = SYMBOL,
+    category: str = CATEGORY,
+):
     """Save fetch progress to resume after interruptions."""
     progress = {}
     if os.path.exists(PROGRESS_FILE):
@@ -116,7 +141,7 @@ def save_progress(source: str, interval: str, last_ts: int, status: str):
         except Exception:
             pass
 
-    key = f"{SYMBOL}_{CATEGORY}_{source}_{interval}"
+    key = f"{symbol}_{category}_{source}_{interval}"
     progress[key] = {
         "last_timestamp_ms": last_ts,
         "last_update": datetime.now(timezone.utc).isoformat(),
@@ -130,14 +155,20 @@ def save_progress(source: str, interval: str, last_ts: int, status: str):
         logger.warning(f"Failed to save progress: {e}")
 
 
-def load_progress(source: str, interval: str) -> dict | None:
+def load_progress(
+    source: str,
+    interval: str,
+    *,
+    symbol: str = SYMBOL,
+    category: str = CATEGORY,
+) -> dict | None:
     """Load saved progress."""
     if not os.path.exists(PROGRESS_FILE):
         return None
     try:
         with open(PROGRESS_FILE) as f:
             progress = json.load(f)
-        key = f"{SYMBOL}_{CATEGORY}_{source}_{interval}"
+        key = f"{symbol}_{category}_{source}_{interval}"
         return progress.get(key)
     except Exception:
         return None
@@ -169,18 +200,20 @@ def _to_ms(ts_like: str | datetime) -> int:
     if isinstance(ts_like, datetime):
         dt = ts_like if ts_like.tzinfo else ts_like.replace(tzinfo=timezone.utc)
         return int(dt.timestamp() * 1000)
+
+    raw = str(ts_like).strip()
+    if raw.lower() in ("now", "today"):
+        return int(datetime.now(timezone.utc).timestamp() * 1000)
+    normalized = raw.replace("Z", "+00:00")
+    if re.fullmatch(r"\d{4}-\d{2}-\d{2}", normalized):
+        dt = datetime.strptime(normalized, "%Y-%m-%d").replace(tzinfo=timezone.utc)
     else:
-        # Parse string dates
-        if ts_like.lower() in ("now", "today"):
-            return int(datetime.now(timezone.utc).timestamp() * 1000)
-        # Use polars for faster date parsing with explicit format
-        dt_polars = (
-            pl.Series([ts_like])
-            .str.to_datetime("%Y-%m-%d")
-            .dt.replace_time_zone("UTC")[0]
-        )
-        # Convert to epoch milliseconds
-        return int(dt_polars.timestamp() * 1000)
+        dt = datetime.fromisoformat(normalized)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            dt = dt.astimezone(timezone.utc)
+    return int(dt.timestamp() * 1000)
 
 
 def respect_rate_limit(resp: requests.Response) -> None:
@@ -489,7 +522,14 @@ def fetch_and_save(
         logger.info(msg)
         # Verify existing set anyway
         _verify_integrity(output_dir, sym_prefix, step_ms)
-        save_progress("klines", label, end_ts, "up-to-date")
+        save_progress(
+            "klines",
+            label,
+            end_ts,
+            "up-to-date",
+            symbol=symbol,
+            category=category,
+        )
         return
 
     # ── Forward pagination (oldest → newest) ──
@@ -599,7 +639,14 @@ def fetch_and_save(
         print(msg)
         logger.warning(msg)
         _verify_integrity(output_dir, sym_prefix, step_ms)
-        save_progress("klines", label, end_ts, "no-data")
+        save_progress(
+            "klines",
+            label,
+            end_ts,
+            "no-data",
+            symbol=symbol,
+            category=category,
+        )
         return
 
     # Final gap check before writing
@@ -666,6 +713,8 @@ def fetch_and_save(
             label,
             int(new_df["timestamp"].max().timestamp() * 1000),
             "complete",
+            symbol=symbol,
+            category=category,
         )
         return
 
@@ -726,7 +775,12 @@ def fetch_and_save(
     print(final_msg)
     logger.info(final_msg)
     save_progress(
-        "klines", label, int(new_df["timestamp"].max().timestamp() * 1000), "complete"
+        "klines",
+        label,
+        int(new_df["timestamp"].max().timestamp() * 1000),
+        "complete",
+        symbol=symbol,
+        category=category,
     )
 
 
@@ -828,9 +882,7 @@ def fetch_funding_rate(
             old_df = _normalize_timestamp_dtype(pl.read_parquet(output_file))
             combined = pl.concat([old_df, new_df])
             combined = combined.unique(subset=["fundingRateTimestamp"], keep="last")
-            combined = _normalize_timestamp_dtype(
-                combined.sort("fundingRateTimestamp")
-            )
+            combined = _normalize_timestamp_dtype(combined.sort("fundingRateTimestamp"))
             combined.write_parquet(output_file)
             print(f"✓ Updated: {combined.height} total records")
         else:
@@ -1170,6 +1222,8 @@ def fetch_long_short_ratio(
             label,
             existing_max_ts if existing_max_ts is not None else end_ts,
             "up-to-date",
+            symbol=symbol,
+            category=category,
         )
         return
 
@@ -1277,7 +1331,14 @@ def fetch_long_short_ratio(
                 f"✓ Created: {new_df.height} records ({_fmt_ms(int(new_df['timestamp_ms'].min()))} to {_fmt_ms(int(new_df['timestamp_ms'].max()))})"
             )
             latest_ts = int(new_df["timestamp_ms"].max())
-        save_progress("long_short_ratio", label, latest_ts, "complete")
+        save_progress(
+            "long_short_ratio",
+            label,
+            latest_ts,
+            "complete",
+            symbol=symbol,
+            category=category,
+        )
     else:
         print("No new data fetched.")
         save_progress(
@@ -1285,29 +1346,24 @@ def fetch_long_short_ratio(
             label,
             existing_max_ts if existing_max_ts is not None else start_ts,
             "no-data",
+            symbol=symbol,
+            category=category,
         )
 
 
-# ────────────────── MAIN ──────────────────
-if __name__ == "__main__":
-    start_time = datetime.now(timezone.utc)
-    logger.info("=" * 70)
-    logger.info("BYBIT MARKET DATA FETCHER - SESSION START")
-    logger.info("=" * 70)
-    logger.info(f"Base directory: {BASE_DIR}")
-    logger.info(f"Symbol: {SYMBOL} | Category: {CATEGORY}")
-    logger.info(f"Date range: {START_DATE} → {END_DATE}")
-    logger.info(f"Log file: {LOG_FILE}")
-
-    print(f"Base directory: {BASE_DIR}")
-    print(f"Symbol: {SYMBOL} | Category: {CATEGORY}")
-    print(f"Date range: {START_DATE} → {END_DATE}\n")
-
-    fetch_summary = {
-        "sources_attempted": 0,
-        "sources_completed": 0,
-        "sources_failed": 0,
-    }
+def fetch_symbol_sources(
+    symbol: str,
+    category: str,
+    fetch_summary: dict[str, int],
+    *,
+    start_date: str = START_DATE,
+    end_date: str = END_DATE,
+) -> None:
+    """Fetch every configured Bybit source for one symbol."""
+    print("\n" + "#" * 70)
+    print(f"FETCHING SYMBOL: {category.upper()} {symbol}")
+    print("#" * 70)
+    logger.info(f"Starting configured sources for {category} {symbol}")
 
     # 1. OHLCV Klines
     if FETCH_KLINES:
@@ -1315,47 +1371,47 @@ if __name__ == "__main__":
             lbl = LABELS[itv]
             fetch_summary["sources_attempted"] += 1
             try:
-                fetch_and_save(SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE)
+                fetch_and_save(symbol, category, itv, lbl, start_date, end_date)
                 fetch_summary["sources_completed"] += 1
             except Exception as e:
                 fetch_summary["sources_failed"] += 1
-                logger.error(f"Failed to fetch klines {lbl}: {e}")
+                logger.error(f"Failed to fetch klines {symbol} {lbl}: {e}")
 
     # 2. Funding Rate (perpetuals only)
-    if FETCH_FUNDING_RATE and CATEGORY in ["linear", "inverse"]:
+    if FETCH_FUNDING_RATE and category in ["linear", "inverse"]:
         fetch_summary["sources_attempted"] += 1
         try:
-            fetch_funding_rate(SYMBOL, CATEGORY, START_DATE, END_DATE)
+            fetch_funding_rate(symbol, category, start_date, end_date)
             fetch_summary["sources_completed"] += 1
         except Exception as e:
             fetch_summary["sources_failed"] += 1
-            logger.error(f"Failed to fetch funding rate: {e}")
+            logger.error(f"Failed to fetch funding rate {symbol}: {e}")
 
     # 3. Open Interest (derivatives only)
-    if FETCH_OPEN_INTEREST and CATEGORY != "spot":
+    if FETCH_OPEN_INTEREST and category != "spot":
         for itv in INTERVALS:
             lbl = LABELS[itv]
             fetch_summary["sources_attempted"] += 1
             try:
-                fetch_open_interest(SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE)
+                fetch_open_interest(symbol, category, itv, lbl, start_date, end_date)
                 fetch_summary["sources_completed"] += 1
             except Exception as e:
                 fetch_summary["sources_failed"] += 1
-                logger.error(f"Failed to fetch OI {lbl}: {e}")
+                logger.error(f"Failed to fetch OI {symbol} {lbl}: {e}")
 
     # 4. Mark Price (derivatives only)
-    if FETCH_MARK_PRICE and CATEGORY != "spot":
+    if FETCH_MARK_PRICE and category != "spot":
         for itv in INTERVALS:
             lbl = LABELS[itv]
             fetch_summary["sources_attempted"] += 1
             try:
                 fetch_mark_index_premium(
-                    SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE, "mark"
+                    symbol, category, itv, lbl, start_date, end_date, "mark"
                 )
                 fetch_summary["sources_completed"] += 1
             except Exception as e:
                 fetch_summary["sources_failed"] += 1
-                logger.error(f"Failed to fetch mark price {lbl}: {e}")
+                logger.error(f"Failed to fetch mark price {symbol} {lbl}: {e}")
 
     # 5. Index Price
     if FETCH_INDEX_PRICE:
@@ -1364,41 +1420,91 @@ if __name__ == "__main__":
             fetch_summary["sources_attempted"] += 1
             try:
                 fetch_mark_index_premium(
-                    SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE, "index"
+                    symbol, category, itv, lbl, start_date, end_date, "index"
                 )
                 fetch_summary["sources_completed"] += 1
             except Exception as e:
                 fetch_summary["sources_failed"] += 1
-                logger.error(f"Failed to fetch index price {lbl}: {e}")
+                logger.error(f"Failed to fetch index price {symbol} {lbl}: {e}")
 
     # 6. Premium Index (perpetuals only)
-    if FETCH_PREMIUM_INDEX and CATEGORY in ["linear", "inverse"]:
+    if FETCH_PREMIUM_INDEX and category in ["linear", "inverse"]:
         for itv in INTERVALS:
             lbl = LABELS[itv]
             fetch_summary["sources_attempted"] += 1
             try:
                 fetch_mark_index_premium(
-                    SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE, "premium"
+                    symbol, category, itv, lbl, start_date, end_date, "premium"
                 )
                 fetch_summary["sources_completed"] += 1
             except Exception as e:
                 fetch_summary["sources_failed"] += 1
-                logger.error(f"Failed to fetch premium index {lbl}: {e}")
+                logger.error(f"Failed to fetch premium index {symbol} {lbl}: {e}")
 
     # 7. Long/Short Ratio (perpetuals only)
-    if FETCH_LONG_SHORT_RATIO and CATEGORY in ["linear", "inverse"]:
+    if FETCH_LONG_SHORT_RATIO and category in ["linear", "inverse"]:
         for itv in INTERVALS:
-            if itv in LS_RATIO_PERIOD_MAP:  # Only supported intervals
+            if itv in LS_RATIO_PERIOD_MAP:
                 lbl = LABELS[itv]
                 fetch_summary["sources_attempted"] += 1
                 try:
                     fetch_long_short_ratio(
-                        SYMBOL, CATEGORY, itv, lbl, START_DATE, END_DATE
+                        symbol, category, itv, lbl, start_date, end_date
                     )
                     fetch_summary["sources_completed"] += 1
                 except Exception as e:
                     fetch_summary["sources_failed"] += 1
-                    logger.error(f"Failed to fetch L/S ratio {lbl}: {e}")
+                    logger.error(f"Failed to fetch L/S ratio {symbol} {lbl}: {e}")
+
+
+def _symbol_list(raw: str) -> tuple[str, ...]:
+    return tuple(part.strip().upper() for part in raw.split(",") if part.strip())
+
+
+def build_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Bybit v5 market-data downloader",
+    )
+    parser.add_argument("--symbols", default=",".join(SYMBOLS))
+    parser.add_argument("--category", default=CATEGORY)
+    parser.add_argument("--start-date", default=START_DATE)
+    parser.add_argument("--end-date", default=END_DATE)
+    return parser
+
+
+# ────────────────── MAIN ──────────────────
+def main(argv: list[str] | None = None) -> int:
+    parser = build_arg_parser()
+    args = parser.parse_args(argv)
+    start_time = datetime.now(timezone.utc)
+    logger.info("=" * 70)
+    logger.info("BYBIT MARKET DATA FETCHER - SESSION START")
+    logger.info("=" * 70)
+    configured_symbols = normalized_symbols(_symbol_list(args.symbols))
+    logger.info(f"Base directory: {BASE_DIR}")
+    logger.info(f"Symbols: {', '.join(configured_symbols)} | Category: {args.category}")
+    logger.info(f"Date range: {args.start_date} → {args.end_date}")
+    logger.info(f"Log file: {LOG_FILE}")
+
+    print(f"Base directory: {BASE_DIR}")
+    print(f"Symbols: {', '.join(configured_symbols)} | Category: {args.category}")
+    print(f"Date range: {args.start_date} → {args.end_date}\n")
+
+    fetch_summary = {
+        "symbols_attempted": len(configured_symbols),
+        "sources_attempted": 0,
+        "sources_completed": 0,
+        "sources_failed": 0,
+    }
+
+    for configured_symbol in configured_symbols:
+        fetch_symbol_sources(
+            configured_symbol,
+            args.category,
+            fetch_summary,
+            start_date=args.start_date,
+            end_date=args.end_date,
+        )
 
     # Final summary
     end_time = datetime.now(timezone.utc)
@@ -1408,6 +1514,7 @@ if __name__ == "__main__":
     print("FETCH SESSION COMPLETE")
     print("=" * 60)
     print(f"Duration: {duration / 60:.1f} minutes")
+    print(f"Symbols attempted: {fetch_summary['symbols_attempted']}")
     print(f"Sources attempted: {fetch_summary['sources_attempted']}")
     print(f"Sources completed: {fetch_summary['sources_completed']}")
     print(f"Sources failed: {fetch_summary['sources_failed']}")
@@ -1417,6 +1524,7 @@ if __name__ == "__main__":
     logger.info("=" * 70)
     logger.info("FETCH SESSION COMPLETE")
     logger.info(f"Duration: {duration / 60:.1f} minutes")
+    logger.info(f"Symbols attempted: {fetch_summary['symbols_attempted']}")
     logger.info(f"Sources attempted: {fetch_summary['sources_attempted']}")
     logger.info(f"Sources completed: {fetch_summary['sources_completed']}")
     logger.info(f"Sources failed: {fetch_summary['sources_failed']}")
@@ -1430,3 +1538,9 @@ if __name__ == "__main__":
         print("  2. Check for gaps:")
         print(f"     python gap_filler.py --base-dir {BASE_DIR} --dry-run")
         print()
+
+    return 0 if fetch_summary["sources_failed"] == 0 else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

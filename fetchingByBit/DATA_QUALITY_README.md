@@ -32,7 +32,7 @@ This directory contains a comprehensive data quality monitoring system to ensure
 **Configuration:**
 ```python
 # Edit these in the script
-SYMBOL     = "BTCUSDT"
+SYMBOLS    = ["BTCUSDT", "ETHUSDT"]
 CATEGORY   = "linear"  # spot | linear | inverse
 START_DATE = "2021-01-01"
 END_DATE   = "now"
@@ -63,7 +63,7 @@ cat .fetch_progress.json
 fetchingByBit/
 ├── sorted-1m-bybit-linear/       # 1-minute OHLCV klines
 │   ├── btcusdt_linear_sorted_batch_000000.parquet
-│   ├── btcusdt_linear_sorted_batch_000001.parquet
+│   ├── ethusdt_linear_sorted_batch_000000.parquet
 │   └── ...
 ├── sorted-5m-bybit-linear/       # 5-minute klines
 ├── sorted-15m-bybit-linear/      # 15-minute klines

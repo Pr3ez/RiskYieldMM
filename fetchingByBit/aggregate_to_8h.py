@@ -30,9 +30,15 @@ from pathlib import Path
 
 import polars as pl
 
+try:
+    from .source_config import BYBIT_SYMBOLS, normalized_symbols, symbol_slug
+except ImportError:  # pragma: no cover - script execution from fetchingByBit/
+    from source_config import BYBIT_SYMBOLS, normalized_symbols, symbol_slug  # type: ignore
+
 # ────────────────── CONFIG ──────────────────
 BASE_DIR = Path(__file__).parent
-SYMBOL = "btcusdt"
+SYMBOLS = tuple(symbol_slug(symbol) for symbol in normalized_symbols(BYBIT_SYMBOLS))
+SYMBOL = SYMBOLS[0]
 
 # Logging setup
 logging.basicConfig(
@@ -46,7 +52,7 @@ logger = logging.getLogger(__name__)
 # ────────────────── AGGREGATION FUNCTIONS ──────────────────
 
 
-def load_4h_klines(base_dir: Path) -> pl.DataFrame:
+def load_4h_klines(base_dir: Path, symbol: str = SYMBOL) -> pl.DataFrame:
     """
     Load all 4h OHLCV klines from batch files.
 
@@ -58,10 +64,12 @@ def load_4h_klines(base_dir: Path) -> pl.DataFrame:
         raise FileNotFoundError(f"4h klines directory not found: {source_dir}")
 
     batch_files = sorted(
-        glob.glob(str(source_dir / f"{SYMBOL}_linear_sorted_batch_*.parquet"))
+        glob.glob(str(source_dir / f"{symbol}_linear_sorted_batch_*.parquet"))
     )
     if not batch_files:
-        raise FileNotFoundError(f"No 4h batch files found in {source_dir}")
+        raise FileNotFoundError(
+            f"No 4h batch files found for {symbol} in {source_dir}"
+        )
 
     logger.info(f"Loading {len(batch_files)} 4h kline batch files...")
     dfs = [pl.read_parquet(f) for f in batch_files]
@@ -76,7 +84,9 @@ def load_4h_klines(base_dir: Path) -> pl.DataFrame:
     return df
 
 
-def load_4h_data(base_dir: Path, source_type: str) -> pl.DataFrame | None:
+def load_4h_data(
+    base_dir: Path, source_type: str, symbol: str = SYMBOL
+) -> pl.DataFrame | None:
     """
     Load 4h data for non-kline sources (OI, mark, index, premium, L/S ratio).
 
@@ -89,11 +99,11 @@ def load_4h_data(base_dir: Path, source_type: str) -> pl.DataFrame | None:
 
     # Find the data file
     file_patterns = [
-        f"{SYMBOL}_oi.parquet",
-        f"{SYMBOL}_mark.parquet",
-        f"{SYMBOL}_index.parquet",
-        f"{SYMBOL}_premium.parquet",
-        f"{SYMBOL}_ls_ratio.parquet",
+        f"{symbol}_oi.parquet",
+        f"{symbol}_mark.parquet",
+        f"{symbol}_index.parquet",
+        f"{symbol}_premium.parquet",
+        f"{symbol}_ls_ratio.parquet",
     ]
 
     data_file = None
@@ -104,13 +114,7 @@ def load_4h_data(base_dir: Path, source_type: str) -> pl.DataFrame | None:
             break
 
     if data_file is None:
-        # Try any parquet file
-        parquet_files = list(source_dir.glob("*.parquet"))
-        if parquet_files:
-            data_file = parquet_files[0]
-
-    if data_file is None:
-        logger.warning(f"No data file found in {source_dir}")
+        logger.warning(f"No {symbol} data file found in {source_dir}")
         return None
 
     df = pl.read_parquet(data_file)
@@ -315,17 +319,25 @@ def aggregate_ls_ratio_to_8h(df_4h: pl.DataFrame) -> pl.DataFrame:
 
 
 def aggregate_klines(
-    base_dir: Path, force: bool = False, dry_run: bool = False
+    base_dir: Path,
+    symbol: str = SYMBOL,
+    force: bool = False,
+    dry_run: bool = False,
 ) -> dict:
     """Aggregate 4h OHLCV klines to 8h."""
     output_dir = base_dir / "sorted-8h-bybit-linear"
-    output_file = output_dir / f"{SYMBOL}_8h.parquet"
+    output_file = output_dir / f"{symbol}_8h.parquet"
 
-    result = {"source": "klines", "status": "skipped", "new_rows": 0}
+    result = {
+        "symbol": symbol,
+        "source": "klines",
+        "status": "skipped",
+        "new_rows": 0,
+    }
 
     # Load 4h data
     try:
-        df_4h = load_4h_klines(base_dir)
+        df_4h = load_4h_klines(base_dir, symbol)
     except FileNotFoundError as e:
         logger.error(str(e))
         result["status"] = "error"
@@ -381,6 +393,7 @@ def aggregate_klines(
 
 def aggregate_generic(
     base_dir: Path,
+    symbol: str,
     source_type: str,
     aggregator_func,
     output_filename: str,
@@ -397,10 +410,15 @@ def aggregate_generic(
     output_dir = base_dir / f"{source_type}-8h-bybit-linear"
     output_file = output_dir / output_filename
 
-    result = {"source": source_type, "status": "skipped", "new_rows": 0}
+    result = {
+        "symbol": symbol,
+        "source": source_type,
+        "status": "skipped",
+        "new_rows": 0,
+    }
 
     # Load 4h data
-    df_4h = load_4h_data(base_dir, source_type)
+    df_4h = load_4h_data(base_dir, source_type, symbol)
     if df_4h is None:
         logger.warning(f"{source_type}: No 4h data found")
         result["status"] = "no-source"
@@ -490,86 +508,96 @@ def aggregate_all(
     print("AGGREGATING 4H → 8H DATA")
     print("=" * 60 + "\n")
 
-    # 1. OHLCV Klines
-    print("─" * 40)
-    print("1. OHLCV Klines")
-    print("─" * 40)
-    results.append(aggregate_klines(base_dir, force, dry_run))
+    for symbol in SYMBOLS:
+        print("\n" + "#" * 60)
+        print(f"SYMBOL: {symbol.upper()}")
+        print("#" * 60)
 
-    # 2. Open Interest
-    print("\n" + "─" * 40)
-    print("2. Open Interest")
-    print("─" * 40)
-    results.append(
-        aggregate_generic(
-            base_dir,
-            "open-interest",
-            aggregate_oi_to_8h,
-            f"{SYMBOL}_open_interest_8h.parquet",
-            force,
-            dry_run,
-        )
-    )
+        # 1. OHLCV Klines
+        print("─" * 40)
+        print("1. OHLCV Klines")
+        print("─" * 40)
+        results.append(aggregate_klines(base_dir, symbol, force, dry_run))
 
-    # 3. Mark Price
-    print("\n" + "─" * 40)
-    print("3. Mark Price")
-    print("─" * 40)
-    results.append(
-        aggregate_generic(
-            base_dir,
-            "mark-price",
-            aggregate_ohlc_to_8h,
-            f"{SYMBOL}_mark_price_8h.parquet",
-            force,
-            dry_run,
+        # 2. Open Interest
+        print("\n" + "─" * 40)
+        print("2. Open Interest")
+        print("─" * 40)
+        results.append(
+            aggregate_generic(
+                base_dir,
+                symbol,
+                "open-interest",
+                aggregate_oi_to_8h,
+                f"{symbol}_open_interest_8h.parquet",
+                force,
+                dry_run,
+            )
         )
-    )
 
-    # 4. Index Price
-    print("\n" + "─" * 40)
-    print("4. Index Price")
-    print("─" * 40)
-    results.append(
-        aggregate_generic(
-            base_dir,
-            "index-price",
-            aggregate_ohlc_to_8h,
-            f"{SYMBOL}_index_price_8h.parquet",
-            force,
-            dry_run,
+        # 3. Mark Price
+        print("\n" + "─" * 40)
+        print("3. Mark Price")
+        print("─" * 40)
+        results.append(
+            aggregate_generic(
+                base_dir,
+                symbol,
+                "mark-price",
+                aggregate_ohlc_to_8h,
+                f"{symbol}_mark_price_8h.parquet",
+                force,
+                dry_run,
+            )
         )
-    )
 
-    # 5. Premium Price
-    print("\n" + "─" * 40)
-    print("5. Premium Price")
-    print("─" * 40)
-    results.append(
-        aggregate_generic(
-            base_dir,
-            "premium-price",
-            aggregate_ohlc_to_8h,
-            f"{SYMBOL}_premium_price_8h.parquet",
-            force,
-            dry_run,
+        # 4. Index Price
+        print("\n" + "─" * 40)
+        print("4. Index Price")
+        print("─" * 40)
+        results.append(
+            aggregate_generic(
+                base_dir,
+                symbol,
+                "index-price",
+                aggregate_ohlc_to_8h,
+                f"{symbol}_index_price_8h.parquet",
+                force,
+                dry_run,
+            )
         )
-    )
 
-    # 6. Long/Short Ratio
-    print("\n" + "─" * 40)
-    print("6. Long/Short Ratio")
-    print("─" * 40)
-    results.append(
-        aggregate_generic(
-            base_dir,
-            "long-short-ratio",
-            aggregate_ls_ratio_to_8h,
-            f"{SYMBOL}_ls_ratio.parquet",
-            force,
-            dry_run,
+        # 5. Premium Price
+        print("\n" + "─" * 40)
+        print("5. Premium Price")
+        print("─" * 40)
+        results.append(
+            aggregate_generic(
+                base_dir,
+                symbol,
+                "premium-price",
+                aggregate_ohlc_to_8h,
+                f"{symbol}_premium_price_8h.parquet",
+                force,
+                dry_run,
+            )
         )
-    )
+
+        # 6. Long/Short Ratio
+        print("\n" + "─" * 40)
+        print("6. Long/Short Ratio")
+        print("─" * 40)
+        results.append(
+            aggregate_generic(
+                base_dir,
+                symbol,
+                "long-short-ratio",
+                aggregate_ls_ratio_to_8h,
+                f"{symbol}_ls_ratio.parquet",
+                force,
+                dry_run,
+            )
+        )
 
     return results
 
@@ -591,7 +619,8 @@ def print_summary(results: list[dict]) -> None:
         }.get(r["status"], "?")
 
         print(
-            f"  {status_icon} {r['source']:20} → {r['status']:12} (+{r['new_rows']} rows)"
+            f"  {status_icon} {r.get('symbol', SYMBOL):8} "
+            f"{r['source']:20} → {r['status']:12} (+{r['new_rows']} rows)"
         )
 
     print("=" * 60 + "\n")
@@ -603,26 +632,28 @@ def verify_8h_data(base_dir: Path) -> None:
     print("8H DATA VERIFICATION")
     print("=" * 60)
 
-    files_to_check = [
-        ("sorted-8h-bybit-linear", f"{SYMBOL}_8h.parquet"),
-        ("open-interest-8h-bybit-linear", f"{SYMBOL}_open_interest_8h.parquet"),
-        ("mark-price-8h-bybit-linear", f"{SYMBOL}_mark_price_8h.parquet"),
-        ("index-price-8h-bybit-linear", f"{SYMBOL}_index_price_8h.parquet"),
-        ("premium-price-8h-bybit-linear", f"{SYMBOL}_premium_price_8h.parquet"),
-        ("long-short-ratio-8h-bybit-linear", f"{SYMBOL}_ls_ratio.parquet"),
-        ("funding-rate-bybit-linear", f"{SYMBOL}_funding_rate.parquet"),  # Already 8h
-    ]
+    for symbol in SYMBOLS:
+        print(f"\n{symbol.upper()}:")
+        files_to_check = [
+            ("sorted-8h-bybit-linear", f"{symbol}_8h.parquet"),
+            ("open-interest-8h-bybit-linear", f"{symbol}_open_interest_8h.parquet"),
+            ("mark-price-8h-bybit-linear", f"{symbol}_mark_price_8h.parquet"),
+            ("index-price-8h-bybit-linear", f"{symbol}_index_price_8h.parquet"),
+            ("premium-price-8h-bybit-linear", f"{symbol}_premium_price_8h.parquet"),
+            ("long-short-ratio-8h-bybit-linear", f"{symbol}_ls_ratio.parquet"),
+            ("funding-rate-bybit-linear", f"{symbol}_funding_rate.parquet"),
+        ]
 
-    for folder, filename in files_to_check:
-        filepath = base_dir / folder / filename
-        if filepath.exists():
-            df = pl.read_parquet(filepath)
-            ts_col = "timestamp" if "timestamp" in df.columns else df.columns[0]
-            print(f"  ✓ {folder}/{filename}")
-            print(f"      Rows: {len(df):,}")
-            print(f"      Range: {df[ts_col].min()} → {df[ts_col].max()}")
-        else:
-            print(f"  ✗ {folder}/{filename} NOT FOUND")
+        for folder, filename in files_to_check:
+            filepath = base_dir / folder / filename
+            if filepath.exists():
+                df = pl.read_parquet(filepath)
+                ts_col = "timestamp" if "timestamp" in df.columns else df.columns[0]
+                print(f"  ✓ {folder}/{filename}")
+                print(f"      Rows: {len(df):,}")
+                print(f"      Range: {df[ts_col].min()} → {df[ts_col].max()}")
+            else:
+                print(f"  ✗ {folder}/{filename} NOT FOUND")
 
     print("=" * 60 + "\n")
 
@@ -676,7 +707,11 @@ if __name__ == "__main__":
 
         print("Next steps:")
         print("  1. Run data quality check:")
-        print(f"     python data_quality_monitor.py --base-dir {base_dir}")
+        for symbol in SYMBOLS:
+            print(
+                f"     python data_quality_monitor.py --base-dir {base_dir} "
+                f"--symbol {symbol.upper()}"
+            )
         print("  2. Prepare merged dataset:")
         print("     python -m scripts.feature_engineering.prepare_dataset")
         print()

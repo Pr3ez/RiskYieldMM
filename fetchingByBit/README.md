@@ -26,20 +26,25 @@ This file is a local reference for the Bybit fetcher directory itself.
 
 ## Overview
 
-This pipeline fetches public market data from Bybit API for BTCUSDT linear
-perpetual futures and prepares local parquet sources for the ML research
-workflow.
+This pipeline fetches public market data from Bybit API for configured linear
+perpetual futures (`BTCUSDT`, `ETHUSDT`) and prepares local parquet sources for
+the ML research workflow.
 
 ### Key Facts
 
 | Aspect | Details |
 |--------|---------|
-| **Symbol** | BTCUSDT Linear Perpetual |
+| **Symbols** | BTCUSDT and ETHUSDT Linear Perpetuals |
 | **Exchange** | Bybit |
 | **Start Date** | 2021-01-01 |
 | **Active HTF inputs** | `1m` and `15m` source data plus derivative context |
 | **Compatibility output** | 8h aggregate derived from 4h data |
 | **Update Frequency** | Run daily or as needed |
+
+Configured symbols live in `source_config.py`. The fetcher writes each symbol
+with its own lower-case file prefix inside the same source directories, for
+example `btcusdt_linear_sorted_batch_*.parquet` and
+`ethusdt_linear_sorted_batch_*.parquet`.
 
 ### How 8H Aggregation Fits Now
 
@@ -73,12 +78,12 @@ workflows because:
 
 | Source | Created From | Output File |
 |--------|--------------|-------------|
-| OHLCV 8h | 4h klines | `sorted-8h-bybit-linear/btcusdt_8h.parquet` |
-| Open Interest 8h | 4h OI | `open-interest-8h-bybit-linear/btcusdt_open_interest_8h.parquet` |
-| Mark Price 8h | 4h mark | `mark-price-8h-bybit-linear/btcusdt_mark_price_8h.parquet` |
-| Index Price 8h | 4h index | `index-price-8h-bybit-linear/btcusdt_index_price_8h.parquet` |
-| Premium Price 8h | 4h premium | `premium-price-8h-bybit-linear/btcusdt_premium_price_8h.parquet` |
-| L/S Ratio 8h | 4h ratio | `long-short-ratio-8h-bybit-linear/btcusdt_ls_ratio.parquet` |
+| OHLCV 8h | 4h klines | `sorted-8h-bybit-linear/{symbol}_8h.parquet` |
+| Open Interest 8h | 4h OI | `open-interest-8h-bybit-linear/{symbol}_open_interest_8h.parquet` |
+| Mark Price 8h | 4h mark | `mark-price-8h-bybit-linear/{symbol}_mark_price_8h.parquet` |
+| Index Price 8h | 4h index | `index-price-8h-bybit-linear/{symbol}_index_price_8h.parquet` |
+| Premium Price 8h | 4h premium | `premium-price-8h-bybit-linear/{symbol}_premium_price_8h.parquet` |
+| L/S Ratio 8h | 4h ratio | `long-short-ratio-8h-bybit-linear/{symbol}_ls_ratio.parquet` |
 
 ---
 
@@ -96,25 +101,26 @@ fetchingByBit/
 ├── .fetch_progress.json               # Resume state for fetcher
 │
 ├── sorted-{TF}-bybit-linear/          # OHLCV klines by timeframe
-│   └── btcusdt_linear_sorted_batch_*.parquet
+│   ├── btcusdt_linear_sorted_batch_*.parquet
+│   └── ethusdt_linear_sorted_batch_*.parquet
 │
 ├── open-interest-{TF}-bybit-linear/   # Open Interest
-│   └── btcusdt_oi.parquet
+│   └── {symbol}_oi.parquet
 │
 ├── funding-rate-bybit-linear/         # Funding Rate (native 8h)
-│   └── btcusdt_funding_rate.parquet
+│   └── {symbol}_funding_rate.parquet
 │
 ├── long-short-ratio-{TF}-bybit-linear/  # Long/Short Ratio
-│   └── btcusdt_ls_ratio.parquet
+│   └── {symbol}_ls_ratio.parquet
 │
 ├── mark-price-{TF}-bybit-linear/      # Mark Price
-│   └── btcusdt_mark.parquet (4h) or btcusdt_mark_price_8h.parquet (8h)
+│   └── {symbol}_mark.parquet (4h) or {symbol}_mark_price_8h.parquet (8h)
 │
 ├── index-price-{TF}-bybit-linear/     # Index Price
-│   └── btcusdt_index.parquet (4h) or btcusdt_index_price_8h.parquet (8h)
+│   └── {symbol}_index.parquet (4h) or {symbol}_index_price_8h.parquet (8h)
 │
 └── premium-price-{TF}-bybit-linear/   # Premium Price
-    └── btcusdt_premium.parquet (4h) or btcusdt_premium_price_8h.parquet (8h)
+    └── {symbol}_premium.parquet (4h) or {symbol}_premium_price_8h.parquet (8h)
 ```
 
 ---

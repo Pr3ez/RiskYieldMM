@@ -30,8 +30,19 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+try:
+    from .source_config import BYBIT_CATEGORY, BYBIT_SYMBOLS, normalized_symbols
+except ImportError:  # pragma: no cover - script execution from fetchingByBit/
+    from source_config import (  # type: ignore
+        BYBIT_CATEGORY,
+        BYBIT_SYMBOLS,
+        normalized_symbols,
+    )
+
 # ────────────────── CONFIG ──────────────────
 BASE_DIR = Path(__file__).parent
+CONFIGURED_SYMBOLS = normalized_symbols(BYBIT_SYMBOLS)
+CATEGORY = BYBIT_CATEGORY
 HTF_REQUIRED_RAW_KLINES = ("1m", "15m")
 SUPPORTING_RAW_KLINES = ("5m", "1h", "4h", "1d")
 HTF_FEATURE_SOURCE_ORDER = (
@@ -83,7 +94,12 @@ STATUS_STEP_HOURS = {
 }
 
 
-def run_fetch(dry_run: bool = False) -> bool:
+def run_fetch(
+    *,
+    dry_run: bool = False,
+    start_date: str = "2021-01-01",
+    end_date: str = "now",
+) -> bool:
     """Run the Bybit data fetcher."""
     print("\n" + "=" * 70)
     print("STEP 1: FETCHING CONFIGURED BYBIT RAW SOURCES")
@@ -92,7 +108,9 @@ def run_fetch(dry_run: bool = False) -> bool:
     if dry_run:
         print(
             "[DRY RUN] Would run: python fetch_bybit_market_data.py "
-            "(1m, 5m, 15m, 1h, 4h, 1d and configured derivatives sources)"
+            f"for {', '.join(CONFIGURED_SYMBOLS)} "
+            "(1m, 5m, 15m, 1h, 4h, 1d and configured derivatives sources) "
+            f"from {start_date} to {end_date}"
         )
         return True
 
@@ -103,7 +121,14 @@ def run_fetch(dry_run: bool = False) -> bool:
 
     try:
         result = subprocess.run(
-            [sys.executable, str(fetch_script)],
+            [
+                sys.executable,
+                str(fetch_script),
+                "--start-date",
+                start_date,
+                "--end-date",
+                end_date,
+            ],
             cwd=str(BASE_DIR),
             check=False,  # Don't raise on non-zero exit
         )
@@ -161,10 +186,19 @@ def run_verify() -> bool:
         print("\n" + "-" * 40)
         print("Data Quality Monitor")
         print("-" * 40)
-        subprocess.run(
-            [sys.executable, str(monitor_script)],
-            cwd=str(BASE_DIR),
-        )
+        for symbol in CONFIGURED_SYMBOLS:
+            print(f"\nSymbol: {symbol}")
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(monitor_script),
+                    "--symbol",
+                    symbol,
+                    "--category",
+                    CATEGORY,
+                ],
+                cwd=str(BASE_DIR),
+            )
 
     return True
 
@@ -239,12 +273,19 @@ def _print_timeseries_status(
     print(f"  Status: {_staleness_status(staleness_hours, step_hours)}")
 
 
-def _kline_files(label: str) -> list[Path]:
-    return sorted((BASE_DIR / f"sorted-{label}-bybit-linear").glob("*.parquet"))
+def _kline_files(label: str, symbol: str) -> list[Path]:
+    prefix = symbol.lower()
+    return sorted(
+        (BASE_DIR / f"sorted-{label}-bybit-linear").glob(
+            f"{prefix}_linear_sorted_batch_*.parquet"
+        )
+    )
 
 
-def _aggregate_8h_files() -> list[Path]:
-    return sorted((BASE_DIR / "sorted-8h-bybit-linear").glob("*_8h.parquet"))
+def _aggregate_8h_files(symbol: str) -> list[Path]:
+    return sorted(
+        (BASE_DIR / "sorted-8h-bybit-linear").glob(f"{symbol.lower()}_8h.parquet")
+    )
 
 
 def _print_htf_feature_source_plan() -> None:
@@ -253,7 +294,8 @@ def _print_htf_feature_source_plan() -> None:
     print("-" * 70)
     print(
         "This uses scripts.feature_engineering.compute_htf_features.HTFFeatureEngine "
-        "against local files."
+        "against local files. The current HTF feature engine is BTCUSDT-oriented; "
+        "multi-symbol materialization is a later dataset layer."
     )
 
     project_root = BASE_DIR.parent
@@ -308,37 +350,43 @@ def print_status() -> None:
     print("\n" + "=" * 70)
     print("CURRENT DATA STATUS")
     print("=" * 70)
+    print(f"Configured Bybit symbols: {', '.join(CONFIGURED_SYMBOLS)}")
     print("HTF required raw OHLCV inputs: 1m and 15m.")
     print("8h data is a supporting compatibility aggregate built from 4h data.")
 
-    print("\nHTF REQUIRED RAW KLINES")
-    print("-" * 70)
-    for label in HTF_REQUIRED_RAW_KLINES:
-        _print_timeseries_status(
-            f"{label} OHLCV raw source",
-            _kline_files(label),
-            step_hours=STATUS_STEP_HOURS[label],
-            required=True,
-        )
+    for symbol in CONFIGURED_SYMBOLS:
+        print("\n" + "#" * 70)
+        print(f"SYMBOL: {symbol}")
+        print("#" * 70)
 
-    print("\nSUPPORTING RAW KLINES")
-    print("-" * 70)
-    for label in SUPPORTING_RAW_KLINES:
+        print("\nHTF REQUIRED RAW KLINES")
+        print("-" * 70)
+        for label in HTF_REQUIRED_RAW_KLINES:
+            _print_timeseries_status(
+                f"{label} OHLCV raw source",
+                _kline_files(label, symbol),
+                step_hours=STATUS_STEP_HOURS[label],
+                required=True,
+            )
+
+        print("\nSUPPORTING RAW KLINES")
+        print("-" * 70)
+        for label in SUPPORTING_RAW_KLINES:
+            _print_timeseries_status(
+                f"{label} OHLCV raw source",
+                _kline_files(label, symbol),
+                step_hours=STATUS_STEP_HOURS[label],
+                required=False,
+            )
+
+        print("\n8H COMPATIBILITY AGGREGATE")
+        print("-" * 70)
         _print_timeseries_status(
-            f"{label} OHLCV raw source",
-            _kline_files(label),
-            step_hours=STATUS_STEP_HOURS[label],
+            "8h OHLCV aggregate",
+            _aggregate_8h_files(symbol),
+            step_hours=STATUS_STEP_HOURS["8h"],
             required=False,
         )
-
-    print("\n8H COMPATIBILITY AGGREGATE")
-    print("-" * 70)
-    _print_timeseries_status(
-        "8h OHLCV aggregate",
-        _aggregate_8h_files(),
-        step_hours=STATUS_STEP_HOURS["8h"],
-        required=False,
-    )
 
     _print_htf_feature_source_plan()
 
@@ -356,12 +404,13 @@ Examples:
   python update_data.py --aggregate-only # Only aggregate 4h to 8h compatibility data
   python update_data.py --status         # Show current data status
   python update_data.py --dry-run        # Preview without changes
+  python update_data.py --fetch-only --start-date 2024-01-01 --end-date 2024-02-01
         """,
     )
     parser.add_argument(
         "--fetch-only",
         action="store_true",
-        help="Only fetch data from Bybit (skip aggregation)",
+        help="Only fetch data from Bybit (skip aggregation and verification)",
     )
     parser.add_argument(
         "--aggregate-only",
@@ -388,6 +437,8 @@ Examples:
         action="store_true",
         help="Force rebuild all 8h compatibility data from scratch",
     )
+    parser.add_argument("--start-date", default="2021-01-01")
+    parser.add_argument("--end-date", default="now")
 
     args = parser.parse_args()
 
@@ -398,6 +449,7 @@ Examples:
     print("=" * 70)
     print(f"Started: {start_time.strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"Base dir: {BASE_DIR}")
+    print(f"Date range: {args.start_date} -> {args.end_date}")
 
     if args.status:
         print_status()
@@ -415,7 +467,11 @@ Examples:
 
     # Step 1: Fetch
     if do_fetch:
-        fetch_ok = run_fetch(dry_run=args.dry_run)
+        fetch_ok = run_fetch(
+            dry_run=args.dry_run,
+            start_date=args.start_date,
+            end_date=args.end_date,
+        )
         if not fetch_ok:
             print("\n⚠ Fetch had issues, continuing to aggregation...")
 
@@ -425,8 +481,10 @@ Examples:
         if not agg_ok:
             success = False
 
-    # Step 3: Verify (unless dry-run)
-    if not args.dry_run:
+    # Step 3: Verify only for the full Bybit pipeline. The root multi-asset
+    # orchestrator calls this script with --fetch-only, and should not emit 8h
+    # compatibility or historical gap reports during the source-fetch step.
+    if not args.dry_run and do_aggregate:
         run_verify()
 
     # Summary
@@ -440,7 +498,7 @@ Examples:
     print(f"Status: {'✓ SUCCESS' if success else '✗ ERRORS OCCURRED'}")
     print("=" * 70 + "\n")
 
-    if success and not args.dry_run:
+    if success and not args.dry_run and do_aggregate:
         print("Data is ready for the HTF workflow. Next steps from repo root:")
         print("     cd ..")
         print("  1. Run HTF materialization:")

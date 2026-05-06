@@ -28,6 +28,9 @@ dev = [
     "pytest>=8,<10",
     "ruff>=0.8,<1.0",
 ]
+market-data = [
+    "databento>=0.50",
+]
 research = [
     "catboost>=1.2",
     "lightgbm>=4.0",
@@ -44,7 +47,7 @@ rust = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["fetchingByBit*", "schemas*", "scripts*"]
+include = ["fetchingByBit*", "fetchingMultiAsset*", "schemas*", "scripts*"]
 namespaces = true
 
 [tool.ruff]
