@@ -16,10 +16,10 @@ being extended into a reproducible multi-asset source layer: crypto
 prediction labels, attaches helper/regime features, runs CatBoost walk-forward
 Stage-1 experiments, and audits model-selection behavior from saved artifacts.
 
-The current model-facing HTF materializer is still BTCUSDT-oriented while this
-branch prepares normalized raw sources for the broader multi-asset dataset. New
-non-crypto bars are stored in the same core OHLCV contract as Bybit klines so
-the later feature/label computation and merge layer can reuse the same logic.
+The current model-facing HTF materializer is asset-aware. Crypto, FX futures
+proxies, commodities, and equity-index futures are prepared as separate HTF
+artifact trees first; Stage-1 analysis can then choose the prediction target and
+optionally add causal cross-asset context.
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
@@ -64,7 +64,7 @@ Current regimes:
 | `24h` | 24 hours | 12 hours | first 12 hours | `24h/B`, `24h/C` |
 | `7d` | 168 hours | 84 hours | first 84 hours | `7d/B`, `7d/C` |
 
-Production stages inside the shared pipeline:
+Production stages inside the shared pipeline for each selected asset:
 
 1. Build `1m` and `15m` combined HTF OHLCV batches for each regime/family.
 2. Compute `1m` and `15m` feature batches with family metadata.
@@ -74,16 +74,28 @@ Production stages inside the shared pipeline:
 6. Materialize helper features from the canonical helper cache.
 7. Validate combined/features/labels/optimized/helper artifacts for alignment, value ranges, missing data, and entry-window correctness.
 
-Current model-facing roots:
+Current multi-asset model-facing roots are asset-scoped:
 
-| Root | Helper features | Labels | Stage-1 run id |
-|------|-----------------|--------|----------------|
-| `8h/B` | `data/htf_with_helpers` | `data/htf_4class_labels` | `stage1_catboost_8h_b_live` |
-| `8h/C` | `data/htf_with_helpers_shift4h` | `data/htf_4class_labels_shift4h` | `stage1_catboost_8h_c_live` |
-| `24h/B` | `data/htf_with_helpers_24h` | `data/htf_4class_labels_24h` | `stage1_catboost_24h_b_live` |
-| `24h/C` | `data/htf_with_helpers_24h_shift12h` | `data/htf_4class_labels_24h_shift12h` | `stage1_catboost_24h_c_live` |
-| `7d/B` | `data/htf_with_helpers_7d` | `data/htf_4class_labels_7d` | `stage1_catboost_7d_b_live` |
-| `7d/C` | `data/htf_with_helpers_7d_shift84h` | `data/htf_4class_labels_7d_shift84h` | `stage1_catboost_7d_c_live` |
+```text
+data/htf_multiasset/{asset}/htf_with_helpers*/1m/target_4class/
+data/htf_multiasset/{asset}/htf_4class_labels*/1m/
+```
+
+The supported core asset set is:
+
+```text
+BTCUSDT, ETHUSDT, EURUSD, USDJPY, GC, CL, ES, NQ
+```
+
+Labels are prepared per target asset. The current label policy is:
+
+```text
+B entry half -> C first-half outcome window
+C entry half -> next B first-half outcome window
+```
+
+The newest tail can remain unlabeled until the future opposite-family window is
+available. That is expected and should not be filled manually.
 
 Key locations:
 
@@ -97,13 +109,18 @@ Key locations:
 
 ### 2. Stage-1 CatBoost Selection Audits
 
-Stage-1 is the main model-selection audit layer for the HTF workflow. The current regime/family runner is `scripts/analysis/htf_stage1_regime_family_walkforward.py`; it runs CatBoost on `1m/target_4class` across the six roots above, with 500 walk-forward prediction steps by default.
+Stage-1 is the main model-selection audit layer for the HTF workflow. In the
+multi-asset path, HTF remains per-asset; Stage-1 should choose one prediction
+target asset, load that asset's feature/label roots, and optionally join causal
+context features from other assets. The existing regime/family runner is
+`scripts/analysis/htf_stage1_regime_family_walkforward.py`; the next Stage-1
+work is to make target-asset and context-asset selection explicit.
 
 Stage-1 stores raw validation and prediction-batch payloads so model-selection behavior can be studied after the run without leaking future information into selector decisions. Each step records the fold windows, combo metadata, validation predictions, prediction-batch predictions, pre-decision context, and runtime profile.
 
 Supported Stage-1 modes:
 
-- `v1`: current benchmark path for six-root walk-forward runs.
+- `v1`: current benchmark path for regime/family walk-forward runs.
 - `v2 parity`: schema-compatible foundation for comparing against v1.
 - `v2 nested_selector`: per-step recursive feature selection before final combo choice.
 - `v2 fixed_policy`: replay from a fixed policy registry for selector-policy audits.
@@ -121,7 +138,7 @@ Available walk-forward analysis layers:
 
 | Layer | Purpose | Main outputs |
 |-------|---------|--------------|
-| Six-root Stage-1 run | Produce live-style CatBoost walk-forward payloads for `8h/B`, `8h/C`, `24h/B`, `24h/C`, `7d/B`, `7d/C` | `data/htf_backtest_results/stage1_catboost_*_live` |
+| Per-target Stage-1 run | Produce live-style CatBoost walk-forward payloads for a chosen target asset and regime/family set | `data/htf_backtest_results/stage1_catboost_*_live` |
 | Causal multiregime method analysis | Compare no-lookahead ensemble/post-processing methods such as online hedge, diversity subset, per-class specialist, regime router, stacking, and discounted model averaging | `test_output/htf_causal_multiregime_method_analysis/` |
 | Walk-forward diagnostics | Build root profiles, cross-root summaries, base-model diagnostics, causal-method refresh tables, and feature-quality joins | `test_output/htf_walkforward_diagnostics/` |
 | Stage-1 Step-2 | Run recursive SHAP feature pruning/importance analysis for `winner_only` and `root_topk` scopes | `stage1_step2_*` artifact trees under each Stage-1 run |
@@ -189,7 +206,7 @@ RiskYieldMM/
 │   └── tests/                   # Focused experiment/test scripts
 ├── riskyield_rust/              # Rust/PyO3 helper acceleration module
 ├── fetchingByBit/               # Bybit data acquisition and local market data folders
-├── fetchingMultiAsset/          # Databento/Twelve Data normalized non-crypto source layer
+├── fetchingMultiAsset/          # Databento/Yahoo normalized non-crypto source layer
 ├── prediction_analysis/         # Historical research outputs and reports
 ├── test_output/                 # Local/generated audit outputs and snapshots
 ├── data/                        # Local/generated datasets and backtest artifacts
@@ -206,8 +223,7 @@ RiskYieldMM/
 
 ## Data Sources and Prediction Targets
 
-The project is moving from a crypto-only raw layer to a multi-asset raw layer.
-The current core source mix is:
+The project now uses a multi-asset raw layer. The current core source mix is:
 
 - Bybit crypto perpetuals: `BTCUSDT`, `ETHUSDT`
 - Databento CME FX futures proxies: `EURUSD` from `6E.v.0`, `USDJPY` from
@@ -331,12 +347,10 @@ the workflow locally, run the stages in this order:
 
 ```mermaid
 flowchart TD
-    A["Bybit crypto market data<br/>fetchingByBit/update_data.py"] --> B["Crypto HTF source parquet roots<br/>1m/15m OHLCV + auxiliary streams"]
-    M["Databento non-crypto futures<br/>fetchingMultiAsset/update_data.py"] --> N["Multi-asset OHLCV source roots<br/>1m native + 15m derived"]
-    B --> C["HTF materialization<br/>notebooks/htf_pythonscript.py"]
-    N -. future multi-asset merge layer .-> C
-    C --> D["Combined, feature, label,<br/>optimized, helper artifacts"]
-    D --> E["Stage-1 CatBoost walk-forward<br/>htf_stage1_regime_family_walkforward.py"]
+    A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Canonical 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
+    B --> C["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
+    C --> D["data/htf_multiasset/{asset}<br/>features + labels + helpers"]
+    D --> E["Stage-1 target-asset assembly<br/>target asset + optional context assets"]
     E --> F["Causal method analysis"]
     E --> G["Walk-forward diagnostics"]
 ```
@@ -382,7 +396,7 @@ consistently across every core source. It runs providers in the fixed order we
 want:
 
 ```text
-Bybit crypto -> Databento non-crypto futures
+Bybit crypto -> multi-asset auto source
 ```
 
 Normal dry-run:
@@ -403,82 +417,51 @@ Real full core fetch, same period as Bybit:
 python update_data.py --core
 ```
 
-The root command uses the core source mix only: Bybit `BTCUSDT,ETHUSDT` and
-Databento `EURUSD,USDJPY,GC,CL,ES,NQ`. `EURUSD` is the CME Euro FX futures proxy
-`6E.v.0`; `USDJPY` is the CME Japanese Yen futures proxy `6J.v.0` inverted into
-a USD/JPY-like price path. Twelve Data remains available only as a manual
-fallback/reference adapter, not part of the normal core fetch.
+The root command uses the core source mix only: Bybit `BTCUSDT,ETHUSDT`, then
+multi-asset auto routing for `EURUSD,USDJPY,GC,CL,ES,NQ`. Auto routing tries the
+free Yahoo Finance recent tail first when the missing range is inside Yahoo's
+intraday retention window. It estimates/fetches Databento only for assets whose
+local Databento anchor is missing or too old for Yahoo to continue safely.
+`EURUSD` is the CME Euro FX futures proxy (`6E.v.0` / `6E=F`); `USDJPY` is the
+CME Japanese Yen futures proxy (`6J.v.0` / `6J=F`) inverted into a USD/JPY-like
+price path. Twelve Data remains available only as a manual fallback/reference
+adapter, not part of the normal core fetch.
 
-The supported data-update entry point is `fetchingByBit/update_data.py`. For the
-active HTF workflow, treat this as a source-data refresh for the Python
-materializer: native `1m` and `15m` OHLCV, native `1m`/`15m` mark, index, and
-premium price streams, `5m`/`15m` open interest, `5m`/`15m` long/short ratio, and
-the fixed funding-rate stream. The current HTF materializer does not consume
-downloaded/native `8h` candles. If `fetchingByBit/sorted-8h-bybit-linear/`
-exists, treat it as a derived compatibility output built from `4h` data for
-older/supporting workflows, not as the source of the `8h` regime described
-above. The default crypto fetcher configuration is `BTCUSDT` and `ETHUSDT`,
-`linear`, from `2021-01-01` through `now`; edit
-`fetchingByBit/source_config.py` only if you need a different Bybit symbol set,
-and edit `fetchingByBit/fetch_bybit_market_data.py` only if you need a different
-market category, date range, or configured timeframe set.
+You can still run sources explicitly:
 
 ```bash
-cd fetchingByBit
-
-# Inspect current local coverage.
-python update_data.py --status
-
-# Preview the update plan without writing data.
-python update_data.py --dry-run --start-date 2024-01-01 --end-date 2024-02-01
-
-# Fetch missing public market data for the HTF source contract,
-# then refresh compatibility outputs and verify.
-python update_data.py --start-date 2024-01-01 --end-date 2024-02-01
-
-# Re-run verification only.
-python update_data.py --verify
-
-cd ..
+python update_data.py --core --sources databento --estimate-only
+python update_data.py --core --sources yfinance --dry-run
 ```
 
-Expected source inputs for each configured Bybit symbol are:
+Yahoo is not a historical replacement for Databento. Rows are written under
+separate `yfinance` roots only after recent Databento/Yahoo overlap validation
+passes.
 
-The current HTF materializer is still BTCUSDT-oriented; the ETHUSDT files are
-the first multi-asset source layer and are intended for the upcoming dataset
-unification work.
+The supported data-update entry point is the repo-root `update_data.py`. Use it
+for the multi-asset source refresh instead of running provider scripts manually.
+The core path coordinates:
 
-| Source root | HTF role | Expected resolution |
+- Bybit crypto data for `BTCUSDT` and `ETHUSDT`
+- Databento historical futures proxies for `EURUSD`, `USDJPY`, `GC`, `CL`,
+  `ES`, and `NQ`
+- Yahoo recent-tail continuation only after overlap validation
+
+```bash
+python update_data.py --core --dry-run --htf-only
+python update_data.py --core --htf-only --max-databento-cost-usd 50
+```
+
+HTF consumes native `1m` and `15m` OHLCV for every asset. Crypto assets can also
+use available Bybit auxiliary streams. Non-crypto assets start as OHLCV-only
+until cross-asset/context features are added in Stage-1.
+
+| Source root | Assets | HTF role |
 |---|---|---|
-| `fetchingByBit/sorted-1m-bybit-linear/` | model-facing rows and `1m` labels | native `1m` |
-| `fetchingByBit/sorted-15m-bybit-linear/` | `15m` features and forward-distance metrics | native `15m` |
-| `fetchingByBit/mark-price-1m-bybit-linear/`, `fetchingByBit/mark-price-15m-bybit-linear/` | mark-price context | native `1m` and native `15m` |
-| `fetchingByBit/index-price-1m-bybit-linear/`, `fetchingByBit/index-price-15m-bybit-linear/` | index-price context | native `1m` and native `15m` |
-| `fetchingByBit/premium-price-1m-bybit-linear/`, `fetchingByBit/premium-price-15m-bybit-linear/` | premium/basis context | native `1m` and native `15m` |
-| `fetchingByBit/open-interest-5m-bybit-linear/`, `fetchingByBit/open-interest-15m-bybit-linear/` | open-interest context | `5m` broadcasts into `1m`; `15m` is native |
-| `fetchingByBit/long-short-ratio-5m-bybit-linear/`, `fetchingByBit/long-short-ratio-15m-bybit-linear/` | long/short positioning context | `5m` broadcasts into `1m`; `15m` is native |
-| `fetchingByBit/funding-rate-bybit-linear/` | funding-rate context | fixed `8h` source broadcasts into HTF rows |
-
-The fetcher may also refresh `5m`, `1h`, `4h`, and `1d` OHLCV roots for research
-coverage and backward compatibility. Those roots are not substitutes for the
-native `1m` and `15m` HTF inputs. OHLCV and auxiliary `*-8h-*` fetcher roots are
-derived compatibility outputs built from `4h`, not primary inputs to
-`notebooks/htf_pythonscript.py`.
-
-`python update_data.py --status` prints the same local source-resolution plan
-used by `HTFFeatureEngine`. For the current HTF workflow, the important status is
-the `HTF FEATURE SOURCE RESOLUTION` block: `1m` and `15m` OHLCV, mark price,
-index price, and premium price should resolve natively; open interest should
-resolve from `5m` into `1m` and natively for `15m`; long/short ratio should
-resolve from `5m` into `1m` and natively for `15m`; funding rate should broadcast
-from the fixed `8h` Bybit source. A warning on long/short ratio means the local
-tree is still falling back to older `1h` files and should be refreshed.
-
-`python update_data.py --verify` is a historical data-quality check, not only a
-command-health check. The update can finish successfully while this monitor still
-reports older raw-source gaps. Treat that as a data-quality finding for affected
-training/backtest windows: fill the raw source, or restrict and validate the
-downstream run so selected HTF batches do not depend on the missing intervals.
+| `fetchingByBit/sorted-1m-bybit-linear/`, `fetchingByBit/sorted-15m-bybit-linear/` | `BTCUSDT`, `ETHUSDT` | crypto OHLCV |
+| `fetchingByBit/*-bybit-linear/` auxiliary roots | `BTCUSDT`, `ETHUSDT` | mark/index/premium/open-interest/positioning/funding context when available |
+| `fetchingMultiAsset/sorted-1m-databento-futures/`, `fetchingMultiAsset/sorted-15m-databento-futures/` | `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | historical non-crypto OHLCV |
+| `fetchingMultiAsset/sorted-1m-yfinance-futures/`, `fetchingMultiAsset/sorted-15m-yfinance-futures/` | `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | validated recent-tail OHLCV |
 
 ### 2a. Fetch Normalized Multi-Asset OHLCV Sources
 
@@ -508,41 +491,19 @@ sidecars so later HTF feature/label materialization can reuse the same raw bar
 logic per asset without extra parquet columns.
 
 ```bash
-cd fetchingMultiAsset
-
 # Create the ignored local secrets file once.
-cp local_secrets.example.env local_secrets.env
-# Then edit local_secrets.env and set DATABENTO_API_KEY=...
-# TWELVE_DATA_API_KEY is optional fallback/reference only.
+cp fetchingMultiAsset/local_secrets.example.env fetchingMultiAsset/local_secrets.env
+# Then edit fetchingMultiAsset/local_secrets.env and set DATABENTO_API_KEY=...
 
-# Install Databento SDK if you plan to use futures data.
-python -m pip install databento
+# Install Databento and Yahoo adapters if you plan to use non-crypto data.
+python -m pip install databento yfinance
 
 # Check Databento access and optional Twelve Data fallback mappings.
-python preflight_providers.py
+python fetchingMultiAsset/preflight_providers.py
 
-# Inspect current local coverage for the intended production source mix:
-# Databento EURUSD/USDJPY/GC/CL/ES/NQ.
-python update_data.py --status --core --htf-only
-
-# Preview the 1m/15m HTF source plan without writes.
-python update_data.py --core --dry-run --htf-only --start-date 2024-01-01 --end-date 2024-02-01
-
-# Optional Twelve Data fallback/reference checks only.
-python update_data.py --providers twelvedata --discover-symbols
-
-# Estimate selected Databento futures before spending historical-data credits.
-python update_data.py --providers databento --core --estimate-only --htf-only
-
-# Fetch selected Databento futures. A positive cost ceiling is required; 1m is
-# fetched once and requested higher intervals are derived locally.
-python update_data.py --providers databento --core --htf-only --max-databento-cost-usd 50
-
-# Audit every configured adapter, including Twelve fallback symbols for
-# gold/oil/indexes. Do not use this as the normal production fetch command.
-python update_data.py --all --dry-run --htf-only
-
-cd ..
+# Preview and then run the normal core HTF source update.
+python update_data.py --core --dry-run --htf-only
+python update_data.py --core --htf-only --max-databento-cost-usd 50
 ```
 
 Example output roots:
@@ -551,13 +512,21 @@ Example output roots:
 |---|---|---|
 | `fetchingMultiAsset/sorted-1m-databento-futures/` | model-facing rows and `1m` labels per futures proxy | native `1m` |
 | `fetchingMultiAsset/sorted-15m-databento-futures/` | `15m` futures features derived from Databento `1m` bars | local aggregate |
+| `fetchingMultiAsset/sorted-1m-yfinance-futures/` | optional fresh-tail rows after Databento/Yahoo overlap validation | native `1m` |
+| `fetchingMultiAsset/sorted-15m-yfinance-futures/` | optional `15m` fresh-tail rows derived from accepted Yahoo `1m` bars | local aggregate |
 
-The unified multi-asset fetcher resumes from the latest local timestamp.
-Databento resumes from the latest stored `1m` bar, then derives requested higher
-intervals locally. Twelve Data resumes per asset/interval only when that
-fallback adapter is selected explicitly. `end-date=now` is capped to a
-Databento provider-safe, account-entitled available end for the normal core
-fetch. The fetcher does not synthesize candles for weekends or closed sessions.
+The unified multi-asset fetcher resumes from the latest local timestamp. In
+auto mode it uses Yahoo for eligible recent tails and falls back to Databento
+for missing/older ranges. Databento resumes from the latest stored `1m` bar,
+then derives requested higher intervals locally. Twelve Data resumes per
+asset/interval only when that fallback adapter is selected explicitly.
+`end-date=now` is capped to a Databento provider-safe, account-entitled
+available end whenever Databento is needed. The fetcher does not synthesize
+candles for weekends or closed sessions.
+At startup, the multi-asset updater prints a local parquet inventory before any
+provider estimate or fetch. This scan is local-only and flags resume boundaries,
+long missing prefixes, and fragmented probe-shaped layouts. Use
+`--skip-local-scan` only when you intentionally want to bypass that protection.
 
 Databento can report provider-side degraded-quality days. Those warnings do not
 mean the fetch failed, but they should be kept as data-quality notes before
@@ -565,11 +534,12 @@ training/backtesting. For a clean production backfill, remove ignored local
 probe/output batches for an asset before starting the full run; otherwise resume
 logic intentionally continues from the newest local `1m` bar it finds.
 
-These files match the core Bybit kline OHLCV schema, but non-crypto providers
-do not supply Bybit-specific auxiliary derivative streams such as funding, open
+These files match the shared OHLCV schema, but non-crypto providers do not
+supply Bybit-specific auxiliary derivative streams such as funding, open
 interest, mark/index premium, or account ratios.
 
-For an explicit JSON quality report:
+For crypto auxiliary streams, you can also export explicit Bybit quality
+reports:
 
 ```bash
 cd fetchingByBit
@@ -587,16 +557,28 @@ python data_quality_monitor.py \
 cd ..
 ```
 
-If the quality monitor reports critical gaps, inspect the affected source and
-date range before running feature materialization. The downstream walk-forward
-scripts assume chronological coverage is continuous enough for the selected
-prediction batches.
+If any scan or quality monitor reports critical gaps, inspect the affected
+asset/source/date range before running feature materialization. The downstream
+walk-forward scripts assume chronological coverage is continuous enough for the
+selected prediction batches.
 
 ### 3. Build HTF Features, Labels, and Helpers
 
-The production HTF launcher is:
+The production HTF launcher is asset-aware. Run a small pair first:
 
 ```bash
+HTF_ASSETS=BTCUSDT,ES \
+HTF_ASSET_OUTPUT_MODE=multiasset \
+HTF_RUN_OPTIMIZATION=0 \
+HTF_RUN_HELPERS=0 \
+python notebooks/htf_pythonscript.py
+```
+
+Then run the full core asset set:
+
+```bash
+HTF_ASSETS=core \
+HTF_ASSET_OUTPUT_MODE=multiasset \
 python notebooks/htf_pythonscript.py
 ```
 
@@ -604,16 +586,13 @@ This script resolves the project root, writes run logs under
 `test_output/htf_run_logs/`, builds a `MultiRegimeHTFConfig`, and delegates stage
 execution to `scripts/feature_engineering/htf_multiregime_pipeline.py`.
 
-The materialization stage builds all current regime/family roots:
+The materialization stage builds all current regime/family roots for each
+selected asset:
 
-| Root | Final model-facing features | Labels |
-|---|---|---|
-| `8h/B` | `data/htf_with_helpers/1m/target_4class/` | `data/htf_4class_labels/1m/` |
-| `8h/C` | `data/htf_with_helpers_shift4h/1m/target_4class/` | `data/htf_4class_labels_shift4h/1m/` |
-| `24h/B` | `data/htf_with_helpers_24h/1m/target_4class/` | `data/htf_4class_labels_24h/1m/` |
-| `24h/C` | `data/htf_with_helpers_24h_shift12h/1m/target_4class/` | `data/htf_4class_labels_24h_shift12h/1m/` |
-| `7d/B` | `data/htf_with_helpers_7d/1m/target_4class/` | `data/htf_4class_labels_7d/1m/` |
-| `7d/C` | `data/htf_with_helpers_7d_shift84h/1m/target_4class/` | `data/htf_4class_labels_7d_shift84h/1m/` |
+```text
+data/htf_multiasset/{asset}/htf_with_helpers*/1m/target_4class/
+data/htf_multiasset/{asset}/htf_4class_labels*/1m/
+```
 
 The launcher runs these stages:
 
@@ -632,14 +611,13 @@ Important run files:
 |---|---|
 | live log | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>.log` |
 | heartbeat/status JSON | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>_status.json` |
-| final features | `data/htf_with_helpers*/1m/target_4class/batch_*.parquet` |
-| final labels | `data/htf_4class_labels*/1m/batch_*.parquet` |
-| helper cache | `data/htf_helper_cache/` |
+| final features | `data/htf_multiasset/{asset}/htf_with_helpers*/1m/target_4class/batch_*.parquet` |
+| final labels | `data/htf_multiasset/{asset}/htf_4class_labels*/1m/batch_*.parquet` |
+| helper cache | `data/htf_multiasset/{asset}/htf_helper_cache/` |
 
-For normal incremental updates, run `notebooks/htf_pythonscript.py` as-is. If
-feature semantics, helper contracts, or artifact versions change, update the
-launcher config intentionally before rebuilding, especially
-`MULTI_REGIME_FORCE_FULL_REBUILD`, smoke-mode bounds, and the shared artifact
+For normal incremental updates, keep `HTF_ASSET_OUTPUT_MODE=multiasset`. If
+feature semantics, helper contracts, or artifact versions change, rebuild
+intentionally with `HTF_FORCE_FULL_REBUILD=1` and update the shared artifact
 version in `scripts/feature_engineering/htf_shared_config.py`.
 
 ### 4. Resolve the Stage-1 Walk-Forward Plan
@@ -665,7 +643,7 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --runtime-mode routine
 ```
 
-For the standard six-root Stage-1 v1 run:
+For the current full regime/family Stage-1 v1 run:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py \
@@ -695,7 +673,8 @@ a full 500-step run.
 
 ### 5. Inspect Stage-1 Outputs
 
-Stage-1 writes one run tree per regime/family:
+Stage-1 writes one run tree per selected target asset and regime/family. The
+current legacy run ids are regime/family scoped:
 
 ```text
 data/htf_backtest_results/stage1_catboost_8h_b_live/
@@ -725,7 +704,7 @@ with future information.
 
 ### 6. Run Post-Walk-Forward Analysis
 
-Run causal no-lookahead method analysis across the six roots:
+Run causal no-lookahead method analysis across the selected Stage-1 roots:
 
 ```bash
 python scripts/analysis/htf_causal_multiregime_method_analysis.py --verbose
@@ -769,15 +748,15 @@ The tracked review snapshots summarize selected local outputs:
 
 Before considering a workflow run complete, verify:
 
-1. `python fetchingByBit/update_data.py --status` shows the expected HTF source
-   resolution for `1m` and `15m`, and `python fetchingByBit/update_data.py
-   --verify` finishes without critical gaps.
-2. `notebooks/htf_pythonscript.py` finishes with validation passing for the
-   intended regimes and families.
-3. Final model-facing feature roots exist under `data/htf_with_helpers*/`.
-4. Matching label roots exist under `data/htf_4class_labels*/`.
-5. `python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only`
-   points to the expected feature, label, and run-id roots.
+1. `python update_data.py --core --dry-run --htf-only` shows the expected
+   providers and no surprise full-cost refetch.
+2. `HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset python notebooks/htf_pythonscript.py`
+   finishes with validation passing, or fails only on a documented data gap.
+3. Final model-facing feature roots exist under
+   `data/htf_multiasset/{asset}/htf_with_helpers*/`.
+4. Matching label roots exist under
+   `data/htf_multiasset/{asset}/htf_4class_labels*/`.
+5. Label files contain `label_window_*` metadata.
 6. Stage-1 run summaries exist under `data/htf_backtest_results/`.
 7. Post-run diagnostics exist under `test_output/`.
 8. Any reviewer-facing summary in the repository points to tracked snapshots or
@@ -796,7 +775,7 @@ python scripts/analysis/htf_stage1_v2_pairwise_prediction_audit.py --help
 python scripts/analysis/htf_stage1_v2_subset_reduction_audit.py --help
 ```
 
-Resolve the current six-root Stage-1 execution plan without launching the full run:
+Resolve the current Stage-1 execution plan without launching the full run:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only
@@ -805,6 +784,7 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only
 Run the full HTF materialization workflow only when local market data is available:
 
 ```bash
+HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset \
 python notebooks/htf_pythonscript.py
 ```
 

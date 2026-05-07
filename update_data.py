@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
-SOURCE_ORDER = ("bybit", "twelvedata", "databento")
-CORE_SOURCE_ORDER = ("bybit", "databento")
+SOURCE_ORDER = ("bybit", "multiasset", "twelvedata", "databento", "yfinance")
+CORE_SOURCE_ORDER = ("bybit", "multiasset")
 DEFAULT_START_DATE = "2021-01-01"
 DEFAULT_END_DATE = "now"
 DEFAULT_MAX_TWELVE_REQUESTS = 2_000
@@ -103,6 +103,46 @@ def build_databento_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
     return cmd, PROJECT_ROOT / "fetchingMultiAsset"
 
 
+def build_multiasset_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    cmd = [
+        sys.executable,
+        "update_data.py",
+        "--providers",
+        "auto",
+        "--core",
+        "--htf-only",
+        "--start-date",
+        args.start_date,
+        "--end-date",
+        args.end_date,
+        "--max-databento-cost-usd",
+        str(args.max_databento_cost_usd),
+    ]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.estimate_only:
+        cmd.append("--estimate-only")
+    return cmd, PROJECT_ROOT / "fetchingMultiAsset"
+
+
+def build_yfinance_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    cmd = [
+        sys.executable,
+        "update_data.py",
+        "--providers",
+        "yfinance",
+        "--core",
+        "--htf-only",
+        "--end-date",
+        args.end_date,
+    ]
+    if args.dry_run:
+        cmd.append("--dry-run")
+    if args.estimate_only:
+        cmd.append("--estimate-only")
+    return cmd, PROJECT_ROOT / "fetchingMultiAsset"
+
+
 def build_status_cmd(source: str) -> tuple[list[str], Path]:
     if source == "bybit":
         return [
@@ -110,12 +150,13 @@ def build_status_cmd(source: str) -> tuple[list[str], Path]:
             "update_data.py",
             "--status",
         ], PROJECT_ROOT / "fetchingByBit"
+    provider = "auto" if source == "multiasset" else source
     return (
         [
             sys.executable,
             "update_data.py",
             "--providers",
-            source,
+            provider,
             "--core",
             "--htf-only",
             "--status",
@@ -126,14 +167,16 @@ def build_status_cmd(source: str) -> tuple[list[str], Path]:
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Core data update orchestrator: Bybit -> Databento",
+        description="Core data update orchestrator: Bybit -> multi-asset auto source",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   python update_data.py --core
   python update_data.py --core --dry-run
   python update_data.py --core --estimate-only
+  python update_data.py --core --sources multiasset --dry-run
   python update_data.py --core --sources databento --estimate-only
+  python update_data.py --core --sources yfinance --dry-run
   python update_data.py --core --sources twelvedata --start-date 2024-01-01 --end-date 2024-02-01
   python update_data.py --core --status
         """,
@@ -147,8 +190,17 @@ Examples:
         "--sources",
         default="",
         help=(
-            "Comma-separated subset. Default core order is bybit,databento. "
-            "Twelve Data is available only as an explicit fallback source."
+            "Comma-separated subset. Default core order is bybit,multiasset. "
+            "multiasset means Yahoo recent-tail first with Databento fallback. "
+            "Twelve Data, Databento-only, and yfinance-only remain explicit sources."
+        ),
+    )
+    parser.add_argument(
+        "--allow-free-fresh-tail",
+        action="store_true",
+        help=(
+            "Backward-compatible flag. Core uses Yahoo recent-tail automatically; "
+            "with --sources databento it appends explicit yfinance after Databento."
         ),
     )
     parser.add_argument(
@@ -198,6 +250,14 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     sources = selected_sources(args.sources)
+    if (
+        args.allow_free_fresh_tail
+        and "multiasset" not in sources
+        and "yfinance" not in sources
+    ):
+        sources = tuple(
+            source for source in SOURCE_ORDER if source in {*sources, "yfinance"}
+        )
     started_at = datetime.now(timezone.utc)
     print("\n" + "=" * 70)
     print("CORE DATA UPDATE ORCHESTRATOR")
@@ -205,16 +265,22 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Started: {started_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"Period: {args.start_date} -> {args.end_date}")
     print(f"Sources: {', '.join(sources)}")
-    print("Order: Bybit crypto -> Databento non-crypto futures")
+    print("Order: Bybit crypto -> multi-asset auto source")
+    if "multiasset" in sources:
+        print("Multi-asset auto: Yahoo recent-tail first, Databento fallback if needed")
     if "twelvedata" in sources:
         print("Twelve Data selected explicitly as fallback/manual source")
+    if "yfinance" in sources:
+        print("Yahoo Finance selected as validated recent-tail source")
     sys.stdout.flush()
 
     success = True
     builders = {
         "bybit": build_bybit_cmd,
+        "multiasset": build_multiasset_cmd,
         "twelvedata": build_twelve_cmd,
         "databento": build_databento_cmd,
+        "yfinance": build_yfinance_cmd,
     }
     for source in sources:
         if args.status:

@@ -13,6 +13,8 @@ DEFAULT_PROVIDER = "twelvedata"
 DEFAULT_MARKET = "multi"
 DATABENTO_PROVIDER = "databento"
 DATABENTO_MARKET = "futures"
+YFINANCE_PROVIDER = "yfinance"
+YFINANCE_MARKET = "futures"
 DATABENTO_DATASET = "GLBX.MDP3"
 DATABENTO_SCHEMA = "ohlcv-1m"
 DATABENTO_STYPE_IN = "continuous"
@@ -70,6 +72,24 @@ class DatabentoFuturesSpec:
     asset_class: str = "futures"
     market_type: str = "continuous_future"
     volume_type: str = "real"
+    price_transform: str = "identity"
+    notes: str = ""
+
+    @property
+    def slug(self) -> str:
+        return self.symbol.lower()
+
+
+@dataclass(frozen=True)
+class YFinanceFuturesSpec:
+    """Yahoo Finance futures symbol used only as a recent-tail fallback."""
+
+    symbol: str
+    display_name: str
+    provider_symbol: str
+    asset_class: str = "futures"
+    market_type: str = "front_future"
+    volume_type: str = "indicative"
     price_transform: str = "identity"
     notes: str = ""
 
@@ -182,6 +202,52 @@ DATABENTO_FUTURES = (
 )
 
 
+YFINANCE_FUTURES = (
+    YFinanceFuturesSpec(
+        symbol="EURUSD",
+        display_name="Euro FX futures recent-tail proxy",
+        provider_symbol="6E=F",
+        asset_class="fx",
+        notes="Yahoo Euro FX futures. Use only after overlap validation against Databento 6E.v.0.",
+    ),
+    YFinanceFuturesSpec(
+        symbol="USDJPY",
+        display_name="Japanese Yen futures recent-tail proxy",
+        provider_symbol="6J=F",
+        asset_class="fx",
+        price_transform="inverse",
+        notes=(
+            "Yahoo Japanese Yen futures. Prices are inverted to match the "
+            "Databento USDJPY-like OHLC path."
+        ),
+    ),
+    YFinanceFuturesSpec(
+        symbol="GC",
+        display_name="Gold futures recent-tail proxy",
+        provider_symbol="GC=F",
+        notes="Yahoo gold futures. Use only after overlap validation against Databento GC.v.0.",
+    ),
+    YFinanceFuturesSpec(
+        symbol="CL",
+        display_name="WTI crude oil futures recent-tail proxy",
+        provider_symbol="CL=F",
+        notes="Yahoo crude oil futures. Use only after overlap validation against Databento CL.v.0.",
+    ),
+    YFinanceFuturesSpec(
+        symbol="ES",
+        display_name="E-mini S&P 500 futures recent-tail proxy",
+        provider_symbol="ES=F",
+        notes="Yahoo E-mini S&P 500 futures. Use only after overlap validation against Databento ES.v.0.",
+    ),
+    YFinanceFuturesSpec(
+        symbol="NQ",
+        display_name="E-mini Nasdaq 100 futures recent-tail proxy",
+        provider_symbol="NQ=F",
+        notes="Yahoo E-mini Nasdaq 100 futures. Use only after overlap validation against Databento NQ.v.0.",
+    ),
+)
+
+
 def normalized_asset_ids(
     asset_ids: tuple[str, ...] | list[str] | None = None,
 ) -> tuple[str, ...]:
@@ -237,6 +303,31 @@ def selected_databento_futures(
             known = ", ".join(sorted(by_symbol))
             raise KeyError(
                 f"Unknown Databento futures asset {asset_id!r}. Known: {known}"
+            )
+        selected.append(by_symbol[asset_id])
+    return tuple(selected)
+
+
+def yfinance_futures_by_symbol() -> dict[str, YFinanceFuturesSpec]:
+    return {asset.symbol: asset for asset in YFINANCE_FUTURES}
+
+
+def selected_yfinance_futures(
+    asset_ids: tuple[str, ...] | list[str] | None = None,
+) -> tuple[YFinanceFuturesSpec, ...]:
+    """Resolve configured Yahoo Finance futures by canonical id."""
+    by_symbol = yfinance_futures_by_symbol()
+    raw_ids = (
+        asset_ids
+        if asset_ids is not None
+        else tuple(asset.symbol for asset in YFINANCE_FUTURES)
+    )
+    selected = []
+    for asset_id in normalized_asset_ids(raw_ids):
+        if asset_id not in by_symbol:
+            known = ", ".join(sorted(by_symbol))
+            raise KeyError(
+                f"Unknown Yahoo Finance futures asset {asset_id!r}. Known: {known}"
             )
         selected.append(by_symbol[asset_id])
     return tuple(selected)

@@ -17,6 +17,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
         ("fetchingMultiAsset/update_data.py", "Multi-Asset Data Pipeline"),
         ("fetchingMultiAsset/preflight_providers.py", "Safe readiness checks"),
         ("fetchingMultiAsset/fetch_databento.py", "Databento futures"),
+        ("fetchingMultiAsset/fetch_yfinance.py", "Yahoo Finance recent-tail"),
         ("fetchingMultiAsset/aggregate_ohlcv.py", "Aggregate normalized"),
         (
             "scripts/analysis/htf_stage1_v2_pairwise_prediction_audit.py",

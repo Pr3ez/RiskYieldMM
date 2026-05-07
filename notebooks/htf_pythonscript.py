@@ -66,6 +66,10 @@ from scripts.feature_engineering.htf_shared_config import (  # noqa: E402
     SHARED_RISK_RATIO,
     SHARED_THRESHOLDS_BY_TF,
 )
+from scripts.feature_engineering.htf_asset_registry import (  # noqa: E402
+    get_htf_asset_spec,
+    htf_asset_ids_from_csv,
+)
 
 
 RUN_DEBUG_OUTPUT_DIR = PROJECT_ROOT / "test_output" / "htf_run_logs"
@@ -253,16 +257,25 @@ HEARTBEAT_THREAD.start()
 atexit.register(_shutdown_run_logging)
 
 
-RUN_MULTI_REGIME_EXTENSION = os.environ.get("HTF_RUN_MULTI_REGIME_EXTENSION", "1") == "1"
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() not in {"0", "false", "no", "off"}
+
+
+RUN_MULTI_REGIME_EXTENSION = _env_bool("HTF_RUN_MULTI_REGIME_EXTENSION", True)
+MULTI_REGIME_ASSETS = htf_asset_ids_from_csv(os.environ.get("HTF_ASSETS"))
+MULTI_REGIME_ASSET_OUTPUT_MODE = os.environ.get("HTF_ASSET_OUTPUT_MODE", "legacy")
 MULTI_REGIME_BUILD_REGIMES = ("8h", "24h", "7d")
 MULTI_REGIME_VALIDATE_REGIMES = ("8h", "24h", "7d")
-MULTI_REGIME_FORCE_FULL_REBUILD = False
+MULTI_REGIME_FORCE_FULL_REBUILD = _env_bool("HTF_FORCE_FULL_REBUILD", False)
 MULTI_REGIME_SMOKE_MODE = False
 MULTI_REGIME_SMOKE_START = None
 MULTI_REGIME_SMOKE_END = None
-MULTI_REGIME_RUN_OPTIMIZATION = True
-MULTI_REGIME_RUN_HELPERS = True
-MULTI_REGIME_RUN_VALIDATION = True
+MULTI_REGIME_RUN_OPTIMIZATION = _env_bool("HTF_RUN_OPTIMIZATION", True)
+MULTI_REGIME_RUN_HELPERS = _env_bool("HTF_RUN_HELPERS", True)
+MULTI_REGIME_RUN_VALIDATION = _env_bool("HTF_RUN_VALIDATION", True)
 
 MULTI_REGIME_PIPELINE_ARTIFACT_VERSION = SHARED_PIPELINE_ARTIFACT_VERSION
 MULTI_REGIME_THRESHOLDS_BY_TF = SHARED_THRESHOLDS_BY_TF
@@ -270,6 +283,26 @@ MULTI_REGIME_DISTANCE_WINDOWS_BY_TF = SHARED_DISTANCE_WINDOWS_BY_TF
 MULTI_REGIME_BREAKOUT_THRESHOLD = SHARED_BREAKOUT_THRESHOLD
 MULTI_REGIME_RISK_RATIO = SHARED_RISK_RATIO
 MULTI_REGIME_BREAKFREE_THRESHOLD_1M = SHARED_BREAKFREE_THRESHOLD_1M
+MULTI_REGIME_LABEL_WINDOW_POLICY = os.environ.get(
+    "HTF_LABEL_WINDOW_POLICY",
+    "opposite_family_first_half",
+)
+
+
+def _htf_output_dir_for_asset(asset_id: str) -> Path:
+    if (
+        MULTI_REGIME_ASSET_OUTPUT_MODE == "legacy"
+        and MULTI_REGIME_ASSETS == ("BTCUSDT",)
+    ):
+        return PROJECT_ROOT / "data"
+    return PROJECT_ROOT / "data" / "htf_multiasset" / asset_id.lower()
+
+
+def _htf_raw_dir_for_asset(asset_id: str) -> Path:
+    spec = get_htf_asset_spec(asset_id)
+    if spec.source_kind == "multiasset_ohlcv":
+        return PROJECT_ROOT / "fetchingMultiAsset"
+    return PROJECT_ROOT / "fetchingByBit"
 
 
 def run_htf_workflow() -> dict[str, Any] | None:
@@ -290,6 +323,8 @@ def run_htf_workflow() -> dict[str, Any] | None:
     print("HTF WORKFLOW: AUTHORITATIVE PRODUCTION ENTRYPOINT")
     print("=" * 70)
     print(f"Run enabled: {RUN_MULTI_REGIME_EXTENSION}")
+    print(f"Assets: {MULTI_REGIME_ASSETS}")
+    print(f"Asset output mode: {MULTI_REGIME_ASSET_OUTPUT_MODE}")
     print(f"Build regimes: {MULTI_REGIME_BUILD_REGIMES}")
     print(f"Validate regimes: {MULTI_REGIME_VALIDATE_REGIMES}")
     print(f"Force full rebuild: {MULTI_REGIME_FORCE_FULL_REBUILD}")
@@ -303,29 +338,42 @@ def run_htf_workflow() -> dict[str, Any] | None:
         print("Shared multi-regime pipeline disabled by HTF_RUN_MULTI_REGIME_EXTENSION=0.")
         return None
 
-    config = MultiRegimeHTFConfig(
-        project_root=PROJECT_ROOT,
-        data_dir=PROJECT_ROOT / "data",
-        raw_data_dir=PROJECT_ROOT / "fetchingByBit",
-        pipeline_artifact_version=MULTI_REGIME_PIPELINE_ARTIFACT_VERSION,
-        thresholds_by_tf=MULTI_REGIME_THRESHOLDS_BY_TF,
-        distance_windows_by_tf=MULTI_REGIME_DISTANCE_WINDOWS_BY_TF,
-        build_regimes=MULTI_REGIME_BUILD_REGIMES,
-        validate_regimes=MULTI_REGIME_VALIDATE_REGIMES,
-        rebuild_existing=MULTI_REGIME_FORCE_FULL_REBUILD,
-        run_optimization=MULTI_REGIME_RUN_OPTIMIZATION,
-        run_helpers=MULTI_REGIME_RUN_HELPERS,
-        run_validation=MULTI_REGIME_RUN_VALIDATION,
-        breakout_threshold=MULTI_REGIME_BREAKOUT_THRESHOLD,
-        risk_ratio=MULTI_REGIME_RISK_RATIO,
-        breakfree_threshold_1m=MULTI_REGIME_BREAKFREE_THRESHOLD_1M,
-        smoke_mode=MULTI_REGIME_SMOKE_MODE,
-        smoke_start=MULTI_REGIME_SMOKE_START,
-        smoke_end=MULTI_REGIME_SMOKE_END,
-        progress_callback=workflow_progress_callback,
+    summaries: dict[str, Any] = {}
+    for asset_id in MULTI_REGIME_ASSETS:
+        print("\n" + "=" * 70)
+        print(f"HTF ASSET START: {asset_id}")
+        print("=" * 70)
+        config = MultiRegimeHTFConfig(
+            project_root=PROJECT_ROOT,
+            data_dir=_htf_output_dir_for_asset(asset_id),
+            raw_data_dir=_htf_raw_dir_for_asset(asset_id),
+            pipeline_artifact_version=MULTI_REGIME_PIPELINE_ARTIFACT_VERSION,
+            thresholds_by_tf=MULTI_REGIME_THRESHOLDS_BY_TF,
+            distance_windows_by_tf=MULTI_REGIME_DISTANCE_WINDOWS_BY_TF,
+            asset_id=asset_id,
+            build_regimes=MULTI_REGIME_BUILD_REGIMES,
+            validate_regimes=MULTI_REGIME_VALIDATE_REGIMES,
+            rebuild_existing=MULTI_REGIME_FORCE_FULL_REBUILD,
+            run_optimization=MULTI_REGIME_RUN_OPTIMIZATION,
+            run_helpers=MULTI_REGIME_RUN_HELPERS,
+            run_validation=MULTI_REGIME_RUN_VALIDATION,
+            breakout_threshold=MULTI_REGIME_BREAKOUT_THRESHOLD,
+            risk_ratio=MULTI_REGIME_RISK_RATIO,
+            breakfree_threshold_1m=MULTI_REGIME_BREAKFREE_THRESHOLD_1M,
+            label_window_policy=MULTI_REGIME_LABEL_WINDOW_POLICY,
+            smoke_mode=MULTI_REGIME_SMOKE_MODE,
+            smoke_start=MULTI_REGIME_SMOKE_START,
+            smoke_end=MULTI_REGIME_SMOKE_END,
+            progress_callback=workflow_progress_callback,
+        )
+        summaries[asset_id] = run_multi_regime_htf_pipeline(config)
+
+    summary = summaries[MULTI_REGIME_ASSETS[0]] if len(MULTI_REGIME_ASSETS) == 1 else summaries
+    validation_df = (
+        summary.get("validation")
+        if isinstance(summary, dict) and len(MULTI_REGIME_ASSETS) == 1
+        else None
     )
-    summary = run_multi_regime_htf_pipeline(config)
-    validation_df = summary.get("validation")
     if isinstance(validation_df, pl.DataFrame) and len(validation_df) > 0:
         print("\n" + "=" * 70)
         print("MULTI-REGIME VALIDATION SUMMARY")

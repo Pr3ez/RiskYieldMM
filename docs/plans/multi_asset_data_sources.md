@@ -1,32 +1,38 @@
 # Multi-Asset Data Source Plan
 
 Created: 2026-05-06
+Status: implemented source layer, with Databento historical data plus Yahoo
+recent-tail continuation
 
 Current branch decision: the production core fetch uses Bybit for crypto
-(`BTCUSDT`, `ETHUSDT`) and Databento GLBX.MDP3 continuous futures proxies for
-all non-crypto markets (`EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ`). Twelve
-Data remains implemented as a manual fallback/reference adapter only, because
-its historical request limits are not suitable for the full 2021-to-now
-backfill.
+(`BTCUSDT`, `ETHUSDT`) and an automatic non-crypto route for
+`EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, and `NQ`. Databento GLBX.MDP3 continuous
+futures remain the historical source of truth. Yahoo Finance is used only for
+validated recent-tail continuation when the local Databento anchor is recent
+enough; otherwise Databento is the fallback. Twelve Data remains implemented as
+a manual fallback/reference adapter only, because its historical request limits
+are not suitable for the full 2021-to-now backfill.
 
 ## Goal
 
-Extend the current Bybit BTC/ETH raw source layer to these non-crypto markets:
+Maintain one reproducible core raw source workflow for these assets:
 
-- EUR/USD
-- USD/JPY
-- Gold
-- Oil
-- S&P 500 index
-- Nasdaq index
+- BTCUSDT
+- ETHUSDT
+- EUR/USD futures proxy
+- USD/JPY futures proxy
+- Gold futures
+- Oil futures
+- S&P 500 futures
+- Nasdaq futures
 
-The target storage contract should stay close to the existing Bybit OHLCV parquet
-contract so the later HTF materialization work can compute labels/features per
-instrument and merge them into one CatBoost Stage-1 v2 analysis dataset.
+The target storage contract follows the shared OHLCV parquet contract so HTF
+materialization can compute features and labels per asset. Stage-1 can then
+choose one target asset and optionally join causal context from the others.
 
 ## Current Local Contract
 
-The current Bybit fetcher writes time-series parquet files with:
+The shared model-facing raw bar files use:
 
 - `timestamp`: UTC, millisecond precision, bar-start timestamp
 - `open`, `high`, `low`, `close`
@@ -34,11 +40,10 @@ The current Bybit fetcher writes time-series parquet files with:
 - optional `turnover`
 - `interval`
 
-The active HTF workflow currently expects native `1m` and `15m` OHLCV sources,
-plus crypto-specific auxiliary streams when available. For non-crypto assets we
-should start with OHLCV/OHLC only and add explicit source-availability masks
-rather than pretending funding, open interest, long/short ratio, mark, premium,
-or Bybit index-price streams exist for every asset.
+The active HTF workflow expects native `1m` and `15m` OHLCV sources for every
+asset, plus crypto-specific auxiliary streams when available. Non-crypto assets
+start as OHLCV-only assets; funding, open interest, long/short ratio, mark,
+premium, and Bybit index-price streams are not fabricated for them.
 
 ## Provider Findings
 
@@ -175,17 +180,19 @@ multi-asset features across all requested instruments.
 
 ### Yahoo/yfinance
 
-Yahoo/yfinance is suitable only for quick prototypes or daily/limited-recent
-checks. The official yfinance docs state that intraday data cannot extend beyond
-the last 60 days. That is incompatible with a 2021-to-now HTF backfill.
+Yahoo/yfinance is suitable only for recent-tail continuation and validation
+checks. Its intraday retention is too short for the 2021-to-now HTF backfill,
+but it can update the newest rows when the local Databento anchor is recent
+enough and overlap validation passes.
 
-Conclusion: do not use as a production source for this dataset.
+Conclusion: use Yahoo automatically for eligible recent tails only. Do not use
+it as the historical source of truth.
 
 ## Implemented Strategy
 
 ### Provider-neutral OHLCV adapter contract
 
-The new non-Bybit source layer writes normalized OHLCV files, not a
+The normalized non-crypto source layer writes OHLCV files, not a
 provider-specific model-facing dataset. The normal core output roots are
 Databento futures roots:
 
@@ -199,8 +206,8 @@ fetchingMultiAsset/
     {canonical_id}_databento_sorted_batch_000000.parquet
 ```
 
-Model-facing parquet columns must stay exactly aligned with the current Bybit
-kline contract:
+Model-facing parquet columns must stay aligned with the shared OHLCV contract
+used by crypto and non-crypto roots:
 
 ```text
 timestamp           datetime[ms, UTC], bar start
@@ -215,11 +222,11 @@ interval            string
 
 Provider metadata (`symbol`, `source_symbol`, `provider`, `asset_class`,
 `market_type`, `volume_type`, session notes) belongs in the asset registry and
-sidecar progress/manifests, not in the parquet bars. This keeps the new files
-usable by the same HTF OHLCV logic that currently consumes Bybit klines.
+sidecar progress/manifests, not in the parquet bars. This keeps every source
+usable by the same HTF OHLCV logic.
 
-Keep the Bybit crypto roots as they are for now. The repo-root orchestrator
-coordinates both source layers with the same default period:
+Crypto roots remain in `fetchingByBit/`. The repo-root orchestrator coordinates
+both source layers with the same default period:
 
 ```bash
 python update_data.py --core
@@ -228,15 +235,18 @@ python update_data.py --core
 That command runs:
 
 ```text
-Bybit BTCUSDT/ETHUSDT -> Databento EURUSD/USDJPY/GC/CL/ES/NQ
+Bybit BTCUSDT/ETHUSDT -> multi-asset auto source
 ```
 
 Use `python update_data.py --core --dry-run` or
 `python update_data.py --core --estimate-only` before a real historical run.
-Databento real fetches require a positive `--max-databento-cost-usd` guard.
+The multi-asset auto source tries Yahoo Finance first for validated recent
+tails and uses Databento only for assets whose local gap is outside Yahoo's
+intraday range or whose Databento anchor is missing. Databento real fetches
+require a positive `--max-databento-cost-usd` guard.
 
-The later HTF source discovery layer should become asset-aware and accept a
-registry instead of hardcoding `btcusdt` file patterns.
+The HTF source discovery layer is asset-aware through
+`scripts/feature_engineering/htf_asset_registry.py`.
 
 ### Core Databento mappings
 
@@ -270,6 +280,26 @@ Twelve Data remains available for exact/cash-style references:
 Use it explicitly with `--providers twelvedata` for checks or small reference
 fetches. Do not use `--all` as the normal production backfill command, because
 it includes fallback adapters and can generate large Twelve Data request plans.
+
+### Yahoo Finance recent-tail continuation
+
+Yahoo Finance can provide the same futures family for recent rows only:
+
+| Canonical id | Yahoo symbol | Normalization |
+|---|---|---|
+| `EURUSD` | `6E=F` | Euro FX futures, USD per EUR. |
+| `USDJPY` | `6J=F` | Japanese Yen futures inverted into a USD/JPY-like OHLC path. |
+| `GC` | `GC=F` | Gold futures recent-tail proxy. |
+| `CL` | `CL=F` | WTI crude futures recent-tail proxy. |
+| `ES` | `ES=F` | E-mini S&P 500 futures recent-tail proxy. |
+| `NQ` | `NQ=F` | E-mini Nasdaq 100 futures recent-tail proxy. |
+
+Yahoo rows are stored under separate `sorted-*-yfinance-futures/` roots. They
+are accepted only if the fetched overlap matches recent Databento closes within
+the configured tolerance. The normal `--core` multi-asset route uses this source
+automatically when the local gap is inside Yahoo's safe range, then falls back
+to Databento for older/missing spans. This keeps Databento as the historical
+source of truth and prevents silent provider mixing.
 
 ## Key Design Decisions Captured
 

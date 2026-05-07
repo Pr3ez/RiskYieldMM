@@ -29,6 +29,15 @@ Configured Databento futures proxies:
 - `ES` from `ES.v.0`
 - `NQ` from `NQ.v.0`
 
+Configured Yahoo Finance recent-tail futures proxies:
+
+- `EURUSD` from `6E=F`
+- `USDJPY` from `6J=F`, inverted to USD/JPY-like prices
+- `GC` from `GC=F`
+- `CL` from `CL=F`
+- `ES` from `ES=F`
+- `NQ` from `NQ=F`
+
 ## Commands
 
 Store provider keys in the ignored local file:
@@ -42,10 +51,11 @@ cp local_secrets.example.env local_secrets.env
 `local_secrets.env` is ignored by Git. The fetcher reads it automatically, and
 an exported shell variable still takes precedence.
 
-For Databento futures checks/fetches, install the optional SDK once:
+For Databento futures and Yahoo recent-tail checks/fetches, install the optional
+market-data adapters once:
 
 ```bash
-python -m pip install databento
+python -m pip install databento yfinance
 ```
 
 ```bash
@@ -55,24 +65,30 @@ cd fetchingMultiAsset
 # real backfill.
 python preflight_providers.py
 
-# Inspect local coverage for the intended production source mix:
-# Databento EURUSD/USDJPY/GC/CL/ES/NQ.
+# Inspect local coverage for the intended production source mix.
 python update_data.py --status --core --htf-only
 
-# Preview the HTF source plan without writes. Databento uses metadata cost
-# estimation before any historical fetch.
+# Preview the HTF source plan without writes. Auto routing tries Yahoo first
+# for recent tails and plans Databento only for assets Yahoo cannot continue.
 python update_data.py --core --dry-run --htf-only
+
+# Run the same auto source explicitly.
+python update_data.py --providers auto --core --dry-run --htf-only
 
 # Optional Twelve Data fallback/reference checks only.
 python update_data.py --providers twelvedata --discover-symbols
 
-# Estimate selected Databento futures before spending historical-data credits.
+# Explicit Databento-only estimate before spending historical-data credits.
 python update_data.py --providers databento --core --estimate-only --htf-only
 
-# Fetch selected Databento futures. A positive cost ceiling is required for
-# actual historical fetches; 1m is fetched and requested higher intervals are
-# derived locally from those 1m bars.
+# Explicit Databento-only fetch. A positive cost ceiling is required for actual
+# historical fetches; 1m is fetched and requested higher intervals are derived
+# locally from those 1m bars.
 python update_data.py --providers databento --core --htf-only --max-databento-cost-usd 50
+
+# Explicit Yahoo-only recent-tail plan. Normal --core auto routing already uses
+# this path whenever the local gap is inside Yahoo's safe range.
+python update_data.py --providers yfinance --core --dry-run --htf-only
 
 # Audit every configured adapter, including Twelve fallback symbols for
 # gold/oil/indexes. Do not use this as the normal production fetch command.
@@ -103,13 +119,23 @@ fetchingMultiAsset/
     eurusd_databento_sorted_batch_000000.parquet
   sorted-15m-databento-futures/
     eurusd_databento_sorted_batch_000000.parquet
+  sorted-1m-yfinance-futures/
+    eurusd_yfinance_sorted_batch_000000.parquet
 ```
 
-The unified fetcher resumes from the latest local timestamp. Databento resumes
-from the latest stored `1m` bar, then derives requested higher intervals
-locally. `end-date=now` is capped to a provider-safe/account-entitled available
-end for Databento. The fetcher does not synthesize weekend or closed-session
-candles.
+The unified fetcher resumes from the latest local timestamp. In `auto` mode,
+Yahoo is used for eligible recent tails and Databento is used only when the
+local Databento anchor is missing or too old for Yahoo's intraday retention
+window. Databento resumes from the latest stored `1m` bar, then derives
+requested higher intervals locally. `end-date=now` is capped to a
+provider-safe/account-entitled available end whenever Databento is needed. The
+fetcher does not synthesize weekend or closed-session candles.
+
+Every multi-asset update starts with a local parquet inventory before any
+provider estimate or fetch. The scan is local-only and reports per-asset files,
+rows, timestamp ranges, resume boundaries, long missing prefixes, and fragmented
+probe-shaped layouts. Use `--skip-local-scan` only when you intentionally want a
+faster run without that guard.
 
 Databento may emit degraded-quality day warnings from provider metadata. Treat
 those as data-quality notes, not fetch failures. If you ran tiny probes before a
@@ -120,3 +146,8 @@ bar it finds.
 The parquet schema matches the core Bybit kline OHLCV contract. Non-crypto
 sources do not include Bybit-specific auxiliary derivative streams such as
 funding, open interest, mark/index premium, or account ratios.
+
+Yahoo Finance is a recent-tail continuation source, not a Databento historical
+replacement. The adapter fetches overlap rows first, compares them with recent
+Databento closes, drops the current incomplete Yahoo bar, and writes only the
+accepted tail into separate `yfinance` roots.

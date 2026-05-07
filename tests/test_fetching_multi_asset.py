@@ -139,6 +139,76 @@ def test_append_ohlcv_batches_writes_sorted_bybit_style_files(tmp_path) -> None:
     assert second["close"].to_list() == [3.0]
 
 
+def test_append_ohlcv_batches_does_not_lock_resume_to_tiny_probe_chunk(
+    tmp_path,
+) -> None:
+    asset = selected_assets(["EURUSD"])[0]
+    first_probe = twelve_values_to_ohlcv(
+        [
+            {
+                "datetime": "2021-01-01 00:00:00",
+                "open": "1",
+                "high": "1",
+                "low": "1",
+                "close": "1",
+            }
+        ],
+        "1m",
+    )
+    append_ohlcv_batches(
+        first_probe,
+        asset=asset,
+        interval="1m",
+        base_dir=tmp_path,
+        chunk_size=4,
+    )
+
+    next_rows = twelve_values_to_ohlcv(
+        [
+            {
+                "datetime": "2021-01-01 00:01:00",
+                "open": "2",
+                "high": "2",
+                "low": "2",
+                "close": "2",
+            },
+            {
+                "datetime": "2021-01-01 00:02:00",
+                "open": "3",
+                "high": "3",
+                "low": "3",
+                "close": "3",
+            },
+            {
+                "datetime": "2021-01-01 00:03:00",
+                "open": "4",
+                "high": "4",
+                "low": "4",
+                "close": "4",
+            },
+            {
+                "datetime": "2021-01-01 00:04:00",
+                "open": "5",
+                "high": "5",
+                "low": "5",
+                "close": "5",
+            },
+        ],
+        "1m",
+    )
+    append_ohlcv_batches(
+        next_rows,
+        asset=asset,
+        interval="1m",
+        base_dir=tmp_path,
+        chunk_size=4,
+    )
+
+    output_dir = output_dir_for_interval(tmp_path, "1m")
+    files = sorted(output_dir.glob(f"{batch_prefix(asset)}*.parquet"))
+    assert [pl.read_parquet(path).height for path in files] == [4, 1]
+
+
 def test_fetch_asset_interval_resumes_from_latest_local_timestamp(tmp_path) -> None:
     asset = selected_assets(["EURUSD"])[0]
     existing = twelve_values_to_ohlcv(

@@ -30,6 +30,7 @@ dev = [
 ]
 market-data = [
     "databento>=0.50",
+    "yfinance>=0.2.40",
 ]
 research = [
     "catboost>=1.2",

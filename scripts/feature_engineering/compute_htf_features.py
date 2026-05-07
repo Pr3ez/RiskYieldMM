@@ -173,27 +173,27 @@ def source_available_timestamps(
 # Map data type to directory pattern and expected columns
 # NOTE: Actual file naming conventions discovered from fetchingByBit directory:
 #   - OHLCV:
-#       * 1m-4h: batch files "btcusdt_linear_sorted_batch_*.parquet" in sorted-{tf}-bybit-linear/
-#       * 8h: single file "btcusdt_8h.parquet" in sorted-8h-bybit-linear/
+#       * 1m-4h: batch files "{symbol}_linear_sorted_batch_*.parquet" in sorted-{tf}-bybit-linear/
+#       * 8h: single file "{symbol}_8h.parquet" in sorted-8h-bybit-linear/
 #       * 1d: batch files in sorted-1d-bybit-linear/
 #   - Mark price:
-#       * Most TFs: "btcusdt_mark.parquet"
-#       * 8h: "btcusdt_mark_price_8h.parquet"
+#       * Most TFs: "{symbol}_mark.parquet"
+#       * 8h: "{symbol}_mark_price_8h.parquet"
 #   - Index price: similar pattern to mark
 #   - Premium price: similar pattern
 #   - Open interest:
-#       * Most TFs: "btcusdt_oi.parquet"
-#       * 8h: "btcusdt_open_interest_8h.parquet"
-#   - LS ratio: "btcusdt_ls_ratio.parquet" (consistent)
-#   - Funding: "btcusdt_funding_rate.parquet" in funding-rate-bybit-linear/ (no TF suffix)
+#       * Most TFs: "{symbol}_oi.parquet"
+#       * 8h: "{symbol}_open_interest_8h.parquet"
+#   - LS ratio: "{symbol}_ls_ratio.parquet" (consistent)
+#   - Funding: "{symbol}_funding_rate.parquet" in funding-rate-bybit-linear/ (no TF suffix)
 #
 # Strategy: Try multiple file patterns and use the first one that exists
 DATA_SOURCE_PATTERNS = {
     "ohlcv": {
         "dir_pattern": "sorted-{tf}-bybit-linear",
         "file_patterns": [
-            "btcusdt_linear_sorted_batch_*.parquet",  # Batch files (1m-4h, 1d)
-            "btcusdt_{tf}.parquet",  # Single file with TF (8h)
+            "{symbol}_linear_sorted_batch_*.parquet",  # Batch files (1m-4h, 1d)
+            "{symbol}_{tf}.parquet",  # Single file with TF (8h)
         ],
         "columns": ["timestamp", "open", "high", "low", "close", "volume"],
         "rename": {},
@@ -204,8 +204,8 @@ DATA_SOURCE_PATTERNS = {
     "mark_price": {
         "dir_pattern": "mark-price-{tf}-bybit-linear",
         "file_patterns": [
-            "btcusdt_mark.parquet",  # Most TFs
-            "btcusdt_mark_price_{tf}.parquet",  # 8h
+            "{symbol}_mark.parquet",  # Most TFs
+            "{symbol}_mark_price_{tf}.parquet",  # 8h
         ],
         "columns": ["timestamp", "open", "high", "low", "close"],
         "rename": {
@@ -221,8 +221,8 @@ DATA_SOURCE_PATTERNS = {
     "index_price": {
         "dir_pattern": "index-price-{tf}-bybit-linear",
         "file_patterns": [
-            "btcusdt_index.parquet",  # Most TFs
-            "btcusdt_index_price_{tf}.parquet",  # 8h
+            "{symbol}_index.parquet",  # Most TFs
+            "{symbol}_index_price_{tf}.parquet",  # 8h
         ],
         "columns": ["timestamp", "open", "high", "low", "close"],
         "rename": {
@@ -238,8 +238,8 @@ DATA_SOURCE_PATTERNS = {
     "premium_price": {
         "dir_pattern": "premium-price-{tf}-bybit-linear",
         "file_patterns": [
-            "btcusdt_premium.parquet",  # Most TFs
-            "btcusdt_premium_price_{tf}.parquet",  # 8h
+            "{symbol}_premium.parquet",  # Most TFs
+            "{symbol}_premium_price_{tf}.parquet",  # 8h
         ],
         "columns": ["timestamp", "open", "high", "low", "close"],
         "rename": {
@@ -255,8 +255,8 @@ DATA_SOURCE_PATTERNS = {
     "open_interest": {
         "dir_pattern": "open-interest-{tf}-bybit-linear",
         "file_patterns": [
-            "btcusdt_oi.parquet",  # Most TFs
-            "btcusdt_open_interest_{tf}.parquet",  # 8h
+            "{symbol}_oi.parquet",  # Most TFs
+            "{symbol}_open_interest_{tf}.parquet",  # 8h
         ],
         "columns": ["timestamp", "openInterest"],
         "rename": {},
@@ -266,7 +266,7 @@ DATA_SOURCE_PATTERNS = {
     },
     "long_short_ratio": {
         "dir_pattern": "long-short-ratio-{tf}-bybit-linear",
-        "file_patterns": ["btcusdt_ls_ratio.parquet"],  # Consistent naming
+        "file_patterns": ["{symbol}_ls_ratio.parquet"],  # Consistent naming
         "columns": ["timestamp", "buyRatio", "sellRatio"],
         "rename": {},
         "derived": {"longShortRatio": lambda df: df["buyRatio"] / df["sellRatio"]},
@@ -276,7 +276,7 @@ DATA_SOURCE_PATTERNS = {
     },
     "funding_rate": {
         "dir_pattern": "funding-rate-bybit-linear",
-        "file_patterns": ["btcusdt_funding_rate.parquet"],
+        "file_patterns": ["{symbol}_funding_rate.parquet"],
         "columns": ["timestamp", "fundingRate"],
         "rename": {},
         "is_fixed_tf": True,  # No timeframe in directory name
@@ -335,6 +335,7 @@ class HTFFeatureEngine:
     """
 
     data_dir: Path
+    symbol_slug: str = "btcusdt"
     sources: dict[str, DataSourceInfo] = field(default_factory=dict)
     verbose: bool = True
 
@@ -356,7 +357,7 @@ class HTFFeatureEngine:
             Tuple of (list of matched files, pattern that matched)
         """
         for pattern in config["file_patterns"]:
-            pattern_formatted = pattern.format(tf=tf)
+            pattern_formatted = pattern.format(tf=tf, symbol=self.symbol_slug)
 
             if "*" in pattern_formatted:
                 # Glob pattern (batch files)

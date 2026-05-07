@@ -382,6 +382,32 @@ def _list_existing_files(output_dir: Path, prefix: str) -> list[tuple[int, Path,
 def _read_timestamp_summary(
     files: list[Path],
 ) -> tuple[int, datetime | None, datetime | None]:
+    try:
+        import pyarrow.parquet as pq
+
+        rows = 0
+        non_empty: list[Path] = []
+        for path in files:
+            row_count = int(pq.ParquetFile(path).metadata.num_rows)
+            rows += row_count
+            if row_count > 0:
+                non_empty.append(path)
+        if not non_empty:
+            return rows, None, None
+        first_df = pl.read_parquet(non_empty[0], columns=["timestamp"])
+        last_df = (
+            first_df
+            if non_empty[-1] == non_empty[0]
+            else pl.read_parquet(non_empty[-1], columns=["timestamp"])
+        )
+        return (
+            rows,
+            _as_utc(first_df["timestamp"].min()),
+            _as_utc(last_df["timestamp"].max()),
+        )
+    except Exception:
+        pass
+
     rows = 0
     first_ts = None
     last_ts = None
@@ -428,6 +454,15 @@ def existing_summary(
 def _write_chunk(path: Path, df: pl.DataFrame) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     _normalize_timestamp_dtype(df).write_parquet(path)
+
+
+def _resolve_resume_chunk_size(reference_rows: int, requested_chunk_size: int) -> int:
+    """Avoid locking future appends to tiny one-off probe chunks."""
+    if reference_rows <= 0:
+        return requested_chunk_size
+    if reference_rows < max(2, requested_chunk_size // 2):
+        return requested_chunk_size
+    return reference_rows
 
 
 def append_ohlcv_batches(
@@ -500,7 +535,7 @@ def append_ohlcv_batches(
     first_idx, first_path, _ = existing[0]
     del first_idx
     reference_rows = pl.read_parquet(first_path, columns=["timestamp"]).height
-    resolved_chunk_size = reference_rows if reference_rows > 0 else chunk_size
+    resolved_chunk_size = _resolve_resume_chunk_size(reference_rows, chunk_size)
     last_idx, last_path, pad_digits = existing[-1]
     pad_width = max(6, pad_digits)
     last_rows = pl.read_parquet(last_path, columns=["timestamp"]).height

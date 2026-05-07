@@ -224,6 +224,7 @@ def _feature_status(
         required_columns = {"timestamp", "batch_id", *FAMILY_META_COLS}
     else:
         expected_schema = _expected_feature_schema_columns(
+            config,
             engine,
             tf,
             config.distance_windows_by_tf.get(tf, {}),
