@@ -1,5 +1,11 @@
 # HTF Stage-1 Step-2 Plan (CatBoost)
 
+> Current scope
+>
+> This plan applies to the legacy regime/family Stage-1 output layout. It has
+> not yet been updated for multi-asset target/context analysis rooted in
+> `data/htf_multiasset/{asset}/`.
+
 ## Purpose
 Stage-1 Step-2 is an offline refinement pass over Stage-1 Step-1 artifacts.
 

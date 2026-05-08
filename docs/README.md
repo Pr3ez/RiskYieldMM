@@ -9,10 +9,14 @@ visibility:
 
 ## Current Workflow Docs
 
+Current source data and HTF materialization are multi-asset-aware. Stage-1 and
+downstream analysis docs still describe the legacy regime/family workflow unless
+they explicitly mention `data/htf_multiasset/{asset}/` target/context support.
+
 | Area | Location | Purpose |
 |---|---|---|
 | Reproducibility | [`REPRODUCIBILITY.md`](REPRODUCIBILITY.md) | Setup, data refresh, HTF feature generation, and Stage-1 run commands |
-| HTF pipeline and Stage-1 | [`htf/`](htf/) | Current multi-regime HTF logic, labels, artifacts, and Stage-1 design |
+| HTF pipeline and Stage-1 | [`htf/`](htf/) | Current multi-regime HTF logic plus legacy Stage-1 design |
 | Data sources and target inputs | [`data/`](data/) | Bybit source integration, target-label notes, and data/target verification |
 | Architecture | [`architecture/`](architecture/) | System-level and backtest architecture references |
 | Results summaries | [`results/`](results/) | Reviewer-facing result cards and interpretation notes |
@@ -27,7 +31,7 @@ visibility:
 | Modeling research | [`modeling/`](modeling/) | L2 models, ensemble research, dynamic windows, and accuracy work |
 | Implementation plans | [`plans/`](plans/) | Refactor plans, implementation plans, status notes, and cleanup todo items |
 | General research | [`research/`](research/) | Research reports that are broader than one pipeline module |
-| Project handoff notes | [`project/`](project/) | Portability and repository-summary handoff material |
+| Project handoff notes | [`project/`](project/) | Dated handoff material; use as historical context |
 | Experiments | [`experiments/`](experiments/) | Experiment plans and grid-search notes |
 | Target redesign | [`target-redesign/`](target-redesign/) | Multi-label and target-system redesign notes |
 

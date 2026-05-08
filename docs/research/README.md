@@ -1,5 +1,9 @@
 # Research Reports
 
+These reports are dated research/context documents. Use the root `README.md`,
+`CHANGELOG.md`, and `docs/plans/htf_multi_asset_update_plan_2026-05-07.md` for
+the current multi-asset implementation status.
+
 | Document | Purpose |
 |---|---|
 | [`deep-research-report.md`](deep-research-report.md) | Repository analytical report |

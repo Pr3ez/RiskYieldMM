@@ -216,6 +216,14 @@ Examples:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--status", action="store_true")
     parser.add_argument(
+        "--htf-only",
+        action="store_true",
+        help=(
+            "Compatibility flag for the repo-root orchestrator. Core multi-asset "
+            "updates already target the HTF source contract."
+        ),
+    )
+    parser.add_argument(
         "--estimate-only",
         action="store_true",
         help="Preview/estimate without historical writes. Databento also prints costs.",

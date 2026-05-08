@@ -1,5 +1,12 @@
 # CatBoost Dynamic Optimization - Plan Validation
 
+> Historical note
+>
+> This validation note predates the multi-asset source and HTF materialization
+> work. Its "single-asset" references describe the older state. Current source
+> data and HTF outputs are multi-asset-aware, while Stage-1 analysis is still
+> pending target/context asset support.
+
 **Status:** 📋 VALIDATION IN PROGRESS  
 **Purpose:** Verify plan completeness against universal template before implementation
 

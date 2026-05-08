@@ -58,15 +58,14 @@ cargo check --locked
 
 ## Fetch HTF Source Data
 
-The active HTF source contract uses native `1m` and `15m` OHLCV plus derivative
-context from Bybit. The 8h aggregate files are retained for compatibility, but
-the multi-regime HTF workflow builds `8h`, `24h`, and `7d` batches internally
-from the lower-timeframe sources.
+The active HTF source contract uses native `1m` and `15m` OHLCV for each core
+asset. Crypto assets also use available Bybit derivative context. The repo-root
+orchestrator coordinates Bybit crypto, Databento historical futures proxies, and
+validated Yahoo recent-tail continuation.
 
 ```bash
-cd fetchingByBit
-python update_data.py --status
-python update_data.py
+python update_data.py --core --dry-run --htf-only
+python update_data.py --core --htf-only --max-databento-cost-usd 50
 ```
 
 The fetcher is incremental. It should resume from the latest available local
@@ -75,6 +74,10 @@ source folders include:
 
 - `sorted-1m-bybit-linear/`
 - `sorted-15m-bybit-linear/`
+- `fetchingMultiAsset/sorted-1m-databento-futures/`
+- `fetchingMultiAsset/sorted-15m-databento-futures/`
+- `fetchingMultiAsset/sorted-1m-yfinance-futures/`
+- `fetchingMultiAsset/sorted-15m-yfinance-futures/`
 - `open-interest-15m-bybit-linear/`
 - `funding-rate-bybit-linear/`
 - `long-short-ratio-15m-bybit-linear/`
@@ -88,6 +91,7 @@ source folders include:
 Run the maintained production launcher:
 
 ```bash
+HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset \
 python notebooks/htf_pythonscript.py
 ```
 
@@ -103,14 +107,18 @@ Important behavior:
 
 Expected local outputs are under `data/`, including:
 
-- `data/htf_features*/`
-- `data/htf_4class_labels*/`
-- `data/htf_optimized*/`
-- `data/htf_with_helpers*/`
+- `data/htf_multiasset/{asset}/htf_features*/`
+- `data/htf_multiasset/{asset}/htf_4class_labels*/`
+- `data/htf_multiasset/{asset}/htf_optimized*/`
+- `data/htf_multiasset/{asset}/htf_with_helpers*/`
 
 These outputs are generated artifacts and are not committed.
 
 ## Run Stage-1 Walk-Forward Analysis
+
+The commands below describe the current legacy Stage-1 runner. Multi-asset
+target-asset selection and optional context-asset joins are not implemented yet;
+do not treat these commands as the final multi-asset analysis layer.
 
 Plan a run first:
 

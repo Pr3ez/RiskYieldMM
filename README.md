@@ -109,12 +109,11 @@ Key locations:
 
 ### 2. Stage-1 CatBoost Selection Audits
 
-Stage-1 is the main model-selection audit layer for the HTF workflow. In the
-multi-asset path, HTF remains per-asset; Stage-1 should choose one prediction
-target asset, load that asset's feature/label roots, and optionally join causal
-context features from other assets. The existing regime/family runner is
-`scripts/analysis/htf_stage1_regime_family_walkforward.py`; the next Stage-1
-work is to make target-asset and context-asset selection explicit.
+Stage-1 is the main model-selection audit layer for the HTF workflow. The
+current Stage-1 runner still targets the legacy regime/family roots. In the
+multi-asset path, HTF now prepares per-asset feature/label roots first; the next
+Stage-1 implementation work is to choose one prediction target asset, load that
+asset's roots, and optionally join causal context features from other assets.
 
 Stage-1 stores raw validation and prediction-batch payloads so model-selection behavior can be studied after the run without leaking future information into selector decisions. Each step records the fold windows, combo metadata, validation predictions, prediction-batch predictions, pre-decision context, and runtime profile.
 
@@ -138,7 +137,7 @@ Available walk-forward analysis layers:
 
 | Layer | Purpose | Main outputs |
 |-------|---------|--------------|
-| Per-target Stage-1 run | Produce live-style CatBoost walk-forward payloads for a chosen target asset and regime/family set | `data/htf_backtest_results/stage1_catboost_*_live` |
+| Legacy Stage-1 run | Produce live-style CatBoost walk-forward payloads for the current regime/family roots | `data/htf_backtest_results/stage1_catboost_*_live` |
 | Causal multiregime method analysis | Compare no-lookahead ensemble/post-processing methods such as online hedge, diversity subset, per-class specialist, regime router, stacking, and discounted model averaging | `test_output/htf_causal_multiregime_method_analysis/` |
 | Walk-forward diagnostics | Build root profiles, cross-root summaries, base-model diagnostics, causal-method refresh tables, and feature-quality joins | `test_output/htf_walkforward_diagnostics/` |
 | Stage-1 Step-2 | Run recursive SHAP feature pruning/importance analysis for `winner_only` and `root_topk` scopes | `stage1_step2_*` artifact trees under each Stage-1 run |
@@ -350,15 +349,15 @@ flowchart TD
     A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Canonical 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
     B --> C["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
     C --> D["data/htf_multiasset/{asset}<br/>features + labels + helpers"]
-    D --> E["Stage-1 target-asset assembly<br/>target asset + optional context assets"]
-    E --> F["Causal method analysis"]
-    E --> G["Walk-forward diagnostics"]
+    D --> E["Pending Stage-1 multi-asset assembly<br/>target asset + optional context assets"]
+    E --> F["Pending multi-asset causal method analysis"]
+    E --> G["Pending multi-asset walk-forward diagnostics"]
 ```
 
-The operational rule is simple: update raw data first, build HTF artifacts
-second, run Stage-1 third, and only then run diagnostics. Do not reuse old
-walk-forward outputs after changing feature, label, helper, or batch-regime
-logic.
+The operational rule for the implemented part is simple: update raw data first,
+then build HTF artifacts. Stage-1 and downstream diagnostics still need the
+target-asset/context-asset update before they should be treated as complete
+multi-asset analysis.
 
 ### 1. Prepare the Environment
 
@@ -622,6 +621,10 @@ version in `scripts/feature_engineering/htf_shared_config.py`.
 
 ### 4. Resolve the Stage-1 Walk-Forward Plan
 
+This section describes the current legacy Stage-1 runner. It is useful for
+existing regime/family outputs, but it is not yet the multi-asset target/context
+analysis layer for `data/htf_multiasset/{asset}/`.
+
 Before training, ask the runner to print and persist the resolved execution
 plan:
 
@@ -673,8 +676,8 @@ a full 500-step run.
 
 ### 5. Inspect Stage-1 Outputs
 
-Stage-1 writes one run tree per selected target asset and regime/family. The
-current legacy run ids are regime/family scoped:
+Current Stage-1 writes one run tree per regime/family run id. Multi-asset
+target-asset run ids and context-asset joins are pending:
 
 ```text
 data/htf_backtest_results/stage1_catboost_8h_b_live/
@@ -757,8 +760,9 @@ Before considering a workflow run complete, verify:
 4. Matching label roots exist under
    `data/htf_multiasset/{asset}/htf_4class_labels*/`.
 5. Label files contain `label_window_*` metadata.
-6. Stage-1 run summaries exist under `data/htf_backtest_results/`.
-7. Post-run diagnostics exist under `test_output/`.
+6. For legacy analysis only, Stage-1 run summaries exist under
+   `data/htf_backtest_results/`.
+7. For legacy analysis only, post-run diagnostics exist under `test_output/`.
 8. Any reviewer-facing summary in the repository points to tracked snapshots or
    clearly marks raw `data/` artifacts as local-only.
 

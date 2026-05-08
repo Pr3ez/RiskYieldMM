@@ -3,9 +3,21 @@
 Date: 2026-04-29
 Scope: local repository audit for `/media/przem/linux_data/RiskYieldMM (Copy)`.
 
+> Historical note
+>
+> This handoff predates the multi-asset branch. It describes the prior
+> BTCUSDT/Bybit-focused HTF workflow. Current source-data and HTF materialization
+> support `BTCUSDT`, `ETHUSDT`, `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, and `NQ`.
+> Stage-1 and downstream analysis are still being updated for multi-asset
+> target/context selection.
+
 ## Executive Summary
 
-RiskYieldMM is a crypto perpetual futures ML research system. The active path is a leakage-aware higher-timeframe (HTF) workflow for Bybit BTCUSDT linear perpetual data. It builds multi-regime batch datasets, creates `target_4class` labels, attaches helper/regime features, runs CatBoost walk-forward Stage-1 experiments, then analyzes model-selection and ensemble behavior from saved artifacts.
+At the time of this 2026-04-29 audit, RiskYieldMM was a crypto perpetual
+futures ML research system focused on Bybit BTCUSDT linear perpetual data. Since
+then, the branch has added multi-asset source data and per-asset HTF
+materialization. The Stage-1 and downstream analysis layer described here is
+the legacy regime/family workflow.
 
 The project is artifact-heavy. The local tree is about 151 GB:
 
@@ -24,22 +36,22 @@ The important source/docs layer is much smaller and is concentrated in:
 - `riskyield_rust/src/`
 - `docs/` and `notebooks/notes/`
 
-## Current Source Of Truth
+## Source Of Truth At Audit Time
 
-The current production launcher is:
+The production launcher at audit time was:
 
 - `notebooks/htf_pythonscript.py`
 
-The current shared materialization logic is:
+The shared materialization logic at audit time was:
 
 - `scripts/feature_engineering/htf_multiregime_pipeline.py`
 
-The current Stage-1 CatBoost walk-forward runner is:
+The Stage-1 CatBoost walk-forward runner at audit time was:
 
 - `scripts/analysis/htf_stage1_regime_family_walkforward.py`
 - `scripts/htf_backtest/catboost/stage1_runner.py`
 
-The current target is:
+The target surface at audit time was:
 
 - timeframe: `1m`
 - target: `target_4class`
@@ -121,7 +133,7 @@ Pipeline stages:
 6. Materialize helper features from canonical helper cache.
 7. Validate alignment, ranges, missingness, entry-window correctness, and helper readiness.
 
-Current model-facing roots:
+Model-facing roots at audit time:
 
 | Root | Features | Labels | Stage-1 run id |
 | --- | --- | --- | --- |

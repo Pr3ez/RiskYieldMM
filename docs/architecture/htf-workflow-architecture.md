@@ -1,36 +1,40 @@
 # HTF Workflow Architecture
 
 This is the maintained architecture overview for the current higher-timeframe
-research workflow.
+research workflow. The source-data and HTF materialization layers are
+multi-asset-aware. Stage-1 and downstream analysis are still legacy
+regime/family workflows until target-asset and context-asset selection are
+implemented.
 
 ## System Flow
 
 ```mermaid
 flowchart TD
-    A[Bybit public market data] --> B[Incremental fetcher]
-    B --> C[Local raw Parquet sources]
-    C --> D[HTF batch materializer]
-    D --> E[Feature batches]
-    D --> F[Forward-distance labels]
+    A[Bybit crypto + Databento historical futures + Yahoo recent tail] --> B[Repo-root core update]
+    B --> C[Canonical local 1m/15m raw Parquet sources]
+    C --> D[Per-asset HTF batch materializer]
+    D --> E[Asset-scoped feature batches]
+    D --> F[Asset-scoped target_4class labels]
     E --> G[Optimized model-facing features]
     F --> G
     G --> H[Helper feature cache]
-    H --> I[Stage-1 CatBoost walk-forward]
-    I --> J[Persisted validation and prediction payloads]
-    J --> K[Selector, pairwise, and subset audits]
-    K --> L[Reviewer-facing summaries]
+    H --> I[Pending Stage-1 multi-asset target/context assembly]
+    I --> J[Legacy Stage-1 CatBoost walk-forward until assembly is updated]
+    J --> K[Persisted validation and prediction payloads]
+    K --> L[Selector, pairwise, and subset audits]
 ```
 
 ## Main Boundaries
 
 | Boundary | Source of truth | Responsibility |
 |---|---|---|
-| Data fetch | `fetchingByBit/update_data.py` | Incremental public market-data refresh |
-| HTF materialization | `scripts/feature_engineering/htf_multiregime_pipeline.py` | Regime/family batches, features, labels, validation |
-| HTF launcher | `notebooks/htf_pythonscript.py` | Production orchestration and run logging |
-| Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | CatBoost walk-forward execution across roots |
+| Data fetch | `update_data.py --core` | Bybit crypto plus multi-asset Databento/Yahoo source refresh |
+| HTF asset registry | `scripts/feature_engineering/htf_asset_registry.py` | Core asset set and raw source routing |
+| HTF materialization | `scripts/feature_engineering/htf_multiregime_pipeline.py` | Per-asset regime/family batches, features, labels, validation |
+| HTF launcher | `notebooks/htf_pythonscript.py` | Production orchestration and run logging through `HTF_ASSETS` |
+| Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | Legacy CatBoost walk-forward execution across regime/family roots |
 | Stage-1 core | `scripts/htf_backtest/catboost/` | Per-step training, selection, and persisted payloads |
-| Diagnostics | `scripts/analysis/htf_*` | Offline audits and summary generation |
+| Diagnostics | `scripts/analysis/htf_*` | Legacy offline audits and summary generation |
 | Rust helpers | `riskyield_rust/src/` | Accelerated helper models exposed through PyO3 |
 
 ## Temporal Safety Model
@@ -54,7 +58,7 @@ silently mixed with existing outputs.
 
 The architecture deliberately keeps large artifacts out of Git:
 
-- raw Bybit source parquet files,
+- raw Bybit, Databento, and Yahoo source parquet files,
 - model-facing feature batches,
 - helper caches,
 - CatBoost run directories,

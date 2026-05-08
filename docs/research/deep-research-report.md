@@ -1,5 +1,11 @@
 # RiskYieldMM Repository Analytical Report
 
+> Historical note
+>
+> This analytical report predates the current multi-asset source and HTF
+> materialization branch. Treat it as research context, not as the current
+> implementation status.
+
 ## Executive summary
 
 Enabled connector inventory used for this review: **github**.

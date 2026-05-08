@@ -182,7 +182,7 @@ complete yet. That is correct and should not be force-filled.
 
 ### 5. Stage-1 analysis
 
-Stage-1 should merge after HTF is complete:
+This is the next implementation step after HTF is complete:
 
 1. choose target asset
 2. load that asset's feature and label roots
@@ -206,7 +206,8 @@ Before Stage-1:
 5. Labels contain `label_window_*` metadata.
 6. Latest unlabeled tails are explained by missing future opposite-family
    windows, not by schema or source errors.
-7. Stage-1 plan points to the intended target asset roots.
+7. After Stage-1 is updated for multi-asset, its plan points to the intended
+   target asset roots.
 
 ## Research Position On Cross-Asset Features
 

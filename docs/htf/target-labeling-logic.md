@@ -3,8 +3,11 @@
 > IMPORTANT
 > This file is currently a legacy 8-class reference.
 > The active workflow has been migrated to `target_4class` (primary) and
-> `target_breakfree`. Use this document only as historical context until the
-> full 4-class rewrite is completed.
+> `target_breakfree`. Current multi-asset labels use the
+> `opposite_family_first_half` policy: B entries label from the next C first-half
+> window, and C entries label from the next B first-half window. Use this
+> document only as historical context until the full 4-class rewrite is
+> completed.
 
 This document explains target computation in the notebook script, with direct code excerpts and file/line references.
 

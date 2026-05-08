@@ -25,6 +25,19 @@ from scripts.target_models.registry import (
     validate_target,
 )
 
+_MISSING_GENERATED_DATASETS = [
+    spec.dataset_path
+    for spec in TARGET_REGISTRY.values()
+    if not spec.dataset_path.exists()
+]
+requires_generated_target_datasets = pytest.mark.skipif(
+    bool(_MISSING_GENERATED_DATASETS),
+    reason=(
+        "generated target datasets are absent under data/datasets; run "
+        "python -m scripts.analysis.run build-datasets"
+    ),
+)
+
 
 # =============================================================================
 # REGISTRY TESTS
@@ -100,6 +113,8 @@ class TestTargetSpec:
 class TestLoadTargetData:
     """Test data loading functionality."""
 
+    pytestmark = requires_generated_target_datasets
+
     def test_load_returns_correct_types(self):
         """Should return DataFrame, Series, TargetSpec."""
         X, y, spec = load_target_data("volatility", 6, verbose=False)
@@ -132,6 +147,7 @@ class TestLoadTargetData:
 class TestValidation:
     """Test validation functionality."""
 
+    @requires_generated_target_datasets
     def test_validate_single_target(self):
         """Should validate a single target successfully."""
         result = validate_target("volatility", 6)
@@ -139,6 +155,7 @@ class TestValidation:
         assert result.n_rows > 0
         assert result.n_features > 0
 
+    @requires_generated_target_datasets
     def test_validate_all_pass(self):
         """All 20 targets should validate."""
         results = validate_all_targets(verbose=False)
@@ -161,6 +178,8 @@ class TestValidation:
 # =============================================================================
 class TestIteration:
     """Test iteration utilities."""
+
+    pytestmark = requires_generated_target_datasets
 
     def test_iterate_all_yields_20(self):
         """Should yield exactly 20 combinations."""
@@ -200,6 +219,8 @@ class TestIteration:
 # =============================================================================
 class TestDualLayerIntegration:
     """Test dual-layer engine works with all targets."""
+
+    pytestmark = requires_generated_target_datasets
 
     @pytest.mark.parametrize("target", ALL_TARGETS)
     @pytest.mark.parametrize("horizon", [6])  # Test with 6-bar only for speed
@@ -253,6 +274,8 @@ class TestDualLayerIntegration:
 # =============================================================================
 class TestConsistency:
     """Test consistency across targets."""
+
+    pytestmark = requires_generated_target_datasets
 
     def test_same_horizon_same_timestamp_range(self):
         """All targets with same horizon should cover same time range."""

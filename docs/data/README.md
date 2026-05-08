@@ -1,5 +1,9 @@
 # Data And Target Documentation
 
+Current core source refresh is multi-asset through repo-root
+`update_data.py --core`. The Bybit-specific documents below remain useful for
+crypto source details, but they are not the full source-data workflow anymore.
+
 | Document | Purpose |
 |---|---|
 | [`data-contract.md`](data-contract.md) | Maintained HTF source, schema, metadata, and incremental update contract |

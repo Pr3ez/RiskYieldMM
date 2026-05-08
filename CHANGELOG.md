@@ -6,6 +6,20 @@ All notable repository-level changes are recorded here.
 
 ### Added
 
+- Core multi-asset source workflow through repo-root `update_data.py --core`,
+  covering Bybit `BTCUSDT`/`ETHUSDT`, Databento historical futures proxies for
+  `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, and `NQ`, and validated Yahoo Finance
+  recent-tail continuation when the local Databento anchor is eligible.
+- `fetchingMultiAsset/` provider layer for normalized non-crypto OHLCV data,
+  including Databento, Yahoo Finance, Twelve Data fallback/reference support,
+  local provider preflight checks, local inventory scanning, resume planning,
+  and `1m` to `15m` aggregation.
+- HTF asset registry and asset-aware HTF materialization. `HTF_ASSETS=core`
+  with `HTF_ASSET_OUTPUT_MODE=multiasset` writes per-asset outputs under
+  `data/htf_multiasset/{asset}/`.
+- Multi-asset HTF tests for asset-specific raw routing, Databento/Yahoo
+  recent-tail precedence, and opposite-family label-window behavior.
+- Multi-asset implementation plans and source documentation under `docs/plans/`.
 - Canonical Python dependency metadata in `pyproject.toml`, including
   lightweight `ci`/`dev` extras and heavier research/Rust extras.
 - Dataset-free repository smoke tests for CLI help surfaces, dependency
@@ -23,6 +37,19 @@ All notable repository-level changes are recorded here.
 
 ### Changed
 
+- HTF labels now document and test the `opposite_family_first_half` policy:
+  B-family entries label from the next C-family first-half window, and C-family
+  entries label from the next B-family first-half window.
+- Bybit fetching and compatibility aggregation are symbol-aware for both
+  `BTCUSDT` and `ETHUSDT`.
+- Generated local progress/status artifacts are removed from the merge surface
+  and ignored by default, including fetch progress files and HTF run heartbeat
+  status JSON files.
+- Target-model registry integration tests now skip dataset-loading checks when
+  ignored generated `data/datasets/*bar.parquet` files are absent, while keeping
+  registry metadata tests always active.
+- Replaced deprecated Polars `pl.count()` usage in 8h aggregation with
+  `pl.len()`.
 - Migrated the Astra VS Code extension lint setup to ESLint flat config for
   ESLint 10 compatibility.
 - Deferred hosted CI workflow activation because GitHub Actions is currently
@@ -33,6 +60,17 @@ All notable repository-level changes are recorded here.
   test runner with a compile-and-lint smoke check.
 - Removed tracked local backup files from maintained source/notebook paths and
   added backup ignore patterns.
+
+### Not Yet Implemented
+
+- Stage-1 and downstream analysis scripts are not fully multi-asset-aware yet.
+  The current merge prepares source data and HTF feature/label artifacts per
+  asset; the next implementation step is explicit target-asset selection,
+  optional causal context-asset joins, and analysis outputs that resolve
+  `data/htf_multiasset/{asset}/` roots.
+- Cross-asset context features are planned but not yet productionized. They
+  should be added after standalone per-asset HTF outputs are reproducible and
+  tested for no look-ahead leakage.
 
 ### Security
 

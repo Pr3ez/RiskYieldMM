@@ -1,5 +1,12 @@
 # HTF Stage-1 Logic (CatBoost, Isolated)
 
+> Current scope
+>
+> This document describes the legacy regime/family Stage-1 analysis layer. The
+> multi-asset branch already prepares per-asset HTF roots under
+> `data/htf_multiasset/{asset}/`, but Stage-1 target-asset selection and
+> context-asset joins are not implemented yet.
+
 ## Purpose
 Stage-1 is an offline dataset-generation run profile for fold-grid analysis.  
 It is not the standard Optuna/runtime model-selection path.

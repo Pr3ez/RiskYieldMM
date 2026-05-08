@@ -175,7 +175,7 @@ def aggregate_ohlcv_to_8h(df_4h: pl.DataFrame) -> pl.DataFrame:
                 pl.col("close").last().alias("close"),
                 pl.col("volume").sum().alias("volume"),
                 pl.col("turnover").sum().alias("turnover"),
-                pl.count().alias("bar_count"),  # Should be 2 for complete bars
+                pl.len().alias("bar_count"),  # Should be 2 for complete bars
             ]
         )
         .rename({"period_start": "timestamp"})

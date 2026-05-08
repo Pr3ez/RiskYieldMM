@@ -45,6 +45,14 @@ def test_core_defaults_match_full_bybit_period_with_full_history_guards() -> Non
     assert args.max_databento_cost_usd == 50.0
 
 
+def test_root_orchestrator_accepts_documented_htf_only_flag() -> None:
+    module = _load_root_update_data()
+    parser = module.build_arg_parser()
+    args = parser.parse_args(["--core", "--dry-run", "--htf-only"])
+
+    assert args.htf_only is True
+
+
 def test_root_orchestrator_builds_same_period_commands() -> None:
     module = _load_root_update_data()
     parser = module.build_arg_parser()

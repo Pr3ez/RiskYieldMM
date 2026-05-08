@@ -1,5 +1,12 @@
 # Academic Research: Improving Direction Prediction Accuracy
 
+> Historical note
+>
+> This research note predates the current multi-asset source and HTF
+> materialization branch. References to BTC-only features describe the older
+> state. Current HTF outputs can be prepared per asset; cross-asset Stage-1
+> context features are still planned.
+
 **Date:** 2025-12-31  
 **Context:** RiskYieldMM BTC perpetual futures, 8h timeframe  
 **Current state:** 52% baseline, 67.5% in optimal regime  
@@ -161,7 +168,7 @@ Based on systematic review of academic literature, here are **evidence-based met
 
 **Expected impact:** +2-5% accuracy  
 **Implementation complexity:** Medium (need data)  
-**Our status:** ❌ BTC-only features
+**Historical status at note time:** BTC-only features
 
 **ACTION:** Add ETH/BTC ratio and consider macro proxies.
 

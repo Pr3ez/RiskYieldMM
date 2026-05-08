@@ -1,5 +1,12 @@
 # HTF Stage-1 Artifacts (CatBoost, Isolated)
 
+> Current scope
+>
+> These artifact paths describe the legacy regime/family Stage-1 outputs. The
+> multi-asset HTF layer writes per-asset feature and label roots under
+> `data/htf_multiasset/{asset}/`; Stage-1 artifact layout for target/context
+> asset analysis is still pending.
+
 Stage-1 step artifacts are written under:
 
 `data/htf_backtest_results/{run_id}/catboost/{timeframe}/{target}/batch_{pred_batch}/stage1/`
