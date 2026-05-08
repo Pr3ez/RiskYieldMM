@@ -9,7 +9,9 @@ from fetchingMultiAsset.asset_config import selected_yfinance_futures
 from fetchingMultiAsset.fetch_twelve_data import TIMESTAMP_DTYPE, append_ohlcv_batches
 from fetchingMultiAsset.fetch_yfinance import (
     latest_complete_bar_start,
+    plan_yfinance_demo,
     plan_yfinance_tail,
+    resolve_yfinance_demo_window,
     validate_yfinance_continuation,
     yfinance_frame_to_ohlcv,
 )
@@ -138,6 +140,28 @@ def test_yfinance_tail_plan_requires_recent_databento_anchor(tmp_path) -> None:
     assert plan.needs_fetch
     assert plan.fetch_start == datetime(2026, 5, 6, 12, 0, tzinfo=timezone.utc)
     assert plan.fetch_end == datetime(2026, 5, 6, 12, 4, tzinfo=timezone.utc)
+
+
+def test_yfinance_demo_plan_uses_full_recent_one_minute_window_without_databento(
+    tmp_path,
+) -> None:
+    asset = selected_yfinance_futures(["ES"])[0]
+    target_end = datetime(2026, 5, 8, 11, 59, tzinfo=timezone.utc)
+
+    start, end = resolve_yfinance_demo_window(interval="1m", target_end=target_end)
+    plan = plan_yfinance_demo(
+        asset=asset,
+        interval="1m",
+        base_dir=tmp_path,
+        target_end=target_end,
+    )
+
+    assert start == datetime(2026, 5, 1, 12, 0, tzinfo=timezone.utc)
+    assert end == target_end
+    assert plan.status == "fetch"
+    assert plan.fetch_start == start
+    assert plan.fetch_end == end
+    assert plan.local_last_ts is None
 
 
 def test_yfinance_tail_plan_refuses_large_gap(tmp_path) -> None:

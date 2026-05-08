@@ -66,6 +66,30 @@ def test_core_cli_plan_uses_only_intended_twelve_data_assets(capsys) -> None:
     assert "SPX" not in out
 
 
+def test_demo_cli_uses_yfinance_only_without_paid_fallbacks(capsys) -> None:
+    from fetchingMultiAsset.update_data import main
+
+    result = main(
+        [
+            "--demo",
+            "--dry-run",
+            "--skip-local-scan",
+            "--end-date",
+            "2026-05-08T12:00:30Z",
+        ]
+    )
+    out = capsys.readouterr().out
+
+    assert result == 0
+    assert "Providers: yfinance" in out
+    assert "Demo source mix" in out
+    assert "YFINANCE DEMO PLAN" in out
+    assert "DATABENTO PRELIMINARY PLAN" not in out
+    assert "TWELVE DATA PLAN" not in out
+    assert "ES=F" in out
+    assert "NQ=F" in out
+
+
 def test_estimate_twelve_requests_counts_small_missing_range_as_one_request(
     tmp_path,
 ) -> None:

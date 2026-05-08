@@ -89,8 +89,8 @@ def test_root_orchestrator_builds_same_period_commands() -> None:
     assert "auto" in multiasset_cmd
     assert "databento" in databento_cmd
     assert "yfinance" in yfinance_cmd
+    assert "--start-date" in yfinance_cmd
     assert "--end-date" in yfinance_cmd
-    assert "--start-date" not in yfinance_cmd
 
 
 def test_root_estimate_only_does_not_build_write_commands() -> None:
@@ -156,3 +156,30 @@ def test_allow_free_fresh_tail_still_extends_explicit_databento_source() -> None
         )
 
     assert sources == ("databento", "yfinance")
+
+
+def test_demo_uses_free_sources_and_yahoo_safe_window() -> None:
+    module = _load_root_update_data()
+    parser = module.build_arg_parser()
+    args = parser.parse_args(
+        ["--demo", "--dry-run", "--end-date", "2026-05-08T12:00:30Z"]
+    )
+
+    start, end = module.resolve_demo_window(args.end_date)
+    assert start == "2026-05-01T12:00:00Z"
+    assert end == "2026-05-08T11:59:00Z"
+
+    args.start_date = start
+    args.end_date = end
+    assert module.selected_sources_for_args(args) == ("bybit", "yfinance")
+
+    bybit_cmd, _ = module.build_bybit_cmd(args)
+    yfinance_cmd, _ = module.build_yfinance_cmd(args)
+
+    assert "--demo" in yfinance_cmd
+    assert "--providers" not in yfinance_cmd
+    assert "databento" not in yfinance_cmd
+    assert "twelvedata" not in yfinance_cmd
+    for cmd in (bybit_cmd, yfinance_cmd):
+        assert "2026-05-01T12:00:00Z" in cmd
+        assert "2026-05-08T11:59:00Z" in cmd

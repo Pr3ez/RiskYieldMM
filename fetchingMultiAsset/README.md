@@ -61,6 +61,12 @@ python -m pip install databento yfinance
 ```bash
 cd fetchingMultiAsset
 
+# Free demo mode. Uses Yahoo Finance only for non-crypto core assets, capped to
+# Yahoo's 1m retention window, then derives 15m locally. No Databento or Twelve
+# Data calls are made.
+python update_data.py --demo --dry-run --htf-only
+python update_data.py --demo --htf-only
+
 # Check Databento access and optional Twelve Data fallback mappings before any
 # real backfill.
 python preflight_providers.py
@@ -147,7 +153,9 @@ The parquet schema matches the core Bybit kline OHLCV contract. Non-crypto
 sources do not include Bybit-specific auxiliary derivative streams such as
 funding, open interest, mark/index premium, or account ratios.
 
-Yahoo Finance is a recent-tail continuation source, not a Databento historical
-replacement. The adapter fetches overlap rows first, compares them with recent
-Databento closes, drops the current incomplete Yahoo bar, and writes only the
-accepted tail into separate `yfinance` roots.
+Yahoo Finance is a production recent-tail continuation source, not a Databento
+historical replacement. In production mode the adapter fetches overlap rows
+first, compares them with recent Databento closes, drops the current incomplete
+Yahoo bar, and writes only the accepted tail into separate `yfinance` roots. In
+`--demo` mode, Yahoo is used as a standalone free source for the latest `1m`
+retention window, with no Databento validation or fallback.

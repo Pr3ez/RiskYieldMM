@@ -61,9 +61,14 @@ try:
         DEFAULT_MAX_CLOSE_DIFF_PCT,
         DEFAULT_MIN_OVERLAP_BARS,
         DEFAULT_OVERLAP_BARS,
+        YFINANCE_INTERVAL_LIMITS,
+        YFinanceDemoPlan,
         YFinanceTailPlan,
+        fetch_yfinance_demo,
         fetch_yfinance_tail,
+        plan_yfinance_demo,
         plan_yfinance_tail,
+        resolve_yfinance_demo_window,
     )
 except ImportError:  # pragma: no cover - script execution from fetchingMultiAsset/
     from aggregate_ohlcv import write_aggregate  # type: ignore
@@ -116,9 +121,14 @@ except ImportError:  # pragma: no cover - script execution from fetchingMultiAss
         DEFAULT_MAX_CLOSE_DIFF_PCT,
         DEFAULT_MIN_OVERLAP_BARS,
         DEFAULT_OVERLAP_BARS,
+        YFINANCE_INTERVAL_LIMITS,
+        YFinanceDemoPlan,
         YFinanceTailPlan,
+        fetch_yfinance_demo,
         fetch_yfinance_tail,
+        plan_yfinance_demo,
         plan_yfinance_tail,
+        resolve_yfinance_demo_window,
     )
 
 
@@ -195,6 +205,15 @@ def _expanded_inventory_providers(providers: tuple[str, ...]) -> tuple[str, ...]
 
 def _resolve_end(end_date: str | datetime) -> datetime:
     return min(parse_datetime(end_date), datetime.now(timezone.utc))
+
+
+def _format_cli_datetime(dt: datetime) -> str:
+    return (
+        dt.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def _read_file_rows(path: Path | None) -> int | None:
@@ -755,6 +774,90 @@ def run_yfinance(
     return ok
 
 
+def run_yfinance_demo(
+    *,
+    assets: tuple[YFinanceFuturesSpec, ...],
+    intervals: tuple[str, ...],
+    start_date: str,
+    end_date: str,
+    dry_run: bool,
+    estimate_only: bool,
+) -> bool:
+    print("\nYFINANCE DEMO PLAN")
+    print("-" * 70)
+    print(
+        "Demo mode uses Yahoo Finance standalone data only. It does not require "
+        "or validate against Databento, and it writes to separate yfinance folders."
+    )
+    unsupported = [interval for interval in intervals if interval not in {"1m", "15m"}]
+    if unsupported:
+        print(f"ERROR: Yahoo demo supports only 1m and derived 15m, got: {unsupported}")
+        return False
+    target_end = _resolve_end(end_date)
+    ok = True
+    if not assets:
+        print("No Yahoo demo assets selected.")
+        return True
+
+    plans: list[YFinanceDemoPlan] = []
+    for asset in assets:
+        plan = plan_yfinance_demo(asset=asset, interval="1m", target_end=target_end)
+        plans.append(plan)
+        if plan.needs_fetch:
+            print(
+                f"{asset.symbol:<7} {asset.provider_symbol:<6} 1m "
+                f"{plan.fetch_start} -> {plan.fetch_end} demo_fetch"
+            )
+        else:
+            print(
+                f"{asset.symbol:<7} {asset.provider_symbol:<6} 1m "
+                f"{plan.status}: {plan.reason}"
+            )
+            if plan.status not in {"up_to_date"}:
+                ok = False
+
+    print(
+        f"Demo requested window: {start_date} -> {end_date}; "
+        f"Yahoo 1m limit used: {YFINANCE_INTERVAL_LIMITS['1m']}."
+    )
+    if dry_run or estimate_only:
+        return ok
+
+    for asset, plan in zip(assets, plans, strict=True):
+        try:
+            result = fetch_yfinance_demo(
+                asset=asset,
+                interval="1m",
+                target_end=target_end,
+            )
+            print(
+                f"Yahoo demo {asset.symbol} 1m: status={result.status}, "
+                f"fetched={result.fetched_rows:,}, files={result.files}, "
+                f"range={result.first_ts} -> {result.last_ts}"
+            )
+            if result.status not in {"written", "up_to_date"}:
+                ok = False
+                continue
+            if "15m" in intervals:
+                agg_rows = write_aggregate(
+                    symbol=asset.symbol,
+                    provider=YFINANCE_PROVIDER,
+                    market=YFINANCE_MARKET,
+                    source_interval="1m",
+                    target_interval="15m",
+                    replace_window_start=plan.fetch_start,
+                    replace_window_end=plan.fetch_end,
+                )
+                print(
+                    f"Yahoo demo {asset.symbol} 15m: "
+                    f"derived rows_written_total={agg_rows}"
+                )
+        except Exception as exc:
+            ok = False
+            print(f"ERROR: Yahoo demo {asset.symbol} failed: {exc}")
+    return ok
+
+
 def run_auto(
     *,
     futures_assets: tuple[DatabentoFuturesSpec, ...],
@@ -884,6 +987,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  python update_data.py --demo --dry-run --htf-only
   python update_data.py --status --core --htf-only
   python update_data.py --core --dry-run --htf-only
   python update_data.py --providers auto --core --htf-only
@@ -901,6 +1005,15 @@ Examples:
             "Select the intended production source mix: Yahoo recent tail first, "
             "Databento fallback for EURUSD/USDJPY/GC/CL/ES/NQ. Twelve Data "
             "remains manual fallback only."
+        ),
+    )
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help=(
+            "Free-source demo mode for non-crypto core assets. Uses Yahoo Finance "
+            "standalone 1m data up to its retention window and derives 15m locally; "
+            "Databento and Twelve Data are not used."
         ),
     )
     parser.add_argument(
@@ -995,14 +1108,20 @@ Examples:
 def main(argv: list[str] | None = None) -> int:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
+    if args.demo and args.providers:
+        parser.error("--demo chooses providers automatically; do not pass --providers.")
+    if args.demo and args.all:
+        parser.error("--demo and --all are mutually exclusive")
     if args.core and args.all:
         parser.error("--core and --all are mutually exclusive")
-    if args.core and not args.providers and not args.all:
+    if args.demo:
+        providers = ("yfinance",)
+    elif args.core and not args.providers and not args.all:
         providers = (AUTO_PROVIDER,)
     else:
         providers = provider_list(args.providers, all_providers=args.all)
     intervals = tuple(
-        HTF_REQUIRED_INTERVALS if args.htf_only else _interval_list(args.intervals)
+        HTF_REQUIRED_INTERVALS if args.demo or args.htf_only else _interval_list(args.intervals)
     )
     unknown_intervals = [
         interval for interval in intervals if interval not in TWELVE_DATA_INTERVALS
@@ -1010,9 +1129,11 @@ def main(argv: list[str] | None = None) -> int:
     if unknown_intervals:
         raise SystemExit(f"Unsupported intervals: {unknown_intervals}")
 
+    core_selection = args.core or args.demo
+
     if args.assets:
         twelve_asset_ids = _asset_id_list(args.assets)
-    elif args.core:
+    elif core_selection:
         twelve_asset_ids = CORE_TWELVE_ASSETS
     else:
         twelve_asset_ids = None
@@ -1020,7 +1141,7 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.futures:
         futures_asset_ids = tuple(part.upper() for part in _csv(args.futures))
-    elif args.core:
+    elif core_selection:
         futures_asset_ids = CORE_DATABENTO_FUTURES
     else:
         futures_asset_ids = None
@@ -1030,11 +1151,19 @@ def main(argv: list[str] | None = None) -> int:
         yfinance_asset_ids = tuple(
             part.upper() for part in _csv(args.yfinance_futures)
         )
-    elif args.core:
+    elif core_selection:
         yfinance_asset_ids = CORE_YFINANCE_FUTURES
     else:
         yfinance_asset_ids = None
     yfinance_assets = selected_yfinance_futures(yfinance_asset_ids)
+
+    if args.demo:
+        demo_start, demo_end = resolve_yfinance_demo_window(
+            interval="1m",
+            target_end=_resolve_end(args.end_date),
+        )
+        args.start_date = _format_cli_datetime(demo_start)
+        args.end_date = _format_cli_datetime(demo_end)
 
     start_time = datetime.now(timezone.utc)
     print("\n" + "=" * 70)
@@ -1044,7 +1173,13 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Base dir: {BASE_DIR}")
     print(f"Providers: {', '.join(providers)}")
     print(f"Intervals: {', '.join(intervals)}")
-    if args.core:
+    if args.demo:
+        print(
+            "Demo source mix: Yahoo Finance standalone 1m for "
+            "EURUSD,USDJPY,GC,CL,ES,NQ; 15m is derived locally. "
+            "Databento and Twelve Data are disabled."
+        )
+    elif args.core:
         print(
             "Core source mix: Yahoo recent-tail first for EURUSD,USDJPY,GC,CL,ES,NQ; "
             "Databento is fallback when Yahoo cannot cover the missing span; "
@@ -1128,19 +1263,32 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     if "yfinance" in providers:
-        success = (
-            run_yfinance(
-                assets=yfinance_assets,
-                intervals=intervals,
-                end_date=args.end_date,
-                dry_run=args.dry_run,
-                estimate_only=args.estimate_only,
-                overlap_bars=args.yfinance_overlap_bars,
-                min_overlap_bars=args.yfinance_min_overlap_bars,
-                max_close_diff_pct=args.yfinance_max_close_diff_pct,
+        if args.demo:
+            success = (
+                run_yfinance_demo(
+                    assets=yfinance_assets,
+                    intervals=intervals,
+                    start_date=args.start_date,
+                    end_date=args.end_date,
+                    dry_run=args.dry_run,
+                    estimate_only=args.estimate_only,
+                )
+                and success
             )
-            and success
-        )
+        else:
+            success = (
+                run_yfinance(
+                    assets=yfinance_assets,
+                    intervals=intervals,
+                    end_date=args.end_date,
+                    dry_run=args.dry_run,
+                    estimate_only=args.estimate_only,
+                    overlap_bars=args.yfinance_overlap_bars,
+                    min_overlap_bars=args.yfinance_min_overlap_bars,
+                    max_close_diff_pct=args.yfinance_max_close_diff_pct,
+                )
+                and success
+            )
 
     if AUTO_PROVIDER in providers:
         success = (

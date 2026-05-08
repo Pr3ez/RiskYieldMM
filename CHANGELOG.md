@@ -10,6 +10,10 @@ All notable repository-level changes are recorded here.
   covering Bybit `BTCUSDT`/`ETHUSDT`, Databento historical futures proxies for
   `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, and `NQ`, and validated Yahoo Finance
   recent-tail continuation when the local Databento anchor is eligible.
+- Free demo source mode via repo-root `python update_data.py --demo`, using
+  Bybit for crypto plus Yahoo Finance futures proxies for the non-crypto core
+  assets over Yahoo's configured `1m` retention window, with local `15m`
+  aggregation and no Databento/Twelve Data calls.
 - `fetchingMultiAsset/` provider layer for normalized non-crypto OHLCV data,
   including Databento, Yahoo Finance, Twelve Data fallback/reference support,
   local provider preflight checks, local inventory scanning, resume planning,

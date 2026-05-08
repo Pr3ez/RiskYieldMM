@@ -577,6 +577,75 @@ def append_ohlcv_batches(
     )
 
 
+def replace_ohlcv_window(
+    df: pl.DataFrame,
+    *,
+    asset: AssetSpec,
+    interval: str,
+    window_start: datetime,
+    window_end: datetime,
+    base_dir: Path = BASE_DIR,
+    provider: str = DEFAULT_PROVIDER,
+    market: str = DEFAULT_MARKET,
+    chunk_size: int = DEFAULT_CHUNK_SIZE,
+) -> WriteSummary:
+    """Replace one timestamp window for one asset/provider with normalized rows."""
+    window_start = _as_utc(window_start)
+    window_end = _as_utc(window_end)
+    replacement = (
+        _normalize_timestamp_dtype(df)
+        .filter(
+            (pl.col("timestamp") >= window_start)
+            & (pl.col("timestamp") <= window_end)
+        )
+        .unique(subset=["timestamp"], keep="last")
+        .sort("timestamp")
+    )
+    output_dir = output_dir_for_interval(
+        base_dir, interval, provider=provider, market=market
+    )
+    prefix = batch_prefix(asset, provider=provider)
+    existing = _list_existing_files(output_dir, prefix)
+
+    parts: list[pl.DataFrame] = []
+    for _, path, _ in existing:
+        current = _normalize_timestamp_dtype(pl.read_parquet(path))
+        outside_window = current.filter(
+            (pl.col("timestamp") < window_start)
+            | (pl.col("timestamp") > window_end)
+        )
+        if outside_window.height > 0:
+            parts.append(outside_window)
+    if replacement.height > 0:
+        parts.append(replacement)
+
+    for _, path, _ in existing:
+        path.unlink()
+
+    if parts:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        combined = _normalize_timestamp_dtype(
+            pl.concat(parts, how="vertical")
+            .unique(subset=["timestamp"], keep="last")
+            .sort("timestamp")
+        )
+        written = 0
+        idx = 0
+        while written < combined.height:
+            chunk = combined.slice(written, chunk_size)
+            _write_chunk(output_dir / f"{prefix}{idx:06d}.parquet", chunk)
+            written += chunk.height
+            idx += 1
+
+    return existing_summary(
+        asset=asset,
+        interval=interval,
+        base_dir=base_dir,
+        provider=provider,
+        market=market,
+    )
+
+
 def fetch_asset_interval(
     *,
     asset: AssetSpec,

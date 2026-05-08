@@ -398,6 +398,20 @@ want:
 Bybit crypto -> multi-asset auto source
 ```
 
+Free demo fetch, no paid sources:
+
+```bash
+python update_data.py --demo --dry-run
+python update_data.py --demo
+```
+
+`--demo` fetches one aligned recent window for every core asset. Crypto uses
+Bybit `BTCUSDT,ETHUSDT`; non-crypto assets use Yahoo Finance futures proxies
+`6E=F`, `6J=F`, `GC=F`, `CL=F`, `ES=F`, and `NQ=F`. The window is capped to
+Yahoo's configured `1m` retention limit, and `15m` non-crypto bars are derived
+locally from Yahoo `1m`. This mode intentionally does not call Databento,
+Twelve Data, or any other paid/keyed provider.
+
 Normal dry-run:
 
 ```bash
@@ -425,6 +439,9 @@ local Databento anchor is missing or too old for Yahoo to continue safely.
 CME Japanese Yen futures proxy (`6J.v.0` / `6J=F`) inverted into a USD/JPY-like
 price path. Twelve Data remains available only as a manual fallback/reference
 adapter, not part of the normal core fetch.
+
+Use `--demo` when you want a free, reproducible smoke/demo dataset. Use `--core`
+when you want the production historical source mix.
 
 You can still run sources explicitly:
 
@@ -460,7 +477,7 @@ until cross-asset/context features are added in Stage-1.
 | `fetchingByBit/sorted-1m-bybit-linear/`, `fetchingByBit/sorted-15m-bybit-linear/` | `BTCUSDT`, `ETHUSDT` | crypto OHLCV |
 | `fetchingByBit/*-bybit-linear/` auxiliary roots | `BTCUSDT`, `ETHUSDT` | mark/index/premium/open-interest/positioning/funding context when available |
 | `fetchingMultiAsset/sorted-1m-databento-futures/`, `fetchingMultiAsset/sorted-15m-databento-futures/` | `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | historical non-crypto OHLCV |
-| `fetchingMultiAsset/sorted-1m-yfinance-futures/`, `fetchingMultiAsset/sorted-15m-yfinance-futures/` | `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | validated recent-tail OHLCV |
+| `fetchingMultiAsset/sorted-1m-yfinance-futures/`, `fetchingMultiAsset/sorted-15m-yfinance-futures/` | `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | validated recent-tail OHLCV, or standalone free demo rows from `--demo` |
 
 ### 2a. Fetch Normalized Multi-Asset OHLCV Sources
 

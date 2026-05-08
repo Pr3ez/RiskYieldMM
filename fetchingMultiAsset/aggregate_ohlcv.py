@@ -15,6 +15,7 @@ try:
         TIMESTAMP_DTYPE,
         append_ohlcv_batches,
         output_dir_for_interval,
+        replace_ohlcv_window,
     )
 except ImportError:  # pragma: no cover - script execution from fetchingMultiAsset/
     from asset_config import INTERVAL_MS  # type: ignore
@@ -23,6 +24,7 @@ except ImportError:  # pragma: no cover - script execution from fetchingMultiAss
         TIMESTAMP_DTYPE,
         append_ohlcv_batches,
         output_dir_for_interval,
+        replace_ohlcv_window,
     )
 
 
@@ -120,6 +122,8 @@ def write_aggregate(
     target_interval: str,
     base_dir: Path = BASE_DIR,
     allow_partial: bool = False,
+    replace_window_start=None,
+    replace_window_end=None,
 ) -> int:
     df = load_provider_ohlcv(
         symbol=symbol,
@@ -137,14 +141,26 @@ def write_aggregate(
     asset_like = type(
         "AssetLike", (), {"slug": symbol.lower(), "symbol": symbol.upper()}
     )()
-    summary = append_ohlcv_batches(
-        aggregated,
-        asset=asset_like,  # type: ignore[arg-type]
-        interval=target_interval,
-        base_dir=base_dir,
-        provider=provider,
-        market=market,
-    )
+    if replace_window_start is not None and replace_window_end is not None:
+        summary = replace_ohlcv_window(
+            aggregated,
+            asset=asset_like,  # type: ignore[arg-type]
+            interval=target_interval,
+            window_start=replace_window_start,
+            window_end=replace_window_end,
+            base_dir=base_dir,
+            provider=provider,
+            market=market,
+        )
+    else:
+        summary = append_ohlcv_batches(
+            aggregated,
+            asset=asset_like,  # type: ignore[arg-type]
+            interval=target_interval,
+            base_dir=base_dir,
+            provider=provider,
+            market=market,
+        )
     return summary.rows_written
 
 

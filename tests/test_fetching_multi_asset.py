@@ -20,6 +20,7 @@ from fetchingMultiAsset.fetch_twelve_data import (
     load_local_env_file,
     load_local_secret_files,
     output_dir_for_interval,
+    replace_ohlcv_window,
     twelve_values_to_ohlcv,
 )
 
@@ -207,6 +208,85 @@ def test_append_ohlcv_batches_does_not_lock_resume_to_tiny_probe_chunk(
     output_dir = output_dir_for_interval(tmp_path, "1m")
     files = sorted(output_dir.glob(f"{batch_prefix(asset)}*.parquet"))
     assert [pl.read_parquet(path).height for path in files] == [4, 1]
+
+
+def test_replace_ohlcv_window_backfills_inside_existing_asset_files(tmp_path) -> None:
+    asset = selected_assets(["EURUSD"])[0]
+    existing = twelve_values_to_ohlcv(
+        [
+            {
+                "datetime": "2021-01-01 00:02:00",
+                "open": "2",
+                "high": "2",
+                "low": "2",
+                "close": "2",
+            },
+            {
+                "datetime": "2021-01-01 00:10:00",
+                "open": "10",
+                "high": "10",
+                "low": "10",
+                "close": "10",
+            },
+        ],
+        "1m",
+    )
+    append_ohlcv_batches(
+        existing,
+        asset=asset,
+        interval="1m",
+        base_dir=tmp_path,
+        chunk_size=1,
+    )
+    replacement = twelve_values_to_ohlcv(
+        [
+            {
+                "datetime": "2021-01-01 00:00:00",
+                "open": "100",
+                "high": "100",
+                "low": "100",
+                "close": "100",
+            },
+            {
+                "datetime": "2021-01-01 00:01:00",
+                "open": "101",
+                "high": "101",
+                "low": "101",
+                "close": "101",
+            },
+            {
+                "datetime": "2021-01-01 00:02:00",
+                "open": "102",
+                "high": "102",
+                "low": "102",
+                "close": "102",
+            },
+        ],
+        "1m",
+    )
+
+    summary = replace_ohlcv_window(
+        replacement,
+        asset=asset,
+        interval="1m",
+        window_start=datetime(2021, 1, 1, 0, 0, tzinfo=timezone.utc),
+        window_end=datetime(2021, 1, 1, 0, 2, tzinfo=timezone.utc),
+        base_dir=tmp_path,
+        chunk_size=2,
+    )
+
+    output_dir = output_dir_for_interval(tmp_path, "1m")
+    files = sorted(output_dir.glob(f"{batch_prefix(asset)}*.parquet"))
+    combined = pl.concat([pl.read_parquet(path) for path in files]).sort("timestamp")
+
+    assert summary.rows_written == 4
+    assert combined["timestamp"].to_list() == [
+        datetime(2021, 1, 1, 0, 0, tzinfo=timezone.utc),
+        datetime(2021, 1, 1, 0, 1, tzinfo=timezone.utc),
+        datetime(2021, 1, 1, 0, 2, tzinfo=timezone.utc),
+        datetime(2021, 1, 1, 0, 10, tzinfo=timezone.utc),
+    ]
+    assert combined["close"].to_list() == [100.0, 101.0, 102.0, 10.0]
 
 
 def test_fetch_asset_interval_resumes_from_latest_local_timestamp(tmp_path) -> None:

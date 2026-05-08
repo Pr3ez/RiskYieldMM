@@ -6,16 +6,18 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 SOURCE_ORDER = ("bybit", "multiasset", "twelvedata", "databento", "yfinance")
 CORE_SOURCE_ORDER = ("bybit", "multiasset")
+DEMO_SOURCE_ORDER = ("bybit", "yfinance")
 DEFAULT_START_DATE = "2021-01-01"
 DEFAULT_END_DATE = "now"
 DEFAULT_MAX_TWELVE_REQUESTS = 2_000
 DEFAULT_MAX_DATABENTO_COST_USD = 50.0
+DEMO_YFINANCE_1M_LIMIT = timedelta(days=7)
 
 
 def _csv(raw: str) -> tuple[str, ...]:
@@ -32,6 +34,67 @@ def selected_sources(raw: str) -> tuple[str, ...]:
             f"Unknown sources: {unknown}. Known sources: {', '.join(SOURCE_ORDER)}"
         )
     return tuple(source for source in SOURCE_ORDER if source in set(sources))
+
+
+def _parse_cli_datetime(value: str | datetime, *, now: datetime | None = None) -> datetime:
+    if isinstance(value, datetime):
+        dt = value
+    else:
+        raw = str(value).strip()
+        if raw.lower() in {"now", "today"}:
+            dt = now or datetime.now(timezone.utc)
+        else:
+            normalized = raw.replace("Z", "+00:00")
+            if len(normalized) == 10 and normalized[4] == "-" and normalized[7] == "-":
+                dt = datetime.strptime(normalized, "%Y-%m-%d")
+            else:
+                dt = datetime.fromisoformat(normalized)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _format_cli_datetime(dt: datetime) -> str:
+    return (
+        dt.astimezone(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
+
+
+def resolve_demo_window(
+    end_date: str | datetime = DEFAULT_END_DATE,
+    *,
+    now: datetime | None = None,
+) -> tuple[str, str]:
+    """Return the latest Yahoo-safe 1m demo window as CLI date strings."""
+    end = _parse_cli_datetime(end_date, now=now).replace(second=0, microsecond=0)
+    # Use the last complete minute so Bybit and Yahoo receive the same closed-bar
+    # period. The +1 minute keeps the inclusive 1m row count inside seven days.
+    end = end - timedelta(minutes=1)
+    start = end - DEMO_YFINANCE_1M_LIMIT + timedelta(minutes=1)
+    return _format_cli_datetime(start), _format_cli_datetime(end)
+
+
+def apply_demo_window(args: argparse.Namespace) -> argparse.Namespace:
+    args.start_date, args.end_date = resolve_demo_window(args.end_date)
+    return args
+
+
+def selected_sources_for_args(args: argparse.Namespace) -> tuple[str, ...]:
+    if args.demo:
+        return DEMO_SOURCE_ORDER
+    sources = selected_sources(args.sources)
+    if (
+        args.allow_free_fresh_tail
+        and "multiasset" not in sources
+        and "yfinance" not in sources
+    ):
+        sources = tuple(
+            source for source in SOURCE_ORDER if source in {*sources, "yfinance"}
+        )
+    return sources
 
 
 def _run_step(name: str, cmd: list[str], cwd: Path) -> bool:
@@ -126,16 +189,30 @@ def build_multiasset_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_yfinance_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
-    cmd = [
-        sys.executable,
-        "update_data.py",
-        "--providers",
-        "yfinance",
-        "--core",
-        "--htf-only",
-        "--end-date",
-        args.end_date,
-    ]
+    if args.demo:
+        cmd = [
+            sys.executable,
+            "update_data.py",
+            "--demo",
+            "--htf-only",
+            "--start-date",
+            args.start_date,
+            "--end-date",
+            args.end_date,
+        ]
+    else:
+        cmd = [
+            sys.executable,
+            "update_data.py",
+            "--providers",
+            "yfinance",
+            "--core",
+            "--htf-only",
+            "--start-date",
+            args.start_date,
+            "--end-date",
+            args.end_date,
+        ]
     if args.dry_run:
         cmd.append("--dry-run")
     if args.estimate_only:
@@ -171,6 +248,8 @@ def build_arg_parser() -> argparse.ArgumentParser:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
+  python update_data.py --demo
+  python update_data.py --demo --dry-run
   python update_data.py --core
   python update_data.py --core --dry-run
   python update_data.py --core --estimate-only
@@ -185,6 +264,15 @@ Examples:
         "--core",
         action="store_true",
         help="Run the intended core source mix in fixed order.",
+    )
+    parser.add_argument(
+        "--demo",
+        action="store_true",
+        help=(
+            "Free-source demo mode. Fetch the latest Yahoo 1m retention window "
+            "for all core assets using Bybit crypto plus Yahoo Finance futures "
+            "proxies only; Databento, Twelve Data, and other paid sources are not used."
+        ),
     )
     parser.add_argument(
         "--sources",
@@ -252,20 +340,16 @@ Examples:
 def main(argv: list[str] | None = None) -> int:
     parser = build_arg_parser()
     args = parser.parse_args(argv)
-    if not args.core:
+    if not args.core and not args.demo:
         parser.error(
-            "Use --core. Broad --all orchestration is intentionally unsupported."
+            "Use --core or --demo. Broad --all orchestration is intentionally unsupported."
         )
+    if args.demo and args.sources:
+        parser.error("--demo chooses sources automatically; do not pass --sources.")
+    if args.demo:
+        apply_demo_window(args)
 
-    sources = selected_sources(args.sources)
-    if (
-        args.allow_free_fresh_tail
-        and "multiasset" not in sources
-        and "yfinance" not in sources
-    ):
-        sources = tuple(
-            source for source in SOURCE_ORDER if source in {*sources, "yfinance"}
-        )
+    sources = selected_sources_for_args(args)
     started_at = datetime.now(timezone.utc)
     print("\n" + "=" * 70)
     print("CORE DATA UPDATE ORCHESTRATOR")
@@ -273,12 +357,19 @@ def main(argv: list[str] | None = None) -> int:
     print(f"Started: {started_at.strftime('%Y-%m-%d %H:%M:%S UTC')}")
     print(f"Period: {args.start_date} -> {args.end_date}")
     print(f"Sources: {', '.join(sources)}")
-    print("Order: Bybit crypto -> multi-asset auto source")
+    if args.demo:
+        print("Mode: DEMO/free sources only")
+        print("Order: Bybit crypto -> Yahoo Finance futures proxies")
+        print("Paid sources disabled: Databento, Twelve Data")
+    else:
+        print("Order: Bybit crypto -> multi-asset auto source")
     if "multiasset" in sources:
         print("Multi-asset auto: Yahoo recent-tail first, Databento fallback if needed")
     if "twelvedata" in sources:
         print("Twelve Data selected explicitly as fallback/manual source")
-    if "yfinance" in sources:
+    if args.demo and "yfinance" in sources:
+        print("Yahoo Finance selected as standalone demo source")
+    elif "yfinance" in sources:
         print("Yahoo Finance selected as validated recent-tail source")
     sys.stdout.flush()
 

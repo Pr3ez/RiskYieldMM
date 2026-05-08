@@ -27,6 +27,7 @@ try:
         batch_prefix,
         existing_summary,
         output_dir_for_interval,
+        replace_ohlcv_window,
     )
 except ImportError:  # pragma: no cover - script execution from fetchingMultiAsset/
     from asset_config import (  # type: ignore
@@ -45,6 +46,7 @@ except ImportError:  # pragma: no cover - script execution from fetchingMultiAss
         batch_prefix,
         existing_summary,
         output_dir_for_interval,
+        replace_ohlcv_window,
     )
 
 
@@ -88,6 +90,34 @@ class YFinanceTailPlan:
     @property
     def needs_fetch(self) -> bool:
         return self.status == "fetch"
+
+
+@dataclass(frozen=True)
+class YFinanceDemoPlan:
+    asset: str
+    provider_symbol: str
+    interval: str
+    status: str
+    local_last_ts: datetime | None
+    fetch_start: datetime | None
+    fetch_end: datetime | None
+    reason: str
+
+    @property
+    def needs_fetch(self) -> bool:
+        return self.status == "fetch"
+
+
+@dataclass(frozen=True)
+class YFinanceDemoFetchResult:
+    asset: str
+    interval: str
+    status: str
+    fetched_rows: int
+    files: int
+    first_ts: datetime | None
+    last_ts: datetime | None
+    reason: str
 
 
 @dataclass(frozen=True)
@@ -352,6 +382,99 @@ def plan_yfinance_tail(
     )
 
 
+def _resolve_target_end(
+    *,
+    interval: str,
+    now: datetime | None = None,
+    target_end: datetime | None = None,
+) -> datetime:
+    resolved_now = now or datetime.now(timezone.utc)
+    if resolved_now.tzinfo is None:
+        resolved_now = resolved_now.replace(tzinfo=timezone.utc)
+    resolved_now = resolved_now.astimezone(timezone.utc)
+    fetch_end = latest_complete_bar_start(interval, resolved_now)
+    if target_end is not None:
+        if target_end.tzinfo is None:
+            target_end = target_end.replace(tzinfo=timezone.utc)
+        target_end = target_end.astimezone(timezone.utc)
+        step_seconds = INTERVAL_MS[interval] // 1000
+        floored_target = int(target_end.timestamp()) // step_seconds * step_seconds
+        fetch_end = min(fetch_end, datetime.fromtimestamp(floored_target, tz=timezone.utc))
+    return fetch_end
+
+
+def resolve_yfinance_demo_window(
+    *,
+    interval: str = "1m",
+    now: datetime | None = None,
+    target_end: datetime | None = None,
+    max_span: timedelta | None = None,
+) -> tuple[datetime, datetime]:
+    if interval not in YFINANCE_INTERVAL_LIMITS:
+        raise KeyError(f"Yahoo interval {interval!r} is not configured")
+    fetch_end = _resolve_target_end(interval=interval, now=now, target_end=target_end)
+    limit = max_span or YFINANCE_INTERVAL_LIMITS[interval]
+    step = timedelta(milliseconds=INTERVAL_MS[interval])
+    return fetch_end - limit + step, fetch_end
+
+
+def plan_yfinance_demo(
+    *,
+    asset: YFinanceFuturesSpec,
+    interval: str = "1m",
+    base_dir: Path = BASE_DIR,
+    now: datetime | None = None,
+    target_end: datetime | None = None,
+    max_span: timedelta | None = None,
+) -> YFinanceDemoPlan:
+    if interval not in YFINANCE_INTERVAL_LIMITS:
+        return YFinanceDemoPlan(
+            asset=asset.symbol,
+            provider_symbol=asset.provider_symbol,
+            interval=interval,
+            status="unsupported_interval",
+            local_last_ts=None,
+            fetch_start=None,
+            fetch_end=None,
+            reason=f"Yahoo interval {interval!r} is not configured",
+        )
+
+    fetch_start, fetch_end = resolve_yfinance_demo_window(
+        interval=interval,
+        now=now,
+        target_end=target_end,
+        max_span=max_span,
+    )
+    yfinance_summary = existing_summary(
+        asset=asset,  # type: ignore[arg-type]
+        interval=interval,
+        base_dir=base_dir,
+        provider=YFINANCE_PROVIDER,
+        market=YFINANCE_MARKET,
+    )
+    if yfinance_summary.last_ts is not None and yfinance_summary.last_ts >= fetch_end:
+        return YFinanceDemoPlan(
+            asset=asset.symbol,
+            provider_symbol=asset.provider_symbol,
+            interval=interval,
+            status="up_to_date",
+            local_last_ts=yfinance_summary.last_ts,
+            fetch_start=fetch_start,
+            fetch_end=fetch_end,
+            reason="Local Yahoo demo data already covers the requested latest bar",
+        )
+    return YFinanceDemoPlan(
+        asset=asset.symbol,
+        provider_symbol=asset.provider_symbol,
+        interval=interval,
+        status="fetch",
+        local_last_ts=yfinance_summary.last_ts,
+        fetch_start=fetch_start,
+        fetch_end=fetch_end,
+        reason=f"Fetch latest Yahoo {interval} demo window up to provider retention",
+    )
+
+
 def load_recent_provider_rows(
     *,
     asset: YFinanceFuturesSpec,
@@ -551,6 +674,91 @@ def fetch_yfinance_tail(
             market=YFINANCE_MARKET,
         )
     return check
+
+
+def fetch_yfinance_demo(
+    *,
+    asset: YFinanceFuturesSpec,
+    interval: str = "1m",
+    base_dir: Path = BASE_DIR,
+    now: datetime | None = None,
+    target_end: datetime | None = None,
+    max_span: timedelta | None = None,
+) -> YFinanceDemoFetchResult:
+    plan = plan_yfinance_demo(
+        asset=asset,
+        interval=interval,
+        base_dir=base_dir,
+        now=now,
+        target_end=target_end,
+        max_span=max_span,
+    )
+    if not plan.needs_fetch:
+        summary = existing_summary(
+            asset=asset,  # type: ignore[arg-type]
+            interval=interval,
+            base_dir=base_dir,
+            provider=YFINANCE_PROVIDER,
+            market=YFINANCE_MARKET,
+        )
+        return YFinanceDemoFetchResult(
+            asset=asset.symbol,
+            interval=interval,
+            status=plan.status,
+            fetched_rows=0,
+            files=summary.files,
+            first_ts=summary.first_ts,
+            last_ts=summary.last_ts,
+            reason=plan.reason,
+        )
+
+    assert plan.fetch_start is not None
+    assert plan.fetch_end is not None
+    raw = fetch_yfinance_frame(
+        asset.provider_symbol,
+        interval=interval,
+        start=plan.fetch_start,
+        end=plan.fetch_end,
+    )
+    yfinance_df = yfinance_frame_to_ohlcv(
+        raw,
+        interval,
+        price_transform=asset.price_transform,
+    ).filter(
+        (pl.col("timestamp") >= plan.fetch_start)
+        & (pl.col("timestamp") <= plan.fetch_end)
+    )
+    if yfinance_df.height == 0:
+        return YFinanceDemoFetchResult(
+            asset=asset.symbol,
+            interval=interval,
+            status="empty",
+            fetched_rows=0,
+            files=0,
+            first_ts=None,
+            last_ts=None,
+            reason="Yahoo returned no rows for the demo window",
+        )
+    summary = replace_ohlcv_window(
+        yfinance_df,
+        asset=asset,  # type: ignore[arg-type]
+        interval=interval,
+        window_start=plan.fetch_start,
+        window_end=plan.fetch_end,
+        base_dir=base_dir,
+        provider=YFINANCE_PROVIDER,
+        market=YFINANCE_MARKET,
+    )
+    return YFinanceDemoFetchResult(
+        asset=asset.symbol,
+        interval=interval,
+        status="written",
+        fetched_rows=int(yfinance_df.height),
+        files=summary.files,
+        first_ts=summary.first_ts,
+        last_ts=summary.last_ts,
+        reason="Yahoo demo rows written or already present",
+    )
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
