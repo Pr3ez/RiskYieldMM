@@ -15,6 +15,7 @@ import sys
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Callable
 
@@ -113,6 +114,7 @@ HELPER_NAMES = DEFAULT_HELPER_NAMES
 LABEL_WINDOW_SAME_FAMILY = "same_family_remaining"
 LABEL_WINDOW_OPPOSITE_FIRST_HALF = "opposite_family_first_half"
 LABEL_WINDOW_POLICIES = (LABEL_WINDOW_SAME_FAMILY, LABEL_WINDOW_OPPOSITE_FIRST_HALF)
+KNOWN_CONSTANT_HELPER_COLUMN_PATTERNS = ("H_*_garch_persistence",)
 MIN_REMAINING_15M = 1
 MIN_REMAINING_1M_FROM_15M = 15
 BB_PERIOD = 20
@@ -2956,6 +2958,39 @@ def _format_column_names(columns: list[str], *, limit: int = 5) -> str:
     return f"count={len(columns)} first={preview}{suffix}"
 
 
+def _unexpected_constant_helper_columns(
+    items: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    return [
+        item
+        for item in items
+        if not any(
+            fnmatchcase(str(item["column"]), pattern)
+            for pattern in KNOWN_CONSTANT_HELPER_COLUMN_PATTERNS
+        )
+    ]
+
+
+def _remaining_bars_validation_rule(
+    config: MultiRegimeHTFConfig,
+    regime: str,
+) -> tuple[str, pl.Expr, str]:
+    if config.label_window_policy == LABEL_WINDOW_OPPOSITE_FIRST_HALF:
+        max_remaining_bars = _entry_bar_limit(regime, "15m")
+        return (
+            "remaining_bars_within_label_window",
+            (pl.col("remaining_bars") < MIN_REMAINING_15M)
+            | (pl.col("remaining_bars") > max_remaining_bars),
+            f"max={max_remaining_bars}",
+        )
+    return (
+        "remaining_bars_within_batch",
+        pl.col("remaining_bars")
+        > (_bars_per_batch(regime, "15m") - pl.col("bar_pos_15m") - 1),
+        "same_family",
+    )
+
+
 def _select_post_warmup_helper_prefix_ids(
     helper_files: list[Path],
     helper_schema_map: pl.Schema,
@@ -3401,11 +3436,15 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     }
                 )
 
+            valid_label_rows = pl.col("target_4class") >= 0
+            (
+                remaining_check_name,
+                remaining_bounds,
+                remaining_detail_suffix,
+            ) = _remaining_bars_validation_rule(config, regime)
+
             remaining_violations = int(
-                scan.filter(
-                    pl.col("remaining_bars")
-                    > (_bars_per_batch(regime, "15m") - pl.col("bar_pos_15m") - 1)
-                )
+                scan.filter(valid_label_rows & remaining_bounds)
                 .select(pl.len())
                 .collect()
                 .item()
@@ -3416,9 +3455,12 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     "family": family,
                     "tf": "1m",
                     "stage": "labels",
-                    "check": "remaining_bars_within_batch",
+                    "check": remaining_check_name,
                     "ok": remaining_violations == 0,
-                    "detail": f"violations={remaining_violations}",
+                    "detail": (
+                        f"violations={remaining_violations} "
+                        f"{remaining_detail_suffix}"
+                    ),
                 }
             )
             invalid_pair = int(
@@ -3984,6 +4026,20 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                             **helper_constant_audit,
                         }
                     )
+                    unexpected_constant_helpers = _unexpected_constant_helper_columns(
+                        helper_constant_audit["constant_columns"]
+                    )
+                    allowed_constant_count = (
+                        len(helper_constant_audit["constant_columns"])
+                        - len(unexpected_constant_helpers)
+                    )
+                    constant_detail = _format_constant_columns(
+                        unexpected_constant_helpers
+                    )
+                    if allowed_constant_count > 0:
+                        constant_detail = (
+                            f"{constant_detail} allowed_known={allowed_constant_count}"
+                        )
                     rows.append(
                         _validation_row(
                             regime,
@@ -3992,8 +4048,8 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                             "helpers",
                             "usability_constant_helper_columns",
                             (not config.usability_audit_fail_on_constant)
-                            or len(helper_constant_audit["constant_columns"]) == 0,
-                            _format_constant_columns(helper_constant_audit["constant_columns"]),
+                            or len(unexpected_constant_helpers) == 0,
+                            constant_detail,
                         )
                     )
                     helper_post_warmup_prefix_ids, first_ready_helper_batch = (

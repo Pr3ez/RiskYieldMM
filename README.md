@@ -609,6 +609,9 @@ python notebooks/htf_pythonscript.py
 This script resolves the project root, writes run logs under
 `test_output/htf_run_logs/`, builds a `MultiRegimeHTFConfig`, and delegates stage
 execution to `scripts/feature_engineering/htf_multiregime_pipeline.py`.
+For multi-asset runs, the launcher attempts the remaining assets after a
+per-asset failure and reports failed assets at the end. Set
+`HTF_FAIL_FAST_ASSET_ERRORS=1` to stop immediately on the first asset error.
 
 The materialization stage builds all current regime/family roots for each
 selected asset:

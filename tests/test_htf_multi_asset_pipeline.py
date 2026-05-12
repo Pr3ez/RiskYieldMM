@@ -7,10 +7,13 @@ import polars as pl
 
 from scripts.feature_engineering.htf_multiregime_pipeline import (
     LABEL_WINDOW_OPPOSITE_FIRST_HALF,
+    LABEL_WINDOW_SAME_FAMILY,
     MultiRegimeHTFConfig,
     _build_1m_labels,
     _build_base_combined,
     _build_shifted_combined,
+    _remaining_bars_validation_rule,
+    _unexpected_constant_helper_columns,
 )
 
 
@@ -166,3 +169,59 @@ def test_opposite_family_labels_use_next_b_first_half_for_c_entries(tmp_path: Pa
         start + timedelta(hours=12)
     ]
     assert valid["remaining_bars"].unique().to_list() == [16]
+
+
+def test_opposite_family_remaining_bars_validation_uses_label_window(tmp_path: Path) -> None:
+    df = pl.DataFrame(
+        {
+            "target_4class": [0, 1, -1],
+            "remaining_bars": [16, 16, 999],
+            "bar_pos_15m": [31, 31, 31],
+        }
+    )
+
+    opposite_config = _config(tmp_path, asset_id="BTCUSDT")
+    check_name, violation_expr, detail = _remaining_bars_validation_rule(
+        opposite_config,
+        "8h",
+    )
+    opposite_violations = (
+        df.lazy()
+        .filter((pl.col("target_4class") >= 0) & violation_expr)
+        .select(pl.len())
+        .collect()
+        .item()
+    )
+
+    same_family_config = _config(tmp_path, asset_id="BTCUSDT")
+    same_family_config.label_window_policy = LABEL_WINDOW_SAME_FAMILY
+    same_check_name, same_violation_expr, _ = _remaining_bars_validation_rule(
+        same_family_config,
+        "8h",
+    )
+    same_family_violations = (
+        df.lazy()
+        .filter((pl.col("target_4class") >= 0) & same_violation_expr)
+        .select(pl.len())
+        .collect()
+        .item()
+    )
+
+    assert check_name == "remaining_bars_within_label_window"
+    assert detail == "max=16"
+    assert opposite_violations == 0
+    assert same_check_name == "remaining_bars_within_batch"
+    assert same_family_violations == 2
+
+
+def test_garch_persistence_is_allowed_known_constant_helper() -> None:
+    unexpected = _unexpected_constant_helper_columns(
+        [
+            {"column": "H_4cl_1_garch_persistence", "unique_non_null": 1},
+            {"column": "H_4cl_1_other_helper", "unique_non_null": 1},
+        ]
+    )
+
+    assert unexpected == [
+        {"column": "H_4cl_1_other_helper", "unique_non_null": 1}
+    ]

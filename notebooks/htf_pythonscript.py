@@ -19,6 +19,7 @@ import os
 import sys
 import threading
 import time
+import traceback
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -276,6 +277,7 @@ MULTI_REGIME_SMOKE_END = None
 MULTI_REGIME_RUN_OPTIMIZATION = _env_bool("HTF_RUN_OPTIMIZATION", True)
 MULTI_REGIME_RUN_HELPERS = _env_bool("HTF_RUN_HELPERS", True)
 MULTI_REGIME_RUN_VALIDATION = _env_bool("HTF_RUN_VALIDATION", True)
+MULTI_REGIME_FAIL_FAST_ASSET_ERRORS = _env_bool("HTF_FAIL_FAST_ASSET_ERRORS", False)
 
 MULTI_REGIME_PIPELINE_ARTIFACT_VERSION = SHARED_PIPELINE_ARTIFACT_VERSION
 MULTI_REGIME_THRESHOLDS_BY_TF = SHARED_THRESHOLDS_BY_TF
@@ -332,6 +334,7 @@ def run_htf_workflow() -> dict[str, Any] | None:
     print(f"Run optimization: {MULTI_REGIME_RUN_OPTIMIZATION}")
     print(f"Run helpers: {MULTI_REGIME_RUN_HELPERS}")
     print(f"Run validation: {MULTI_REGIME_RUN_VALIDATION}")
+    print(f"Fail fast on asset errors: {MULTI_REGIME_FAIL_FAST_ASSET_ERRORS}")
     print("=" * 70)
 
     if not RUN_MULTI_REGIME_EXTENSION:
@@ -339,6 +342,7 @@ def run_htf_workflow() -> dict[str, Any] | None:
         return None
 
     summaries: dict[str, Any] = {}
+    asset_errors: dict[str, str] = {}
     for asset_id in MULTI_REGIME_ASSETS:
         print("\n" + "=" * 70)
         print(f"HTF ASSET START: {asset_id}")
@@ -366,7 +370,21 @@ def run_htf_workflow() -> dict[str, Any] | None:
             smoke_end=MULTI_REGIME_SMOKE_END,
             progress_callback=workflow_progress_callback,
         )
-        summaries[asset_id] = run_multi_regime_htf_pipeline(config)
+        try:
+            summaries[asset_id] = run_multi_regime_htf_pipeline(config)
+        except Exception:
+            if len(MULTI_REGIME_ASSETS) == 1 or MULTI_REGIME_FAIL_FAST_ASSET_ERRORS:
+                raise
+            asset_errors[asset_id] = traceback.format_exc()
+            summaries[asset_id] = {
+                "status": "failed",
+                "error": asset_errors[asset_id].splitlines()[-1],
+            }
+            print("\n" + "=" * 70)
+            print(f"HTF ASSET FAILED: {asset_id}")
+            print("=" * 70)
+            print(asset_errors[asset_id])
+            print("Continuing with remaining assets. Final exit will report failures.")
 
     summary = summaries[MULTI_REGIME_ASSETS[0]] if len(MULTI_REGIME_ASSETS) == 1 else summaries
     validation_df = (
@@ -388,6 +406,12 @@ def run_htf_workflow() -> dict[str, Any] | None:
                 ]
             )
             .sort(["regime", "family", "tf", "stage"])
+        )
+    if asset_errors:
+        failed = ", ".join(asset_errors)
+        raise AssertionError(
+            "One or more HTF assets failed after attempting the configured asset set: "
+            f"{failed}. See the per-asset traceback above."
         )
     return summary
 

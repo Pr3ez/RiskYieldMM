@@ -52,6 +52,14 @@ All notable repository-level changes are recorded here.
 - Model-facing HTF optimized/helper outputs now explicitly reject label-only
   future fields; the optimizer drops those fields if they ever appear in an
   upstream feature batch.
+- HTF validation now checks `remaining_bars` against the active label-window
+  policy, so opposite-family labels are no longer rejected by the older
+  same-batch assumption.
+- Multi-asset HTF launcher runs now attempt remaining assets after a per-asset
+  failure and raise a final summary error at the end; set
+  `HTF_FAIL_FAST_ASSET_ERRORS=1` to restore immediate fail-fast behavior.
+- HTF helper validation now treats constant `H_*_garch_persistence` as a known
+  fitted-parameter artifact instead of failing the full run.
 - Bybit fetching and compatibility aggregation are symbol-aware for both
   `BTCUSDT` and `ETHUSDT`.
 - Generated local progress/status artifacts are removed from the merge surface
