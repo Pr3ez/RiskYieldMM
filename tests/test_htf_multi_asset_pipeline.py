@@ -128,3 +128,41 @@ def test_opposite_family_labels_use_next_c_first_half_for_b_entries(tmp_path: Pa
         start + timedelta(hours=8)
     ]
     assert valid["remaining_bars"].unique().to_list() == [16]
+
+
+def test_opposite_family_labels_use_next_b_first_half_for_c_entries(tmp_path: Path) -> None:
+    start = datetime(2021, 1, 1, tzinfo=timezone.utc)
+    raw_1m = tmp_path / "fetchingByBit" / "sorted-1m-bybit-linear"
+    raw_15m = tmp_path / "fetchingByBit" / "sorted-15m-bybit-linear"
+    raw_1m.mkdir(parents=True)
+    raw_15m.mkdir(parents=True)
+    _raw_ohlcv(start, 16 * 60, step_minutes=1, base=100.0).write_parquet(
+        raw_1m / "btcusdt_linear_sorted_batch_000000.parquet"
+    )
+    _raw_ohlcv(start, 16 * 4, step_minutes=15, base=100.0).write_parquet(
+        raw_15m / "btcusdt_linear_sorted_batch_000000.parquet"
+    )
+
+    config = _config(tmp_path, asset_id="BTCUSDT")
+    for tf in ("1m", "15m"):
+        _build_base_combined(config, regime="8h", tf=tf)
+        _build_shifted_combined(config, regime="8h", tf=tf)
+
+    result = _build_1m_labels(config, regime="8h", family="C")
+    label_batch = pl.read_parquet(Path(result["label_dir"]) / "batch_0001.parquet")
+    valid = label_batch.filter(pl.col("target_4class") >= 0)
+
+    assert len(valid) == 240
+    assert valid["label_window_policy"].unique().to_list() == [
+        LABEL_WINDOW_OPPOSITE_FIRST_HALF
+    ]
+    assert valid["label_entry_family"].unique().to_list() == ["C"]
+    assert valid["label_window_family"].unique().to_list() == ["B"]
+    assert valid["label_window_batch_id"].unique().to_list() == [2]
+    assert valid["label_window_start"].unique().to_list() == [
+        start + timedelta(hours=8)
+    ]
+    assert valid["label_window_end"].unique().to_list() == [
+        start + timedelta(hours=12)
+    ]
+    assert valid["remaining_bars"].unique().to_list() == [16]

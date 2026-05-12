@@ -63,6 +63,7 @@ from scripts.feature_engineering.htf_shared_config import (
 from scripts.feature_engineering.optimize_htf_features import (
     HTFOptimizationConfig,
     _batch_id_from_stem,
+    _build_selection_input_signature,
     _file_fingerprint,
     _load_transformer_state,
 )
@@ -422,6 +423,17 @@ def _optimizer_current_status(config: MultiRegimeHTFConfig, regime: str, family:
     cached_meta = json.loads(meta_file.read_text()) if meta_file.exists() else None
     if cached_meta is None:
         return {"status": "full_recompute", "reason": "missing_meta"}
+
+    current_selection_signature = _build_selection_input_signature(
+        "1m",
+        "target_4class",
+        opt_cfg,
+    )
+    if cached_meta.get("selection_input_signature") != current_selection_signature:
+        return {
+            "status": "incremental_tail",
+            "reason": "selection_input_signature",
+        }
 
     prev_fps = cached_meta.get("batch_fingerprints", {})
     first_diff = None

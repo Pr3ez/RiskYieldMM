@@ -44,6 +44,14 @@ All notable repository-level changes are recorded here.
 - HTF labels now document and test the `opposite_family_first_half` policy:
   B-family entries label from the next C-family first-half window, and C-family
   entries label from the next B-family first-half window.
+- HTF materialization now has guarded speedups for opposite-family label
+  distance computation and optimizer hyperparameter selection. The new paths are
+  covered by parity tests, preserve the model-facing temporal contract, compute
+  validation rolling-rank caches in parallel across feature columns, and
+  invalidate optimized output reuse when the selected transform config changes.
+- Model-facing HTF optimized/helper outputs now explicitly reject label-only
+  future fields; the optimizer drops those fields if they ever appear in an
+  upstream feature batch.
 - Bybit fetching and compatibility aggregation are symbol-aware for both
   `BTCUSDT` and `ETHUSDT`.
 - Generated local progress/status artifacts are removed from the merge surface

@@ -42,18 +42,23 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import polars as pl
-from scipy.stats import spearmanr
+from scipy.stats import norm, spearmanr
 from sklearn.feature_selection import mutual_info_classif
 
 from scripts.analysis.optimizers.rolling_rank_winsorize import (
     RollingRankWinsorizeTransformer,
     get_winsorize_rank_candidates,
+    _rolling_rank_streaming_matrix_from_start,
 )
 from scripts.feature_engineering.htf_feature_acceptance import (
     FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE,
     FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+    FINAL_OUTPUT_LABEL_ONLY_COLUMNS,
     get_final_output_excluded_columns,
 )
+
+
+OPTIMIZER_SELECTION_IMPLEMENTATION_VERSION = "rank-reuse-v1"
 
 
 @dataclass
@@ -151,6 +156,8 @@ def get_feature_cols(df: pl.DataFrame, *, output_stage: str = "optimized") -> li
         dtype = df.schema[col]
         if col in OPTIMIZER_META_COLS:
             continue
+        if col in FINAL_OUTPUT_LABEL_ONLY_COLUMNS:
+            continue
         if not dtype.is_numeric():
             continue
         feature_cols.append(col)
@@ -213,6 +220,60 @@ def _file_fingerprint(path: Path) -> dict:
     return {
         "mtime_ns": int(stat.st_mtime_ns),
         "size_bytes": int(stat.st_size),
+    }
+
+
+def _optimizer_config_signature(config: dict | None) -> dict | None:
+    if not config:
+        return None
+    return {
+        "window": int(config["window"]),
+        "p_min": float(config["p_min"]),
+        "p_max": float(config["p_max"]),
+        "post_transform": str(config["post_transform"]),
+    }
+
+
+def _candidate_grid_signature(tf: str) -> list[dict]:
+    return [
+        _optimizer_config_signature(candidate)
+        for candidate in get_winsorize_rank_candidates(tf)
+    ]
+
+
+def _fingerprint_file_list(paths: list[Path]) -> list[dict]:
+    return [
+        {
+            "stem": path.stem,
+            "fingerprint": _file_fingerprint(path),
+        }
+        for path in paths
+    ]
+
+
+def _build_selection_input_signature(
+    tf: str,
+    target: str,
+    config: HTFOptimizationConfig,
+) -> dict:
+    features_dir = config.htf_features_dir / tf
+    labels_dir = config.htf_labels_dir / tf
+    feature_files = sorted(features_dir.glob("batch_*.parquet"))
+    label_files = sorted(labels_dir.glob("batch_*.parquet"))
+    n_batches = min(config.n_early_batches, len(feature_files))
+
+    return {
+        "version": OPTIMIZER_SELECTION_IMPLEMENTATION_VERSION,
+        "timeframe": tf,
+        "target": target,
+        "n_early_batches": int(config.n_early_batches),
+        "n_val_folds": int(config.n_val_folds),
+        "stability_lambda": float(config.stability_lambda),
+        "candidate_grid": _candidate_grid_signature(tf),
+        "final_output_feature_policy_version": FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+        "final_output_feature_policy_signature": FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE,
+        "feature_files": _fingerprint_file_list(feature_files[:n_batches]),
+        "label_files": _fingerprint_file_list(label_files[:n_batches]),
     }
 
 
@@ -439,6 +500,148 @@ def walk_forward_validate(
     return np.mean(scores), np.std(scores)
 
 
+def _score_transformed_fold(
+    X_val_transformed: pd.DataFrame,
+    y_val_np: np.ndarray,
+    feature_cols: list[str],
+    *,
+    target_type: str,
+    n_classes: int | None,
+) -> float | None:
+    if not feature_cols:
+        return None
+
+    if target_type == "multiclass":
+        X_val_clean = X_val_transformed[feature_cols].fillna(0)
+        try:
+            mi_scores = mutual_info_classif(
+                X_val_clean,
+                y_val_np.astype(int),
+                discrete_features=False,
+                random_state=42,
+            )
+            n_cls = n_classes or int(np.nanmax(y_val_np)) + 1
+            fold_score = float(np.mean(mi_scores / np.log2(max(n_cls, 2))))
+            return fold_score if not np.isnan(fold_score) else None
+        except Exception:
+            return None
+
+    fold_ics = []
+    for col in feature_cols:
+        if col not in X_val_transformed.columns:
+            continue
+        feat = X_val_transformed[col].values
+        mask = ~(np.isnan(feat) | np.isnan(y_val_np))
+        if mask.sum() > 50:
+            ic, _ = spearmanr(feat[mask], y_val_np[mask])
+            if not np.isnan(ic):
+                fold_ics.append(abs(ic))
+    if not fold_ics:
+        return None
+    return float(np.mean(fold_ics))
+
+
+def _apply_rank_candidate(
+    ranks: pd.DataFrame,
+    *,
+    p_min: float,
+    p_max: float,
+    post_transform: str,
+) -> pd.DataFrame:
+    clipped = ranks.clip(lower=p_min, upper=p_max)
+    if post_transform == "uniform":
+        return clipped
+    if post_transform == "signed":
+        return 2 * clipped - 1
+    if post_transform == "gauss":
+        eps = 1e-6
+        values = norm.ppf(np.clip(clipped.to_numpy(dtype=np.float64), eps, 1 - eps))
+        return pd.DataFrame(values, columns=clipped.columns, index=clipped.index)
+    return clipped
+
+
+def _validate_window_candidates_with_rank_reuse(
+    X: pd.DataFrame,
+    y: pd.Series,
+    *,
+    window: int,
+    candidates: list[tuple[int, dict]],
+    n_folds: int,
+    target_type: str,
+    n_classes: int | None,
+) -> dict[int, tuple[float, float]]:
+    n = len(X)
+    fold_size = n // (n_folds + 1)
+    raw_transformer = RollingRankWinsorizeTransformer(
+        window=window,
+        p_min=0.0,
+        p_max=1.0,
+        post_transform="uniform",
+    )
+    feature_cols = [c for c in X.columns if raw_transformer._should_transform(c)]
+
+    fold_rank_cache: list[tuple[pd.DataFrame, np.ndarray]] = []
+    for fold in range(n_folds):
+        train_end = fold_size * (fold + 1)
+        val_start = train_end
+        val_end = min(train_end + fold_size, n)
+        if val_end <= val_start:
+            continue
+
+        X_prefix = X.iloc[:val_end]
+        X_val_index = X.index[val_start:val_end]
+        y_val_np = y.iloc[val_start:val_end].copy().values
+
+        if feature_cols:
+            prefix_values = np.ascontiguousarray(
+                X_prefix[feature_cols].to_numpy(dtype=np.float64, copy=True)
+            )
+            prefix_ranks = _rolling_rank_streaming_matrix_from_start(
+                prefix_values,
+                int(window),
+            )
+            X_val_ranks = pd.DataFrame(
+                prefix_ranks[val_start:val_end],
+                columns=feature_cols,
+                index=X_val_index,
+            )
+        else:
+            X_val_ranks = pd.DataFrame(index=X_val_index)
+        fold_rank_cache.append((X_val_ranks, y_val_np))
+
+        del X_prefix, X_val_ranks
+        gc.collect()
+
+    window_results: dict[int, tuple[float, float]] = {}
+    for candidate_index, cand in candidates:
+        scores = []
+        for ranks, y_val_np in fold_rank_cache:
+            transformed = _apply_rank_candidate(
+                ranks,
+                p_min=float(cand["p_min"]),
+                p_max=float(cand["p_max"]),
+                post_transform=str(cand["post_transform"]),
+            )
+            fold_score = _score_transformed_fold(
+                transformed,
+                y_val_np,
+                feature_cols,
+                target_type=target_type,
+                n_classes=n_classes,
+            )
+            if fold_score is not None:
+                scores.append(fold_score)
+            del transformed
+        if scores:
+            window_results[candidate_index] = (float(np.mean(scores)), float(np.std(scores)))
+        else:
+            window_results[candidate_index] = (0.0, 1.0)
+
+    del fold_rank_cache
+    gc.collect()
+    return window_results
+
+
 def select_best_config(
     X: pd.DataFrame,
     y: pd.Series,
@@ -470,22 +673,26 @@ def select_best_config(
     best_mean_ic = 0.0
     best_std_ic = 0.0
 
+    candidates_by_window: dict[int, list[tuple[int, dict]]] = {}
     for i, cand in enumerate(candidates):
-        transformer = RollingRankWinsorizeTransformer(
-            window=cand["window"],
-            p_min=cand["p_min"],
-            p_max=cand["p_max"],
-            post_transform=cand["post_transform"],
+        candidates_by_window.setdefault(int(cand["window"]), []).append((i, cand))
+
+    validation_results: dict[int, tuple[float, float]] = {}
+    for window, window_candidates in candidates_by_window.items():
+        validation_results.update(
+            _validate_window_candidates_with_rank_reuse(
+                X,
+                y,
+                window=window,
+                candidates=window_candidates,
+                n_folds=config.n_val_folds,
+                target_type=target_type,
+                n_classes=n_classes,
+            )
         )
 
-        mean_ic, std_ic = walk_forward_validate(
-            X,
-            y,
-            transformer,
-            n_folds=config.n_val_folds,
-            target_type=target_type,
-            n_classes=n_classes,
-        )
+    for i, cand in enumerate(candidates):
+        mean_ic, std_ic = validation_results.get(i, (0.0, 1.0))
 
         # Score with stability penalty
         score = mean_ic - config.stability_lambda * std_ic
@@ -660,8 +867,12 @@ def apply_streaming_to_all_batches(
             or cached_meta.get("final_output_feature_policy_signature")
             != FINAL_OUTPUT_FEATURE_POLICY_SIGNATURE
         )
-        first_diff = first_batch if policy_changed else None
-        if not policy_changed:
+        transform_config_changed = (
+            _optimizer_config_signature(cached_meta.get("config"))
+            != _optimizer_config_signature(best_config)
+        )
+        first_diff = first_batch if (policy_changed or transform_config_changed) else None
+        if not policy_changed and not transform_config_changed:
             for rec in pairs:
                 bid = int(rec["batch_id"])
                 bid_key = str(bid)
@@ -692,7 +903,7 @@ def apply_streaming_to_all_batches(
         # batch. A policy change invalidates the prior feature-column set, so
         # snapshots are intentionally ignored in that case.
         snapshot_candidates: list[tuple[int, Path]] = []
-        if not policy_changed:
+        if not policy_changed and not transform_config_changed:
             for p in sorted(state_dir.glob("state_after_batch_*.npz")):
                 try:
                     snap_bid = _batch_id_from_stem(p.stem.replace("state_after_", ""))
@@ -725,6 +936,8 @@ def apply_streaming_to_all_batches(
                     f"full_recompute_from_{first_batch}_policy_"
                     f"{FINAL_OUTPUT_FEATURE_POLICY_VERSION}"
                 )
+            elif transform_config_changed:
+                resume_reason = f"full_recompute_from_{first_batch}_optimizer_config"
             else:
                 resume_reason = f"full_recompute_from_{first_batch}_first_diff_{first_diff}"
 
@@ -803,7 +1016,11 @@ def apply_streaming_to_all_batches(
         # Preserve only true batch metadata. Any numeric column excluded from
         # `feature_cols` is intentionally being dropped from model-facing
         # outputs and must not leak back in through the metadata side.
-        meta_cols = [c for c in merged.columns if c in OPTIMIZER_META_COLS]
+        meta_cols = [
+            c
+            for c in merged.columns
+            if c in OPTIMIZER_META_COLS and c not in FINAL_OUTPUT_LABEL_ONLY_COLUMNS
+        ]
         meta = merged.select(meta_cols)
 
         del merged
@@ -929,6 +1146,18 @@ def optimize_single_tf_target(
             cached_config = cached_meta.get("config")
         except Exception:
             cached_meta = None
+            cached_config = None
+
+    current_selection_signature = _build_selection_input_signature(tf, target, config)
+    if cached_config is not None:
+        cached_selection_signature = (
+            cached_meta.get("selection_input_signature") if cached_meta else None
+        )
+        if cached_selection_signature != current_selection_signature:
+            print(
+                "  → Cached best config invalidated by optimizer selection "
+                "input signature. Re-running grid search."
+            )
             cached_config = None
 
     policy_changed = bool(
@@ -1057,6 +1286,10 @@ def optimize_single_tf_target(
                 "n_val_folds": config.n_val_folds,
                 "stability_lambda": config.stability_lambda,
             },
+            "selection_input_signature": current_selection_signature,
+            "optimizer_selection_implementation_version": (
+                OPTIMIZER_SELECTION_IMPLEMENTATION_VERSION
+            ),
             "run_options": {
                 "recompute": bool(config.recompute),
                 "incremental_update": bool(config.incremental_update),

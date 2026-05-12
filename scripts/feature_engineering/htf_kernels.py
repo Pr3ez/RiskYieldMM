@@ -76,7 +76,7 @@ def compute_distance_metrics(
 
 
 @njit
-def compute_hybrid_distance_metrics(
+def _compute_hybrid_distance_metrics_reference(
     close_entry,
     batch_id_entry,
     bar_pos_15m_for_entry,
@@ -134,6 +134,160 @@ def compute_hybrid_distance_metrics(
         dist_top5_high,
         dist_bot5_low,
         remaining_bars_out,
+    )
+
+
+@njit
+def _compute_opposite_window_hybrid_distance_metrics(
+    close_entry,
+    batch_id_entry,
+    high_15m,
+    low_15m,
+    batch_id_15m,
+    min_remaining,
+    outlier_pct,
+):
+    n = len(close_entry)
+    dist_avg_high = np.full(n, np.nan, dtype=np.float64)
+    dist_avg_low = np.full(n, np.nan, dtype=np.float64)
+    dist_top5_high = np.full(n, np.nan, dtype=np.float64)
+    dist_bot5_low = np.full(n, np.nan, dtype=np.float64)
+    remaining_bars_out = np.full(n, 0, dtype=np.int32)
+
+    n_15m = len(high_15m)
+    unique_ids = np.empty(n_15m, dtype=np.int64)
+    counts = np.zeros(n_15m, dtype=np.int32)
+    avg_highs = np.full(n_15m, np.nan, dtype=np.float64)
+    avg_lows = np.full(n_15m, np.nan, dtype=np.float64)
+    top_highs = np.full(n_15m, np.nan, dtype=np.float64)
+    bot_lows = np.full(n_15m, np.nan, dtype=np.float64)
+
+    unique_count = 0
+    start = 0
+    while start < n_15m:
+        current_batch = batch_id_15m[start]
+        end = start + 1
+        while end < n_15m and batch_id_15m[end] == current_batch:
+            end += 1
+
+        count = end - start
+        unique_ids[unique_count] = current_batch
+        counts[unique_count] = count
+
+        if count >= min_remaining:
+            highs = np.empty(count, dtype=np.float64)
+            lows = np.empty(count, dtype=np.float64)
+            high_sum = 0.0
+            low_sum = 0.0
+            for j in range(count):
+                high_value = high_15m[start + j]
+                low_value = low_15m[start + j]
+                highs[j] = high_value
+                lows[j] = low_value
+                high_sum += high_value
+                low_sum += low_value
+
+            sorted_highs = np.sort(highs)
+            sorted_lows = np.sort(lows)
+            top_n = max(1, int(count * outlier_pct))
+
+            top_sum = 0.0
+            bot_sum = 0.0
+            for j in range(top_n):
+                top_sum += sorted_highs[count - top_n + j]
+                bot_sum += sorted_lows[j]
+
+            avg_highs[unique_count] = high_sum / count
+            avg_lows[unique_count] = low_sum / count
+            top_highs[unique_count] = top_sum / top_n
+            bot_lows[unique_count] = bot_sum / top_n
+
+        unique_count += 1
+        start = end
+
+    for i in range(n):
+        current_batch = batch_id_entry[i]
+        lo = 0
+        hi = unique_count - 1
+        found = -1
+        while lo <= hi:
+            mid = (lo + hi) // 2
+            mid_batch = unique_ids[mid]
+            if mid_batch == current_batch:
+                found = mid
+                break
+            if mid_batch < current_batch:
+                lo = mid + 1
+            else:
+                hi = mid - 1
+
+        if found < 0:
+            continue
+
+        count = counts[found]
+        remaining_bars_out[i] = count
+        if count < min_remaining:
+            continue
+
+        entry = close_entry[i]
+        dist_avg_high[i] = 100.0 * (avg_highs[found] - entry) / entry
+        dist_avg_low[i] = 100.0 * (entry - avg_lows[found]) / entry
+        dist_top5_high[i] = 100.0 * (top_highs[found] - entry) / entry
+        dist_bot5_low[i] = 100.0 * (entry - bot_lows[found]) / entry
+
+    return (
+        dist_avg_high,
+        dist_avg_low,
+        dist_top5_high,
+        dist_bot5_low,
+        remaining_bars_out,
+    )
+
+
+def _can_use_opposite_window_fast_path(
+    bar_pos_15m_for_entry: np.ndarray,
+    batch_id_15m: np.ndarray,
+) -> bool:
+    if len(bar_pos_15m_for_entry) == 0:
+        return False
+    if not np.all(bar_pos_15m_for_entry == -1):
+        return False
+    if len(batch_id_15m) <= 1:
+        return True
+    return bool(np.all(batch_id_15m[1:] >= batch_id_15m[:-1]))
+
+
+def compute_hybrid_distance_metrics(
+    close_entry,
+    batch_id_entry,
+    bar_pos_15m_for_entry,
+    high_15m,
+    low_15m,
+    batch_id_15m,
+    bar_pos_15m,
+    min_remaining,
+    outlier_pct,
+):
+    if _can_use_opposite_window_fast_path(bar_pos_15m_for_entry, batch_id_15m):
+        return _compute_opposite_window_hybrid_distance_metrics(
+            close_entry,
+            batch_id_entry,
+            high_15m,
+            low_15m,
+            batch_id_15m,
+            min_remaining,
+            outlier_pct,
+        )
+    return _compute_hybrid_distance_metrics_reference(
+        close_entry,
+        batch_id_entry,
+        bar_pos_15m_for_entry,
+        high_15m,
+        low_15m,
+        batch_id_15m,
+        bar_pos_15m,
+        min_remaining,
+        outlier_pct,
     )
 
 

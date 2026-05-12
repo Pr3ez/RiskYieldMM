@@ -78,6 +78,24 @@ FINAL_OUTPUT_FEATURE_RULES: tuple[FinalOutputFeatureRule, ...] = (
     ),
 )
 
+FINAL_OUTPUT_LABEL_ONLY_COLUMNS: frozenset[str] = frozenset(
+    {
+        "target_long",
+        "target_short",
+        "target_4class",
+        "target_breakfree",
+        "target_name",
+        "close_end",
+        "end_return",
+        "remaining_bars",
+        "dist_avg_high",
+        "dist_avg_low",
+        "dist_top5_high",
+        "dist_bot5_low",
+        "bar_pos_15m",
+    }
+)
+
 
 _policy_payload = {
     "rules": [asdict(rule) for rule in FINAL_OUTPUT_FEATURE_RULES],
@@ -102,6 +120,17 @@ def get_final_output_excluded_columns(
         ):
             excluded.append(col)
     return sorted(set(excluded))
+
+
+def get_final_output_forbidden_columns(
+    columns: Iterable[str],
+    *,
+    stage: str,
+) -> list[str]:
+    """Return columns that must not appear in optimized/helper model outputs."""
+    stage_excluded = set(get_final_output_excluded_columns(columns, stage=stage))
+    label_only = set(columns) & FINAL_OUTPUT_LABEL_ONLY_COLUMNS
+    return sorted(stage_excluded | label_only)
 
 
 def describe_final_output_exclusions(

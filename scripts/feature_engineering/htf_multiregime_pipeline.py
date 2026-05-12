@@ -44,6 +44,7 @@ from scripts.feature_engineering.htf_artifact_utils import (
 )
 from scripts.feature_engineering.htf_feature_acceptance import (
     FINAL_OUTPUT_FEATURE_POLICY_VERSION,
+    FINAL_OUTPUT_LABEL_ONLY_COLUMNS,
     get_final_output_excluded_columns,
 )
 from scripts.feature_engineering.htf_kernels import (
@@ -3547,6 +3548,9 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     opt_schema_map.names(),
                     stage="optimized",
                 )
+                label_only_opt_cols = sorted(
+                    set(opt_schema_map.names()) & FINAL_OUTPUT_LABEL_ONLY_COLUMNS
+                )
                 rows.append(
                     _validation_row(
                         regime,
@@ -3556,6 +3560,17 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                         "policy_excluded_columns_absent",
                         len(policy_blocked_opt_cols) == 0,
                         _format_column_names(policy_blocked_opt_cols),
+                    )
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "optimized",
+                        "label_only_columns_absent",
+                        len(label_only_opt_cols) == 0,
+                        _format_column_names(label_only_opt_cols),
                     )
                 )
                 if config.usability_audit_enabled:
@@ -3837,6 +3852,9 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     helper_schema_map.names(),
                     stage="helpers",
                 )
+                label_only_helper_cols = sorted(
+                    set(helper_schema_map.names()) & FINAL_OUTPUT_LABEL_ONLY_COLUMNS
+                )
                 rows.append(
                     _validation_row(
                         regime,
@@ -3846,6 +3864,17 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                         "policy_excluded_columns_absent",
                         len(policy_blocked_helper_cols) == 0,
                         _format_column_names(policy_blocked_helper_cols),
+                    )
+                )
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "label_only_columns_absent",
+                        len(label_only_helper_cols) == 0,
+                        _format_column_names(label_only_helper_cols),
                     )
                 )
                 if config.usability_audit_enabled:

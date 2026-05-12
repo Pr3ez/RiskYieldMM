@@ -24,15 +24,15 @@ The active multi-regime HTF workflow builds 8h, 24h, and 7d regimes, but the opt
 Current optimizer metadata checked:
 
 ```text
-data/htf_optimized/1m/optimized_target_4class_meta.json
+data/htf_multiasset/btcusdt/htf_optimized/1m/optimized_target_4class_meta.json
 timeframe=1m
 target=target_4class
 method=rolling_rank_winsorize
 config=L=960, clip=(0.01,0.99), post=signed
 target_type=multiclass
 n_classes=4
-n_batches=5849
-total_rows=1403640
+n_batches=5856
+total_rows=1405200
 feature_cols=129
 ```
 
@@ -91,7 +91,50 @@ The rolling rank-winsorize optimizer is causal:
 
 The current optimized artifacts preserve only feature columns and allowed metadata. They do not preserve the target column in model-facing output.
 
-Residual risk: cached optimizer configs can be reused across incremental updates. That is efficient and not leakage, but it can become stale if labels, feature distributions, or target definitions materially change. The metadata should eventually invalidate selection configs from feature/label fingerprints, not only stream-application fingerprints.
+Cached optimizer configs are now guarded by a selection input signature covering
+the early feature/label files, target, timeframe, validation settings, candidate
+grid, output feature policy, and optimizer selection implementation version. If
+that signature changes, grid search reruns before streaming application. If the
+newly selected transform config differs from cached metadata, existing optimized
+batches are rebuilt from the first batch rather than reused under the wrong
+transform.
+
+The grouped optimizer-selection speedup reuses causal raw rolling ranks by
+window and applies each candidate's clipping/post-transform to those cached
+ranks. Validation rank matrices are built with a Numba-parallel kernel that
+preserves the original streaming buffer semantics, including NaN rows not
+advancing the per-feature buffer. Focused regression coverage compares it
+against the previous per-candidate validation path and requires identical best
+config and scores.
+
+## Speedup Parity Evidence
+
+Implemented guarded speedups:
+
+- opposite-family label windows precompute distance summaries when the active
+  `opposite_family_first_half` shape is detected; otherwise the original
+  row-scanning kernel is used;
+- optimizer selection reuses causal rolling-rank validation arrays by window;
+- rolling-rank validation arrays are computed in parallel across feature
+  columns while preserving streaming parity;
+- optimized output reuse is invalidated when selected transform config changes.
+
+Focused validation:
+
+```bash
+python -m pytest \
+  tests/test_htf_label_kernel_parity.py \
+  tests/test_htf_optimizer_selection_parity.py \
+  tests/test_htf_auxiliary_alignment.py \
+  tests/test_htf_incremental_resume.py \
+  tests/test_htf_multi_asset_pipeline.py \
+  tests/test_htf_workflow_contract.py \
+  -q
+```
+
+This suite validates label-distance parity, optimizer-selection parity, optimizer
+resume safety, auxiliary as-of alignment, incremental resume behavior, and the
+multi-asset HTF workflow contract.
 
 ## Helper Stage
 
@@ -132,9 +175,7 @@ kalman=streaming_handoff_v1
 egarch=streaming_handoff_v1
 ```
 
-## Broadcast Availability Risk
-
-This is the main issue to address.
+## Broadcast Availability Contract
 
 `compute_htf_features.py::broadcast_higher_tf()` says it uses the last complete higher-timeframe bar, but the implementation floors the base timestamp to the higher-timeframe boundary and joins on that timestamp:
 
@@ -164,14 +205,12 @@ Local fetched files show mixed timestamp conventions:
 - 5m long/short ratio starts at `2021-01-01 00:00:00`, which needs an explicit endpoint availability assumption.
 - funding starts at 8h event timestamps such as `2021-01-01 00:00:00`.
 
-Therefore, the broadcast code is safe only if each broadcast source timestamp is already an availability timestamp. The code does not currently enforce or document that per source.
-
-Recommended fix:
-
-1. Add per-source availability semantics, for example `timestamp_role = "available_at"` or `timestamp_role = "period_start"`.
-2. For any period-start aggregate source, create `available_ts = timestamp + source_period` and use an as-of backward join on `available_ts <= base_timestamp`.
-3. Add a synthetic test proving that 1m rows inside `00:00..00:04` cannot see a 5m aggregate that only becomes available at `00:05`.
-4. Document that model inference happens after the native 1m row closes.
+Therefore, the broadcast code is safe only if each broadcast source timestamp is
+handled as an availability timestamp. The maintained path now records source
+timestamp semantics and routes alignment through availability-aware as-of joins.
+Synthetic coverage in `tests/test_htf_auxiliary_alignment.py` proves that a
+period-start aggregate cannot be visible to 1m rows before its source period has
+completed.
 
 ## Existing Validation Evidence
 
@@ -196,10 +235,9 @@ No all-null or constant-column failures were found in those reports. The only re
 ## Required Follow-Up
 
 1. Add a strict publication-lag option for conservative live deployment comparisons if Bybit endpoint latency proves material.
-2. Add a regression test that optimized/helper outputs never contain label-only columns.
+2. Keep the optimized/helper label-only column guard in the mandatory smoke suite.
 3. Keep `tests/test_htf_auxiliary_alignment.py` in the mandatory smoke suite for causal broadcast alignment.
-4. Add optimizer selection invalidation when feature/label fingerprints or target definitions change materially.
-5. Add a live-inference note stating predictions are made after the current 1m bar closes.
+4. Keep the live-inference convention explicit: predictions are made after the current 1m bar closes.
 
 ## Final Assessment
 

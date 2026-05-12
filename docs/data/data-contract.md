@@ -109,8 +109,11 @@ Required label outputs include:
 ```text
 target_4class
 target_breakfree
-distance_to_upper
-distance_to_lower
+dist_avg_high
+dist_avg_low
+dist_top5_high
+dist_bot5_low
+remaining_bars
 end_return
 ```
 

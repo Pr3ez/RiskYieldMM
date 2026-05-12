@@ -49,6 +49,7 @@ fetchingbinance/**/sorted-*
 # Logs and temp files
 *.log
 logs/
+test_output/htf_run_logs/*.out
 test_output/htf_run_logs/*_status.json
 tmp/
 *.tmp

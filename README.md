@@ -97,6 +97,14 @@ C entry half -> next B first-half outcome window
 The newest tail can remain unlabeled until the future opposite-family window is
 available. That is expected and should not be filled manually.
 
+HTF materialization includes guarded speedups for the expensive label-distance
+and optimizer-selection stages. The label fast path is only used for the active
+opposite-family window shape and falls back to the reference kernel otherwise.
+Optimizer selection reuses causal rolling ranks by window, with parity tests and
+selection-signature invalidation to preserve the existing temporal contract. Its
+validation rank cache is built in parallel across feature columns while keeping
+the same streaming buffer behavior as the reference transformer.
+
 Key locations:
 
 - `scripts/feature_engineering/compute_htf_features.py`

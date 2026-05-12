@@ -279,8 +279,7 @@ class TestConsistency:
 
     def test_same_horizon_same_timestamp_range(self):
         """All targets with same horizon should cover same time range."""
-        # This would require timestamp column, skip if not available
-        pass  # Datasets don't have timestamp after feature extraction
+        pytest.skip("generated target datasets do not preserve timestamp columns")
 
     def test_feature_overlap(self):
         """Most features should be shared across targets."""

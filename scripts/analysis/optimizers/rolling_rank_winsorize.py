@@ -137,6 +137,46 @@ def _rolling_rank_streaming_single(
     return ranks, buffer, buffer_pos, buffer_count
 
 
+@njit(parallel=True, cache=True)
+def _rolling_rank_streaming_matrix_from_start(
+    data: np.ndarray,
+    window: int,
+) -> np.ndarray:
+    """
+    Streaming rolling rank for a full matrix from an empty initial state.
+
+    This preserves the same per-column buffer semantics as
+    _rolling_rank_streaming_single(): NaN values produce NaN ranks and do not
+    advance the rolling buffer.
+    """
+    n_rows, n_features = data.shape
+    result = np.full((n_rows, n_features), np.nan, dtype=np.float64)
+
+    for col in prange(n_features):
+        buffer = np.empty(window, dtype=np.float64)
+        buffer_pos = 0
+        buffer_count = 0
+
+        for t in range(n_rows):
+            x_t = data[t, col]
+            if np.isnan(x_t):
+                continue
+
+            if buffer_count > 0:
+                count = 0
+                for i in range(buffer_count):
+                    if buffer[i] <= x_t:
+                        count += 1
+                result[t, col] = count / buffer_count
+
+            buffer[buffer_pos] = x_t
+            buffer_pos = (buffer_pos + 1) % window
+            if buffer_count < window:
+                buffer_count += 1
+
+    return result
+
+
 @dataclass
 class RollingRankWinsorizeTransformer:
     """
