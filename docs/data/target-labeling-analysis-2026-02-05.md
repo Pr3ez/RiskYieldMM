@@ -1,7 +1,10 @@
 # Target Labeling Analysis - Batch-Based Approach
 
 **Date:** 2026-02-05  
-**Status:** Analysis Complete  
+**Status:** Historical 8-class research note. The active HTF target surface is
+`target_4class` plus `target_breakfree`; see
+`docs/data/data-contract.md` and `docs/htf/target-labeling-logic.md` for the
+current contract boundary.
 **Decision:** 8-class target structure
 
 ---

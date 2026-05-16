@@ -88,6 +88,8 @@ class TwelveDataError(RuntimeError):
 
 @dataclass(frozen=True)
 class FetchSummary:
+    """Fetch/write outcome for one Twelve Data asset interval."""
+
     asset: str
     interval: str
     rows_fetched: int
@@ -100,6 +102,8 @@ class FetchSummary:
 
 @dataclass(frozen=True)
 class WriteSummary:
+    """Local parquet row/file/range summary for normalized OHLCV batches."""
+
     rows_written: int
     files: int
     first_ts: datetime | None
@@ -202,6 +206,7 @@ def parse_datetime(value: str | datetime) -> datetime:
 
 
 def format_twelve_datetime(dt: datetime) -> str:
+    """Format a UTC datetime for Twelve Data request parameters."""
     return _as_utc(dt).strftime("%Y-%m-%d %H:%M:%S")
 
 
@@ -332,6 +337,7 @@ def save_progress(
     provider: str = DEFAULT_PROVIDER,
     progress_file: Path = PROGRESS_FILE,
 ) -> None:
+    """Persist lightweight resume/status metadata for one provider asset interval."""
     progress: dict[str, Any] = {}
     if progress_file.exists():
         try:
@@ -359,10 +365,12 @@ def output_dir_for_interval(
     provider: str = DEFAULT_PROVIDER,
     market: str = DEFAULT_MARKET,
 ) -> Path:
+    """Return the normalized parquet directory for a provider/market interval."""
     return base_dir / f"sorted-{interval}-{provider}-{market}"
 
 
 def batch_prefix(asset: AssetSpec, *, provider: str = DEFAULT_PROVIDER) -> str:
+    """Return the normalized parquet batch prefix for one asset/provider."""
     return f"{asset.slug}_{provider}_sorted_batch_"
 
 
@@ -433,6 +441,7 @@ def existing_summary(
     provider: str = DEFAULT_PROVIDER,
     market: str = DEFAULT_MARKET,
 ) -> WriteSummary:
+    """Summarize existing normalized OHLCV parquet batches for resume planning."""
     output_dir = output_dir_for_interval(
         base_dir, interval, provider=provider, market=market
     )
@@ -658,6 +667,7 @@ def fetch_asset_interval(
     chunk_size: int = DEFAULT_CHUNK_SIZE,
     progress_file: Path | None = None,
 ) -> FetchSummary:
+    """Fetch and append one Twelve Data asset interval using local resume state."""
     if interval not in TWELVE_DATA_INTERVALS:
         raise KeyError(f"Unsupported interval {interval!r}")
 
@@ -759,6 +769,7 @@ def fetch_asset_interval(
 def discover_symbols(
     client: TwelveDataClient, assets: tuple[AssetSpec, ...]
 ) -> dict[str, Any]:
+    """Run provider symbol search for configured Twelve Data assets."""
     return {
         asset.symbol: client.symbol_search(asset.provider_symbol) for asset in assets
     }
@@ -791,6 +802,7 @@ def print_status(
     intervals: tuple[str, ...] = DEFAULT_INTERVALS,
     base_dir: Path = BASE_DIR,
 ) -> None:
+    """Print local Twelve Data parquet status for selected assets/intervals."""
     print("\n" + "=" * 70)
     print("MULTI-ASSET DATA STATUS")
     print("=" * 70)
@@ -827,6 +839,7 @@ def print_status(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the Twelve Data fetch/status CLI parser."""
     parser = argparse.ArgumentParser(
         description="Multi-Asset Data Pipeline - Twelve Data OHLCV Fetcher",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -872,6 +885,7 @@ Examples:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run Twelve Data status, discovery, dry-run, or guarded fetches."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     assets = selected_assets(args.assets)

@@ -51,6 +51,7 @@ fetchingbinance/**/sorted-*
 logs/
 test_output/htf_run_logs/*.out
 test_output/htf_run_logs/*_status.json
+test_output/python_documentation_audit.md
 tmp/
 *.tmp
 *.bak

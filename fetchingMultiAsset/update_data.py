@@ -143,6 +143,8 @@ CORE_YFINANCE_FUTURES = CORE_DATABENTO_FUTURES
 
 @dataclass(frozen=True)
 class TwelveRequestEstimate:
+    """Estimated Twelve Data request count for one asset/interval resume range."""
+
     asset: str
     interval: str
     fetch_start: datetime | None
@@ -153,6 +155,8 @@ class TwelveRequestEstimate:
 
 @dataclass(frozen=True)
 class LocalInventoryRow:
+    """Local parquet inventory summary used before spending provider requests."""
+
     provider: str
     market: str
     asset: str
@@ -168,6 +172,8 @@ class LocalInventoryRow:
 
 @dataclass(frozen=True)
 class AutoRoutePlan:
+    """Provider route chosen by the auto updater for non-crypto futures assets."""
+
     yfinance_assets: tuple[YFinanceFuturesSpec, ...]
     databento_fallback_assets: tuple[DatabentoFuturesSpec, ...]
     yfinance_plans: tuple[YFinanceTailPlan, ...]
@@ -178,6 +184,7 @@ def _csv(raw: str) -> tuple[str, ...]:
 
 
 def provider_list(raw: str, *, all_providers: bool = False) -> tuple[str, ...]:
+    """Parse and validate the requested multi-asset providers."""
     if all_providers:
         return PROVIDERS
     if not raw:
@@ -223,6 +230,7 @@ def _read_file_rows(path: Path | None) -> int | None:
 
 
 def existing_summary_file_rows(path: Path) -> int:
+    """Return a parquet row count quickly, with a Polars fallback."""
     try:
         import pyarrow.parquet as pq
 
@@ -309,6 +317,7 @@ def build_local_inventory(
     end_date: str,
     base_dir: Path = BASE_DIR,
 ) -> list[LocalInventoryRow]:
+    """Scan local parquet files for the selected providers/assets/intervals."""
     rows: list[LocalInventoryRow] = []
     inventory_providers = _expanded_inventory_providers(providers)
     requested_start = parse_datetime(start_date)
@@ -367,6 +376,7 @@ def _fmt_dt(value: datetime | None) -> str:
 
 
 def print_local_inventory(rows: list[LocalInventoryRow]) -> None:
+    """Print the preflight inventory table without reading provider APIs."""
     print("\nLOCAL DATA INVENTORY (NO NETWORK / NO WRITES)")
     print("-" * 110)
     if not rows:
@@ -393,6 +403,7 @@ def estimate_twelve_requests(
     end_date: str | datetime,
     base_dir: Path = BASE_DIR,
 ) -> list[TwelveRequestEstimate]:
+    """Estimate paginated Twelve Data calls needed after local resume logic."""
     requested_start = parse_datetime(start_date)
     requested_end = _resolve_end(end_date)
     estimates: list[TwelveRequestEstimate] = []
@@ -499,7 +510,7 @@ def plan_auto_fresh_tail(
     base_dir: Path = BASE_DIR,
     now: datetime | None = None,
 ) -> AutoRoutePlan:
-    """Route each non-crypto asset to Yahoo if its missing range is eligible."""
+    """Route each non-crypto asset to Yahoo when its missing tail is eligible."""
     target_end = _resolve_end(end_date)
     yfinance_ready: list[YFinanceFuturesSpec] = []
     fallback_symbols: set[str] = set()
@@ -536,6 +547,7 @@ def plan_auto_fresh_tail(
 
 
 def print_auto_route(route: AutoRoutePlan) -> None:
+    """Print the auto router's Yahoo-vs-Databento decision for each asset."""
     print("\nAUTO SOURCE ROUTING")
     print("-" * 70)
     print(
@@ -579,6 +591,7 @@ def run_twelve(
     request_sleep: float,
     api_key: str | None,
 ) -> bool:
+    """Execute the Twelve Data fallback update with a request-count guard."""
     estimates = estimate_twelve_requests(
         assets=assets,
         intervals=intervals,
@@ -635,6 +648,7 @@ def run_databento(
     max_cost_usd: float,
     api_key: str | None,
 ) -> bool:
+    """Execute Databento futures updates with metadata cost estimation first."""
     _print_databento_plan(assets, start_date=start_date, end_date=end_date)
     try:
         estimates = estimate_costs(
@@ -706,6 +720,7 @@ def run_yfinance(
     min_overlap_bars: int,
     max_close_diff_pct: float,
 ) -> bool:
+    """Update recent non-crypto tails from Yahoo after Databento overlap checks."""
     print("\nYFINANCE RECENT-TAIL PLAN")
     print("-" * 70)
     print(
@@ -783,6 +798,7 @@ def run_yfinance_demo(
     dry_run: bool,
     estimate_only: bool,
 ) -> bool:
+    """Fetch a free-source Yahoo demo window without requiring Databento history."""
     print("\nYFINANCE DEMO PLAN")
     print("-" * 70)
     print(
@@ -873,6 +889,7 @@ def run_auto(
     min_overlap_bars: int,
     max_close_diff_pct: float,
 ) -> bool:
+    """Run the production non-crypto source mix: Yahoo tail plus Databento fallback."""
     route = plan_auto_fresh_tail(
         futures_assets=futures_assets,
         yfinance_assets=yfinance_assets,
@@ -936,6 +953,7 @@ def print_status(
     yfinance_assets: tuple[YFinanceFuturesSpec, ...],
     intervals: tuple[str, ...],
 ) -> None:
+    """Print local status for the selected multi-asset providers."""
     status_providers = _expanded_inventory_providers(providers)
     if "twelvedata" in status_providers:
         print_twelve_status(assets=twelve_assets, intervals=intervals)
@@ -982,6 +1000,7 @@ def print_status(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the multi-asset provider update CLI parser."""
     parser = argparse.ArgumentParser(
         description="Multi-Asset Data Pipeline - update normalized OHLCV bars",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1106,6 +1125,7 @@ Examples:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Resolve provider selections, run local preflight, then update data."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     if args.demo and args.providers:

@@ -13,7 +13,11 @@ from scripts.feature_engineering.htf_multiregime_pipeline import (
     _build_base_combined,
     _build_shifted_combined,
     _remaining_bars_validation_rule,
+    _run_optimization,
     _unexpected_constant_helper_columns,
+)
+from scripts.feature_engineering.htf_trading_calendar import (
+    CALENDAR_FUTURES_SESSION_OBSERVED,
 )
 
 
@@ -47,6 +51,67 @@ def _raw_ohlcv(start: datetime, rows: int, *, step_minutes: int, base: float) ->
             "interval": [f"{step_minutes}m" for _ in range(rows)],
         }
     )
+
+
+def _raw_ohlcv_from_timestamps(timestamps: list[datetime], *, base: float) -> pl.DataFrame:
+    close = [base + float(i) * 0.01 for i, _ in enumerate(timestamps)]
+    return pl.DataFrame(
+        {
+            "timestamp": timestamps,
+            "open": [value - 0.25 for value in close],
+            "high": [value + 0.50 for value in close],
+            "low": [value - 0.50 for value in close],
+            "close": close,
+            "volume": [10.0 + float(i % 100) for i, _ in enumerate(timestamps)],
+        }
+    )
+
+
+def _session_timestamps(
+    start: datetime,
+    days: int,
+    *,
+    step_minutes: int,
+) -> list[datetime]:
+    timestamps: list[datetime] = []
+    for day_offset in range(days):
+        day = start + timedelta(days=day_offset)
+        midnight = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
+        weekday = midnight.weekday()
+        segments: list[tuple[datetime, datetime]] = []
+        if weekday <= 4:
+            segments.append((midnight, midnight + timedelta(hours=20, minutes=59)))
+        if weekday <= 3:
+            segments.append((midnight + timedelta(hours=22), midnight + timedelta(hours=23, minutes=59)))
+        if weekday == 6:
+            segments.append((midnight + timedelta(hours=22), midnight + timedelta(hours=23, minutes=59)))
+        for segment_start, segment_end in segments:
+            cursor = segment_start
+            while cursor <= segment_end:
+                timestamps.append(cursor)
+                cursor += timedelta(minutes=step_minutes)
+    return timestamps
+
+
+def _write_session_asset_raw(
+    tmp_path: Path,
+    *,
+    asset_slug: str,
+    start: datetime,
+    days: int,
+) -> None:
+    raw_1m = tmp_path / "fetchingMultiAsset" / "sorted-1m-databento-futures"
+    raw_15m = tmp_path / "fetchingMultiAsset" / "sorted-15m-databento-futures"
+    raw_1m.mkdir(parents=True)
+    raw_15m.mkdir(parents=True)
+    _raw_ohlcv_from_timestamps(
+        _session_timestamps(start, days, step_minutes=1),
+        base=4000.0,
+    ).write_parquet(raw_1m / f"{asset_slug}_databento_sorted_batch_000000.parquet")
+    _raw_ohlcv_from_timestamps(
+        _session_timestamps(start, days, step_minutes=15),
+        base=4000.0,
+    ).write_parquet(raw_15m / f"{asset_slug}_databento_sorted_batch_000000.parquet")
 
 
 def test_base_combined_routes_by_asset_symbol(tmp_path: Path) -> None:
@@ -93,6 +158,28 @@ def test_base_combined_prefers_validated_yfinance_tail_over_databento_overlap(
         start + timedelta(minutes=3),
     ]
     assert combined["close"].to_list() == [4000.0, 4001.0, 5000.0, 5001.0]
+
+
+def test_base_combined_derives_canonical_15m_from_canonical_1m_when_raw_15m_absent(
+    tmp_path: Path,
+) -> None:
+    raw_dir = tmp_path / "fetchingByBit" / "sorted-1m-bybit-linear"
+    raw_dir.mkdir(parents=True)
+    start = datetime(2021, 1, 1, tzinfo=timezone.utc)
+    _raw_ohlcv(start, 30, step_minutes=1, base=100.0).write_parquet(
+        raw_dir / "btcusdt_linear_sorted_batch_000000.parquet"
+    )
+
+    config = _config(tmp_path, asset_id="BTCUSDT")
+    _build_base_combined(config, regime="8h", tf="1m")
+    result = _build_base_combined(config, regime="8h", tf="15m")
+
+    combined_15m = pl.read_parquet(result["path"]).sort("timestamp")
+    assert len(combined_15m) == 2
+    assert combined_15m["timestamp"].to_list() == [
+        start,
+        start + timedelta(minutes=15),
+    ]
 
 
 def test_opposite_family_labels_use_next_c_first_half_for_b_entries(tmp_path: Path) -> None:
@@ -171,6 +258,80 @@ def test_opposite_family_labels_use_next_b_first_half_for_c_entries(tmp_path: Pa
     assert valid["remaining_bars"].unique().to_list() == [16]
 
 
+def test_opposite_family_labels_use_period_keys_when_session_batches_skip(
+    tmp_path: Path,
+) -> None:
+    start = datetime(2021, 1, 1, tzinfo=timezone.utc)
+    raw_1m = tmp_path / "fetchingMultiAsset" / "sorted-1m-databento-futures"
+    raw_15m = tmp_path / "fetchingMultiAsset" / "sorted-15m-databento-futures"
+    raw_1m.mkdir(parents=True)
+    raw_15m.mkdir(parents=True)
+
+    pl.concat(
+        [
+            _raw_ohlcv(start, 8 * 60, step_minutes=1, base=100.0),
+            _raw_ohlcv(start + timedelta(hours=16), 16 * 60, step_minutes=1, base=200.0),
+        ]
+    ).write_parquet(raw_1m / "es_databento_sorted_batch_000000.parquet")
+    pl.concat(
+        [
+            _raw_ohlcv(start, 8 * 4, step_minutes=15, base=100.0),
+            _raw_ohlcv(start + timedelta(hours=16), 16 * 4, step_minutes=15, base=200.0),
+        ]
+    ).write_parquet(raw_15m / "es_databento_sorted_batch_000000.parquet")
+
+    config = _config(tmp_path, asset_id="ES")
+    for tf in ("1m", "15m"):
+        _build_base_combined(config, regime="8h", tf=tf)
+        _build_shifted_combined(config, regime="8h", tf=tf)
+
+    result = _build_1m_labels(config, regime="8h", family="B")
+
+    assert result["batches"] == 3
+    assert (Path(result["label_dir"]) / "batch_0002.parquet").exists()
+    label_batch = pl.read_parquet(Path(result["label_dir"]) / "batch_0002.parquet")
+    valid = label_batch.filter(pl.col("target_4class") >= 0)
+
+    assert len(valid) == 240
+    assert valid["bar_pos_15m"].null_count() == 0
+    assert valid["label_window_batch_id"].unique().to_list() == [3]
+    assert valid["label_window_start"].unique().to_list() == [
+        start + timedelta(hours=20)
+    ]
+    assert valid["label_window_end"].unique().to_list() == [
+        start + timedelta(hours=24)
+    ]
+
+
+def test_session_24h_and_7d_regimes_produce_valid_calendar_aware_labels(
+    tmp_path: Path,
+) -> None:
+    start = datetime(2021, 1, 4, tzinfo=timezone.utc)
+    _write_session_asset_raw(tmp_path, asset_slug="es", start=start, days=22)
+
+    config = _config(tmp_path, asset_id="ES")
+    for regime in ("24h", "7d"):
+        for tf in ("1m", "15m"):
+            _build_base_combined(config, regime=regime, tf=tf)
+            _build_shifted_combined(config, regime=regime, tf=tf)
+
+        b_result = _build_1m_labels(config, regime=regime, family="B")
+        c_result = _build_1m_labels(config, regime=regime, family="C")
+
+        assert b_result["valid_labels"] > 0
+        assert c_result["valid_labels"] > 0
+        combined = pl.read_parquet(
+            tmp_path
+            / "data"
+            / f"htf_backtest_{regime}"
+            / "1m_HTF_combined.parquet"
+        )
+        assert combined["calendar_id"].unique().to_list() == [
+            CALENDAR_FUTURES_SESSION_OBSERVED
+        ]
+        assert not combined.filter(pl.col("timestamp").dt.weekday() == 6).height
+
+
 def test_opposite_family_remaining_bars_validation_uses_label_window(tmp_path: Path) -> None:
     df = pl.DataFrame(
         {
@@ -225,3 +386,22 @@ def test_garch_persistence_is_allowed_known_constant_helper() -> None:
     assert unexpected == [
         {"column": "H_4cl_1_other_helper", "unique_non_null": 1}
     ]
+
+
+def test_optimization_skips_empty_label_directories(tmp_path: Path) -> None:
+    config = _config(tmp_path, asset_id="BTCUSDT")
+    feature_dir = tmp_path / "data" / "htf_features" / "1m"
+    label_dir = tmp_path / "data" / "htf_4class_labels" / "1m"
+    feature_dir.mkdir(parents=True)
+    label_dir.mkdir(parents=True)
+    pl.DataFrame(
+        {
+            "timestamp": [datetime(2021, 1, 1, tzinfo=timezone.utc)],
+            "batch_id": [1],
+            "F_example": [1.0],
+        }
+    ).write_parquet(feature_dir / "batch_0001.parquet")
+
+    result = _run_optimization(config, regime="8h", family="B")
+
+    assert result == {"skipped": True, "reason": "no_label_batches"}

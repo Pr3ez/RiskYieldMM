@@ -308,8 +308,10 @@ source of truth and prevents silent provider mixing.
 2. S&P/Nasdaq use futures proxies (`ES`, `NQ`) for the core dataset.
 3. FX uses futures proxies for the core dataset: `6E` for `EURUSD`, and `6J`
    inverted into USD/JPY-like OHLC for `USDJPY`.
-4. For non-24/7 assets, labels should be computed on each asset's own available
-   bar calendar. Do not forward-fill closed-market bars into synthetic candles.
+4. For non-24/7 assets, labels should be computed on each asset's own canonical
+   market-open calendar. Do not forward-fill closed-market bars; only small
+   missing minutes inside inferred open sessions may be carry-forward filled
+   with explicit synthetic/open-gap flags.
 5. Volume must be nullable and typed. FX/CFD tick volume is not equivalent to
    exchange volume.
 

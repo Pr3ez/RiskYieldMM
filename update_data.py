@@ -25,6 +25,7 @@ def _csv(raw: str) -> tuple[str, ...]:
 
 
 def selected_sources(raw: str) -> tuple[str, ...]:
+    """Normalize the repo-level source list while preserving pipeline order."""
     if not raw:
         return CORE_SOURCE_ORDER
     sources = _csv(raw)
@@ -78,11 +79,13 @@ def resolve_demo_window(
 
 
 def apply_demo_window(args: argparse.Namespace) -> argparse.Namespace:
+    """Mutate parsed args so demo mode always fits Yahoo's 1m retention window."""
     args.start_date, args.end_date = resolve_demo_window(args.end_date)
     return args
 
 
 def selected_sources_for_args(args: argparse.Namespace) -> tuple[str, ...]:
+    """Resolve source execution order from parsed repo-level CLI arguments."""
     if args.demo:
         return DEMO_SOURCE_ORDER
     sources = selected_sources(args.sources)
@@ -108,6 +111,7 @@ def _run_step(name: str, cmd: list[str], cwd: Path) -> bool:
 
 
 def build_bybit_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the child command that updates 24/7 crypto data from Bybit."""
     cmd = [
         sys.executable,
         "update_data.py",
@@ -123,6 +127,7 @@ def build_bybit_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_twelve_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the explicit Twelve Data fallback command for spot-style assets."""
     cmd = [
         sys.executable,
         "update_data.py",
@@ -145,6 +150,7 @@ def build_twelve_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_databento_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the explicit Databento-only futures backfill/update command."""
     cmd = [
         sys.executable,
         "update_data.py",
@@ -167,6 +173,7 @@ def build_databento_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_multiasset_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the production non-crypto router command."""
     cmd = [
         sys.executable,
         "update_data.py",
@@ -189,6 +196,7 @@ def build_multiasset_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_yfinance_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the Yahoo Finance command for demo or validated recent-tail updates."""
     if args.demo:
         cmd = [
             sys.executable,
@@ -221,6 +229,7 @@ def build_yfinance_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
 
 
 def build_status_cmd(source: str) -> tuple[list[str], Path]:
+    """Build a no-write status command for one configured source group."""
     if source == "bybit":
         return [
             sys.executable,
@@ -243,6 +252,7 @@ def build_status_cmd(source: str) -> tuple[list[str], Path]:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the repo-root data update CLI parser."""
     parser = argparse.ArgumentParser(
         description="Core data update orchestrator: Bybit -> multi-asset auto source",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -338,6 +348,7 @@ Examples:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the selected data update sources in deterministic order."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     if not args.core and not args.demo:

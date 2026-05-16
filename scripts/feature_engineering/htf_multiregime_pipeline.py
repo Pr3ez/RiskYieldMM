@@ -1,13 +1,20 @@
-from __future__ import annotations
-
 """Multi-regime HTF pipeline.
 
-This module is the shared source of truth for HTF batch materialization across
-`8h`, `24h`, and `7d`. It preserves legacy `8h` artifact names and compatibility
-columns where that avoids breaking downstream consumers. In particular,
-`period_8h_start` remains the canonical batch-start column name even when the
-active regime is not `8h`.
+Workflow position:
+- called by `notebooks/htf_pythonscript.py`;
+- reads asset-specific raw provider roots through `htf_asset_registry`;
+- canonicalizes OHLCV through `htf_trading_calendar`;
+- writes combined batches, features, labels, optimized features, helper outputs,
+  and validation reports for each selected regime/family.
+
+Temporal/data contract:
+- feature and helper stages must be causal and model-facing;
+- future-looking distance metrics and `target_*` fields are label artifacts;
+- `period_8h_start` stays as a compatibility alias even for `24h` and `7d`;
+- session assets use calendar-open row counts rather than fixed 24/7 counts.
 """
+
+from __future__ import annotations
 
 import gc
 import json
@@ -58,6 +65,11 @@ from scripts.feature_engineering.htf_asset_registry import (
     HTFAssetSpec,
     get_htf_asset_spec,
 )
+from scripts.feature_engineering.htf_trading_calendar import (
+    CANONICAL_BAR_COLUMNS,
+    aggregate_canonical_15m,
+    canonicalize_ohlcv,
+)
 
 try:
     from numba import njit
@@ -74,6 +86,8 @@ except ImportError:  # pragma: no cover - shell fallback for lightweight verific
 
 @dataclass(frozen=True)
 class BatchRegimeConfig:
+    """Calendar definition for one HTF regime and its shifted C-family."""
+
     name: str
     duration_hours: int
     shift_hours: int
@@ -155,6 +169,25 @@ FAMILY_META_COLS = [
     "family_shift_hours",
     "anchor_utc",
     "entry_window_hours",
+    "asset_id",
+    "calendar_id",
+    "is_market_open",
+    "is_synthetic_no_trade",
+    "is_open_session_gap_fill",
+    "minutes_since_prev_real_bar",
+    "session_id",
+    "session_date",
+    "session_bar_pos",
+    "session_minutes_to_close",
+    "is_session_open_bar",
+    "is_session_close_bar",
+    "is_weekly_open_bar",
+    "is_weekly_close_bar",
+    "expected_rows_in_batch",
+    "actual_rows_in_batch",
+    "expected_entry_rows",
+    "actual_entry_rows",
+    "has_synthetic_open_gap_fill",
 ]
 LABEL_WINDOW_META_COLS = [
     "label_window_policy",
@@ -179,6 +212,13 @@ COMBINED_OUTPUT_COLS = [
 
 @dataclass
 class MultiRegimeHTFConfig:
+    """Runtime configuration passed from the launcher into the HTF pipeline.
+
+    The config intentionally contains paths, run-control flags, and shared
+    model/label constants. Stage implementations should read from this object
+    instead of global launcher state so tests can build isolated temporary runs.
+    """
+
     project_root: Path
     data_dir: Path
     raw_data_dir: Path
@@ -254,6 +294,19 @@ class MultiRegimeHTFConfig:
                 f"Unknown label_window_policy={self.label_window_policy!r}; "
                 f"expected one of: {allowed}"
             )
+        unknown_build_regimes = sorted(set(self.build_regimes) - set(REGIME_CONFIGS))
+        if unknown_build_regimes:
+            allowed = ", ".join(REGIME_CONFIGS)
+            raise ValueError(
+                f"Unknown build_regimes={unknown_build_regimes}; expected values from: {allowed}"
+            )
+        if self.validate_regimes is not None:
+            unknown_validate_regimes = sorted(set(self.validate_regimes) - set(REGIME_CONFIGS))
+            if unknown_validate_regimes:
+                allowed = ", ".join(REGIME_CONFIGS)
+                raise ValueError(
+                    f"Unknown validate_regimes={unknown_validate_regimes}; expected values from: {allowed}"
+                )
 
     def effective_validate_regimes(self) -> tuple[str, ...]:
         return self.validate_regimes or self.build_regimes
@@ -417,6 +470,7 @@ def compute_distance_metrics(
     bars_per_batch,
     min_remaining,
 ):
+    """Compute same-family future-distance label metrics for one timeframe."""
     return _shared_compute_distance_metrics(
         close,
         high,
@@ -439,6 +493,12 @@ def compute_hybrid_distance_metrics(
     min_remaining,
     outlier_pct,
 ):
+    """Compute 1m-entry labels from 15m future bars.
+
+    For the active opposite-family policy, the entry rows point at an opposite
+    first-half label window. The shared kernel has a fast path for that shape
+    and falls back to the reference implementation otherwise.
+    """
     return _shared_compute_hybrid_distance_metrics(
         close_entry,
         batch_id_entry,
@@ -468,6 +528,7 @@ def compute_4class_labels(
     breakout_thresh: float,
     risk_thresh: float,
 ) -> pl.DataFrame:
+    """Map forward-distance metrics into the active 4-class HTF target."""
     return _shared_compute_4class_labels(df, breakout_thresh, risk_thresh)
 
 
@@ -503,7 +564,7 @@ def _stage_version(
     stage: str,
     family: str,
 ) -> str:
-    suffix = f"{stage}-{family.lower()}-v1"
+    suffix = f"{stage}-{family.lower()}-v2-session-calendar"
     if stage == "labels":
         suffix = f"{suffix}-{config.label_window_policy}"
     return f"{config.pipeline_artifact_version}-{suffix}"
@@ -725,13 +786,24 @@ def _label_batches_needing_repair(
 
     label_batch_set = set(label_batches)
     last_label_batch = max(label_batch_set)
-    expected_valid = _expected_valid_1m_rows(regime)
-    full_rows = _bars_per_batch(regime, "1m")
     expected_rows_by_batch = {
         int(batch_id): int(n_rows)
         for batch_id, n_rows in counts_1m.select(["batch_id", "n"]).iter_rows()
         if int(batch_id) in label_batch_set
     }
+    if "actual_entry_rows" in counts_1m.columns:
+        expected_valid_by_batch = {
+            int(batch_id): int(n_valid)
+            for batch_id, n_valid in counts_1m.select(
+                ["batch_id", "actual_entry_rows"]
+            ).iter_rows()
+            if int(batch_id) in label_batch_set
+        }
+    else:
+        expected_valid_by_batch = {
+            batch_id: _expected_valid_1m_rows(regime)
+            for batch_id in label_batch_set
+        }
     existing_counts = (
         pl.scan_parquet(str(label_dir / "batch_*.parquet"))
         .group_by("batch_id")
@@ -757,10 +829,11 @@ def _label_batches_needing_repair(
             repair_batches.add(batch_id)
             continue
 
-        is_full_batch = expected_rows == full_rows
-        if is_full_batch and n_valid != expected_valid:
-            repair_batches.add(batch_id)
-        elif batch_id != last_label_batch and n_valid != expected_valid:
+        expected_valid = expected_valid_by_batch.get(
+            batch_id,
+            _expected_valid_1m_rows(regime),
+        )
+        if batch_id != last_label_batch and n_valid != expected_valid:
             repair_batches.add(batch_id)
         elif batch_id == last_label_batch and n_valid > expected_valid:
             repair_batches.add(batch_id)
@@ -797,79 +870,71 @@ def _opposite_family(family: str) -> str:
     raise ValueError(f"Unknown HTF family: {family!r}")
 
 
-def _label_window_batch_id_for_entry(family: str, batch_id: int) -> int:
-    if family == "B":
-        return int(batch_id)
-    if family == "C":
-        return int(batch_id) + 1
-    raise ValueError(f"Unknown HTF family: {family!r}")
+def _batch_calendar_counts(df: pl.DataFrame) -> pl.DataFrame:
+    if df.is_empty():
+        return pl.DataFrame(
+            schema={
+                "batch_id": pl.Int32,
+                "n": pl.UInt32,
+                "family_period_start": pl.Datetime("us", "UTC"),
+                "expected_rows_in_batch": pl.Int32,
+                "actual_rows_in_batch": pl.Int32,
+                "expected_entry_rows": pl.Int32,
+                "actual_entry_rows": pl.Int32,
+            }
+        )
 
+    required = {
+        "batch_id",
+        "family_period_start",
+        "expected_rows_in_batch",
+        "actual_rows_in_batch",
+        "expected_entry_rows",
+        "actual_entry_rows",
+    }
+    if required.issubset(df.columns):
+        return (
+            df.group_by("batch_id")
+            .agg(
+                [
+                    pl.len().alias("n"),
+                    pl.col("family_period_start").first().alias("family_period_start"),
+                    pl.col("expected_rows_in_batch").max().cast(pl.Int32),
+                    pl.col("actual_rows_in_batch").max().cast(pl.Int32),
+                    pl.col("expected_entry_rows").max().cast(pl.Int32),
+                    pl.col("actual_entry_rows").max().cast(pl.Int32),
+                ]
+            )
+            .sort("batch_id")
+        )
 
-def _add_opposite_label_window_columns(df: pl.DataFrame, family: str) -> pl.DataFrame:
-    window_family = _opposite_family(family)
-    if family == "B":
-        batch_expr = pl.col("batch_id").cast(pl.Int32)
-    else:
-        batch_expr = (pl.col("batch_id") + 1).cast(pl.Int32)
-    return df.with_columns(
-        [
-            pl.lit(LABEL_WINDOW_OPPOSITE_FIRST_HALF).alias("label_window_policy"),
-            pl.lit(family).alias("label_entry_family"),
-            pl.lit(window_family).alias("label_window_family"),
-            batch_expr.alias("label_window_batch_id"),
-        ]
-    )
-
-
-def _first_half_counts(df: pl.DataFrame, regime: str, tf: str) -> pl.DataFrame:
-    entry_limit = _entry_bar_limit(regime, tf)
     return (
-        df.filter(pl.col("family_bar_pos") < entry_limit)
-        .group_by("batch_id")
-        .agg(pl.len().alias("n"))
+        df.group_by("batch_id")
+        .agg(
+            [
+                pl.len().alias("n"),
+                pl.col("family_period_start").first().alias("family_period_start"),
+            ]
+        )
+        .with_columns(
+            [
+                pl.col("n").cast(pl.Int32).alias("expected_rows_in_batch"),
+                pl.col("n").cast(pl.Int32).alias("actual_rows_in_batch"),
+                pl.col("n").cast(pl.Int32).alias("expected_entry_rows"),
+                pl.col("n").cast(pl.Int32).alias("actual_entry_rows"),
+            ]
+        )
         .sort("batch_id")
     )
 
 
-def _full_batch_ids(counts: pl.DataFrame, regime: str, tf: str) -> set[int]:
+def _complete_entry_counts(counts: pl.DataFrame) -> pl.DataFrame:
     if counts.is_empty():
-        return set()
-    expected = _bars_per_batch(regime, tf)
-    return set(
-        counts.filter(pl.col("n") == expected)["batch_id"].cast(pl.Int64).to_list()
+        return counts
+    return counts.filter(
+        (pl.col("expected_entry_rows") > 0)
+        & (pl.col("actual_entry_rows") == pl.col("expected_entry_rows"))
     )
-
-
-def _full_first_half_batch_ids(df: pl.DataFrame, regime: str, tf: str) -> set[int]:
-    counts = _first_half_counts(df, regime, tf)
-    if counts.is_empty():
-        return set()
-    expected = _entry_bar_limit(regime, tf)
-    return set(
-        counts.filter(pl.col("n") == expected)["batch_id"].cast(pl.Int64).to_list()
-    )
-
-
-def _eligible_opposite_label_batches(
-    *,
-    entry_counts_1m: pl.DataFrame,
-    entry_counts_15m: pl.DataFrame,
-    window_1m: pl.DataFrame,
-    window_15m: pl.DataFrame,
-    regime: str,
-    family: str,
-) -> list[int]:
-    entry_batches = _full_batch_ids(entry_counts_1m, regime, "1m") & _full_batch_ids(
-        entry_counts_15m, regime, "15m"
-    )
-    window_batches = _full_first_half_batch_ids(
-        window_1m, regime, "1m"
-    ) & _full_first_half_batch_ids(window_15m, regime, "15m")
-    eligible: list[int] = []
-    for batch_id in sorted(entry_batches):
-        if _label_window_batch_id_for_entry(family, batch_id) in window_batches:
-            eligible.append(int(batch_id))
-    return eligible
 
 
 def _eligible_label_batches_from_counts(
@@ -880,17 +945,184 @@ def _eligible_label_batches_from_counts(
     if len(counts_1m) == 0 or len(counts_15m) == 0:
         return []
 
-    last_1m = int(counts_1m["batch_id"].max())
-    last_15m = int(counts_15m["batch_id"].max())
-    valid_1m = counts_1m.filter(
-        (pl.col("n") == _bars_per_batch(regime, "1m"))
-        | ((pl.col("batch_id") == last_1m) & (pl.col("n") >= 1))
-    )["batch_id"].to_list()
-    valid_15m = counts_15m.filter(
-        (pl.col("n") == _bars_per_batch(regime, "15m"))
-        | ((pl.col("batch_id") == last_15m) & (pl.col("n") >= 1))
-    )["batch_id"].to_list()
+    valid_1m = _complete_entry_counts(counts_1m)["batch_id"].to_list()
+    valid_15m = _complete_entry_counts(counts_15m)["batch_id"].to_list()
     return sorted(set(valid_1m) & set(valid_15m))
+
+
+def _is_session_asset(config: MultiRegimeHTFConfig) -> bool:
+    return _asset_spec(config).source_kind == "multiasset_ohlcv"
+
+
+def _read_label_window_frame(
+    config: MultiRegimeHTFConfig,
+    regime: str,
+    family: str,
+    tf: str,
+) -> pl.DataFrame | None:
+    path = Path(_family_scope(config.data_dir, regime, family)["backtest"]) / f"{tf}_HTF_combined.parquet"
+    if not path.exists():
+        return None
+    wanted = [
+        "batch_id",
+        "family_bar_pos",
+        "family_period_start",
+        "is_label_half",
+        "expected_rows_in_batch",
+        "actual_rows_in_batch",
+        "expected_entry_rows",
+        "actual_entry_rows",
+    ]
+    schema = pl.scan_parquet(path).collect_schema().names()
+    return pl.read_parquet(path, columns=[col for col in wanted if col in schema])
+
+
+def _period_key_expr(col: str) -> pl.Expr:
+    return (
+        pl.col(col)
+        .dt.replace_time_zone(None)
+        .cast(pl.Datetime("us"))
+        .alias("family_period_key")
+    )
+
+
+def _full_entry_periods(
+    entry_1m: pl.DataFrame,
+    entry_15m: pl.DataFrame,
+    regime: str,
+) -> pl.DataFrame:
+    if entry_1m.is_empty() or entry_15m.is_empty():
+        return pl.DataFrame(
+            schema={"batch_id": pl.Int32, "family_period_key": pl.Datetime("us")}
+        )
+
+    full_1m = (
+        _complete_entry_counts(_batch_calendar_counts(entry_1m))
+        .with_columns(_period_key_expr("family_period_start"))
+        .select(["batch_id", "family_period_key"])
+    )
+    full_15m = (
+        _complete_entry_counts(_batch_calendar_counts(entry_15m))
+        .with_columns(_period_key_expr("family_period_start"))
+        .select("family_period_key")
+    )
+    return full_1m.join(full_15m, on="family_period_key", how="inner")
+
+
+def _full_first_half_periods(
+    window: pl.DataFrame,
+    regime: str,
+    tf: str,
+) -> pl.DataFrame:
+    if window.is_empty():
+        return pl.DataFrame(schema={"family_period_key": pl.Datetime("us")})
+    frame = window
+    if "is_label_half" in frame.columns:
+        frame = frame.filter(pl.col("is_label_half"))
+    else:
+        frame = frame.filter(pl.col("family_bar_pos") < _entry_bar_limit(regime, tf))
+    return (
+        frame.group_by("family_period_start")
+        .agg(
+            [
+                pl.len().alias("n"),
+                pl.col("expected_entry_rows").max().alias("expected_entry_rows")
+                if "expected_entry_rows" in frame.columns
+                else pl.len().alias("expected_entry_rows"),
+            ]
+        )
+        .with_columns(_period_key_expr("family_period_start"))
+        .filter((pl.col("expected_entry_rows") > 0) & (pl.col("n") == pl.col("expected_entry_rows")))
+        .select("family_period_key")
+    )
+
+
+def _eligible_opposite_label_batches_from_frames(
+    *,
+    entry_1m: pl.DataFrame,
+    entry_15m: pl.DataFrame,
+    window_1m: pl.DataFrame,
+    window_15m: pl.DataFrame,
+    regime: str,
+) -> list[int]:
+    entries = _full_entry_periods(entry_1m, entry_15m, regime)
+    if entries.is_empty():
+        return []
+
+    full_window_periods = _full_first_half_periods(
+        window_1m,
+        regime,
+        "1m",
+    ).join(
+        _full_first_half_periods(window_15m, regime, "15m"),
+        on="family_period_key",
+        how="inner",
+    )
+    if full_window_periods.is_empty():
+        return []
+
+    eligible = (
+        entries.with_columns(
+            (
+                pl.col("family_period_key")
+                + pl.duration(hours=REGIME_CONFIGS[regime].entry_window_hours)
+            ).alias("label_window_period_key")
+        )
+        .join(
+            full_window_periods.rename(
+                {"family_period_key": "label_window_period_key"}
+            ),
+            on="label_window_period_key",
+            how="inner",
+        )
+        .select("batch_id")
+        .sort("batch_id")
+    )
+    return [int(batch_id) for batch_id in eligible["batch_id"].to_list()]
+
+
+def _expected_label_batches_for_family(
+    config: MultiRegimeHTFConfig,
+    regime: str,
+    family: str,
+    counts_1m: pl.DataFrame,
+    counts_15m: pl.DataFrame,
+) -> list[int]:
+    if config.label_window_policy != LABEL_WINDOW_OPPOSITE_FIRST_HALF:
+        return _eligible_label_batches_from_counts(counts_1m, counts_15m, regime)
+
+    window_family = _opposite_family(family)
+    window_1m = _read_label_window_frame(config, regime, window_family, "1m")
+    window_15m = _read_label_window_frame(config, regime, window_family, "15m")
+    entry_1m = _read_label_window_frame(config, regime, family, "1m")
+    entry_15m = _read_label_window_frame(config, regime, family, "15m")
+    if window_1m is None or window_15m is None or entry_1m is None or entry_15m is None:
+        return []
+
+    return _eligible_opposite_label_batches_from_frames(
+        entry_1m=entry_1m,
+        entry_15m=entry_15m,
+        window_1m=window_1m,
+        window_15m=window_15m,
+        regime=regime,
+    )
+
+
+def _empty_timestamp_frame() -> pl.DataFrame:
+    return pl.DataFrame(schema={"timestamp": pl.Datetime("us", "UTC")})
+
+
+def _valid_label_timestamps(label_dir: Path, batch_ids: list[int]) -> pl.DataFrame:
+    label_files = sorted(label_dir.glob("batch_*.parquet"))
+    if not label_files or not batch_ids:
+        return _empty_timestamp_frame()
+    return (
+        pl.scan_parquet(str(label_dir / "batch_*.parquet"))
+        .filter(pl.col("batch_id").is_in(batch_ids) & (pl.col("target_4class") >= 0))
+        .select("timestamp")
+        .collect()
+        .unique()
+    )
 
 
 def _anchor_utc_str(regime: str) -> str:
@@ -1005,8 +1237,30 @@ def _add_family_metadata(
     family_batch_col: str,
 ) -> pl.DataFrame:
     cfg = REGIME_CONFIGS[regime]
-    bars_per_batch = _bars_per_batch(regime, tf)
-    half_bars = _bars_per_half(regime, tf)
+
+    fallback_calendar_cols: dict[str, pl.Expr] = {
+        "asset_id": pl.lit(None).cast(pl.Utf8),
+        "calendar_id": pl.lit(None).cast(pl.Utf8),
+        "is_market_open": pl.lit(True),
+        "is_synthetic_no_trade": pl.lit(False),
+        "is_open_session_gap_fill": pl.lit(False),
+        "minutes_since_prev_real_bar": pl.lit(0).cast(pl.Int32),
+        "session_id": pl.lit(None).cast(pl.Utf8),
+        "session_date": pl.lit(None).cast(pl.Utf8),
+        "session_bar_pos": pl.lit(None).cast(pl.Int32),
+        "session_minutes_to_close": pl.lit(None).cast(pl.Int32),
+        "is_session_open_bar": pl.lit(False),
+        "is_session_close_bar": pl.lit(False),
+        "is_weekly_open_bar": pl.lit(False),
+        "is_weekly_close_bar": pl.lit(False),
+    }
+    missing_calendar_cols = [
+        expr.alias(col)
+        for col, expr in fallback_calendar_cols.items()
+        if col not in df.columns
+    ]
+    if missing_calendar_cols:
+        df = df.with_columns(missing_calendar_cols)
 
     df = df.with_columns(
         [
@@ -1057,17 +1311,34 @@ def _add_family_metadata(
             .then(pl.lit("L"))
             .otherwise(pl.lit("F"))
             .alias("source_half_in_base"),
-            (pl.col("family_bar_pos") < half_bars).alias("is_label_half"),
             (
-                pl.col("family_bar_pos").cast(pl.Float64)
-                / max(1, bars_per_batch - 1)
-            ).alias("bar_in_batch_norm"),
+                pl.col("timestamp").dt.replace_time_zone(None)
+                < (
+                    pl.col("family_period_start").dt.replace_time_zone(None)
+                    + timedelta(hours=cfg.entry_window_hours)
+                )
+            ).alias("is_label_half"),
             pl.lit(regime).alias("batch_regime"),
             pl.lit(int(cfg.duration_hours)).alias("batch_duration_hours"),
             pl.lit(int(0 if family == "B" else cfg.shift_hours)).alias("family_shift_hours"),
             pl.lit(_anchor_utc_str(regime)).alias("anchor_utc"),
             pl.lit(int(cfg.entry_window_hours)).alias("entry_window_hours"),
         ]
+    )
+    df = df.with_columns(
+        [
+            pl.len().over("family_batch_id").cast(pl.Int32).alias("actual_rows_in_batch"),
+            pl.len().over("family_batch_id").cast(pl.Int32).alias("expected_rows_in_batch"),
+            pl.col("is_label_half").sum().over("family_batch_id").cast(pl.Int32).alias("actual_entry_rows"),
+            pl.col("is_label_half").sum().over("family_batch_id").cast(pl.Int32).alias("expected_entry_rows"),
+            pl.col("is_open_session_gap_fill").any().over("family_batch_id").alias("has_synthetic_open_gap_fill"),
+        ]
+    )
+    df = df.with_columns(
+        (
+            pl.col("family_bar_pos").cast(pl.Float64)
+            / pl.max_horizontal(pl.col("expected_rows_in_batch") - 1, pl.lit(1)).cast(pl.Float64)
+        ).alias("bar_in_batch_norm")
     )
     return df
 
@@ -1102,10 +1373,35 @@ def _combined_required_columns() -> set[str]:
 
 
 def _build_base_combined(config: MultiRegimeHTFConfig, regime: str, tf: str) -> dict[str, Any]:
+    spec = _asset_spec(config)
     raw_scan_base, raw_files, raw_group_meta = _raw_scan_for_tf(config, tf)
     scope = _family_scope(config.data_dir, regime, "B")
     output_path = Path(scope["backtest"]) / f"{tf}_HTF_combined.parquet"
     meta_path = Path(scope["backtest"]) / f"{tf}_HTF_combined_meta.json"
+    canonical_1m_path = (
+        config.data_dir
+        / "htf_canonical_ohlcv"
+        / "1m"
+        / f"{spec.slug}_1m_canonical.parquet"
+    )
+
+    if (raw_scan_base is None or not raw_files) and tf == "15m" and canonical_1m_path.exists():
+        raw_scan_base = pl.scan_parquet(str(canonical_1m_path)).with_columns(
+            [
+                pl.lit("canonical_1m").alias("_source_provider"),
+                pl.lit(10).cast(pl.Int32).alias("_source_priority"),
+            ]
+        )
+        raw_files = [canonical_1m_path]
+        raw_group_meta = [
+            {
+                "provider": "canonical_1m",
+                "priority": 10,
+                "directory": str(canonical_1m_path.parent),
+                "files": 1,
+                "derived_for": "15m",
+            }
+        ]
 
     artifact_version = _stage_version(config, "combined", "B")
     required_columns = _combined_required_columns()
@@ -1205,8 +1501,40 @@ def _build_base_combined(config: MultiRegimeHTFConfig, regime: str, tf: str) -> 
     )
     rows_after_dedup = len(df)
     duplicate_rows_removed = rows_before_dedup - rows_after_dedup
+    canonical_path = (
+        config.data_dir
+        / "htf_canonical_ohlcv"
+        / tf
+        / f"{spec.slug}_{tf}_canonical.parquet"
+    )
+    canonical_source = "raw_provider"
+    if tf == "15m" and canonical_1m_path.exists():
+        df = aggregate_canonical_15m(pl.read_parquet(canonical_1m_path))
+        canonical_source = "derived_from_canonical_1m"
+        canonical_summary_payload = {
+            "asset_id": spec.asset_id,
+            "calendar_id": spec.calendar_id,
+            "timeframe": tf,
+            "raw_rows": int(rows_after_dedup),
+            "canonical_rows": int(len(df)),
+            "synthetic_rows": int(df["is_open_session_gap_fill"].sum()) if len(df) else 0,
+            "session_count": int(df["session_id"].n_unique()) if len(df) else 0,
+            "min_ts": df["timestamp"].min() if len(df) else None,
+            "max_ts": df["timestamp"].max() if len(df) else None,
+            "derived_from": str(canonical_1m_path),
+        }
+    else:
+        df, canonical_summary = canonicalize_ohlcv(
+            df.with_columns(pl.col("ts_norm").alias("timestamp")),
+            asset_id=spec.asset_id,
+            calendar_id=spec.calendar_id,
+            timeframe=tf,
+        )
+        canonical_summary_payload = canonical_summary.as_dict()
+    canonical_path.parent.mkdir(parents=True, exist_ok=True)
+    df.select(CANONICAL_BAR_COLUMNS).write_parquet(canonical_path)
 
-    df = df.with_columns(_period_start_expr("ts_norm", regime, "B").alias("period_8h_start"))
+    df = df.with_columns(_period_start_expr("timestamp", regime, "B").alias("period_8h_start"))
     batch_mapping = (
         df.select("period_8h_start")
         .unique()
@@ -1258,6 +1586,7 @@ def _build_base_combined(config: MultiRegimeHTFConfig, regime: str, tf: str) -> 
                 "stage": "combined",
                 "asset_id": _asset_id(config),
                 "asset_source_kind": _asset_spec(config).source_kind,
+                "calendar_id": _asset_spec(config).calendar_id,
                 "batch_regime": regime,
                 "batch_duration_hours": int(REGIME_CONFIGS[regime].duration_hours),
                 "family_shift_hours": 0,
@@ -1267,7 +1596,11 @@ def _build_base_combined(config: MultiRegimeHTFConfig, regime: str, tf: str) -> 
                 "update_reason": update_reason,
                 "rows": int(len(df_final)),
                 "batches": int(df_final["batch_id"].n_unique()),
-                "rows_per_batch": int(_bars_per_batch(regime, tf)),
+                "rows_per_batch": "calendar_expected_rows",
+                "calendar_expected_rows": "canonical_open_timestamps",
+                "canonical_source": canonical_source,
+                "canonical_summary": canonical_summary_payload,
+                "canonical_output_path": str(canonical_path),
                 "output_path": str(output_path),
                 "raw_total_rows": raw_total_rows,
                 "raw_max_ts": raw_max_ts,
@@ -1411,6 +1744,7 @@ def _build_shifted_combined(
                 "stage": "combined",
                 "asset_id": _asset_id(config),
                 "asset_source_kind": _asset_spec(config).source_kind,
+                "calendar_id": _asset_spec(config).calendar_id,
                 "batch_regime": regime,
                 "batch_duration_hours": int(REGIME_CONFIGS[regime].duration_hours),
                 "family_shift_hours": int(REGIME_CONFIGS[regime].shift_hours),
@@ -1421,7 +1755,8 @@ def _build_shifted_combined(
                 "rebuild_reasons": reasons,
                 "rows": int(len(df_final)),
                 "batches": int(df_final["batch_id"].n_unique()),
-                "rows_per_batch": int(_bars_per_batch(regime, tf)),
+                "rows_per_batch": "calendar_expected_rows",
+                "calendar_expected_rows": "canonical_open_timestamps",
                 "output_path": str(output_path),
                 "min_ts": df_final["timestamp"].min(),
                 "max_ts": df_final["timestamp"].max(),
@@ -1493,6 +1828,39 @@ def _feature_value_cols(df: pl.DataFrame) -> list[str]:
     return [col for col in df.columns if col not in meta]
 
 
+def _with_missing_family_meta_defaults(df: pl.DataFrame) -> pl.DataFrame:
+    defaults: dict[str, pl.Expr] = {
+        "asset_id": pl.lit(None).cast(pl.Utf8),
+        "calendar_id": pl.lit(None).cast(pl.Utf8),
+        "is_market_open": pl.lit(True),
+        "is_synthetic_no_trade": pl.lit(False),
+        "is_open_session_gap_fill": pl.lit(False),
+        "minutes_since_prev_real_bar": pl.lit(0).cast(pl.Int32),
+        "session_id": pl.lit(None).cast(pl.Utf8),
+        "session_date": pl.lit(None).cast(pl.Utf8),
+        "session_bar_pos": pl.lit(None).cast(pl.Int32),
+        "session_minutes_to_close": pl.lit(None).cast(pl.Int32),
+        "is_session_open_bar": pl.lit(False),
+        "is_session_close_bar": pl.lit(False),
+        "is_weekly_open_bar": pl.lit(False),
+        "is_weekly_close_bar": pl.lit(False),
+    }
+    missing = [expr.alias(col) for col, expr in defaults.items() if col not in df.columns]
+    if missing:
+        df = df.with_columns(missing)
+    if "expected_rows_in_batch" not in df.columns and "batch_id" in df.columns:
+        df = df.with_columns(pl.len().over("batch_id").cast(pl.Int32).alias("expected_rows_in_batch"))
+    if "actual_rows_in_batch" not in df.columns and "batch_id" in df.columns:
+        df = df.with_columns(pl.len().over("batch_id").cast(pl.Int32).alias("actual_rows_in_batch"))
+    if "expected_entry_rows" not in df.columns and {"batch_id", "is_label_half"} <= set(df.columns):
+        df = df.with_columns(pl.col("is_label_half").sum().over("batch_id").cast(pl.Int32).alias("expected_entry_rows"))
+    if "actual_entry_rows" not in df.columns and {"batch_id", "is_label_half"} <= set(df.columns):
+        df = df.with_columns(pl.col("is_label_half").sum().over("batch_id").cast(pl.Int32).alias("actual_entry_rows"))
+    if "has_synthetic_open_gap_fill" not in df.columns:
+        df = df.with_columns(pl.lit(False).alias("has_synthetic_open_gap_fill"))
+    return df
+
+
 def _build_shifted_feature_batches_from_base(
     config: MultiRegimeHTFConfig,
     regime: str,
@@ -1545,7 +1913,16 @@ def _build_shifted_feature_batches_from_base(
         _clear_artifact_target(output_dir)
         _clear_artifact_target(meta_path)
 
-    meta_all = pl.read_parquet(combined_path, columns=["timestamp", "batch_id", *FAMILY_META_COLS])
+    combined_schema = set(pl.scan_parquet(combined_path).collect_schema().names())
+    meta_all = pl.read_parquet(
+        combined_path,
+        columns=[
+            col
+            for col in ["timestamp", "batch_id", *FAMILY_META_COLS]
+            if col in combined_schema
+        ],
+    )
+    meta_all = _with_missing_family_meta_defaults(meta_all)
     written = 0
     skipped = 0
     batch_ids = sorted(meta_all["batch_id"].unique().to_list())
@@ -1767,7 +2144,6 @@ def _build_feature_batches(
 
     df_full = df_full.filter(pl.col("batch_id") >= context_start_batch)
     df_full = df_full.with_columns(pl.col("family_bar_pos").cast(pl.Int32).alias("bar_pos"))
-    bars_per_batch = _bars_per_batch(regime, tf)
     print(
         f"  Feature scope {regime}/{family}/{tf}: run_mode={run_mode}, "
         f"context_start_batch={context_start_batch}, write_start_batch={write_start_batch}, "
@@ -1775,7 +2151,10 @@ def _build_feature_batches(
         flush=True,
     )
     df_full = df_full.with_columns(
-        ((pl.col("bar_pos") + 1) / bars_per_batch).alias("bar_in_batch_norm")
+        (
+            (pl.col("bar_pos") + 1)
+            / pl.max_horizontal(pl.col("expected_rows_in_batch"), pl.lit(1)).cast(pl.Float64)
+        ).alias("bar_in_batch_norm")
     )
 
     meta_keep_cols = [
@@ -1863,20 +2242,25 @@ def _build_feature_batches(
                 "entry_window_hours": int(REGIME_CONFIGS[regime].entry_window_hours),
                 "rows": int(len(df_pl)),
                 "batches": int(len(batch_ids)),
-                "rows_per_batch": int(bars_per_batch),
+                "rows_per_batch": "calendar_expected_rows",
                 "output_dir": str(output_dir),
                 "run_mode": run_mode,
                 "rebuild_reasons": feature_rebuild_reasons,
                 "context_start_batch": int(context_start_batch),
                 "write_start_batch": int(write_start_batch),
                 "write_batches_count": int(len(batch_ids_to_write)),
-                "expected_rows_per_batch": int(bars_per_batch),
+                "expected_rows_per_batch": "calendar_expected_rows",
                 "incomplete_batches_count": int(
                     len(
                         (
                             df_pl.group_by("batch_id")
-                            .agg(pl.len().alias("rows"))
-                            .filter(pl.col("rows") < bars_per_batch)
+                            .agg(
+                                [
+                                    pl.len().alias("rows"),
+                                    pl.col("expected_rows_in_batch").max().alias("expected_rows"),
+                                ]
+                            )
+                            .filter(pl.col("rows") < pl.col("expected_rows"))
                         )
                     )
                 ),
@@ -1906,11 +2290,10 @@ def _build_15m_metrics(
     meta_path = Path(scope["backtest"]) / f"{tf}_distance_metrics_meta.json"
 
     df = pl.read_parquet(combined_path).sort(["batch_id", "timestamp"])
-    batch_counts = df.group_by("batch_id").agg(pl.len().alias("n")).sort("batch_id")
-    last_batch_id = int(batch_counts["batch_id"].max())
+    batch_counts = _batch_calendar_counts(df)
     valid_batches = batch_counts.filter(
-        (pl.col("n") == _bars_per_batch(regime, tf))
-        | ((pl.col("batch_id") == last_batch_id) & (pl.col("n") >= 1))
+        (pl.col("expected_rows_in_batch") > 0)
+        & (pl.col("actual_rows_in_batch") == pl.col("expected_rows_in_batch"))
     )["batch_id"].to_list()
     metric_schema_columns = (
         pl.scan_parquet(output_path).collect_schema().names() if output_path.exists() else []
@@ -2045,7 +2428,7 @@ def _build_15m_metrics(
                 "entry_window_hours": int(REGIME_CONFIGS[regime].entry_window_hours),
                 "rows": int(len(df_out)),
                 "batches": int(df_out["batch_id"].n_unique()),
-                "rows_per_batch": int(_bars_per_batch(regime, tf)),
+                "rows_per_batch": "calendar_expected_rows",
                 "output_path": str(output_path),
                 "rebuild_reasons": metric_rebuild_reasons,
                 "updated_batches": [int(batch_id) for batch_id in rebuild_batches],
@@ -2110,17 +2493,16 @@ def _build_1m_labels(
             Path(window_scope["backtest"]) / "15m_HTF_combined.parquet"
         ).sort("timestamp")
 
-    counts_1m = df_1m.group_by("batch_id").agg(pl.len().alias("n")).sort("batch_id")
-    counts_15m = df_15m.group_by("batch_id").agg(pl.len().alias("n")).sort("batch_id")
+    counts_1m = _batch_calendar_counts(df_1m)
+    counts_15m = _batch_calendar_counts(df_15m)
     if config.label_window_policy == LABEL_WINDOW_OPPOSITE_FIRST_HALF:
         assert window_1m is not None and window_15m is not None
-        label_batches = _eligible_opposite_label_batches(
-            entry_counts_1m=counts_1m,
-            entry_counts_15m=counts_15m,
+        label_batches = _eligible_opposite_label_batches_from_frames(
+            entry_1m=df_1m,
+            entry_15m=df_15m,
             window_1m=window_1m,
             window_15m=window_15m,
             regime=regime,
-            family=family,
         )
     else:
         label_batches = _eligible_label_batches_from_counts(counts_1m, counts_15m, regime)
@@ -2253,42 +2635,56 @@ def _build_1m_labels(
     print(
         f"  Label scope {regime}/{family}/1m: run_mode={run_mode}, "
         f"target_batches={len(target_batches):,}, compute_batches={len(compute_batches):,}, "
-        "entry_bar_limit=computed_later",
+        f"entry_window_hours={REGIME_CONFIGS[regime].entry_window_hours}",
         flush=True,
     )
 
     df_1m = df_1m.filter(pl.col("batch_id").is_in(compute_batches))
-    df_15m = df_15m.filter(pl.col("batch_id").is_in(compute_batches))
+    if config.label_window_policy == LABEL_WINDOW_OPPOSITE_FIRST_HALF:
+        compute_periods = df_1m.select(_period_key_expr("family_period_start")).unique()
+        df_15m = (
+            df_15m.with_columns(_period_key_expr("family_period_start"))
+            .join(compute_periods, on="family_period_key", how="inner")
+            .drop("family_period_key")
+        )
+    else:
+        df_15m = df_15m.filter(pl.col("batch_id").is_in(compute_batches))
 
     if config.label_window_policy == LABEL_WINDOW_OPPOSITE_FIRST_HALF:
         assert window_1m is not None and window_15m is not None
         window_family = _opposite_family(family)
         window_1m_half = (
-            window_1m.filter(
-                pl.col("family_bar_pos") < _entry_bar_limit(regime, "1m")
-            )
+            window_1m.filter(pl.col("is_label_half"))
             .with_columns(
                 [
+                    _period_key_expr("family_period_start").alias(
+                        "label_window_period_key"
+                    ),
                     pl.col("batch_id").cast(pl.Int32).alias("label_window_batch_id"),
                     pl.lit(window_family).alias("label_window_family"),
                 ]
             )
         )
         window_15m_half = (
-            window_15m.filter(
-                pl.col("family_bar_pos") < _entry_bar_limit(regime, "15m")
-            )
+            window_15m.filter(pl.col("is_label_half"))
             .with_columns(
                 [
+                    _period_key_expr("family_period_start").alias(
+                        "label_window_period_key"
+                    ),
                     pl.col("batch_id").cast(pl.Int32).alias("label_window_batch_id"),
                     pl.col("family_bar_pos").cast(pl.Int32).alias("label_window_bar_pos"),
                 ]
             )
         )
         window_close_1m = (
-            window_1m_half.group_by("label_window_batch_id")
+            window_1m_half.group_by("label_window_period_key")
             .agg(
                 [
+                    pl.col("label_window_batch_id")
+                    .sort_by("timestamp")
+                    .first()
+                    .alias("label_window_batch_id"),
                     pl.col("close").sort_by("timestamp").last().alias("close_end"),
                     pl.col("family_period_start")
                     .sort_by("timestamp")
@@ -2302,10 +2698,26 @@ def _build_1m_labels(
             )
             .with_columns(pl.lit(window_family).alias("label_window_family"))
         )
-        df_1m = _add_opposite_label_window_columns(df_1m, family).join(
-            window_close_1m,
-            on=["label_window_family", "label_window_batch_id"],
-            how="left",
+        df_1m = (
+            df_1m.with_columns(
+                [
+                    pl.lit(LABEL_WINDOW_OPPOSITE_FIRST_HALF).alias(
+                        "label_window_policy"
+                    ),
+                    pl.lit(family).alias("label_entry_family"),
+                    pl.lit(window_family).alias("label_window_family"),
+                    (
+                        _period_key_expr("family_period_start")
+                        + pl.duration(hours=REGIME_CONFIGS[regime].entry_window_hours)
+                    ).alias("label_window_period_key"),
+                ]
+            )
+            .join(
+                window_close_1m,
+                on=["label_window_family", "label_window_period_key"],
+                how="left",
+            )
+            .drop("label_window_period_key")
         )
         df_1m = df_1m.with_columns(
             [
@@ -2383,7 +2795,13 @@ def _build_1m_labels(
                     / (pl.col("bb_upper") - pl.col("bb_lower"))
                     * 100
                 ).alias("bb_position_pct"),
-                (pl.col("bar_pos_1m") // 120).alias("segment_2h"),
+                (
+                    (
+                        pl.col("timestamp").dt.replace_time_zone(None)
+                        - pl.col("family_period_start").dt.replace_time_zone(None)
+                    ).dt.total_minutes()
+                    // 120
+                ).alias("segment_2h"),
             ]
         )
     )
@@ -2424,10 +2842,9 @@ def _build_1m_labels(
         ]
     )
 
-    entry_bar_limit = _entry_bar_limit(regime, "1m")
     print(
-        f"  Label gating {regime}/{family}/1m: entry_bar_limit={entry_bar_limit}, "
-        f"expected_valid_rows_per_full_batch={_expected_valid_1m_rows(regime)}",
+        f"  Label gating {regime}/{family}/1m: "
+        f"entry_window_hours={REGIME_CONFIGS[regime].entry_window_hours}, calendar-aware",
         flush=True,
     )
     df_labels = compute_4class_labels(
@@ -2454,7 +2871,7 @@ def _build_1m_labels(
         ]
     )
     valid_label_window_expr = (
-        (pl.col("bar_pos_1m") < entry_bar_limit)
+        pl.col("is_label_half")
         & pl.col("label_window_batch_id").is_not_null()
         & pl.col("label_window_start").is_not_null()
         & (pl.col("remaining_bars") >= MIN_REMAINING_15M)
@@ -2527,7 +2944,7 @@ def _build_1m_labels(
                 "missing_backfill_count": int(len(missing_batches)),
                 "repair_batches": [int(batch_id) for batch_id in sorted(repair_label_ids)],
                 "repair_batches_count": int(len(repair_label_ids)),
-                "expected_valid_rows_per_full_batch": int(_expected_valid_1m_rows(regime)),
+                "expected_valid_rows": "calendar_entry_window_rows",
                 "run_mode": run_mode,
             },
         ),
@@ -2553,9 +2970,28 @@ def _run_optimization(config: MultiRegimeHTFConfig, regime: str, family: str) ->
     feature_dir = Path(scope["features"]) / "1m"
     if not label_dir.exists() or not feature_dir.exists():
         return {"skipped": True, "reason": "missing_inputs"}
+    feature_files = sorted(feature_dir.glob("batch_*.parquet"))
+    label_files = sorted(label_dir.glob("batch_*.parquet"))
+    if not feature_files:
+        return {"skipped": True, "reason": "no_feature_batches"}
+    if not label_files:
+        return {"skipped": True, "reason": "no_label_batches"}
+    label_stems = {path.stem for path in label_files}
+    matched_label_files = [path for path in feature_files if path.stem in label_stems]
+    if not matched_label_files:
+        return {"skipped": True, "reason": "no_feature_label_pairs"}
+    valid_label_rows = int(
+        pl.scan_parquet([str(label_dir / f"{path.stem}.parquet") for path in matched_label_files])
+        .filter(pl.col("target_4class") >= 0)
+        .select(pl.len())
+        .collect()
+        .item()
+    )
+    if valid_label_rows == 0:
+        return {"skipped": True, "reason": "no_valid_labels"}
 
     label_files = sorted(label_dir.glob("batch_*.parquet"))
-    n_batches = len(label_files)
+    n_batches = len(matched_label_files)
     n_early_batches = min(200, max(20, n_batches - 5))
     opt_config = HTFOptimizationConfig(
         project_root=config.project_root,
@@ -3066,20 +3502,58 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                 )
             )
 
-            counts = combined_scan.group_by("batch_id").agg(pl.len().alias("n")).collect().sort("batch_id")
+            if {
+                "family_period_start",
+                "expected_rows_in_batch",
+                "actual_rows_in_batch",
+                "expected_entry_rows",
+                "actual_entry_rows",
+            } <= combined_schema:
+                counts = (
+                    combined_scan.group_by("batch_id")
+                    .agg(
+                        [
+                            pl.len().alias("n"),
+                            pl.col("family_period_start").first().alias("family_period_start"),
+                            pl.col("expected_rows_in_batch").max().cast(pl.Int32),
+                            pl.col("actual_rows_in_batch").max().cast(pl.Int32),
+                            pl.col("expected_entry_rows").max().cast(pl.Int32),
+                            pl.col("actual_entry_rows").max().cast(pl.Int32),
+                        ]
+                    )
+                    .collect()
+                    .sort("batch_id")
+                )
+            else:
+                counts = combined_scan.group_by("batch_id").agg(pl.len().alias("n")).collect().sort("batch_id")
+                counts = counts.with_columns(
+                    [
+                        pl.col("n").cast(pl.Int32).alias("expected_rows_in_batch"),
+                        pl.col("n").cast(pl.Int32).alias("actual_rows_in_batch"),
+                        pl.col("n").cast(pl.Int32).alias("expected_entry_rows"),
+                        pl.col("n").cast(pl.Int32).alias("actual_entry_rows"),
+                    ]
+                )
             counts_by_tf[tf] = counts
             expected_ids = counts["batch_id"].to_list() if len(counts) > 0 else []
             expected_ids_by_tf[tf] = expected_ids
-            expected_rows = _bars_per_batch(regime, tf)
             if len(counts) > 0:
-                first_batch_id = int(counts["batch_id"].min())
-                last_batch_id = int(counts["batch_id"].max())
-                edge_batch_ids = [first_batch_id, last_batch_id]
                 bad_rows = counts.filter(
-                    (~pl.col("batch_id").is_in(edge_batch_ids) & (pl.col("n") != expected_rows))
-                    | (pl.col("batch_id").is_in(edge_batch_ids) & (pl.col("n") > expected_rows))
+                    (pl.col("expected_rows_in_batch") < 1)
+                    | (pl.col("n") != pl.col("expected_rows_in_batch"))
+                    | (pl.col("actual_rows_in_batch") != pl.col("expected_rows_in_batch"))
                 )
-                rows.append(_validation_row(regime, family, tf, "combined", "rows_per_batch", len(bad_rows) == 0, f"bad_batches={len(bad_rows)} expected={expected_rows}"))
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        tf,
+                        "combined",
+                        "rows_per_batch",
+                        len(bad_rows) == 0,
+                        f"bad_batches={len(bad_rows)} expected=calendar_open_timestamps",
+                    )
+                )
                 rows.append(
                     _validation_row(
                         regime,
@@ -3114,6 +3588,10 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     "is_label_half",
                     "source_base_batch_id",
                     "source_half_in_base",
+                    "expected_rows_in_batch",
+                    "actual_rows_in_batch",
+                    "expected_entry_rows",
+                    "actual_entry_rows",
                 ]
                 if col in combined_schema
             ]
@@ -3168,16 +3646,30 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                 family_batch_mismatch = int(df.select((pl.col("family_batch_id") != pl.col("batch_id")).sum().alias("n"))["n"][0])
                 rows.append(_validation_row(regime, family, tf, "combined", "family_batch_id_alignment", family_batch_mismatch == 0, f"mismatched_rows={family_batch_mismatch}"))
             if {"is_label_half", "family_bar_pos"} <= combined_schema:
+                cfg = REGIME_CONFIGS[regime]
                 label_half_mismatch = int(
-                    df.select((pl.col("is_label_half") != (pl.col("family_bar_pos") < _bars_per_half(regime, tf))).sum().alias("n"))["n"][0]
+                    df.select(
+                        (
+                            pl.col("is_label_half")
+                            != (
+                                pl.col("timestamp").dt.replace_time_zone(None)
+                                < (
+                                    pl.col("family_period_start").dt.replace_time_zone(None)
+                                    + timedelta(hours=cfg.entry_window_hours)
+                                )
+                            )
+                        )
+                        .sum()
+                        .alias("n")
+                    )["n"][0]
                 )
                 rows.append(_validation_row(regime, family, tf, "combined", "is_label_half_alignment", label_half_mismatch == 0, f"mismatched_rows={label_half_mismatch}"))
-            if "family_bar_pos" in combined_schema:
+            if {"family_bar_pos", "actual_rows_in_batch"} <= combined_schema:
                 bar_pos_bounds = int(
                     df.select(
                         (
                             (pl.col("family_bar_pos") < 0)
-                            | (pl.col("family_bar_pos") >= _bars_per_batch(regime, tf))
+                            | (pl.col("family_bar_pos") >= pl.col("actual_rows_in_batch"))
                         )
                         .sum()
                         .alias("n")
@@ -3335,8 +3827,25 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
         label_dir = Path(scope["labels"]) / "1m"
         label_files = sorted(label_dir.glob("batch_*.parquet"))
         valid_counts = pl.DataFrame({"batch_id": [], "n_valid": []})
+        label_expected_ids = _expected_label_batches_for_family(
+            config,
+            regime,
+            family,
+            counts_by_tf.get("1m", pl.DataFrame({"batch_id": [], "n": []})),
+            counts_by_tf.get("15m", pl.DataFrame({"batch_id": [], "n": []})),
+        )
         if not label_files:
-            rows.append(_validation_row(regime, family, "1m", "labels", "exists", False, str(label_dir)))
+            rows.append(
+                _validation_row(
+                    regime,
+                    family,
+                    "1m",
+                    "labels",
+                    "exists",
+                    len(label_expected_ids) == 0,
+                    f"{label_dir} expected_label_batches={len(label_expected_ids)}",
+                )
+            )
         else:
             scan = pl.scan_parquet(str(label_dir / "batch_*.parquet"))
             label_schema = set(scan.collect_schema().names())
@@ -3373,16 +3882,18 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
 
             valid_counts = (
                 scan.group_by("batch_id")
-                .agg((pl.col("target_4class") >= 0).sum().alias("n_valid"))
+                .agg(
+                    [
+                        (pl.col("target_4class") >= 0).sum().alias("n_valid"),
+                        pl.col("actual_entry_rows").max().alias("expected_valid")
+                        if "actual_entry_rows" in label_schema
+                        else (pl.col("target_4class") >= 0).sum().alias("expected_valid"),
+                    ]
+                )
                 .collect()
                 .sort("batch_id")
             )
             label_ids = valid_counts["batch_id"].to_list() if len(valid_counts) > 0 else []
-            label_expected_ids = _eligible_label_batches_from_counts(
-                counts_by_tf.get("1m", pl.DataFrame({"batch_id": [], "n": []})),
-                counts_by_tf.get("15m", pl.DataFrame({"batch_id": [], "n": []})),
-                regime,
-            )
             coverage_ok, coverage_detail = _expected_prefix_status(label_ids, label_expected_ids)
             rows.append(_validation_row(regime, family, "1m", "labels", "batch_ids_cover_expected_prefix", coverage_ok, coverage_detail))
 
@@ -3419,10 +3930,8 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
             rows.append(_validation_row(regime, family, "1m", "labels", "target_breakfree_value_range", bad_bf == 0, f"invalid_rows={bad_bf}"))
 
             if len(valid_counts) > 0:
-                last_batch_id = int(valid_counts["batch_id"].max())
                 bad_valid = valid_counts.filter(
-                    ((pl.col("batch_id") != last_batch_id) & (pl.col("n_valid") != _expected_valid_1m_rows(regime)))
-                    | ((pl.col("batch_id") == last_batch_id) & (pl.col("n_valid") > _expected_valid_1m_rows(regime)))
+                    pl.col("n_valid") != pl.col("expected_valid")
                 )
                 rows.append(
                     {
@@ -3432,7 +3941,7 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                         "stage": "labels",
                         "check": "valid_rows_per_batch",
                         "ok": len(bad_valid) == 0,
-                        "detail": f"bad_batches={len(bad_valid)} expected={_expected_valid_1m_rows(regime)}",
+                        "detail": f"bad_batches={len(bad_valid)} expected=calendar_entry_rows",
                     }
                 )
 
@@ -3480,26 +3989,42 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     f"violations={invalid_pair}",
                 )
             )
-            entry_limit = _bars_per_half(regime, "1m")
             late_labels = int(
-                scan.filter((pl.col("bar_pos_1m") >= entry_limit) & (pl.col("target_4class") >= 0))
+                scan.filter((~pl.col("is_label_half")) & (pl.col("target_4class") >= 0))
                 .select(pl.len())
                 .collect()
                 .item()
             )
             rows.append(_validation_row(regime, family, "1m", "labels", "entry_window_gating_4class", late_labels == 0, f"late_labeled_rows={late_labels}"))
 
-            combined_1m = pl.read_parquet(
-                Path(scope["backtest"]) / "1m_HTF_combined.parquet",
-                columns=["batch_id", "timestamp", "close"],
-            )
-            batch_close = combined_1m.group_by("batch_id").agg(
-                pl.col("close").sort_by("timestamp").last().alias("close_ref")
-            )
-            sample = (
-                pl.read_parquet(label_files[0], columns=["batch_id", "close_end"])
-                .join(batch_close, on="batch_id", how="left")
-            )
+            if config.label_window_policy == LABEL_WINDOW_OPPOSITE_FIRST_HALF:
+                window_scope = _family_scope(config.data_dir, regime, _opposite_family(family))
+                combined_1m = pl.read_parquet(
+                    Path(window_scope["backtest"]) / "1m_HTF_combined.parquet",
+                    columns=["batch_id", "timestamp", "close", "is_label_half"],
+                )
+                batch_close = (
+                    combined_1m.filter(pl.col("is_label_half"))
+                    .group_by("batch_id")
+                    .agg(pl.col("close").sort_by("timestamp").last().alias("close_ref"))
+                )
+                sample = (
+                    pl.read_parquet(label_files[0], columns=["label_window_batch_id", "close_end"])
+                    .rename({"label_window_batch_id": "batch_id"})
+                    .join(batch_close, on="batch_id", how="left")
+                )
+            else:
+                combined_1m = pl.read_parquet(
+                    Path(scope["backtest"]) / "1m_HTF_combined.parquet",
+                    columns=["batch_id", "timestamp", "close"],
+                )
+                batch_close = combined_1m.group_by("batch_id").agg(
+                    pl.col("close").sort_by("timestamp").last().alias("close_ref")
+                )
+                sample = (
+                    pl.read_parquet(label_files[0], columns=["batch_id", "close_end"])
+                    .join(batch_close, on="batch_id", how="left")
+                )
             close_mismatch = int((sample["close_end"] != sample["close_ref"]).sum())
             rows.append(
                 {
@@ -3507,7 +4032,7 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     "family": family,
                     "tf": "1m",
                     "stage": "labels",
-                    "check": "breakfree_uses_batch_end_close",
+                    "check": "breakfree_uses_label_window_close",
                     "ok": close_mismatch == 0,
                     "detail": f"mismatched_rows={close_mismatch}",
                 }
@@ -3515,9 +4040,24 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
 
         opt_dir = Path(scope["optimized"]) / "1m" / "target_4class"
         opt_files = sorted(opt_dir.glob("batch_*.parquet"))
+        expected_opt_ids = (
+            valid_counts.filter(pl.col("n_valid") > 0)["batch_id"].to_list()
+            if len(valid_counts) > 0
+            else []
+        )
         if config.run_optimization or opt_files:
             if not opt_files:
-                rows.append(_validation_row(regime, family, "1m", "optimized", "exists", False, str(opt_dir)))
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "optimized",
+                        "exists",
+                        len(expected_opt_ids) == 0,
+                        f"{opt_dir} expected_optimized_batches={len(expected_opt_ids)}",
+                    )
+                )
             else:
                 opt_scan = pl.scan_parquet(str(opt_dir / "batch_*.parquet"))
                 opt_schema_map = opt_scan.collect_schema()
@@ -3530,11 +4070,6 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     .sort("batch_id")
                 )
                 opt_ids = opt_counts["batch_id"].to_list() if len(opt_counts) > 0 else []
-                expected_opt_ids = (
-                    valid_counts.filter(pl.col("n_valid") > 0)["batch_id"].to_list()
-                    if len(valid_counts) > 0
-                    else []
-                )
                 coverage_ok, coverage_detail = _expected_prefix_status(opt_ids, expected_opt_ids)
                 bad_opt_counts = (
                     valid_counts.join(opt_counts, on="batch_id", how="left")
@@ -3676,8 +4211,12 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                     "1m",
                     "helpers",
                     "meta_exists",
-                    helper_meta is not None,
-                    str(helper_meta_path),
+                    helper_meta is not None or (len(opt_files) == 0 and not helper_files),
+                    (
+                        str(helper_meta_path)
+                        if helper_meta is not None or opt_files
+                        else "skipped_no_optimized_batches"
+                    ),
                 )
             )
             if helper_meta is not None:
@@ -3807,7 +4346,17 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                         )
                     )
             if not helper_files:
-                rows.append(_validation_row(regime, family, "1m", "helpers", "exists", False, str(helper_dir)))
+                rows.append(
+                    _validation_row(
+                        regime,
+                        family,
+                        "1m",
+                        "helpers",
+                        "exists",
+                        len(opt_files) == 0,
+                        f"{helper_dir} expected_helper_batches={len(opt_files)}",
+                    )
+                )
             else:
                 helper_scan = pl.scan_parquet(str(helper_dir / "batch_*.parquet"))
                 helper_schema_map = helper_scan.collect_schema()
@@ -4111,10 +4660,19 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
     b_path = Path(base_scope["backtest"]) / "1m_HTF_combined.parquet"
     c_path = Path(shift_scope["backtest"]) / "1m_HTF_combined.parquet"
     if b_path.exists() and c_path.exists():
-        half = _bars_per_half(regime, "1m")
         b = pl.read_parquet(
             b_path,
-            columns=["timestamp", "batch_id", "family_bar_pos", "is_label_half"],
+            columns=[
+                "timestamp",
+                "batch_id",
+                "family_period_start",
+                "family_bar_pos",
+                "is_label_half",
+                "expected_rows_in_batch",
+                "actual_rows_in_batch",
+                "expected_entry_rows",
+                "actual_entry_rows",
+            ],
         )
         c = pl.read_parquet(
             c_path,
@@ -4122,24 +4680,74 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                 "timestamp",
                 "batch_id",
                 "family_bar_pos",
+                "family_period_start",
+                "source_base_period_start",
                 "source_base_batch_id",
                 "source_half_in_base",
                 "is_label_half",
+                "expected_rows_in_batch",
+                "actual_rows_in_batch",
+                "expected_entry_rows",
+                "actual_entry_rows",
             ],
         )
-        b_counts = b.group_by("batch_id").agg(pl.len().alias("n")).sort("batch_id")
-        c_counts = c.group_by("batch_id").agg(pl.len().alias("n")).sort("batch_id")
-        complete_b_ids = b_counts.filter(pl.col("n") == _bars_per_batch(regime, "1m"))["batch_id"].to_list()
-        complete_c_ids = c_counts.filter(pl.col("n") == _bars_per_batch(regime, "1m"))["batch_id"].to_list()
+        b_counts = _batch_calendar_counts(b)
+        c_counts = _batch_calendar_counts(c)
+        b15_path = Path(base_scope["backtest"]) / "15m_HTF_combined.parquet"
+        c15_path = Path(shift_scope["backtest"]) / "15m_HTF_combined.parquet"
+        if b15_path.exists():
+            b15_counts = _batch_calendar_counts(pl.read_parquet(b15_path))
+        else:
+            b15_counts = pl.DataFrame({"batch_id": [], "n": []})
+        if c15_path.exists():
+            c15_counts = _batch_calendar_counts(pl.read_parquet(c15_path))
+        else:
+            c15_counts = pl.DataFrame({"batch_id": [], "n": []})
+        expected_b_label_ids = _expected_label_batches_for_family(
+            config,
+            regime,
+            "B",
+            b_counts,
+            b15_counts,
+        )
+        expected_c_label_ids = _expected_label_batches_for_family(
+            config,
+            regime,
+            "C",
+            c_counts,
+            c15_counts,
+        )
+        complete_b_ids = b_counts.filter(
+            (pl.col("expected_rows_in_batch") > 0)
+            & (pl.col("actual_rows_in_batch") == pl.col("expected_rows_in_batch"))
+        )["batch_id"].to_list()
+        complete_c_ids = c_counts.filter(
+            (pl.col("expected_rows_in_batch") > 0)
+            & (pl.col("actual_rows_in_batch") == pl.col("expected_rows_in_batch"))
+        )["batch_id"].to_list()
         c_complete = c.filter(pl.col("batch_id").is_in(complete_c_ids))
-        c_first = c_complete.filter(pl.col("family_bar_pos") < half)
-        c_second = c_complete.filter(pl.col("family_bar_pos") >= half)
+        c_first = c_complete.filter(pl.col("is_label_half"))
+        c_second = c_complete.filter(~pl.col("is_label_half"))
+        expected_first_source_start = (
+            pl.col("family_period_start").dt.replace_time_zone(None)
+            - pl.duration(hours=REGIME_CONFIGS[regime].shift_hours)
+        )
+        expected_second_source_start = (
+            pl.col("family_period_start").dt.replace_time_zone(None)
+            + pl.duration(hours=REGIME_CONFIGS[regime].shift_hours)
+        )
         bad_source_first = c_first.filter(
-            (pl.col("source_base_batch_id") != pl.col("batch_id"))
+            (
+                pl.col("source_base_period_start").dt.replace_time_zone(None)
+                != expected_first_source_start
+            )
             | (pl.col("source_half_in_base") != "F")
         )
         bad_source_second = c_second.filter(
-            (pl.col("source_base_batch_id") != (pl.col("batch_id") + 1))
+            (
+                pl.col("source_base_period_start").dt.replace_time_zone(None)
+                != expected_second_source_start
+            )
             | (pl.col("source_half_in_base") != "L")
         )
         rows.extend(
@@ -4164,18 +4772,12 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
                 ),
             ]
         )
-        b_second = b.filter(pl.col("family_bar_pos") >= half).select(
-            ["timestamp", pl.col("batch_id").alias("c_batch_id")]
-        )
-        c_first_join = c_first.select(["timestamp", pl.col("batch_id").alias("c_batch_id")])
-        missing_first = c_first_join.join(b_second, on=["timestamp", "c_batch_id"], how="anti")
-        b_first_next = (
-            b.filter(pl.col("family_bar_pos") < half)
-            .select(["timestamp", (pl.col("batch_id") - 1).alias("c_batch_id")])
-            .filter(pl.col("c_batch_id") > 0)
-        )
-        c_second_join = c_second.select(["timestamp", pl.col("batch_id").alias("c_batch_id")])
-        missing_second = c_second_join.join(b_first_next, on=["timestamp", "c_batch_id"], how="anti")
+        b_second = b.filter(~pl.col("is_label_half")).select("timestamp").unique()
+        c_first_join = c_first.select("timestamp").unique()
+        missing_first = c_first_join.join(b_second, on="timestamp", how="anti")
+        b_first_next = b.filter(pl.col("is_label_half")).select("timestamp").unique()
+        c_second_join = c_second.select("timestamp").unique()
+        missing_second = c_second_join.join(b_first_next, on="timestamp", how="anti")
         rows.extend(
             [
                 _validation_row(
@@ -4201,8 +4803,8 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
 
         expected_valid = pl.concat(
             [
-                b.filter(pl.col("batch_id").is_in(complete_b_ids) & pl.col("is_label_half")).select("timestamp"),
-                c.filter(pl.col("batch_id").is_in(complete_c_ids) & pl.col("is_label_half")).select("timestamp"),
+                b.filter(pl.col("batch_id").is_in(expected_b_label_ids) & pl.col("is_label_half")).select("timestamp"),
+                c.filter(pl.col("batch_id").is_in(expected_c_label_ids) & pl.col("is_label_half")).select("timestamp"),
             ],
             how="vertical",
         ).unique()
@@ -4210,20 +4812,8 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
         b_label_dir = Path(base_scope["labels"]) / "1m"
         c_label_dir = Path(shift_scope["labels"]) / "1m"
         if b_label_dir.exists() and c_label_dir.exists():
-            b_valid = (
-                pl.scan_parquet(str(b_label_dir / "batch_*.parquet"))
-                .filter(pl.col("batch_id").is_in(complete_b_ids) & (pl.col("target_4class") >= 0))
-                .select("timestamp")
-                .collect()
-                .unique()
-            )
-            c_valid = (
-                pl.scan_parquet(str(c_label_dir / "batch_*.parquet"))
-                .filter(pl.col("batch_id").is_in(complete_c_ids) & (pl.col("target_4class") >= 0))
-                .select("timestamp")
-                .collect()
-                .unique()
-            )
+            b_valid = _valid_label_timestamps(b_label_dir, expected_b_label_ids)
+            c_valid = _valid_label_timestamps(c_label_dir, expected_c_label_ids)
             dup_valid = b_valid.join(c_valid, on="timestamp", how="inner")
             actual_valid = pl.concat([b_valid, c_valid], how="vertical").unique()
             missing_valid = expected_valid.join(actual_valid, on="timestamp", how="anti")
@@ -4270,6 +4860,7 @@ def _validate_regime(config: MultiRegimeHTFConfig, regime: str) -> pl.DataFrame:
 
 
 def run_multi_regime_htf_pipeline(config: MultiRegimeHTFConfig) -> dict[str, Any]:
+    """Run all configured regimes/families for one asset."""
     pipeline_started_at = time.time()
     print("=" * 70, flush=True)
     print("[HTF] MULTI-REGIME PIPELINE START", flush=True)

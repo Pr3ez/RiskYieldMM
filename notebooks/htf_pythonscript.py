@@ -27,6 +27,9 @@ from typing import Any
 import polars as pl
 
 
+# The launcher can be called from the repo root, from `notebooks/`, or by an
+# IDE/debugger with a different cwd. Resolve the repository root first so every
+# later path is stable and absolute.
 def resolve_project_root() -> Path:
     """Resolve repo root for script execution from any cwd."""
     candidates: list[Path] = []
@@ -59,6 +62,9 @@ PROJECT_ROOT = resolve_project_root()
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+# Keep shared thresholds and artifact-version values outside the launcher. This
+# script should decide *what to run*, while shared modules define model/label
+# contracts used by the real pipeline.
 from scripts.feature_engineering.htf_shared_config import (  # noqa: E402
     SHARED_BREAKFREE_THRESHOLD_1M,
     SHARED_BREAKOUT_THRESHOLD,
@@ -73,6 +79,9 @@ from scripts.feature_engineering.htf_asset_registry import (  # noqa: E402
 )
 
 
+# Per-run diagnostics are always written under ignored `test_output/` paths.
+# This gives long local runs a live log and heartbeat status without polluting
+# source-controlled artifacts.
 RUN_DEBUG_OUTPUT_DIR = PROJECT_ROOT / "test_output" / "htf_run_logs"
 RUN_DEBUG_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -122,6 +131,7 @@ def _stringify_progress_value(value: Any) -> Any:
 
 
 def _write_run_status(reason: str = "update") -> None:
+    """Persist lightweight heartbeat/status JSON for external monitoring."""
     now = time.time()
     payload = {
         "reason": reason,
@@ -154,6 +164,7 @@ def _append_to_run_log(text: str) -> None:
 
 
 def _tee_print(*args, **kwargs):
+    """Mirror all launcher/pipeline prints to stdout and the run log."""
     _ORIGINAL_PRINT(*args, **kwargs)
     sep = kwargs.get("sep", " ")
     end = kwargs.get("end", "\n")
@@ -165,6 +176,7 @@ def _tee_print(*args, **kwargs):
 
 
 def set_run_stage(stage: str, detail: str | None = None, *, announce: bool = True) -> None:
+    """Move the run heartbeat to a new human-readable workflow stage."""
     RUN_PROGRESS["stage"] = stage
     RUN_PROGRESS["detail"] = detail or ""
     RUN_PROGRESS["stage_started_at"] = time.time()
@@ -188,6 +200,7 @@ def log_loop_progress(
     started_at: float,
     every: int = RUN_LOOP_PROGRESS_EVERY,
 ) -> None:
+    """Print sparse progress for large loops without flooding the run log."""
     if total <= 0:
         return
     if current != 1 and current != total and current % every != 0:
@@ -204,6 +217,7 @@ def log_loop_progress(
 
 
 def workflow_progress_callback(event: str, payload: dict[str, Any]) -> None:
+    """Bridge structured progress from the shared HTF pipeline into run logging."""
     stage = payload.get("stage", "multi-regime")
     fields = []
     for key, value in payload.items():
@@ -224,6 +238,7 @@ def workflow_progress_callback(event: str, payload: dict[str, Any]) -> None:
 
 
 def _heartbeat_worker() -> None:
+    """Emit periodic status when a long-running stage is otherwise quiet."""
     while not RUN_HEARTBEAT_STOP.wait(RUN_HEARTBEAT_SECONDS):
         silence = time.time() - RUN_PROGRESS["last_activity_at"]
         if silence < RUN_SILENCE_HEARTBEAT_SECONDS:
@@ -240,6 +255,7 @@ def _heartbeat_worker() -> None:
 
 
 def _shutdown_run_logging() -> None:
+    """Restore normal printing and close run-log resources on every exit path."""
     RUN_HEARTBEAT_STOP.set()
     _write_run_status("shutdown")
     builtins.print = _ORIGINAL_PRINT
@@ -248,6 +264,8 @@ def _shutdown_run_logging() -> None:
         RUN_LOG_HANDLE.close()
 
 
+# Install print teeing before workflow startup so early failures are captured in
+# the same log as normal pipeline output.
 builtins.print = _tee_print
 HEARTBEAT_THREAD = threading.Thread(
     target=_heartbeat_worker,
@@ -265,11 +283,37 @@ def _env_bool(name: str, default: bool) -> bool:
     return raw.strip().lower() not in {"0", "false", "no", "off"}
 
 
+def _env_csv_tuple(name: str, default: tuple[str, ...]) -> tuple[str, ...]:
+    raw = os.environ.get(name)
+    if raw is None or raw.strip() == "":
+        return default
+    values = tuple(part.strip() for part in raw.split(",") if part.strip())
+    return values or default
+
+
+# Environment surface for local production runs.
+#
+# Common examples:
+#   HTF_ASSETS=core
+#   HTF_ASSET_OUTPUT_MODE=multiasset
+#   HTF_RUN_OPTIMIZATION=0 HTF_RUN_HELPERS=0  # fast validation/smoke mode
+#   HTF_SESSION_REGIMES=8h                    # rollback session assets only
 RUN_MULTI_REGIME_EXTENSION = _env_bool("HTF_RUN_MULTI_REGIME_EXTENSION", True)
 MULTI_REGIME_ASSETS = htf_asset_ids_from_csv(os.environ.get("HTF_ASSETS"))
 MULTI_REGIME_ASSET_OUTPUT_MODE = os.environ.get("HTF_ASSET_OUTPUT_MODE", "legacy")
-MULTI_REGIME_BUILD_REGIMES = ("8h", "24h", "7d")
-MULTI_REGIME_VALIDATE_REGIMES = ("8h", "24h", "7d")
+MULTI_REGIME_BUILD_REGIMES = _env_csv_tuple("HTF_BUILD_REGIMES", ("8h", "24h", "7d"))
+MULTI_REGIME_VALIDATE_REGIMES = _env_csv_tuple(
+    "HTF_VALIDATE_REGIMES",
+    MULTI_REGIME_BUILD_REGIMES,
+)
+# Session assets are now allowed to run 8h/24h/7d. This override exists only as
+# a conservative rollback switch when we want to temporarily restrict them, e.g.
+# `HTF_SESSION_REGIMES=8h`.
+MULTI_REGIME_SESSION_REGIMES = (
+    _env_csv_tuple("HTF_SESSION_REGIMES", MULTI_REGIME_BUILD_REGIMES)
+    if os.environ.get("HTF_SESSION_REGIMES") is not None
+    else None
+)
 MULTI_REGIME_FORCE_FULL_REBUILD = _env_bool("HTF_FORCE_FULL_REBUILD", False)
 MULTI_REGIME_SMOKE_MODE = False
 MULTI_REGIME_SMOKE_START = None
@@ -279,6 +323,8 @@ MULTI_REGIME_RUN_HELPERS = _env_bool("HTF_RUN_HELPERS", True)
 MULTI_REGIME_RUN_VALIDATION = _env_bool("HTF_RUN_VALIDATION", True)
 MULTI_REGIME_FAIL_FAST_ASSET_ERRORS = _env_bool("HTF_FAIL_FAST_ASSET_ERRORS", False)
 
+# Shared model/label constants are copied into the config object below so the
+# launcher logs exactly which contract was used for a run.
 MULTI_REGIME_PIPELINE_ARTIFACT_VERSION = SHARED_PIPELINE_ARTIFACT_VERSION
 MULTI_REGIME_THRESHOLDS_BY_TF = SHARED_THRESHOLDS_BY_TF
 MULTI_REGIME_DISTANCE_WINDOWS_BY_TF = SHARED_DISTANCE_WINDOWS_BY_TF
@@ -292,6 +338,10 @@ MULTI_REGIME_LABEL_WINDOW_POLICY = os.environ.get(
 
 
 def _htf_output_dir_for_asset(asset_id: str) -> Path:
+    """Resolve where generated HTF artifacts should be written for an asset."""
+    # Preserve legacy BTC-only behavior for old local workflows. New multi-asset
+    # work should set `HTF_ASSET_OUTPUT_MODE=multiasset`, which writes each asset
+    # into its own isolated tree under `data/htf_multiasset/{asset}/`.
     if (
         MULTI_REGIME_ASSET_OUTPUT_MODE == "legacy"
         and MULTI_REGIME_ASSETS == ("BTCUSDT",)
@@ -301,13 +351,34 @@ def _htf_output_dir_for_asset(asset_id: str) -> Path:
 
 
 def _htf_raw_dir_for_asset(asset_id: str) -> Path:
+    """Resolve the provider root used by feature code for this asset."""
     spec = get_htf_asset_spec(asset_id)
     if spec.source_kind == "multiasset_ohlcv":
         return PROJECT_ROOT / "fetchingMultiAsset"
     return PROJECT_ROOT / "fetchingByBit"
 
 
+def _htf_regimes_for_asset(asset_id: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
+    """Apply optional per-session-asset regime rollback after global parsing."""
+    spec = get_htf_asset_spec(asset_id)
+    build_regimes = MULTI_REGIME_BUILD_REGIMES
+    validate_regimes = MULTI_REGIME_VALIDATE_REGIMES
+    if spec.source_kind == "multiasset_ohlcv" and MULTI_REGIME_SESSION_REGIMES is not None:
+        allowed = set(MULTI_REGIME_SESSION_REGIMES)
+        build_regimes = tuple(regime for regime in build_regimes if regime in allowed)
+        validate_regimes = tuple(regime for regime in validate_regimes if regime in allowed)
+        if not build_regimes:
+            raise ValueError(
+                f"Asset {asset_id} has no regimes left after HTF_SESSION_REGIMES="
+                f"{MULTI_REGIME_SESSION_REGIMES!r}."
+            )
+    return build_regimes, validate_regimes
+
+
 def run_htf_workflow() -> dict[str, Any] | None:
+    """Build per-asset HTF artifacts using the shared multi-regime pipeline."""
+    # Reload the pipeline module so iterative local development can update the
+    # implementation without restarting the whole Python process/IDE session.
     import scripts.feature_engineering.htf_multiregime_pipeline as mr_module
 
     importlib.reload(mr_module)
@@ -327,8 +398,12 @@ def run_htf_workflow() -> dict[str, Any] | None:
     print(f"Run enabled: {RUN_MULTI_REGIME_EXTENSION}")
     print(f"Assets: {MULTI_REGIME_ASSETS}")
     print(f"Asset output mode: {MULTI_REGIME_ASSET_OUTPUT_MODE}")
-    print(f"Build regimes: {MULTI_REGIME_BUILD_REGIMES}")
-    print(f"Validate regimes: {MULTI_REGIME_VALIDATE_REGIMES}")
+    print(f"Requested build regimes: {MULTI_REGIME_BUILD_REGIMES}")
+    print(f"Requested validate regimes: {MULTI_REGIME_VALIDATE_REGIMES}")
+    print(
+        "Session regime override: "
+        f"{MULTI_REGIME_SESSION_REGIMES if MULTI_REGIME_SESSION_REGIMES is not None else 'none'}"
+    )
     print(f"Force full rebuild: {MULTI_REGIME_FORCE_FULL_REBUILD}")
     print(f"Smoke mode: {MULTI_REGIME_SMOKE_MODE}")
     print(f"Run optimization: {MULTI_REGIME_RUN_OPTIMIZATION}")
@@ -341,12 +416,22 @@ def run_htf_workflow() -> dict[str, Any] | None:
         print("Shared multi-regime pipeline disabled by HTF_RUN_MULTI_REGIME_EXTENSION=0.")
         return None
 
+    # Run each requested asset independently. By default one asset failure is
+    # recorded and the launcher continues, which is useful for long core runs
+    # where a single source issue should not hide the status of later assets.
+    # `HTF_FAIL_FAST_ASSET_ERRORS=1` restores immediate failure behavior.
     summaries: dict[str, Any] = {}
     asset_errors: dict[str, str] = {}
     for asset_id in MULTI_REGIME_ASSETS:
         print("\n" + "=" * 70)
         print(f"HTF ASSET START: {asset_id}")
         print("=" * 70)
+        asset_build_regimes, asset_validate_regimes = _htf_regimes_for_asset(asset_id)
+        print(f"Asset build regimes: {asset_build_regimes}")
+        print(f"Asset validate regimes: {asset_validate_regimes}")
+        # MultiRegimeHTFConfig is the narrow handoff from this launcher to the
+        # real pipeline. Everything below is either a path, a run-control flag,
+        # or a shared model/label contract value.
         config = MultiRegimeHTFConfig(
             project_root=PROJECT_ROOT,
             data_dir=_htf_output_dir_for_asset(asset_id),
@@ -355,8 +440,8 @@ def run_htf_workflow() -> dict[str, Any] | None:
             thresholds_by_tf=MULTI_REGIME_THRESHOLDS_BY_TF,
             distance_windows_by_tf=MULTI_REGIME_DISTANCE_WINDOWS_BY_TF,
             asset_id=asset_id,
-            build_regimes=MULTI_REGIME_BUILD_REGIMES,
-            validate_regimes=MULTI_REGIME_VALIDATE_REGIMES,
+            build_regimes=asset_build_regimes,
+            validate_regimes=asset_validate_regimes,
             rebuild_existing=MULTI_REGIME_FORCE_FULL_REBUILD,
             run_optimization=MULTI_REGIME_RUN_OPTIMIZATION,
             run_helpers=MULTI_REGIME_RUN_HELPERS,
@@ -386,6 +471,9 @@ def run_htf_workflow() -> dict[str, Any] | None:
             print(asset_errors[asset_id])
             print("Continuing with remaining assets. Final exit will report failures.")
 
+    # Single-asset runs keep the old summary/validation behavior. Multi-asset
+    # runs return a dictionary keyed by asset id so callers can inspect each
+    # asset's result separately.
     summary = summaries[MULTI_REGIME_ASSETS[0]] if len(MULTI_REGIME_ASSETS) == 1 else summaries
     validation_df = (
         summary.get("validation")
@@ -417,6 +505,7 @@ def run_htf_workflow() -> dict[str, Any] | None:
 
 
 def main() -> int:
+    """CLI entrypoint used by local shell runs and IDE run configurations."""
     set_run_stage(
         "Workflow bootstrap",
         detail=f"pid={os.getpid()}, run_id={RUN_INSTANCE_ID}",

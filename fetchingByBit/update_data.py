@@ -394,6 +394,7 @@ def print_status() -> None:
 
 
 def main():
+    """Run the Bybit fetch/aggregate/verify CLI workflow."""
     parser = argparse.ArgumentParser(
         description="Bybit Data Pipeline - Fetch & Aggregate (Production Ready)",
         formatter_class=argparse.RawDescriptionHelpFormatter,

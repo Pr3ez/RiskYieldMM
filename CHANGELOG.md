@@ -21,8 +21,12 @@ All notable repository-level changes are recorded here.
 - HTF asset registry and asset-aware HTF materialization. `HTF_ASSETS=core`
   with `HTF_ASSET_OUTPUT_MODE=multiasset` writes per-asset outputs under
   `data/htf_multiasset/{asset}/`.
+- Calendar-aware canonical HTF OHLCV layer with `crypto_24_7` and
+  `futures_session_observed` calendars, open-session gap-fill flags, derived
+  canonical `15m` bars, and preserved session metadata in HTF artifacts.
 - Multi-asset HTF tests for asset-specific raw routing, Databento/Yahoo
-  recent-tail precedence, and opposite-family label-window behavior.
+  recent-tail precedence, opposite-family label-window behavior, session
+  calendar gap handling, and session `24h`/`7d` valid-label production.
 - Multi-asset implementation plans and source documentation under `docs/plans/`.
 - Canonical Python dependency metadata in `pyproject.toml`, including
   lightweight `ci`/`dev` extras and heavier research/Rust extras.
@@ -55,6 +59,14 @@ All notable repository-level changes are recorded here.
 - HTF validation now checks `remaining_bars` against the active label-window
   policy, so opposite-family labels are no longer rejected by the older
   same-batch assumption.
+- HTF opposite-family labels now resolve the label window by family period start
+  instead of sequential batch id, preventing Monday-Friday/session closures from
+  shifting B/C batch numbering and labeling against the wrong opposite-family
+  window.
+- HTF launcher regime routing now enables `8h/24h/7d` for both crypto and
+  session assets by default. `HTF_BUILD_REGIMES` and `HTF_VALIDATE_REGIMES`
+  select requested regimes; `HTF_SESSION_REGIMES=8h` is available as a
+  conservative rollback for session assets only.
 - Multi-asset HTF launcher runs now attempt remaining assets after a per-asset
   failure and raise a final summary error at the end; set
   `HTF_FAIL_FAST_ASSET_ERRORS=1` to restore immediate fail-fast behavior.
@@ -76,6 +88,9 @@ All notable repository-level changes are recorded here.
   blocked by an account billing lock.
 - Clarified ignored local artifact wording and the distinction between current
   HTF `8h` regimes and legacy derived `*-8h-*` compatibility outputs.
+- Clarified documentation boundaries for the current multi-asset HTF workflow:
+  active 4-class labeling, legacy 8-class notes, session-aware calendars, and
+  pending Stage-1 target/context assembly.
 - Replaced the Astra extension test target that pointed at a missing VS Code
   test runner with a compile-and-lint smoke check.
 - Removed tracked local backup files from maintained source/notebook paths and

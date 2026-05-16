@@ -382,6 +382,9 @@ python notebooks/htf_pythonscript.py
 ```
 
 Only after one asset passes validation should `HTF_ASSETS=core` be rerun.
+In core mode, crypto and session-based assets run `8h/24h/7d` by default. Use
+`HTF_SESSION_REGIMES=8h` only when intentionally rolling session assets back to
+the conservative smoke surface.
 
 ## Acceptance Criteria
 

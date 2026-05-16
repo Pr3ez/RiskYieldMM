@@ -1,18 +1,25 @@
-# HTF Target Labeling Logic (from `notebooks/htf_pythonscript.py`)
+# HTF Target Labeling Logic (Legacy 8-Class Reference)
 
 > IMPORTANT
 > This file is currently a legacy 8-class reference.
 > The active workflow has been migrated to `target_4class` (primary) and
 > `target_breakfree`. Current multi-asset labels use the
 > `opposite_family_first_half` policy: B entries label from the next C first-half
-> window, and C entries label from the next B first-half window. Use this
-> document only as historical context until the full 4-class rewrite is
-> completed.
+> window, and C entries label from the next B first-half window. In the active
+> implementation the opposite-family window is resolved by family period start,
+> not by sequential batch number, so Monday-Friday/session closures cannot shift
+> labels onto the wrong B/C batch. Entry halves are timestamp-window based and
+> session-asset completeness is checked against canonical market-open rows, not
+> fixed 24/7 row counts. Use this document only as historical context until it
+> is rewritten around the active 4-class implementation.
 
-This document explains target computation in the notebook script, with direct code excerpts and file/line references.
+This document explains the old notebook-cell target computation, with direct
+code excerpts and historical file/line references.
 
-File of record:
-- `notebooks/htf_pythonscript.py`
+Current and historical records:
+- Active implementation: `scripts/feature_engineering/htf_multiregime_pipeline.py`
+- Active launcher: `notebooks/htf_pythonscript.py`
+- Historical notebook body: `Archive/htf_pythonscript_legacy_2026-04-01.py`
 
 ## Scope
 
@@ -28,7 +35,7 @@ Current active workflow targets:
   - `2`: `IN_BETWEEN_BELOW_BREAKFREE`
   - `-1`: unlabeled / invalid row
 
-Main labeling flow in the script:
+Historical notebook-cell labeling flow:
 1. Cell 7: compute forward-looking distance metrics (current batch only)
 2. Cell 8: create 15m labels (`target_8class`, `target_breakfree`)
 3. Cell 9: create hybrid 5m labels (`target_8class`, `target_breakfree`) using 5m entry and 15m future bars
@@ -344,7 +351,7 @@ See examples:
 - `notebooks/htf_pythonscript.py:1932` (15m list)
 - `notebooks/htf_pythonscript.py:2519` (hybrid 5m list)
 
-## 5) Important operational note
+## 5) Legacy operational note
 
 There are two potential 5m label-generation paths in the script:
 - generic Cell 7/8-style logic
@@ -354,11 +361,40 @@ The effective data used by backtest is whatever was written last to:
 - `data/htf_8class_labels/5m/batch_XXXX.parquet`
 - `data/htf_8class_labels/15m/batch_XXXX.parquet`
 
-Current script intent is:
+Legacy script intent was:
 - 15m labels from Cell 8
 - 5m labels from Cell 9 hybrid
 
-## 6) Quick verification checklist
+## 6) Current quick verification checklist
+
+Use this for the active multi-asset HTF output:
+
+1. Confirm label files exist under the target asset root:
+- `data/htf_multiasset/{asset}/htf_4class_labels*/1m/batch_*.parquet`
+
+2. Confirm active targets and label-window metadata are present:
+- `target_4class`
+- `target_breakfree`
+- `label_window_policy`
+- `label_entry_family`
+- `label_window_family`
+- `label_window_batch_id`
+- `label_window_start`
+- `label_window_end`
+
+3. Confirm label-window policy:
+- `B` entry rows use `C` first-half outcome windows.
+- `C` entry rows use the next `B` first-half outcome window.
+- Latest tail rows may remain `-1` until the future opposite-family window is
+  complete.
+
+4. For session assets, confirm completeness is calendar-aware:
+- `expected_rows_in_batch` and `actual_rows_in_batch` are based on canonical
+  market-open timestamps.
+- Weekend and maintenance-break closures are absent, not filled.
+- Open-session gap fills, if any, carry `is_open_session_gap_fill = true`.
+
+## 7) Legacy 8-class verification checklist
 
 Use this when validating outputs without opening the script:
 

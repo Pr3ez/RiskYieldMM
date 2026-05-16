@@ -266,6 +266,7 @@ def normalized_asset_ids(
 
 
 def assets_by_symbol() -> dict[str, AssetSpec]:
+    """Return Twelve Data-style spot/index specs keyed by canonical symbol."""
     return {asset.symbol: asset for asset in ASSETS}
 
 
@@ -284,6 +285,7 @@ def selected_assets(
 
 
 def databento_futures_by_symbol() -> dict[str, DatabentoFuturesSpec]:
+    """Return Databento futures specs keyed by canonical symbol."""
     return {asset.symbol: asset for asset in DATABENTO_FUTURES}
 
 
@@ -309,6 +311,7 @@ def selected_databento_futures(
 
 
 def yfinance_futures_by_symbol() -> dict[str, YFinanceFuturesSpec]:
+    """Return Yahoo Finance futures specs keyed by canonical symbol."""
     return {asset.symbol: asset for asset in YFINANCE_FUTURES}
 
 

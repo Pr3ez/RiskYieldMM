@@ -11,17 +11,18 @@ implemented.
 ```mermaid
 flowchart TD
     A[Bybit crypto + Databento historical futures + Yahoo recent tail] --> B[Repo-root core update]
-    B --> C[Canonical local 1m/15m raw Parquet sources]
-    C --> D[Per-asset HTF batch materializer]
-    D --> E[Asset-scoped feature batches]
-    D --> F[Asset-scoped target_4class labels]
-    E --> G[Optimized model-facing features]
-    F --> G
-    G --> H[Helper feature cache]
-    H --> I[Pending Stage-1 multi-asset target/context assembly]
-    I --> J[Legacy Stage-1 CatBoost walk-forward until assembly is updated]
-    J --> K[Persisted validation and prediction payloads]
-    K --> L[Selector, pairwise, and subset audits]
+    B --> C[Local 1m/15m raw Parquet sources]
+    C --> D[Calendar-aware canonical bars]
+    D --> E[Per-asset HTF batch materializer]
+    E --> F[Asset-scoped feature batches]
+    E --> G[Asset-scoped target_4class labels]
+    F --> H[Optimized model-facing features]
+    G --> H
+    H --> I[Helper feature cache]
+    I --> J[Pending Stage-1 multi-asset target/context assembly]
+    J --> K[Legacy Stage-1 CatBoost walk-forward until assembly is updated]
+    K --> L[Persisted validation and prediction payloads]
+    L --> M[Selector, pairwise, and subset audits]
 ```
 
 ## Main Boundaries
@@ -30,6 +31,7 @@ flowchart TD
 |---|---|---|
 | Data fetch | `update_data.py --core` | Bybit crypto plus multi-asset Databento/Yahoo source refresh |
 | HTF asset registry | `scripts/feature_engineering/htf_asset_registry.py` | Core asset set and raw source routing |
+| HTF calendar layer | `scripts/feature_engineering/htf_trading_calendar.py` | Canonical market-open bars, session metadata, and open-gap fill flags |
 | HTF materialization | `scripts/feature_engineering/htf_multiregime_pipeline.py` | Per-asset regime/family batches, features, labels, validation |
 | HTF launcher | `notebooks/htf_pythonscript.py` | Production orchestration and run logging through `HTF_ASSETS` |
 | Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | Legacy CatBoost walk-forward execution across regime/family roots |
