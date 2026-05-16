@@ -11,7 +11,11 @@ The original unresolved item was higher-timeframe auxiliary broadcasts using tim
 
 ## Workflow Confirmed
 
-The active multi-regime HTF workflow builds 8h, 24h, and 7d regimes, but the optimized/model-facing stage is currently:
+The active multi-regime HTF workflow builds `8h`, `24h`, and `7d` regimes for
+crypto and session-based multi-asset symbols. Session assets pass through the
+calendar-aware canonical OHLCV layer first, so completeness is measured against
+market-open timestamps observed in local parquet data rather than fixed 24/7
+row counts. The optimized/model-facing stage is currently:
 
 | Component | Active setting | Evidence |
 |---|---:|---|
@@ -40,8 +44,9 @@ feature_cols=129
 
 Future-looking calculations are present in the label stage by design:
 
-- `close_end` and `end_return` use the batch end close.
-- `compute_hybrid_distance_metrics()` scans future 15m bars inside the same batch.
+- `close_end` and `end_return` use the active label-window close.
+- `compute_hybrid_distance_metrics()` scans future 15m bars inside the active
+  label window.
 - `compute_4class_labels()` uses those future distance metrics to assign `target_4class`.
 - rows outside the allowed entry window are gated to `-1`.
 

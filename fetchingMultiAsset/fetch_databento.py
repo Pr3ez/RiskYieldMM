@@ -57,6 +57,8 @@ class DatabentoNotInstalledError(RuntimeError):
 
 @dataclass(frozen=True)
 class DatabentoCostEstimate:
+    """One Databento metadata cost estimate for an asset fetch range."""
+
     asset: str
     provider_symbol: str
     dataset: str
@@ -68,6 +70,8 @@ class DatabentoCostEstimate:
 
 @dataclass(frozen=True)
 class DatabentoFetchPlan:
+    """Resolved local resume plan for one Databento continuous futures asset."""
+
     asset: str
     provider_symbol: str
     requested_start: datetime
@@ -83,6 +87,7 @@ class DatabentoFetchPlan:
 
 
 def configured_databento_api_key(cli_api_key: str | None = None) -> str | None:
+    """Return the Databento API key from CLI, environment, or local secrets."""
     if cli_api_key:
         return cli_api_key
     if os.getenv("DATABENTO_API_KEY"):
@@ -92,6 +97,7 @@ def configured_databento_api_key(cli_api_key: str | None = None) -> str | None:
 
 
 def require_databento_sdk():
+    """Import the optional Databento SDK with a clear installation error."""
     try:
         import databento as db
     except ModuleNotFoundError as exc:  # pragma: no cover - depends on local env
@@ -102,6 +108,7 @@ def require_databento_sdk():
 
 
 def databento_client(api_key: str | None = None):
+    """Create a Databento historical client using configured credentials."""
     key = configured_databento_api_key(api_key)
     if not key:
         raise RuntimeError(
@@ -112,6 +119,7 @@ def databento_client(api_key: str | None = None):
 
 
 def output_dir_for_databento_interval(base_dir: Path, interval: str) -> Path:
+    """Return the normalized parquet output directory for a Databento interval."""
     return output_dir_for_interval(
         base_dir,
         interval,
@@ -121,6 +129,7 @@ def output_dir_for_databento_interval(base_dir: Path, interval: str) -> Path:
 
 
 def databento_batch_prefix(asset: DatabentoFuturesSpec) -> str:
+    """Return the normalized parquet batch prefix for a Databento asset."""
     return f"{asset.slug}_{DATABENTO_PROVIDER}_sorted_batch_"
 
 
@@ -180,6 +189,7 @@ def plan_fetch_range(
     base_dir: Path = BASE_DIR,
     available_end: datetime | None = None,
 ) -> DatabentoFetchPlan:
+    """Plan the missing 1m Databento range after local resume and availability caps."""
     requested_start = parse_datetime(start)
     requested_end = resolve_databento_end(end)
     if available_end is not None:
@@ -289,6 +299,7 @@ def estimate_costs(
     base_dir: Path = BASE_DIR,
     api_key: str | None = None,
 ) -> list[DatabentoCostEstimate]:
+    """Estimate Databento costs only for rows not already present locally."""
     client = databento_client(api_key)
     estimates = []
     available_end_by_source: dict[tuple[str, str], datetime] = {}
@@ -420,6 +431,7 @@ def fetch_asset_interval(
 def print_plan(
     assets: tuple[DatabentoFuturesSpec, ...], base_dir: Path = BASE_DIR
 ) -> None:
+    """Print static Databento output destinations before any live request."""
     print("\nDATABENTO FUTURES PLAN")
     print("-" * 70)
     for asset in assets:
@@ -434,6 +446,7 @@ def print_plan(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the Databento fetch/preflight CLI parser."""
     parser = argparse.ArgumentParser(
         description="Databento futures preflight/fetcher for normalized OHLCV bars",
     )
@@ -458,6 +471,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run Databento preflight, cost estimation, or guarded fetches."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     assets = selected_databento_futures(

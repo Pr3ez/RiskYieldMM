@@ -224,6 +224,7 @@ class GapFiller:
 
 
 def main():
+    """Run the gap detection/fill CLI for local Bybit parquet sources."""
     parser = argparse.ArgumentParser(description="Fill gaps in Bybit market data")
     parser.add_argument("--base-dir", default=".", help="Base directory")
     parser.add_argument("--symbol", default="BTCUSDT", help="Trading symbol")

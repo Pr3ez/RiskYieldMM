@@ -122,6 +122,7 @@ def _check_databento_cost(start: str, end: str) -> bool:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run safe credential, symbol, sample, and cost checks for providers."""
     parser = argparse.ArgumentParser(
         description="Safe readiness checks for Twelve Data and Databento providers",
     )

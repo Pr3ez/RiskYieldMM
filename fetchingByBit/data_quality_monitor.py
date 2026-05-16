@@ -735,6 +735,7 @@ class DataQualityMonitor:
 
 
 def main():
+    """Run the Bybit data quality monitor CLI and return status-based exit codes."""
     parser = argparse.ArgumentParser(description="Validate Bybit market data quality")
     parser.add_argument(
         "--base-dir", default=".", help="Base directory containing data folders"

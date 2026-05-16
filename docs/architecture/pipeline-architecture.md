@@ -1,8 +1,14 @@
 # RiskYieldMM Pipeline Architecture
 
+> Historical architecture snapshot.
+> This document describes the older BTCUSDT/8h Bybit pipeline. The maintained
+> multi-asset HTF workflow is documented in
+> `docs/architecture/htf-workflow-architecture.md` and
+> `docs/data/data-contract.md`.
+
 ## Overview
 
-Complete pipeline from raw 8h Bybit data to walk-forward predictions.
+Historical pipeline from raw 8h Bybit data to walk-forward predictions.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐

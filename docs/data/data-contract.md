@@ -38,6 +38,7 @@ low
 close
 volume
 turnover
+interval
 ```
 
 Derivative/context sources should provide a timestamp column plus the source
@@ -53,6 +54,50 @@ mark/index/premium OHLC columns
 
 Timestamps must be UTC-normalized and deduplicated by timestamp before they are
 used by feature generation.
+
+## Canonical OHLCV Layer
+
+Raw provider files remain unchanged. Before HTF batches are built, provider
+OHLCV is canonicalized into market-open bars:
+
+- `BTCUSDT`, `ETHUSDT`: `crypto_24_7`, every minute from first to latest raw
+  timestamp.
+- `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ`:
+  `futures_session_observed`, inferred from continuous timestamp segments in
+  the locally fetched parquet data.
+
+Open-session missing minutes are carry-forward synthetic no-trade candles:
+
+```text
+open = high = low = close = previous close
+volume = 0
+is_synthetic_no_trade = true
+is_open_session_gap_fill = true
+```
+
+Closed sessions, daily maintenance breaks, and weekends are not filled. The
+current observed-session implementation is data-derived; it does not call an
+external exchange-calendar API. Canonical `15m` bars are derived from canonical
+`1m` bars so gap flags and session metadata survive aggregation.
+
+Canonical rows add:
+
+```text
+asset_id
+calendar_id
+is_market_open
+is_synthetic_no_trade
+is_open_session_gap_fill
+minutes_since_prev_real_bar
+session_id
+session_date
+session_bar_pos
+session_minutes_to_close
+is_session_open_bar
+is_session_close_bar
+is_weekly_open_bar
+is_weekly_close_bar
+```
 
 ## HTF Batch Metadata
 
@@ -78,6 +123,25 @@ batch_duration_hours
 family_shift_hours
 anchor_utc
 entry_window_hours
+asset_id
+calendar_id
+is_market_open
+is_synthetic_no_trade
+is_open_session_gap_fill
+minutes_since_prev_real_bar
+session_id
+session_date
+session_bar_pos
+session_minutes_to_close
+is_session_open_bar
+is_session_close_bar
+is_weekly_open_bar
+is_weekly_close_bar
+expected_rows_in_batch
+actual_rows_in_batch
+expected_entry_rows
+actual_entry_rows
+has_synthetic_open_gap_fill
 ```
 
 `period_8h_start` remains as a compatibility alias even for `24h` and `7d`
@@ -91,13 +155,18 @@ regimes. The actual regime is recorded in `batch_regime`.
 | `24h` | 24 hours | anchored base family | shifted by 12 hours |
 | `7d` | 168 hours | anchored base family | shifted by 84 hours |
 
-For `1m` labels, full batches contain:
+For `1m` labels, crypto full batches still contain the fixed 24/7 row counts
+below. Session-asset expected rows are calendar-aware: they equal market-open
+canonical timestamps inside the period, excluding closed sessions and breaks.
 
-| Regime | Full batch rows | Model entry-window rows |
+| Regime | Crypto full batch rows | Crypto entry-window rows |
 |---|---:|---:|
 | `8h` | 480 | 240 |
 | `24h` | 1,440 | 720 |
 | `7d` | 10,080 | 5,040 |
+
+Label eligibility requires complete entry and label windows by calendar for
+both `1m` and `15m`, not fixed row counts for session assets.
 
 ## Model-Facing Label Columns
 
@@ -109,6 +178,12 @@ Required label outputs include:
 ```text
 target_4class
 target_breakfree
+label_window_policy
+label_entry_family
+label_window_family
+label_window_batch_id
+label_window_start
+label_window_end
 dist_avg_high
 dist_avg_low
 dist_top5_high

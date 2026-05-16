@@ -217,6 +217,7 @@ def _to_ms(ts_like: str | datetime) -> int:
 
 
 def respect_rate_limit(resp: requests.Response) -> None:
+    """Sleep when Bybit response headers indicate the route limit is exhausted."""
     # Be defensive – Bybit headers vary by route
     remain = resp.headers.get("X-Bapi-Limit-Status") or resp.headers.get(
         "X-Bapi-Limit-Remaining"
@@ -1462,6 +1463,7 @@ def _symbol_list(raw: str) -> tuple[str, ...]:
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the Bybit market-data fetcher CLI parser."""
     parser = argparse.ArgumentParser(
         description="Bybit v5 market-data downloader",
     )
@@ -1474,6 +1476,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 # ────────────────── MAIN ──────────────────
 def main(argv: list[str] | None = None) -> int:
+    """Fetch every configured Bybit source for the selected symbols."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     start_time = datetime.now(timezone.utc)

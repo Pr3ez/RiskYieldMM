@@ -26,7 +26,7 @@ HTF now targets these assets:
 The normalized model-facing raw bar contract is:
 
 ```text
-timestamp, open, high, low, close, volume, interval
+timestamp, open, high, low, close, volume, turnover, interval
 ```
 
 Provider metadata stays in manifests and registry code. HTF feature/label code
@@ -41,6 +41,8 @@ These pieces are implemented in this branch:
    - maps crypto assets to Bybit roots
    - maps non-crypto assets to Databento historical roots and Yahoo recent-tail
      roots
+   - assigns calendar ids: `crypto_24_7` for Bybit crypto and
+     `futures_session_observed` for session assets
 
 2. Asset-aware raw routing in
    `scripts/feature_engineering/htf_multiregime_pipeline.py`
@@ -66,10 +68,21 @@ These pieces are implemented in this branch:
      `label_window_family`, `label_window_batch_id`, `label_window_start`, and
      `label_window_end`
 
-6. Tests
+6. Session-aware canonical HTF bars
+   - raw provider files remain unchanged
+   - canonical `1m` bars add calendar/session/fill metadata
+   - canonical `15m` bars are derived from canonical `1m`
+   - open-session missing minutes are filled with zero volume and explicit flags
+   - closed sessions, maintenance breaks, and weekends are not filled
+   - session `8h`, `24h`, and `7d` completeness uses expected market-open
+     timestamps instead of fixed 24/7 row counts
+
+7. Tests
    - asset-specific raw routing
    - Databento/Yahoo overlap priority
    - B -> C label-window mapping
+   - session calendar no-fill behavior for weekend/maintenance closures
+   - session `24h` and `7d` label production on synthetic observed-session data
    - existing HTF incremental and auxiliary alignment tests still pass
 
 ## During / Not Yet Implemented
@@ -152,11 +165,18 @@ HTF_ASSET_OUTPUT_MODE=multiasset \
 python notebooks/htf_pythonscript.py
 ```
 
-Each asset receives all configured regimes and families:
+Default regime routing is asset-aware:
 
 ```text
-8h/B, 8h/C, 24h/B, 24h/C, 7d/B, 7d/C
+BTCUSDT, ETHUSDT: 8h/B, 8h/C, 24h/B, 24h/C, 7d/B, 7d/C
+EURUSD, USDJPY, GC, CL, ES, NQ: 8h/B, 8h/C, 24h/B, 24h/C, 7d/B, 7d/C
 ```
+
+Session-based `24h` and `7d` regimes are enabled by default through the
+calendar-aware canonical layer. To run a conservative session-only smoke path,
+set `HTF_SESSION_REGIMES=8h`. Opposite-family labels are resolved by family
+period start, not sequential batch id, so weekend/session closures do not shift
+B/C label windows.
 
 For each family the pipeline prepares:
 
@@ -201,7 +221,7 @@ Before Stage-1:
    providers and no surprise full Databento refetch.
 2. Raw `1m` and `15m` files exist for all selected assets.
 3. `HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset python notebooks/htf_pythonscript.py`
-   finishes or fails only on a clearly documented data gap.
+   finishes under default routing: crypto and session assets `8h/24h/7d`.
 4. Each asset has `data/htf_multiasset/{asset}/` output roots.
 5. Labels contain `label_window_*` metadata.
 6. Latest unlabeled tails are explained by missing future opposite-family

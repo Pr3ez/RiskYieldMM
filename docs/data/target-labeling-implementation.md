@@ -2,7 +2,10 @@
 
 **Date:** 2026-02-05  
 **Based on:** target-labeling-analysis-2026-02-05.md
-**Status:** Ready for Implementation
+**Status:** Historical 8-class implementation note. The active HTF workflow now
+uses `target_4class` plus `target_breakfree` from
+`scripts/feature_engineering/htf_multiregime_pipeline.py`; keep this document
+only as research context.
 
 ---
 

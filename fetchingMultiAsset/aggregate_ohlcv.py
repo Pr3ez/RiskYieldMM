@@ -32,6 +32,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 
 def batch_prefix(symbol: str, provider: str) -> str:
+    """Return the normalized parquet batch prefix for a provider/asset pair."""
     return f"{symbol.lower()}_{provider}_sorted_batch_"
 
 
@@ -43,6 +44,7 @@ def load_provider_ohlcv(
     interval: str,
     base_dir: Path = BASE_DIR,
 ) -> pl.DataFrame:
+    """Load, deduplicate, and sort normalized OHLCV batches for one interval."""
     source_dir = output_dir_for_interval(
         base_dir,
         interval,
@@ -68,6 +70,7 @@ def aggregate_ohlcv(
     target_interval: str,
     allow_partial: bool = False,
 ) -> pl.DataFrame:
+    """Aggregate lower-timeframe OHLCV bars into complete target bars."""
     if source_interval not in INTERVAL_MS:
         raise KeyError(f"Unsupported source interval {source_interval!r}")
     if target_interval not in INTERVAL_MS:
@@ -125,6 +128,7 @@ def write_aggregate(
     replace_window_start=None,
     replace_window_end=None,
 ) -> int:
+    """Aggregate and persist one provider/asset interval, optionally replacing a window."""
     df = load_provider_ohlcv(
         symbol=symbol,
         provider=provider,
@@ -165,6 +169,7 @@ def write_aggregate(
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the local OHLCV aggregation CLI."""
     parser = argparse.ArgumentParser(
         description="Aggregate normalized multi-asset OHLCV parquet intervals",
     )

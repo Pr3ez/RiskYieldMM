@@ -69,6 +69,25 @@ def _combined_rows(batch_id: int, start: datetime) -> pl.DataFrame:
             "family_shift_hours": [4, 4],
             "anchor_utc": ["2021-01-01T04:00:00+00:00", "2021-01-01T04:00:00+00:00"],
             "entry_window_hours": [4, 4],
+            "asset_id": ["BTCUSDT", "BTCUSDT"],
+            "calendar_id": ["crypto_24_7", "crypto_24_7"],
+            "is_market_open": [True, True],
+            "is_synthetic_no_trade": [False, False],
+            "is_open_session_gap_fill": [False, False],
+            "minutes_since_prev_real_bar": [0, 0],
+            "session_id": ["BTCUSDT_1", "BTCUSDT_1"],
+            "session_date": ["2021-01-01", "2021-01-01"],
+            "session_bar_pos": [0, 1],
+            "session_minutes_to_close": [1, 0],
+            "is_session_open_bar": [True, False],
+            "is_session_close_bar": [False, True],
+            "is_weekly_open_bar": [False, False],
+            "is_weekly_close_bar": [False, False],
+            "expected_rows_in_batch": [2, 2],
+            "actual_rows_in_batch": [2, 2],
+            "expected_entry_rows": [2, 2],
+            "actual_entry_rows": [2, 2],
+            "has_synthetic_open_gap_fill": [False, False],
         }
     )
 
@@ -109,7 +128,7 @@ def test_shifted_feature_resume_skips_unchanged_existing_batches(tmp_path: Path)
     (output_dir / "_build_meta.json").write_text(
         json.dumps(
             {
-                "artifact_version": "test-version-features-c-v1",
+                "artifact_version": "test-version-features-c-v2-session-calendar",
                 "family": "C",
                 "timeframe": "1m",
                 "source_fingerprint": {"digest": "stale"},

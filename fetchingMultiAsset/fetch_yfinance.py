@@ -77,6 +77,8 @@ def _empty_ohlcv_frame() -> pl.DataFrame:
 
 @dataclass(frozen=True)
 class YFinanceTailPlan:
+    """Plan for appending Yahoo's recent 1m tail after a Databento anchor."""
+
     asset: str
     provider_symbol: str
     interval: str
@@ -94,6 +96,8 @@ class YFinanceTailPlan:
 
 @dataclass(frozen=True)
 class YFinanceDemoPlan:
+    """Plan for standalone free-source demo data within Yahoo retention limits."""
+
     asset: str
     provider_symbol: str
     interval: str
@@ -110,6 +114,8 @@ class YFinanceDemoPlan:
 
 @dataclass(frozen=True)
 class YFinanceDemoFetchResult:
+    """Result summary for a standalone Yahoo demo fetch/write operation."""
+
     asset: str
     interval: str
     status: str
@@ -122,6 +128,8 @@ class YFinanceDemoFetchResult:
 
 @dataclass(frozen=True)
 class ContinuationCheck:
+    """Overlap validation result proving Yahoo can continue Databento data."""
+
     asset: str
     interval: str
     passed: bool
@@ -133,6 +141,7 @@ class ContinuationCheck:
 
 
 def output_dir_for_yfinance_interval(base_dir: Path, interval: str) -> Path:
+    """Return the normalized parquet output directory for a Yahoo interval."""
     return output_dir_for_interval(
         base_dir,
         interval,
@@ -142,6 +151,7 @@ def output_dir_for_yfinance_interval(base_dir: Path, interval: str) -> Path:
 
 
 def yfinance_batch_prefix(asset: YFinanceFuturesSpec) -> str:
+    """Return the normalized parquet batch prefix for a Yahoo futures asset."""
     return batch_prefix(asset, provider=YFINANCE_PROVIDER)  # type: ignore[arg-type]
 
 
@@ -249,6 +259,7 @@ def latest_complete_bar_start(
     interval: str,
     now: datetime | None = None,
 ) -> datetime:
+    """Return the latest fully closed bar start for a Yahoo interval."""
     if interval not in INTERVAL_MS:
         raise KeyError(f"Unsupported interval {interval!r}")
     resolved_now = now or datetime.now(timezone.utc)
@@ -270,6 +281,7 @@ def plan_yfinance_tail(
     overlap_bars: int = DEFAULT_OVERLAP_BARS,
     max_gap: timedelta | None = None,
 ) -> YFinanceTailPlan:
+    """Plan whether Yahoo can safely fill the missing recent tail."""
     if interval not in YFINANCE_INTERVAL_LIMITS:
         return YFinanceTailPlan(
             asset=asset.symbol,
@@ -410,6 +422,7 @@ def resolve_yfinance_demo_window(
     target_end: datetime | None = None,
     max_span: timedelta | None = None,
 ) -> tuple[datetime, datetime]:
+    """Resolve the latest standalone demo window allowed by Yahoo retention."""
     if interval not in YFINANCE_INTERVAL_LIMITS:
         raise KeyError(f"Yahoo interval {interval!r} is not configured")
     fetch_end = _resolve_target_end(interval=interval, now=now, target_end=target_end)
@@ -427,6 +440,7 @@ def plan_yfinance_demo(
     target_end: datetime | None = None,
     max_span: timedelta | None = None,
 ) -> YFinanceDemoPlan:
+    """Plan a standalone Yahoo demo fetch against local yfinance parquet state."""
     if interval not in YFINANCE_INTERVAL_LIMITS:
         return YFinanceDemoPlan(
             asset=asset.symbol,
@@ -484,6 +498,7 @@ def load_recent_provider_rows(
     min_rows: int,
     base_dir: Path = BASE_DIR,
 ) -> pl.DataFrame:
+    """Load the most recent normalized rows for overlap validation."""
     output_dir = output_dir_for_interval(
         base_dir,
         interval,
@@ -519,6 +534,7 @@ def validate_yfinance_continuation(
     min_overlap_bars: int = DEFAULT_MIN_OVERLAP_BARS,
     max_close_diff_pct: float = DEFAULT_MAX_CLOSE_DIFF_PCT,
 ) -> ContinuationCheck:
+    """Compare overlapping closes before accepting Yahoo as a continuation source."""
     db = databento_df.select(
         [
             "timestamp",
@@ -582,6 +598,7 @@ def fetch_yfinance_frame(
     start: datetime,
     end: datetime,
 ) -> pd.DataFrame:
+    """Download one raw yfinance window without writing local parquet."""
     try:
         import yfinance as yf
     except ImportError as exc:  # pragma: no cover - depends on optional package
@@ -611,6 +628,7 @@ def fetch_yfinance_tail(
     min_overlap_bars: int = DEFAULT_MIN_OVERLAP_BARS,
     max_close_diff_pct: float = DEFAULT_MAX_CLOSE_DIFF_PCT,
 ) -> ContinuationCheck:
+    """Fetch, validate, and append Yahoo rows newer than the Databento anchor."""
     plan = plan_yfinance_tail(
         asset=asset,
         interval=interval,
@@ -685,6 +703,7 @@ def fetch_yfinance_demo(
     target_end: datetime | None = None,
     max_span: timedelta | None = None,
 ) -> YFinanceDemoFetchResult:
+    """Fetch and replace the standalone Yahoo demo window for one asset."""
     plan = plan_yfinance_demo(
         asset=asset,
         interval=interval,
@@ -762,6 +781,7 @@ def fetch_yfinance_demo(
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
+    """Create the Yahoo continuation-check CLI parser."""
     parser = argparse.ArgumentParser(
         description="Yahoo Finance recent-tail continuation checker",
     )
@@ -772,6 +792,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run Yahoo planning or guarded recent-tail fetches from the CLI."""
     parser = build_arg_parser()
     args = parser.parse_args(argv)
     assets = selected_yfinance_futures(

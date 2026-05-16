@@ -13,8 +13,9 @@ being extended into a reproducible multi-asset source layer: crypto
 (`BTCUSDT`, `ETHUSDT`), FX futures proxies (`EURUSD`, `USDJPY`), metals
 (`GC` gold), energy (`CL` WTI crude), and equity-index futures (`ES` S&P 500,
 `NQ` Nasdaq 100). It builds higher-timeframe batches, generates current
-prediction labels, attaches helper/regime features, runs CatBoost walk-forward
-Stage-1 experiments, and audits model-selection behavior from saved artifacts.
+prediction labels, attaches helper/regime features, and keeps the legacy
+CatBoost Stage-1 audit layer available while the multi-asset target/context
+analysis layer is being updated.
 
 The current model-facing HTF materializer is asset-aware. Crypto, FX futures
 proxies, commodities, and equity-index futures are prepared as separate HTF
@@ -49,14 +50,21 @@ Generated data, precomputed caches, model outputs, personal documents, and local
 
 The HTF workflow is the current main path. `notebooks/htf_pythonscript.py` is now a clean production launcher; the shared source of truth for the actual materialization logic is `scripts/feature_engineering/htf_multiregime_pipeline.py`. The old mixed notebook body is archived under `Archive/`.
 
-The workflow builds leakage-aware higher-timeframe batches for three regime lengths. Each regime is split into two families:
+The workflow builds leakage-aware higher-timeframe batches. A calendar-aware
+canonical OHLCV layer normalizes raw provider bars before HTF materialization:
+crypto uses a 24/7 minute grid, while Monday-Friday/session assets learn open
+session segments from the locally fetched parquet data. Open-session gaps are
+filled as zero-volume carry-forward candles with explicit flags; closed
+sessions and weekends are not filled. Crypto and session assets now use the
+full `8h`, `24h`, and `7d` regime set by default. Each active regime is split
+into two families:
 
 - `B` is the base anchored family.
 - `C` is the same regime shifted by half the regime length.
 
 The legacy column name `period_8h_start` is still kept as a compatibility alias in written artifacts, even for `24h` and `7d`; the actual regime is recorded in `batch_regime`.
 
-Current regimes:
+Available regimes:
 
 | Regime | Batch duration | Family `C` shift | Label entry window | Family roots |
 |--------|----------------|------------------|--------------------|--------------|
@@ -66,13 +74,14 @@ Current regimes:
 
 Production stages inside the shared pipeline for each selected asset:
 
-1. Build `1m` and `15m` combined HTF OHLCV batches for each regime/family.
-2. Compute `1m` and `15m` feature batches with family metadata.
-3. Compute `15m` forward distance metrics.
-4. Generate `1m` labels: `target_4class` and `target_breakfree`, gated to the regime entry window.
-5. Optimize model-facing `1m/target_4class` feature batches.
-6. Materialize helper features from the canonical helper cache.
-7. Validate combined/features/labels/optimized/helper artifacts for alignment, value ranges, missing data, and entry-window correctness.
+1. Build calendar-aware canonical `1m` bars and derived canonical `15m` bars.
+2. Build `1m` and `15m` combined HTF OHLCV batches for each regime/family.
+3. Compute `1m` and `15m` feature batches with family metadata.
+4. Compute `15m` forward distance metrics.
+5. Generate `1m` labels: `target_4class` and `target_breakfree`, gated to the regime entry window.
+6. Optimize model-facing `1m/target_4class` feature batches.
+7. Materialize helper features from the canonical helper cache.
+8. Validate combined/features/labels/optimized/helper artifacts for alignment, value ranges, missing data, and entry-window correctness.
 
 Current multi-asset model-facing roots are asset-scoped:
 
@@ -96,6 +105,15 @@ C entry half -> next B first-half outcome window
 
 The newest tail can remain unlabeled until the future opposite-family window is
 available. That is expected and should not be filled manually.
+
+For session-based assets (`EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ`), the
+opposite-family label lookup is keyed by the actual family period start, not by
+sequential batch number. This prevents weekend or maintenance-session closures
+from shifting B/C batch ids and labeling against the wrong opposite-family
+window. Session `24h` and `7d` completeness is calendar-aware: expected rows are
+the expected market-open timestamps inside each period, not fixed 24/7 row
+counts. To temporarily restrict session assets during a rollback or smoke run,
+set `HTF_SESSION_REGIMES=8h`.
 
 HTF materialization includes guarded speedups for the expensive label-distance
 and optimizer-selection stages. The label fast path is only used for the active
@@ -354,9 +372,9 @@ the workflow locally, run the stages in this order:
 
 ```mermaid
 flowchart TD
-    A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Canonical 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
-    B --> C["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
-    C --> D["data/htf_multiasset/{asset}<br/>features + labels + helpers"]
+    A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Source 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
+    B --> C["Calendar-aware canonical bars<br/>24/7 crypto + observed session assets"]
+    C --> D["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
     D --> E["Pending Stage-1 multi-asset assembly<br/>target asset + optional context assets"]
     E --> F["Pending multi-asset causal method analysis"]
     E --> G["Pending multi-asset walk-forward diagnostics"]
@@ -476,9 +494,10 @@ python update_data.py --core --dry-run --htf-only
 python update_data.py --core --htf-only --max-databento-cost-usd 50
 ```
 
-HTF consumes native `1m` and `15m` OHLCV for every asset. Crypto assets can also
-use available Bybit auxiliary streams. Non-crypto assets start as OHLCV-only
-until cross-asset/context features are added in Stage-1.
+HTF consumes canonical `1m` OHLCV and derived canonical `15m` OHLCV for every
+asset. Crypto assets can also use available Bybit auxiliary streams.
+Non-crypto assets start as OHLCV-only until cross-asset/context features are
+added in Stage-1.
 
 | Source root | Assets | HTF role |
 |---|---|---|
@@ -606,6 +625,21 @@ HTF_ASSET_OUTPUT_MODE=multiasset \
 python notebooks/htf_pythonscript.py
 ```
 
+Default regime routing:
+
+| Asset group | Default regimes |
+|---|---|
+| `BTCUSDT`, `ETHUSDT` | `8h`, `24h`, `7d` |
+| `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, `NQ` | `8h`, `24h`, `7d` |
+
+Optional launcher controls:
+
+```bash
+HTF_BUILD_REGIMES=8h,24h,7d
+HTF_VALIDATE_REGIMES=8h,24h,7d
+HTF_SESSION_REGIMES=8h  # optional rollback: restrict session assets only
+```
+
 This script resolves the project root, writes run logs under
 `test_output/htf_run_logs/`, builds a `MultiRegimeHTFConfig`, and delegates stage
 execution to `scripts/feature_engineering/htf_multiregime_pipeline.py`.
@@ -613,7 +647,7 @@ For multi-asset runs, the launcher attempts the remaining assets after a
 per-asset failure and reports failed assets at the end. Set
 `HTF_FAIL_FAST_ASSET_ERRORS=1` to stop immediately on the first asset error.
 
-The materialization stage builds all current regime/family roots for each
+The materialization stage builds the active regime/family roots for each
 selected asset:
 
 ```text
@@ -623,13 +657,14 @@ data/htf_multiasset/{asset}/htf_4class_labels*/1m/
 
 The launcher runs these stages:
 
-1. Build `1m` and `15m` combined HTF batches.
-2. Compute `1m` and `15m` feature batches.
-3. Compute `15m` distance metrics.
-4. Generate `1m/target_4class` and `target_breakfree` labels.
-5. Optimize `1m/target_4class` model-facing features.
-6. Build and materialize helper features.
-7. Validate alignment, required columns, metadata, null behavior, helper
+1. Canonicalize provider OHLCV bars with market-calendar metadata.
+2. Build `1m` and `15m` combined HTF batches.
+3. Compute `1m` and `15m` feature batches.
+4. Compute `15m` distance metrics.
+5. Generate `1m/target_4class` and `target_breakfree` labels.
+6. Optimize `1m/target_4class` model-facing features.
+7. Build and materialize helper features.
+8. Validate alignment, required columns, metadata, null behavior, helper
    contracts, and entry-window correctness.
 
 Important run files:
@@ -638,6 +673,7 @@ Important run files:
 |---|---|
 | live log | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>.log` |
 | heartbeat/status JSON | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>_status.json` |
+| canonical bars | `data/htf_multiasset/{asset}/htf_canonical_ohlcv/{1m,15m}/` |
 | final features | `data/htf_multiasset/{asset}/htf_with_helpers*/1m/target_4class/batch_*.parquet` |
 | final labels | `data/htf_multiasset/{asset}/htf_4class_labels*/1m/batch_*.parquet` |
 | helper cache | `data/htf_multiasset/{asset}/htf_helper_cache/` |
@@ -782,7 +818,8 @@ Before considering a workflow run complete, verify:
 1. `python update_data.py --core --dry-run --htf-only` shows the expected
    providers and no surprise full-cost refetch.
 2. `HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset python notebooks/htf_pythonscript.py`
-   finishes with validation passing, or fails only on a documented data gap.
+   finishes with validation passing under default routing for crypto and session
+   assets: `8h/24h/7d`.
 3. Final model-facing feature roots exist under
    `data/htf_multiasset/{asset}/htf_with_helpers*/`.
 4. Matching label roots exist under

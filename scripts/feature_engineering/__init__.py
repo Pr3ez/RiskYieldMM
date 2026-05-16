@@ -1,14 +1,9 @@
-"""
-RiskYieldMM Feature Engineering Package
-=======================================
+"""Feature-engineering package exports.
 
-Scripts for computing, validating, and analyzing features.
-
-Usage:
-    python -m feature_engineering.compute_features --analyze
-
-Or:
-    from feature_engineering.compute_features import compute_all_features, load_raw_data
+This package contains both the current HTF/multi-asset feature pipeline and
+older generic feature helpers. The imports below preserve legacy convenience
+exports from `compute_features.py`; current HTF production runs enter through
+`notebooks/htf_pythonscript.py` and `htf_multiregime_pipeline.py`.
 """
 
 from .compute_features import (
