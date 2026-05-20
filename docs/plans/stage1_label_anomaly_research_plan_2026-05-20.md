@@ -1,16 +1,76 @@
 # Stage-1 Label-Anomaly Research And Experiment Plan
 
-Status: implemented as an experimental runner; representative-matrix validation
-is still pending.
+Status: implemented as an experimental runner with the cleaned 4-class arm,
+Confident-Learning-style diagnostics, and median matrix gate. The representative
+CatBoost `8h/B` validation and the follow-up ES/GC diagnostics are complete.
+Broader roots remain blocked because ES/GC are not stable across validation and
+test.
 
 Current execution guardrail: use only `8h/B` for label-anomaly validation until
 the method is proven across targets. Broader roots and the structured PyTorch
 prototype remain blocked from broad execution.
 
+## Resume Here
+
+Latest complete diagnostics:
+
+```text
+docs/research/stage1-label-anomaly-8h-b-diagnostics-2026-05-20.md
+```
+
+Latest experiment outputs:
+
+```text
+test_output/stage1_label_anomaly_experiments/stage1_label_anomaly_8hb_representative_20260520
+test_output/stage1_label_anomaly_experiments/stage1_label_anomaly_8hb_es_gc_sweep_20260520
+```
+
+Current best representative candidate:
+
+```text
+catboost_8class_collapsed / thr8p0_full_hybrid_exclude_review
+```
+
+Current decision:
+
+- the runner and label-anomaly mechanics are implemented and test-covered;
+- the method is useful enough to continue `8h/B` research;
+- do not promote to all roots or production Stage-1 yet;
+- do not spend more time on broad symmetric threshold sweeps now;
+- the active blocker is GC validation-period instability and ES/GC
+  direction/regime behavior.
+
+Next work should focus on:
+
+1. GC validation-period analysis against the later test period.
+2. ES/GC review-set inspection by target class, predicted class, session
+   position, and time/batch period.
+3. Expansion-class support, because ES/EURUSD/GC expansion recall is weak.
+4. Direction-conditioned modeling or a two-stage direction -> regime design.
+5. Direction-specific anomaly actions instead of one class-local threshold rule.
+
 Research brief:
 
 ```text
 docs/research/stage1-label-anomaly-8h-b-research-brief-2026-05-20.md
+```
+
+Completed representative-run diagnostics:
+
+```text
+docs/research/stage1-label-anomaly-8h-b-diagnostics-2026-05-20.md
+```
+
+Implementation reference collected from local notes and external primary docs:
+
+```text
+docs/research/stage1-label-anomaly-implementation-reference-2026-05-20.md
+```
+
+Additional local research note used for the next implementation pass:
+
+```text
+notebooks/notes/20-05-research.md
 ```
 
 Implemented entrypoint:
@@ -68,16 +128,24 @@ unit/run manifests. Source merged Stage-1 roots are read-only inputs.
 Supported experiment arms:
 
 - baseline 4-class CatBoost;
+- cleaned 4-class CatBoost using OOF-derived suspicious/review weights;
 - flat 8-class CatBoost anomaly training;
 - staged threshold, detector, and opposite-direction policy ablations;
+- Confident-Learning-style detector presets based on self-confidence,
+  normalized margin, and confidence-weighted entropy;
 - optional PyTorch structured MLP prototype with leaf, direction, regime, and
   anomaly heads;
 - calibration metrics: logloss, multiclass Brier score, and ECE;
 - high-confidence opposite-direction review export.
+- run-level `matrix_summary.*` and `matrix_decision.*` artifacts using a
+  median-first promotion gate.
 
 The default ablation mode is staged, not full Cartesian, so representative
 matrix commands do not accidentally launch hundreds of fits. Use
 `--ablation-mode cartesian` only for intentional stress testing.
+
+The runner keeps all derived labels and weights inside `test_output/`; it does
+not overwrite source merged Stage-1 roots or `target_4class`.
 
 ## Research Takeaways
 
@@ -105,6 +173,11 @@ market anomaly detection.
   class-conditional outlier signal. It should not be the sole relabeling rule:
   rare but valid market regimes can be geometrically distant from their class
   center and still be important.
+- The next test scope is CatBoost-first and `8h/B` only. The research notes are
+  sufficient for this phase, but not sufficient to justify running CTW,
+  DivideMix, Co-teaching, reconstruction models, or broad PyTorch matrices yet.
+- The structured PyTorch branch stays blocked until a plain 4-class MLP gets
+  close to CatBoost on BTCUSDT `8h/B` and calibration/diagnostics are added.
 
 Sources:
 
@@ -210,28 +283,31 @@ For each target asset and root:
    | cleaned | `target_4class`, anomalies removed or down-weighted | `target_4class` |
    | split-class | `target_8class_anomaly` | both 8-class and collapsed 4-class |
 
-## Representative Matrix Command
+## Immediate 8h/B Validation Command
 
-Build merged roots before running the validation matrix:
+Build or verify the `8h/B` merged roots before running the next validation
+matrix:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --build-merged-dataset \
   --target-assets BTCUSDT,ETHUSDT,EURUSD,ES,GC \
   --context-assets core-ex-target \
-  --roots 8h/B 8h/C 24h/B 7d/B \
+  --roots 8h/B \
   --plan-only
 ```
 
-Run the staged anomaly validation:
+Run the staged CatBoost-only anomaly validation:
 
 ```bash
 python scripts/analysis/htf_stage1_label_anomaly_experiment.py \
   --target-assets BTCUSDT,ETHUSDT,EURUSD,ES,GC \
   --context-assets core-ex-target \
-  --roots 8h/B 8h/C 24h/B 7d/B \
-  --threshold-pcts 0.02,0.03,0.05,0.08 \
-  --models catboost,structured \
+  --roots 8h/B \
+  --threshold-pcts 0.03,0.08 \
+  --detectors label_conflict,full_hybrid \
+  --opposite-policies exclude_review \
+  --models catboost \
   --outlier-feature-count 250 \
   --export-review-set
 ```
@@ -250,6 +326,186 @@ python scripts/analysis/htf_stage1_label_anomaly_experiment.py \
   --max-features 80 \
   --catboost-iterations 40 \
   --export-review-set
+```
+
+## Completed Representative 8h/B Validation
+
+Run:
+
+```text
+test_output/stage1_label_anomaly_experiments/stage1_label_anomaly_8hb_representative_20260520
+```
+
+Scope:
+
+```text
+targets: BTCUSDT, ETHUSDT, EURUSD, ES, GC
+root: 8h/B
+models: baseline_4class, catboost_cleaned_4class, catboost_8class_collapsed
+rows per target: 180,000
+selected features per target: 250
+OOF-scored train rows per target: 78,693
+```
+
+Merged-root validation before the run:
+
+| Target | Output Rows | Dropped Missing Context | Duplicate Count | Null Feature Count |
+|---|---:|---:|---:|---:|
+| BTCUSDT | 413,652 | 974,965 | 0 | 0 |
+| ETHUSDT | 413,652 | 922,405 | 0 | 0 |
+| EURUSD | 413,652 | 559,538 | 0 | 0 |
+| ES | 413,652 | 655 | 0 | 0 |
+| GC | 413,652 | 556,026 | 0 | 0 |
+
+All required experiment artifacts were produced, including metrics,
+comparisons, action summaries, anomaly labels, label-quality scores,
+Confident-Learning diagnostics, reliability bins, predictions, review exports,
+and matrix decision files. Review exports were duplicate-free on
+`timestamp,batch_id`.
+
+Configs that passed the median gate on both validation and test:
+
+| Model | Config | Test Accuracy Delta | Test Macro F1 Delta | Test Direction Delta | Test Cross-Direction Delta | Test Pass Rate |
+|---|---|---:|---:|---:|---:|---:|
+| `catboost_8class_collapsed` | `thr8p0_full_hybrid_exclude_review` | +0.005848 | +0.005194 | +0.005465 | -0.005465 | 0.60 |
+| `catboost_cleaned_4class` | `thr3p0_label_conflict_exclude_review` | +0.001503 | -0.000418 | +0.001530 | -0.001530 | 0.40 |
+
+Interpretation:
+
+- The anomaly approach is validated enough for continued `8h/B` research.
+- The best current candidate is the split-class 8-class setup with
+  `thr8p0_full_hybrid_exclude_review`, because it passed both validation and
+  test median gates with stronger test deltas and higher test pass rate.
+- The cleaned 4-class `thr3p0_label_conflict_exclude_review` setup is useful as
+  a conservative baseline, but its lower test pass rate means it should not be
+  promoted alone.
+- The result is not strong enough to promote anomaly labeling across all
+  `8 assets x 6 roots`. Some asset/config pairs still fail individually, so the
+  next step is careful per-asset diagnostics on `8h/B`, not broader execution.
+
+## Implemented Test Additions And Remaining Matrix Work
+
+The two research notes are enough to implement the next set of tests for the
+CatBoost-first `8h/B` phase. They are not enough to promote every method in the
+research survey. The implementation now includes the smallest missing pieces
+needed to test the current hypothesis cleanly.
+
+### Phase 1: Runner Gaps
+
+Implemented: cleaned 4-class CatBoost arm.
+
+Behavior:
+
+- use the same anomaly decisions produced from train-only OOF scores;
+- train a 4-class CatBoost model on `target_4class`;
+- either exclude `review_exclude` rows or downweight suspicious rows according
+  to the configured policy;
+- do not alter validation/test labels;
+- evaluate on the same collapsed 4-class metrics as the baseline and split-class
+  arms.
+
+Implemented: Confident-Learning-style score and diagnostic arms.
+
+Behavior:
+
+- derive a class-normalized label-quality score from OOF parent probabilities;
+- keep implementation dependency-light unless `cleanlab` is explicitly added
+  later;
+- report estimated noisy-vs-predicted parent count matrix as diagnostics;
+- continue using class-local thresholds and the same opposite-direction review
+  rule.
+
+Implemented: median-first representative-matrix gating.
+
+Behavior:
+
+- aggregate per-target deltas across the representative `8h/B` asset panel;
+- report median and pass rate for accuracy, macro F1, direction accuracy,
+  cross-direction error, logloss, Brier, ECE, and primary score;
+- reject configs that win on one target but fail the median panel.
+
+### Phase 2: Tests Added Before Running The Matrix
+
+Implemented unit tests now cover:
+
+- cleaned 4-class sample weights downweight suspicious rows and remove review
+  rows without changing `target_4class`;
+- train-only feature selection and chronological OOF split ordering;
+- anomaly decisions are derived from scored train rows, with validation/test
+  evaluation kept separate by the runner split contract;
+- high-confidence opposite-direction rows remain review/exclude rows, not
+  anomaly leaves;
+- class-local thresholding produces bounded anomaly decisions per original
+  class in the decision-table tests;
+- Confident-Learning-style diagnostic matrix uses only OOF probabilities;
+- matrix gating fails when only one target improves and the median target does
+  not;
+- generated review sets remain duplicate-free on `timestamp,batch_id`;
+- all primary metrics are computed after collapsing `4..7 -> 0..3`.
+
+Integration checks still to run before promotion:
+
+- smoke run for BTCUSDT `8h/B` with baseline, cleaned, and split-class CatBoost
+  arms on a small `--max-rows` sample;
+- run-plan check that the representative command resolves only `8h/B`;
+- artifact schema check for metrics, comparison, action summary, anomaly labels,
+  reliability bins, review set, and matrix summary;
+- no PyTorch model is launched when `--models catboost` is used.
+
+Validation commands after implementation:
+
+```bash
+python -m pytest tests/test_stage1_label_anomaly_experiment.py -q
+python -m py_compile scripts/analysis/htf_stage1_label_anomaly_experiment.py
+git diff --check
+```
+
+### Phase 3: Experiment Gates
+
+The representative `8h/B` panel has run once. Use the completed run above as
+the baseline for next diagnostics.
+
+Promote a CatBoost anomaly setup only if the median across
+`BTCUSDT,ETHUSDT,EURUSD,ES,GC` satisfies:
+
+```text
+collapsed_4_accuracy: up
+macro_f1_4: stable or up
+direction_accuracy: up
+cross_direction_error: down
+logloss/ece: not materially worse
+review/export rows: present and duplicate-free
+```
+
+Reject a setup if:
+
+```text
+it only wins on BTCUSDT,
+8-class utility improves but collapsed 4-class metrics worsen,
+cross-direction error worsens,
+calibration worsens sharply,
+or anomaly leaves become a generic trash bin.
+```
+
+### Phase 4: PyTorch Blocker Resolution
+
+Do not run PyTorch on the representative matrix yet.
+
+Before any broader PyTorch test:
+
+- add a plain 4-class MLP baseline on BTCUSDT `8h/B`;
+- save epoch-level loss and metric curves;
+- add temperature scaling diagnostics;
+- test mild label smoothing `0.02` and `0.05`;
+- test class-balanced or focal loss;
+- compare calibrated collapsed 4-class metrics against CatBoost.
+
+PyTorch remains blocked unless:
+
+```text
+plain 4-class MLP approaches CatBoost primary_score,
+structured MLP does not reduce collapsed_4_accuracy,
+and calibrated ECE/logloss are close to CatBoost.
 ```
 
 ## Local Validation Evidence
@@ -351,17 +607,23 @@ Implemented:
 
 - read-only merged-root analyzer and OOF label-quality scoring;
 - derived anomaly-label artifact writer under `test_output/`;
+- cleaned 4-class CatBoost arm using `sample_weight`;
+- Confident-Learning-style score columns and detector presets;
+- per-config label-quality parquet and diagnostic JSON artifacts;
 - class-local K-means outlier scoring;
 - staged threshold, detector, and opposite-direction policy ablations;
 - flat CatBoost 8-class experiment path;
 - structured MLP prototype path;
 - review/export handling for high-confidence opposite-direction rows;
+- run-level median decision artifacts: `matrix_decision.csv/json`;
 - tests for chronological splits, train-only feature selection, anomaly mapping,
-  collapsed metrics, and review-set export.
+  cleaned weights, CL-style diagnostics, matrix gating, collapsed metrics, and
+  review-set export.
 
 Still deferred:
 
 - direct Stage-1 production support for `--target-col target_8class_anomaly`;
 - per-step online anomaly labels filtered by each walk-forward train end;
-- full representative matrix execution;
-- promotion to all `8 assets x 6 roots`, pending representative-matrix results.
+- full representative matrix execution for roots beyond `8h/B`;
+- promotion to all `8 assets x 6 roots`, blocked until GC validation-period
+  instability and ES/GC direction/regime failures are understood.

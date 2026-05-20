@@ -71,7 +71,9 @@ These pieces are implemented in this branch:
 6. Session-aware canonical HTF bars
    - raw provider files remain unchanged
    - canonical `1m` bars add calendar/session/fill metadata
-   - canonical `15m` bars are derived from canonical `1m`
+   - canonical `15m`, `1h`, `4h`, `8h`, `12h`, and `1d` bars are derived from
+     canonical `1m`
+   - `24h` is a CLI alias for `1d`; only `1d` is written on disk
    - open-session missing minutes are filled with zero volume and explicit flags
    - closed sessions, maintenance breaks, and weekends are not filled
    - session `8h`, `24h`, and `7d` completeness uses expected market-open
@@ -214,7 +216,8 @@ Before Stage-1:
 
 1. `python update_data.py --core --dry-run --htf-only` shows the expected
    providers and no surprise full Databento refetch.
-2. Raw `1m` and `15m` files exist for all selected assets.
+2. Raw provider `1m` files and derived canonical
+   `15m,1h,4h,8h,12h,1d` files exist for all selected assets.
 3. `HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset python notebooks/htf_pythonscript.py`
    finishes under default routing: crypto and session assets `8h/24h/7d`.
 4. Each asset has `data/htf_multiasset/{asset}/` output roots.

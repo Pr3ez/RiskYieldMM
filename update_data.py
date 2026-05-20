@@ -251,6 +251,23 @@ def build_status_cmd(source: str) -> tuple[list[str], Path]:
     )
 
 
+def build_derive_ohlcv_cmd(args: argparse.Namespace) -> tuple[list[str], Path]:
+    """Build the local canonical OHLCV derivation command."""
+    cmd = [
+        sys.executable,
+        "scripts/feature_engineering/materialize_canonical_ohlcv.py",
+        "--assets",
+        "core",
+        "--timeframes",
+        args.derived_ohlcv_timeframes,
+    ]
+    if args.status:
+        cmd.append("--status")
+    if args.dry_run:
+        cmd.append("--dry-run")
+    return cmd, PROJECT_ROOT
+
+
 def build_arg_parser() -> argparse.ArgumentParser:
     """Create the repo-root data update CLI parser."""
     parser = argparse.ArgumentParser(
@@ -313,6 +330,19 @@ Examples:
     )
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--status", action="store_true")
+    parser.add_argument(
+        "--derive-ohlcv-timeframes",
+        action="store_true",
+        help=(
+            "After source update/status, derive canonical 15m,1h,4h,8h,12h,1d "
+            "OHLCV bars from local canonical 1m files. This does not fetch data."
+        ),
+    )
+    parser.add_argument(
+        "--derived-ohlcv-timeframes",
+        default="15m,1h,4h,8h,12h,1d",
+        help="Comma-separated derived canonical OHLCV timeframes; 24h aliases to 1d.",
+    )
     parser.add_argument(
         "--htf-only",
         action="store_true",
@@ -402,6 +432,9 @@ def main(argv: list[str] | None = None) -> int:
         if not step_ok:
             print(f"ERROR: {source} step failed; stopping before later sources.")
             break
+    if success and args.derive_ohlcv_timeframes:
+        cmd, cwd = build_derive_ohlcv_cmd(args)
+        success = _run_step("DERIVE CANONICAL OHLCV TIMEFRAMES", cmd, cwd) and success
 
     ended_at = datetime.now(timezone.utc)
     print("\n" + "=" * 70)

@@ -75,7 +75,7 @@ Available regimes:
 
 Production stages inside the shared pipeline for each selected asset:
 
-1. Build calendar-aware canonical `1m` bars and derived canonical `15m` bars.
+1. Build calendar-aware canonical `1m` bars and derived canonical OHLCV bars.
 2. Build `1m` and `15m` combined HTF OHLCV batches for each regime/family.
 3. Compute `1m` and `15m` feature batches with family metadata.
 4. Compute `15m` forward distance metrics.
@@ -375,8 +375,8 @@ the workflow locally, run the stages in this order:
 
 ```mermaid
 flowchart TD
-    A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Source 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
-    B --> C["Calendar-aware canonical bars<br/>24/7 crypto + observed session assets"]
+    A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Source raw roots<br/>Bybit + Databento + Yahoo tail"]
+    B --> C["Calendar-aware canonical bars<br/>1m plus derived OHLCV timeframes"]
     C --> D["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
     D --> E["Stage-1 merged dataset assembly<br/>target asset + exact timestamp context"]
     E --> F["CatBoost Stage-1 walk-forward<br/>one run per target/root/context set"]
@@ -500,9 +500,11 @@ python update_data.py --core --htf-only --max-databento-cost-usd 50
 ```
 
 HTF consumes canonical `1m` OHLCV and derived canonical `15m` OHLCV for every
-asset. Crypto assets can also use available Bybit auxiliary streams.
-Non-crypto assets start as OHLCV-only until cross-asset/context features are
-added in Stage-1.
+asset. Additional canonical OHLCV timeframes can be derived locally from the
+same canonical `1m` source: `1h`, `4h`, `8h`, `12h`, and `1d` (`24h` is a CLI
+alias for `1d`). These derived bars are not fetched from providers. Crypto
+assets can also use available Bybit auxiliary streams. Non-crypto assets start
+as OHLCV-only until cross-asset/context features are added in Stage-1.
 
 | Source root | Assets | HTF role |
 |---|---|---|
@@ -553,6 +555,57 @@ python fetchingMultiAsset/preflight_providers.py
 python update_data.py --core --dry-run --htf-only
 python update_data.py --core --htf-only --max-databento-cost-usd 50
 ```
+
+After canonical `1m` exists, derive the complete canonical OHLCV timeframe set
+without fetching:
+
+```bash
+python scripts/feature_engineering/materialize_canonical_ohlcv.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d
+
+# Read-only inventory/status check.
+python scripts/feature_engineering/materialize_canonical_ohlcv.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d \
+  --status
+```
+
+The repo-root updater can run the same derivation explicitly after source
+updates:
+
+```bash
+python update_data.py --core --derive-ohlcv-timeframes
+```
+
+Derived bar timestamps are bar-open timestamps. Model features from a derived
+bar are only available after `timestamp + timeframe`.
+
+After the derived canonical OHLCV tree exists, deterministic technical-analysis
+flags can be materialized without fetching. These flags are post-close only: a
+signal computed from a closed `15m` bar is first active on the next canonical
+`1m` row after that `15m` bar closes, then remains active for the next
+timeframe-sized set of market-open `1m` rows.
+
+```bash
+# Read-only TA flag inventory.
+python TA_backtest_optimization/materialize_ta_flags.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d \
+  --status
+
+# Build reusable per-asset TA event rows and expanded 1m binary flags.
+python TA_backtest_optimization/materialize_ta_flags.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d
+```
+
+TA outputs are written under
+`data/htf_multiasset/{asset}/ta_signal_flags/{tf}/`. They do not modify the
+HTF feature/helper/label roots. The default V1 flag set covers ADX+DMI, RSI,
+MACD, VWAP, Donchian, OBV, Bollinger Bands, Pivot Points, Supertrend, Aroon,
+and Stochastic; exits, sizing, leverage, and PnL optimization remain later
+research stages.
 
 Example output roots:
 
@@ -678,7 +731,7 @@ Important run files:
 |---|---|
 | live log | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>.log` |
 | heartbeat/status JSON | `test_output/htf_run_logs/htf_pythonscript_<timestamp>_pid<pid>_status.json` |
-| canonical bars | `data/htf_multiasset/{asset}/htf_canonical_ohlcv/{1m,15m}/` |
+| canonical bars | `data/htf_multiasset/{asset}/htf_canonical_ohlcv/{1m,15m,1h,4h,8h,12h,1d}/` |
 | final features | `data/htf_multiasset/{asset}/htf_with_helpers*/1m/target_4class/batch_*.parquet` |
 | final labels | `data/htf_multiasset/{asset}/htf_4class_labels*/1m/batch_*.parquet` |
 | helper cache | `data/htf_multiasset/{asset}/htf_helper_cache/` |
@@ -741,6 +794,21 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --runtime-mode routine
 ```
 
+To include precomputed TA flags in the generated merged Stage-1 dataset, opt in
+explicitly. Missing inactive TA rows are filled with `0`; missing TA flag files
+fail fast so the feature set is reproducible.
+
+```bash
+python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --include-ta-flags \
+  --ta-timeframes 15m,1h,4h,8h,12h,1d \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --plan-only
+```
+
 For all core targets, use `core` plus `core-ex-target`; this expands into one
 independent Stage-1 run per target asset. This can write many GB of generated
 merged data, so run it target-by-target first unless you have planned disk and
@@ -770,6 +838,19 @@ quality signal: weak smoke only, winner_accuracy=0.2667, macro_f1=0.1053
 Do not treat that one-step quality number as strategy evidence. It only proves
 the merged dataset, sparse-batch scanning, leakage guard, and Stage-1 payload
 generation path work end to end.
+
+Experimental label-anomaly research exists for the merged `8h/B` Stage-1
+dataset, but it is not promoted into production Stage-1 training. The current
+runner writes derived anomaly labels, review sets, and diagnostics under
+`test_output/stage1_label_anomaly_experiments/` without changing source
+`target_4class` roots. The latest resume document is:
+
+```text
+docs/research/stage1-label-anomaly-8h-b-diagnostics-2026-05-20.md
+```
+
+Current decision: continue `8h/B` research only. ES/GC validation instability
+blocks all-root promotion and automatic use of `target_8class_anomaly`.
 
 For the current full regime/family Stage-1 v1 run:
 

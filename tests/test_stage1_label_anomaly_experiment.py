@@ -8,9 +8,13 @@ import polars as pl
 
 from scripts.analysis.htf_stage1_label_anomaly_experiment import (
     TARGET_COL,
+    add_confident_learning_scores,
     apply_anomaly_decisions,
     assign_chronological_splits,
+    build_confident_learning_diagnostics,
+    build_matrix_decision,
     collapse_8_to_4,
+    compute_cleaned_sample_weights,
     compute_eval_metrics,
     export_review_set,
     make_expanding_oof_folds,
@@ -189,3 +193,125 @@ def test_review_set_export_contains_required_columns_and_no_duplicates(tmp_path)
     assert required.issubset(set(review.columns))
     assert not review.duplicated(["timestamp", "batch_id"]).any()
     assert set(review["training_action"]) == {"review_exclude"}
+
+
+def test_cleaned_sample_weights_downweight_suspicious_and_exclude_review() -> None:
+    train8_df = pd.DataFrame(
+        {
+            "training_action": [
+                "clean",
+                "clean_no_oof",
+                "same_parent_anomaly",
+                "low_weight_opposite",
+                "opposite_low_weight",
+                "opposite_keep_clean",
+                "review_exclude",
+            ]
+        }
+    )
+
+    weights = compute_cleaned_sample_weights(
+        train8_df,
+        suspicious_weight=0.35,
+        review_weight=0.0,
+    )
+
+    assert np.allclose(weights, [1.0, 1.0, 0.35, 0.35, 0.35, 1.0, 0.0])
+
+
+def test_confident_learning_scores_use_oof_probability_quality() -> None:
+    score_df = pd.DataFrame(
+        {
+            TARGET_COL: [0, 0, 2],
+            "prob_0": [0.80, 0.10, 0.20],
+            "prob_1": [0.10, 0.15, 0.10],
+            "prob_2": [0.05, 0.70, 0.60],
+            "prob_3": [0.05, 0.05, 0.10],
+        }
+    )
+
+    scored = add_confident_learning_scores(score_df)
+
+    assert np.isclose(scored.loc[0, "p_true"], 0.80)
+    assert np.isclose(scored.loc[1, "p_true"], 0.10)
+    assert np.isclose(scored.loc[1, "max_other_prob"], 0.70)
+    assert scored.loc[1, "normalized_margin"] < 0.0
+    assert scored.loc[1, "cl_normalized_margin_score"] > scored.loc[0, "cl_normalized_margin_score"]
+    assert scored.loc[1, "cl_confidence_weighted_entropy_score"] > 0.0
+
+
+def test_confident_learning_diagnostics_report_confusion_and_class_rates() -> None:
+    start = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    scored = add_confident_learning_scores(
+        pd.DataFrame(
+            {
+                "row_id": [1, 2, 3, 4],
+                "timestamp": [start + timedelta(minutes=i) for i in range(4)],
+                "batch_id": [10, 10, 10, 10],
+                TARGET_COL: [0, 0, 2, 3],
+                "pred_label": [0, 2, 2, 1],
+                "model_confidence": [0.8, 0.7, 0.6, 0.9],
+                "prob_0": [0.8, 0.1, 0.2, 0.0],
+                "prob_1": [0.1, 0.1, 0.1, 0.9],
+                "prob_2": [0.05, 0.7, 0.6, 0.05],
+                "prob_3": [0.05, 0.1, 0.1, 0.05],
+                "noise_score": [0.1, 0.9, 0.2, 0.95],
+                "temporal_inconsistency": [0.0, 0.9, 0.0, 0.8],
+                "class_conditional_outlier_score": [0.0, 0.8, 0.0, 0.7],
+            }
+        )
+    )
+    decisions = apply_anomaly_decisions(
+        scored,
+        threshold_pct=0.50,
+        opposite_policy="exclude_review",
+        opposite_high_confidence=0.80,
+    )
+
+    diagnostics = build_confident_learning_diagnostics(scored, decisions)
+
+    confusion = diagnostics["argmax_confusion_observed_vs_oof_pred"]
+    assert len(confusion) == 16
+    assert any(
+        item["observed_class"] == 0
+        and item["predicted_class"] == 2
+        and item["count"] == 1
+        for item in confusion
+    )
+    rates = {
+        item["observed_class"]: item
+        for item in diagnostics["rates_by_observed_class"]
+    }
+    assert rates[0]["rows"] == 2
+    assert rates[0]["suspicious_rows"] >= 1
+    assert "confident_joint_like_counts" in diagnostics
+
+
+def test_matrix_decision_uses_median_gate_across_units() -> None:
+    comparison_df = pd.DataFrame(
+        {
+            "model": ["catboost_cleaned_4class"] * 3,
+            "config_id": ["cfg"] * 3,
+            "split": ["test"] * 3,
+            "target_asset": ["BTCUSDT", "ETHUSDT", "ES"],
+            "collapsed_4_accuracy_delta": [0.02, 0.01, -0.03],
+            "macro_f1_4_delta": [0.01, 0.00, -0.01],
+            "direction_accuracy_delta": [0.02, 0.01, -0.03],
+            "cross_direction_error_delta": [-0.02, -0.01, 0.03],
+            "logloss_4_delta": [0.00, 0.01, 0.04],
+            "brier_4_delta": [0.00, 0.00, 0.01],
+            "ece_4_delta": [0.00, 0.005, 0.02],
+            "primary_score_delta": [0.08, 0.04, -0.12],
+            "passes_acceptance": [True, True, False],
+        }
+    )
+
+    decision = build_matrix_decision(comparison_df)
+
+    assert len(decision) == 1
+    assert bool(decision.loc[0, "passes_median_gate"])
+
+    comparison_df.loc[1, "cross_direction_error_delta"] = 0.01
+    decision = build_matrix_decision(comparison_df)
+
+    assert not bool(decision.loc[0, "passes_median_gate"])

@@ -86,6 +86,12 @@ MODEL_METADATA_EXCLUDE = {
     "expected_entry_rows",
     "actual_entry_rows",
     "has_synthetic_open_gap_fill",
+    "signal_source_tf",
+    "signal_bar_open_ts",
+    "signal_available_ts",
+    "signal_valid_until_ts",
+    "signal_valid_rows",
+    "signal_params_hash",
 }
 
 

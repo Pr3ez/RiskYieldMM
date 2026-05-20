@@ -72,6 +72,25 @@ def _write_asset_batches(
     labels.write_parquet(label_dir / f"batch_{batch_id:04d}.parquet")
 
 
+def _write_ta_flags(
+    tmp_path: Path,
+    *,
+    asset: str,
+    timestamps: list[datetime],
+    values: list[int],
+    timeframe: str = "15m",
+) -> None:
+    flag_dir = _asset_root(tmp_path, asset) / "ta_signal_flags" / timeframe
+    flag_dir.mkdir(parents=True, exist_ok=True)
+    slug = asset.lower()
+    pl.DataFrame(
+        {
+            "timestamp": timestamps,
+            f"ta_{timeframe}_test_long": values,
+        }
+    ).write_parquet(flag_dir / f"{slug}_{timeframe}_ta_flags.parquet")
+
+
 def test_asset_selector_parsing_and_context_hash() -> None:
     assert parse_stage1_target_assets("BTCUSDT,ETHUSDT,BTCUSDT") == (
         "BTCUSDT",
@@ -194,6 +213,35 @@ def test_null_context_feature_values_are_dropped_and_reported(tmp_path: Path) ->
     assert result.manifest["output_rows"] == 1
     assert result.manifest["rows_dropped_by_null_features"] == 1
     assert result.manifest["null_feature_count"] == 0
+
+
+def test_stage1_assembly_joins_ta_flags_without_dropping_inactive_rows(tmp_path: Path) -> None:
+    ts = _timestamps(3)
+    _write_asset_batches(tmp_path, asset="BTCUSDT", timestamps=ts)
+    _write_asset_batches(tmp_path, asset="ETHUSDT", timestamps=ts)
+    _write_ta_flags(tmp_path, asset="BTCUSDT", timestamps=[ts[0], ts[2]], values=[1, 1])
+    _write_ta_flags(tmp_path, asset="ETHUSDT", timestamps=[ts[1]], values=[1])
+
+    result = build_multiasset_stage1_dataset(
+        project_root=tmp_path,
+        target_asset="BTCUSDT",
+        context_assets=("ETHUSDT",),
+        root_key="8h/B",
+        include_ta_flags=True,
+        ta_timeframes=("15m",),
+    )
+
+    features = pl.read_parquet(
+        result.features_dir / "1m" / "target_4class" / "batch_0001.parquet"
+    )
+
+    assert len(features) == 3
+    assert features["T_BTCUSDT__ta_15m_test_long"].to_list() == [1, 0, 1]
+    assert features["C_ETHUSDT__ta_15m_test_long"].to_list() == [0, 1, 0]
+    assert result.manifest["ta_flags_enabled"] is True
+    assert result.manifest["ta_timeframes"] == ["15m"]
+    assert result.manifest["ta_feature_columns_count"] == 2
+    assert result.manifest["ta_null_count"] == 0
 
 
 def test_sparse_merged_label_roots_report_highest_batch_id(tmp_path: Path) -> None:

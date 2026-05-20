@@ -7,6 +7,7 @@ import polars as pl
 from scripts.feature_engineering.htf_trading_calendar import (
     CALENDAR_CRYPTO_24_7,
     CALENDAR_FUTURES_SESSION_OBSERVED,
+    aggregate_canonical_ohlcv,
     aggregate_canonical_15m,
     canonicalize_ohlcv,
 )
@@ -103,3 +104,59 @@ def test_canonical_15m_aggregation_preserves_fill_flags() -> None:
     assert len(canonical_15m) == 1
     assert canonical_15m["is_open_session_gap_fill"].to_list() == [True]
     assert canonical_15m["volume"].to_list() == [140.0]
+
+
+def test_crypto_multi_timeframe_aggregation_drops_incomplete_tails() -> None:
+    start = datetime(2021, 1, 1, tzinfo=timezone.utc)
+    raw = _bars([start + timedelta(minutes=i) for i in range(90)], base=400.0)
+    canonical_1m, _ = canonicalize_ohlcv(
+        raw,
+        asset_id="BTCUSDT",
+        calendar_id=CALENDAR_CRYPTO_24_7,
+        timeframe="1m",
+    )
+
+    one_hour, one_hour_meta = aggregate_canonical_ohlcv(
+        canonical_1m,
+        target_timeframe="1h",
+    )
+    fifteen, fifteen_meta = aggregate_canonical_ohlcv(
+        canonical_1m,
+        target_timeframe="15m",
+    )
+
+    assert len(one_hour) == 1
+    assert one_hour_meta["dropped_incomplete_buckets"] == 1
+    assert len(fifteen) == 6
+    assert fifteen_meta["dropped_incomplete_buckets"] == 0
+    assert one_hour["open"].to_list() == [399.9]
+    assert one_hour["close"].to_list() == [459.0]
+    assert one_hour["high"].to_list() == [459.2]
+    assert one_hour["low"].to_list() == [399.8]
+    assert one_hour["volume"].to_list() == [600.0]
+
+
+def test_session_aggregation_keeps_calendar_complete_maintenance_bucket() -> None:
+    start = datetime(2021, 1, 4, 20, 0, tzinfo=timezone.utc)
+    reopen = datetime(2021, 1, 4, 22, 0, tzinfo=timezone.utc)
+    raw = _bars(
+        [start + timedelta(minutes=i) for i in range(60)]
+        + [reopen + timedelta(minutes=i) for i in range(120)],
+        base=500.0,
+    )
+    canonical_1m, _ = canonicalize_ohlcv(
+        raw,
+        asset_id="ES",
+        calendar_id=CALENDAR_FUTURES_SESSION_OBSERVED,
+        timeframe="1m",
+    )
+
+    four_hour, meta = aggregate_canonical_ohlcv(
+        canonical_1m,
+        target_timeframe="4h",
+    )
+
+    assert len(four_hour) == 1
+    assert meta["dropped_incomplete_buckets"] == 0
+    assert four_hour["timestamp"].to_list() == [start]
+    assert four_hour["volume"].to_list() == [1800.0]

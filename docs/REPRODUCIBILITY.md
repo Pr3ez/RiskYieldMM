@@ -58,14 +58,16 @@ cargo check --locked
 
 ## Fetch HTF Source Data
 
-The active HTF source contract uses native `1m` and `15m` OHLCV for each core
-asset. Crypto assets also use available Bybit derivative context. The repo-root
-orchestrator coordinates Bybit crypto, Databento historical futures proxies, and
-validated Yahoo recent-tail continuation.
+The active HTF source contract uses provider `1m` OHLCV for each core asset,
+then derives canonical `15m`, `1h`, `4h`, `8h`, `12h`, and `1d` bars locally
+from canonical `1m`. Crypto assets also use available Bybit derivative context.
+The repo-root orchestrator coordinates Bybit crypto, Databento historical
+futures proxies, and validated Yahoo recent-tail continuation.
 
 ```bash
 python update_data.py --core --dry-run --htf-only
 python update_data.py --core --htf-only --max-databento-cost-usd 50
+python update_data.py --core --derive-ohlcv-timeframes
 ```
 
 The fetcher is incremental. It should resume from the latest available local
@@ -85,6 +87,15 @@ source folders include:
 - `mark-price-15m-bybit-linear/`
 - `index-price-1m-bybit-linear/`
 - `premium-price-15m-bybit-linear/`
+
+Derived canonical OHLCV files are written under:
+
+```text
+data/htf_multiasset/{asset}/htf_canonical_ohlcv/{15m,1h,4h,8h,12h,1d}/
+```
+
+`24h` is accepted by the materializer as an alias for `1d`; only `1d` is
+written on disk.
 
 ## Build HTF Features And Labels
 

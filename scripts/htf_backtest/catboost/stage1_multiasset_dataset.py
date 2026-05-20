@@ -24,6 +24,11 @@ from typing import Any
 
 import polars as pl
 
+from TA_backtest_optimization.materialize_ta_flags import (
+    parse_ta_timeframes,
+    ta_flag_columns,
+    ta_flags_path,
+)
 from scripts.feature_engineering.htf_asset_registry import (
     CORE_HTF_ASSET_IDS,
     normalize_htf_asset_id,
@@ -258,11 +263,14 @@ def build_multiasset_stage1_dataset(
     tf: str = TF,
     feature_target_col: str = FEATURE_TARGET_COL,
     clear_existing: bool = True,
+    include_ta_flags: bool = False,
+    ta_timeframes: tuple[str, ...] = (),
 ) -> MultiAssetAssemblyResult:
     """Build one merged Stage-1 dataset root from per-asset HTF outputs."""
     project_root = Path(project_root)
     target_asset = normalize_htf_asset_id(target_asset)
     context_assets = tuple(normalize_htf_asset_id(asset) for asset in context_assets)
+    ta_timeframes = parse_ta_timeframes(ta_timeframes) if include_ta_flags else ()
     layout = _root_layout(root_key)
     input_base_dir = input_base_dir or project_root / "data" / MULTIASSET_SOURCE_ROOT
     output_base_dir = output_base_dir or project_root / "data" / MULTIASSET_MERGED_ROOT
@@ -347,14 +355,33 @@ def build_multiasset_stage1_dataset(
         for col in TARGET_UNPREFIXED_FEATURE_COLUMNS
         if col in target_index.model_columns
     )
+    target_ta_cols = _ta_output_columns(
+        project_root=project_root,
+        asset_id=target_asset,
+        role_prefix=f"T_{target_asset}__",
+        ta_timeframes=ta_timeframes,
+        require=include_ta_flags,
+    )
+    context_ta_cols = {
+        asset: _ta_output_columns(
+            project_root=project_root,
+            asset_id=asset,
+            role_prefix=f"C_{asset}__",
+            ta_timeframes=ta_timeframes,
+            require=include_ta_flags,
+        )
+        for asset in context_assets
+    }
     output_feature_columns = [
         *target_unprefixed_cols,
         *(f"T_{target_asset}__{col}" for col in target_prefixed_cols),
+        *target_ta_cols,
     ]
     for index in context_indexes:
         output_feature_columns.extend(
             f"C_{index.asset_id}__{col}" for col in index.model_columns
         )
+        output_feature_columns.extend(context_ta_cols[index.asset_id])
 
     batch_summaries: list[dict[str, Any]] = []
     target_feature_rows = 0
@@ -378,6 +405,16 @@ def build_multiasset_stage1_dataset(
             target_unprefixed_cols=target_unprefixed_cols,
             target_prefixed_cols=target_prefixed_cols,
         )
+        if include_ta_flags:
+            target_batch = _join_ta_flags(
+                target_batch,
+                project_root=project_root,
+                asset_id=target_asset,
+                role_prefix=f"T_{target_asset}__",
+                ta_timeframes=ta_timeframes,
+                timestamp_min=target_meta.timestamp_min,
+                timestamp_max=target_meta.timestamp_max,
+            )
         if _duplicate_count(target_batch, ["timestamp"]):
             raise ValueError(f"Duplicate target timestamps in {target_meta.path}")
         target_feature_rows += len(target_batch)
@@ -389,6 +426,16 @@ def build_multiasset_stage1_dataset(
                 timestamp_min=target_meta.timestamp_min,
                 timestamp_max=target_meta.timestamp_max,
             )
+            if include_ta_flags:
+                context_batch = _join_ta_flags(
+                    context_batch,
+                    project_root=project_root,
+                    asset_id=context_index.asset_id,
+                    role_prefix=f"C_{context_index.asset_id}__",
+                    ta_timeframes=ta_timeframes,
+                    timestamp_min=target_meta.timestamp_min,
+                    timestamp_max=target_meta.timestamp_max,
+                )
             merged = merged.join(context_batch, on="timestamp", how="inner")
 
         merged = merged.sort(["batch_id", "timestamp"])
@@ -516,6 +563,19 @@ def build_multiasset_stage1_dataset(
         "feature_columns": output_feature_columns,
         "feature_columns_count": int(len(output_feature_columns)),
         "target_unprefixed_feature_columns": list(target_unprefixed_cols),
+        "ta_flags_enabled": bool(include_ta_flags),
+        "ta_timeframes": list(ta_timeframes),
+        "ta_source_paths": _ta_source_paths(
+            project_root=project_root,
+            assets=(target_asset, *context_assets),
+            ta_timeframes=ta_timeframes,
+        )
+        if include_ta_flags
+        else {},
+        "ta_feature_columns_count": int(
+            len(target_ta_cols) + sum(len(cols) for cols in context_ta_cols.values())
+        ),
+        "ta_null_count": 0,
         "excluded_columns": {
             "target": target_excluded_columns,
             "context": context_excluded_columns,
@@ -741,6 +801,123 @@ def _read_context_window(
             ),
         ]
     )
+
+
+def _ta_output_columns(
+    *,
+    project_root: Path,
+    asset_id: str,
+    role_prefix: str,
+    ta_timeframes: tuple[str, ...],
+    require: bool,
+) -> list[str]:
+    """Return prefixed TA flag columns for one asset/timeframe selection."""
+    columns: list[str] = []
+    for timeframe in ta_timeframes:
+        path = ta_flags_path(project_root, asset_id, timeframe)
+        if not path.exists():
+            if require:
+                raise FileNotFoundError(f"TA flag file not found: {path}")
+            continue
+        schema = pl.read_parquet(path, n_rows=0).schema
+        columns.extend(f"{role_prefix}{col}" for col in ta_flag_columns(list(schema), timeframe))
+    return columns
+
+
+def _read_ta_window(
+    *,
+    project_root: Path,
+    asset_id: str,
+    role_prefix: str,
+    ta_timeframes: tuple[str, ...],
+    timestamp_min: datetime,
+    timestamp_max: datetime,
+) -> tuple[pl.DataFrame, list[str]]:
+    """Read and prefix TA flags for one asset over a target timestamp window."""
+    parts: list[pl.DataFrame] = []
+    output_columns: list[str] = []
+    for timeframe in ta_timeframes:
+        path = ta_flags_path(project_root, asset_id, timeframe)
+        if not path.exists():
+            raise FileNotFoundError(f"TA flag file not found: {path}")
+        schema = pl.read_parquet(path, n_rows=0).schema
+        source_cols = ta_flag_columns(list(schema), timeframe)
+        prefixed_cols = [f"{role_prefix}{col}" for col in source_cols]
+        output_columns.extend(prefixed_cols)
+        if not source_cols:
+            continue
+        frame = (
+            pl.scan_parquet(path)
+            .filter(pl.col("timestamp").is_between(timestamp_min, timestamp_max, closed="both"))
+            .select(
+                [
+                    pl.col("timestamp"),
+                    *(pl.col(col).alias(f"{role_prefix}{col}") for col in source_cols),
+                ]
+            )
+            .collect()
+        )
+        parts.append(frame)
+
+    if not output_columns:
+        return pl.DataFrame({"timestamp": []}), []
+    if not parts:
+        return pl.DataFrame(
+            schema={
+                "timestamp": pl.Datetime(time_unit="us", time_zone="UTC"),
+                **{col: pl.Int8 for col in output_columns},
+            }
+        ), output_columns
+    out = parts[0]
+    for part in parts[1:]:
+        out = out.join(part, on="timestamp", how="outer_coalesce")
+    if _duplicate_count(out, ["timestamp"]):
+        raise ValueError(
+            f"TA flags for {asset_id} have duplicate timestamps in "
+            f"{timestamp_min} -> {timestamp_max}"
+        )
+    return out.sort("timestamp"), output_columns
+
+
+def _join_ta_flags(
+    df: pl.DataFrame,
+    *,
+    project_root: Path,
+    asset_id: str,
+    role_prefix: str,
+    ta_timeframes: tuple[str, ...],
+    timestamp_min: datetime,
+    timestamp_max: datetime,
+) -> pl.DataFrame:
+    """Left-join TA flags and fill inactive/missing rows with zero."""
+    ta_frame, ta_cols = _read_ta_window(
+        project_root=project_root,
+        asset_id=asset_id,
+        role_prefix=role_prefix,
+        ta_timeframes=ta_timeframes,
+        timestamp_min=timestamp_min,
+        timestamp_max=timestamp_max,
+    )
+    if not ta_cols:
+        return df
+    out = df.join(ta_frame, on="timestamp", how="left")
+    return out.with_columns([pl.col(col).fill_null(0).cast(pl.Int8) for col in ta_cols])
+
+
+def _ta_source_paths(
+    *,
+    project_root: Path,
+    assets: tuple[str, ...],
+    ta_timeframes: tuple[str, ...],
+) -> dict[str, dict[str, str]]:
+    """Return manifest-friendly TA source paths."""
+    return {
+        normalize_htf_asset_id(asset): {
+            timeframe: str(ta_flags_path(project_root, asset, timeframe))
+            for timeframe in ta_timeframes
+        }
+        for asset in assets
+    }
 
 
 def _read_target_labels_for_merged_rows(

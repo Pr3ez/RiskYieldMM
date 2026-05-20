@@ -13,7 +13,7 @@ them.
 
 | Source | Required timeframes | Purpose |
 |---|---|---|
-| OHLCV klines/bars | `1m`, `15m` | Base price/volume stream for HTF batches and features across all assets |
+| OHLCV klines/bars | provider `1m`; canonical derived `15m`, `1h`, `4h`, `8h`, `12h`, `1d` | Base price/volume stream for HTF batches, features, and multi-timeframe analysis across all assets |
 | Open interest | `5m`, `15m` | Crypto derivatives positioning context; `5m` broadcasts into `1m` rows |
 | Funding rate | native funding interval | Crypto funding pressure features |
 | Long/short ratio | `5m`, `15m` | Crypto positioning/sentiment context; `5m` broadcasts into `1m` rows |
@@ -77,8 +77,28 @@ is_open_session_gap_fill = true
 
 Closed sessions, daily maintenance breaks, and weekends are not filled. The
 current observed-session implementation is data-derived; it does not call an
-external exchange-calendar API. Canonical `15m` bars are derived from canonical
-`1m` bars so gap flags and session metadata survive aggregation.
+external exchange-calendar API. Canonical higher-timeframe OHLCV bars are
+derived from canonical `1m` bars so gap flags and session metadata survive
+aggregation.
+
+Maintained derived canonical OHLCV timeframes:
+
+```text
+15m
+1h
+4h
+8h
+12h
+1d
+```
+
+`24h` is accepted by the materializer as an alias for `1d`, but files are
+written only under the `1d` directory. Derived bars use bar-open timestamps; a
+model feature from one of these bars is only available after
+`timestamp + timeframe`. Crypto assets require full wall-clock minute counts
+for derived bars. Session assets require all expected market-open canonical
+minutes inside the bucket, so session closes, maintenance breaks, and weekends
+do not create missing rows.
 
 Canonical rows add:
 
@@ -98,6 +118,49 @@ is_session_close_bar
 is_weekly_open_bar
 is_weekly_close_bar
 ```
+
+## Canonical TA Signal Flags
+
+Technical-analysis flags are derived from the canonical OHLCV layer only. They
+are not fetched and they do not rewrite HTF feature/helper/label roots.
+
+Source bars:
+
+```text
+data/htf_multiasset/{asset}/htf_canonical_ohlcv/{tf}/{asset}_{tf}_canonical.parquet
+```
+
+Generated TA artifacts:
+
+```text
+data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_events.parquet
+data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_flags.parquet
+data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_flags_meta.json
+```
+
+TA event rows are one row per closed higher-timeframe source bar. Model-facing
+TA flags are expanded onto canonical `1m` timestamps only after the source bar
+closes. For example, a `15m` signal from a bar opening at `10:00` is first
+usable at `10:15`; it must not flag rows inside the `10:00 -> 10:14` source
+bar. Session assets expand over the next market-open canonical `1m` rows only,
+so weekends and closed maintenance periods are skipped rather than filled.
+`signal_valid_until_ts` is the exclusive end of that expanded canonical `1m`
+window, so for session assets it is derived from observed market-open rows
+rather than wall-clock minutes alone.
+
+Model-facing TA columns use:
+
+```text
+ta_{tf}_{indicator}_{signal}_long
+ta_{tf}_{indicator}_{signal}_short
+ta_{tf}_{indicator}_{state}
+```
+
+Signal metadata columns such as `signal_source_tf`, `signal_bar_open_ts`,
+`signal_available_ts`, `signal_valid_until_ts`, `signal_valid_rows`, and
+`signal_params_hash` are excluded from Stage-1 model features. When Stage-1
+merged dataset assembly is run with `--include-ta-flags`, target TA flags are
+prefixed as `T_{asset}__ta_*` and context TA flags as `C_{asset}__ta_*`.
 
 ## HTF Batch Metadata
 

@@ -11,8 +11,8 @@ cross-asset analysis.
 ```mermaid
 flowchart TD
     A[Bybit crypto + Databento historical futures + Yahoo recent tail] --> B[Repo-root core update]
-    B --> C[Local 1m/15m raw Parquet sources]
-    C --> D[Calendar-aware canonical bars]
+    B --> C[Local raw Parquet sources]
+    C --> D[Calendar-aware canonical bars and derived OHLCV timeframes]
     D --> E[Per-asset HTF batch materializer]
     E --> F[Asset-scoped feature batches]
     E --> G[Asset-scoped target_4class labels]
@@ -31,7 +31,7 @@ flowchart TD
 |---|---|---|
 | Data fetch | `update_data.py --core` | Bybit crypto plus multi-asset Databento/Yahoo source refresh |
 | HTF asset registry | `scripts/feature_engineering/htf_asset_registry.py` | Core asset set and raw source routing |
-| HTF calendar layer | `scripts/feature_engineering/htf_trading_calendar.py` | Canonical market-open bars, session metadata, and open-gap fill flags |
+| HTF calendar layer | `scripts/feature_engineering/htf_trading_calendar.py` | Canonical market-open bars, derived OHLCV timeframes, session metadata, and open-gap fill flags |
 | HTF materialization | `scripts/feature_engineering/htf_multiregime_pipeline.py` | Per-asset regime/family batches, features, labels, validation |
 | HTF launcher | `notebooks/htf_pythonscript.py` | Production orchestration and run logging through `HTF_ASSETS` |
 | Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | Legacy six-root execution plus optional merged target/context dataset assembly |
