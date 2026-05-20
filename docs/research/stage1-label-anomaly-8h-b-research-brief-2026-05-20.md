@@ -2,8 +2,17 @@
 
 Date: 2026-05-20
 
-Status: active research brief. This document defines the safe implementation
-scope until the label-anomaly method is tested more deeply.
+Status: historical research brief for the initial safe implementation scope.
+The latest resume point is now the diagnostics report:
+
+```text
+docs/research/stage1-label-anomaly-8h-b-diagnostics-2026-05-20.md
+```
+
+This brief is still useful for the original rationale and guardrails, but its
+BTCUSDT-only pilot status has been superseded by the completed representative
+`8h/B` matrix and ES/GC follow-up diagnostics. The current decision is still
+conservative: continue `8h/B` research only, and do not promote broad roots.
 
 ## Current Decision
 
@@ -24,10 +33,12 @@ Blocked for promotion:
 - all-root or all-target production promotion;
 - structured PyTorch model as a candidate model.
 
-Reason: the first BTCUSDT `8h/B` CatBoost anomaly result is promising, but it
-is one target/root only. The PyTorch prototype improves direction metrics but
-fails the main acceptance gate because collapsed 4-class accuracy and
-calibration worsen.
+Original reason: the first BTCUSDT `8h/B` CatBoost anomaly result was promising
+but too narrow. Since this brief was written, the representative `8h/B` matrix
+and ES/GC follow-up diagnostics have run. The updated reason for staying narrow
+is ES/GC validation instability and weak session-asset expansion recall. The
+PyTorch prototype also remains blocked because it improves some direction
+metrics while worsening collapsed 4-class accuracy and calibration.
 
 ## Problem
 

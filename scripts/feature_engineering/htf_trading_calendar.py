@@ -16,7 +16,7 @@ Temporal/data contract:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import polars as pl
@@ -47,6 +47,18 @@ CANONICAL_BAR_COLUMNS = [
     "is_weekly_open_bar",
     "is_weekly_close_bar",
 ]
+
+CANONICAL_DERIVED_TIMEFRAMES = ("15m", "1h", "4h", "8h", "12h", "1d")
+CANONICAL_TIMEFRAME_ALIASES = {"24h": "1d"}
+_CANONICAL_TIMEFRAME_MINUTES = {
+    "1m": 1,
+    "15m": 15,
+    "1h": 60,
+    "4h": 240,
+    "8h": 480,
+    "12h": 720,
+    "1d": 1440,
+}
 
 
 @dataclass(frozen=True)
@@ -79,13 +91,22 @@ class CanonicalizationSummary:
 
 
 def timeframe_minutes(tf: str) -> int:
-    """Parse a minute timeframe string such as `1m` or `15m`."""
-    if not tf.endswith("m"):
-        raise ValueError(f"Only minute timeframes are supported here: {tf!r}")
-    value = int(tf[:-1])
+    """Parse a supported canonical timeframe into minutes."""
+    normalized = normalize_canonical_timeframe(tf)
+    value = _CANONICAL_TIMEFRAME_MINUTES[normalized]
     if value <= 0:
         raise ValueError(f"Timeframe minutes must be positive: {tf!r}")
     return value
+
+
+def normalize_canonical_timeframe(tf: str) -> str:
+    """Return the canonical on-disk timeframe id, accepting documented aliases."""
+    normalized = tf.strip().lower()
+    normalized = CANONICAL_TIMEFRAME_ALIASES.get(normalized, normalized)
+    if normalized not in _CANONICAL_TIMEFRAME_MINUTES:
+        allowed = ", ".join((*CANONICAL_DERIVED_TIMEFRAMES, "24h"))
+        raise ValueError(f"Unsupported canonical timeframe {tf!r}. Allowed: {allowed}")
+    return normalized
 
 
 def _session_break_threshold_minutes(tf_minutes: int) -> int:
@@ -408,19 +429,77 @@ def canonicalize_ohlcv(
     return canonical, summary
 
 
-def aggregate_canonical_15m(df_1m: pl.DataFrame) -> pl.DataFrame:
-    """Aggregate canonical 1m bars into canonical 15m bars.
+def _bucket_start_expr(tf: str) -> pl.Expr:
+    minutes = timeframe_minutes(tf)
+    if minutes == 1440:
+        return pl.col("timestamp").dt.truncate("1d")
+    return pl.col("timestamp").dt.truncate(f"{minutes}m")
 
-    This helper is used by tests and future materialization paths. The current
-    HTF pipeline still accepts provider 15m files, but this contract makes flag
-    preservation explicit.
+
+def _utc_bucket_end_expr(tf: str) -> pl.Expr:
+    minutes = timeframe_minutes(tf)
+    return pl.col("_bucket").dt.replace_time_zone(None) + pl.duration(minutes=minutes)
+
+
+def _historical_session_close_minutes(df_1m: pl.DataFrame) -> set[int]:
+    """Return repeated observed close minutes used to recognize real session tails."""
+    if df_1m.is_empty() or "is_session_close_bar" not in df_1m.columns:
+        return set()
+    close_counts = (
+        df_1m.filter(pl.col("is_session_close_bar"))
+        .select(
+            (
+                pl.col("timestamp").dt.hour() * 60 + pl.col("timestamp").dt.minute()
+            ).alias("_close_minute")
+        )
+        .group_by("_close_minute")
+        .len()
+    )
+    return {
+        int(row["_close_minute"])
+        for row in close_counts.iter_rows(named=True)
+        if int(row["len"]) >= 2
+    }
+
+
+def aggregate_canonical_ohlcv(
+    df_1m: pl.DataFrame,
+    *,
+    target_timeframe: str,
+    drop_incomplete: bool = True,
+) -> tuple[pl.DataFrame, dict[str, Any]]:
+    """Aggregate canonical 1m bars into a higher canonical OHLCV timeframe.
+
+    Crypto bars require full wall-clock coverage. Session assets keep buckets
+    that are complete by the observed market-open calendar, so maintenance
+    breaks and weekend closures are not filled or counted as missing rows.
     """
 
+    target_timeframe = normalize_canonical_timeframe(target_timeframe)
+
     if df_1m.is_empty():
-        return df_1m
+        return df_1m, {
+            "target_timeframe": target_timeframe,
+            "source_rows": 0,
+            "output_rows": 0,
+            "dropped_incomplete_buckets": 0,
+            "target_minutes": timeframe_minutes(target_timeframe),
+        }
+
+    missing = sorted(set(CANONICAL_BAR_COLUMNS) - set(df_1m.columns))
+    if missing:
+        raise ValueError(f"Canonical 1m frame is missing required columns: {missing}")
+
+    target_minutes = timeframe_minutes(target_timeframe)
+    calendar_id = str(df_1m["calendar_id"].drop_nulls().to_list()[0])
+    is_crypto = calendar_id == CALENDAR_CRYPTO_24_7
+    close_minutes = _historical_session_close_minutes(df_1m)
+    source_max_ts = df_1m["timestamp"].max()
+    if source_max_ts is not None and source_max_ts.tzinfo is not None:
+        source_max_ts = source_max_ts.replace(tzinfo=None)
 
     grouped = (
-        df_1m.with_columns(pl.col("timestamp").dt.truncate("15m").alias("_bucket"))
+        df_1m.with_columns(_bucket_start_expr(target_timeframe).alias("_bucket"))
         .group_by("_bucket")
         .agg(
             [
@@ -443,10 +522,59 @@ def aggregate_canonical_15m(df_1m: pl.DataFrame) -> pl.DataFrame:
                 pl.col("is_session_close_bar").any().alias("is_session_close_bar"),
                 pl.col("is_weekly_open_bar").any().alias("is_weekly_open_bar"),
                 pl.col("is_weekly_close_bar").any().alias("is_weekly_close_bar"),
+                pl.len().alias("_source_row_count"),
+                pl.col("timestamp").max().alias("_bucket_max_ts"),
             ]
         )
-        .rename({"_bucket": "timestamp"})
+        .sort("_bucket")
+    )
+
+    grouped = grouped.with_columns(
+        [
+            _utc_bucket_end_expr(target_timeframe).alias("_bucket_end"),
+            (
+                pl.col("_bucket_max_ts").dt.hour() * 60
+                + pl.col("_bucket_max_ts").dt.minute()
+            ).alias("_bucket_max_minute"),
+        ]
+    )
+    complete_expr = pl.col("_source_row_count") == target_minutes
+    if not is_crypto:
+        source_seen_through_bucket = pl.col("_bucket_end") <= pl.lit(
+            source_max_ts + timedelta(minutes=1)
+        )
+        real_observed_close = (
+            pl.col("is_session_close_bar")
+            & pl.col("_bucket_max_minute").is_in(sorted(close_minutes))
+        )
+        complete_expr = complete_expr | source_seen_through_bucket | real_observed_close
+    grouped = grouped.with_columns(complete_expr.alias("_is_complete_bucket"))
+    dropped_incomplete = int((~grouped["_is_complete_bucket"]).sum()) if drop_incomplete else 0
+    if drop_incomplete:
+        grouped = grouped.filter(pl.col("_is_complete_bucket"))
+
+    out = (
+        grouped.rename({"_bucket": "timestamp"})
         .select(CANONICAL_BAR_COLUMNS)
         .sort("timestamp")
     )
-    return grouped
+    metadata = {
+        "target_timeframe": target_timeframe,
+        "target_minutes": target_minutes,
+        "source_rows": int(len(df_1m)),
+        "output_rows": int(len(out)),
+        "dropped_incomplete_buckets": dropped_incomplete,
+        "calendar_id": calendar_id,
+        "aggregation_anchor": "UTC",
+        "first_timestamp": out["timestamp"].min() if len(out) else None,
+        "last_timestamp": out["timestamp"].max() if len(out) else None,
+        "synthetic_rows": int(out["is_synthetic_no_trade"].sum()) if len(out) else 0,
+        "gap_fill_rows": int(out["is_open_session_gap_fill"].sum()) if len(out) else 0,
+    }
+    return out, metadata
+
+
+def aggregate_canonical_15m(df_1m: pl.DataFrame) -> pl.DataFrame:
+    """Backward-compatible wrapper for canonical 1m -> canonical 15m."""
+    out, _ = aggregate_canonical_ohlcv(df_1m, target_timeframe="15m")
+    return out

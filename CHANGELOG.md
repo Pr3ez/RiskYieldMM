@@ -25,12 +25,24 @@ All notable repository-level changes are recorded here.
   build merged target/context roots with `--build-merged-dataset`,
   `--target-assets`, and `--context-assets`, writing ignored outputs under
   `data/htf_multiasset_merged/{target}/{context_hash}/`.
+- Experimental Stage-1 label-anomaly runner for `8h/B` research, including
+  cleaned 4-class CatBoost, split-class 8-class CatBoost collapsed back to the
+  original 4-class target, Confident-Learning-style diagnostics, review-set
+  export, matrix decision artifacts, and resume-ready diagnostics docs.
 - Stage-1 merged dataset tests and smoke documentation covering exact timestamp
   joins, target-only labels, context prefixing, duplicate checks, null-row
   dropping, sparse merged batch ids, and all-core `8h/B` readiness.
 - Calendar-aware canonical HTF OHLCV layer with `crypto_24_7` and
   `futures_session_observed` calendars, open-session gap-fill flags, derived
   canonical `15m` bars, and preserved session metadata in HTF artifacts.
+- Canonical multi-timeframe OHLCV materializer that derives `15m`, `1h`, `4h`,
+  `8h`, `12h`, and `1d` bars from local canonical `1m` data, with `24h` as a
+  CLI alias for `1d`, status/dry-run modes, metadata sidecars, and an explicit
+  repo-root `update_data.py --derive-ohlcv-timeframes` post-fetch hook.
+- Canonical TA signal flag layer under `TA_backtest_optimization/` that derives
+  post-close binary indicator flags from canonical OHLCV timeframes, writes
+  reusable per-asset flag/event artifacts, and lets Stage-1 merged dataset
+  assembly opt in with `--include-ta-flags --ta-timeframes ...`.
 - Multi-asset HTF tests for asset-specific raw routing, Databento/Yahoo
   recent-tail precedence, opposite-family label-window behavior, session
   calendar gap handling, and session `24h`/`7d` valid-label production.
@@ -116,6 +128,10 @@ All notable repository-level changes are recorded here.
   Step-2 reports still need multi-asset-aware review. The current Stage-1
   launcher can build target/context datasets and run one target asset per run,
   but downstream comparison/reporting layers still assume older run groupings.
+- Stage-1 label-anomaly modeling remains research-only. The `8h/B`
+  representative run found useful CatBoost signal, but ES/GC validation
+  instability blocks promotion to all roots, production Stage-1 training, or
+  automatic use of `target_8class_anomaly`.
 - As-of/freshness-based cross-asset joins are intentionally deferred. The
   implemented v1 assembly uses exact timestamp joins only and drops rows that
   are missing any selected context asset.

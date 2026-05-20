@@ -93,6 +93,15 @@ DETECTOR_WEIGHTS: dict[str, dict[str, float]] = {
         "temporal_inconsistency_rank": 0.15,
         "class_conditional_outlier_score_rank": 0.15,
     },
+    "cl_self_confidence": {
+        "cl_self_confidence_score_rank": 1.0,
+    },
+    "cl_normalized_margin": {
+        "cl_normalized_margin_score_rank": 1.0,
+    },
+    "cl_confidence_weighted_entropy": {
+        "cl_confidence_weighted_entropy_score_rank": 1.0,
+    },
 }
 
 OPPOSITE_POLICIES = ("keep_clean", "low_weight", "exclude_review")
@@ -131,6 +140,8 @@ class ExperimentParams:
     min_oof_train_batches: int
     outlier_feature_count: int
     opposite_high_confidence: float
+    cleaned_suspicious_weight: float
+    cleaned_review_weight: float
     random_seed: int
     catboost_iterations: int
     catboost_depth: int
@@ -474,6 +485,33 @@ def attach_anomaly_decisions(
     out["noise_score"] = out["noise_score"].fillna(np.nan)
     out["target_8class_name"] = out["target_8class_anomaly"].map(CLASS_NAMES_8)
     return out
+
+
+def compute_cleaned_sample_weights(
+    train8_df: pd.DataFrame,
+    *,
+    suspicious_weight: float,
+    review_weight: float,
+) -> np.ndarray:
+    """Return weights for the cleaned 4-class arm.
+
+    The cleaned arm keeps the original 4-class target but reduces the influence
+    of OOF-suspicious rows. Review rows can be removed entirely with weight 0.
+    """
+    if "training_action" not in train8_df.columns:
+        raise ValueError("training_action is required for cleaned sample weights")
+    suspicious_weight = max(0.0, float(suspicious_weight))
+    review_weight = max(0.0, float(review_weight))
+    action = train8_df["training_action"].astype(str)
+    weights = np.ones(len(train8_df), dtype=np.float32)
+    suspicious_actions = {
+        "same_parent_anomaly",
+        "low_weight_opposite",
+        "opposite_low_weight",
+    }
+    weights[action.isin(suspicious_actions).to_numpy()] = suspicious_weight
+    weights[(action == "review_exclude").to_numpy()] = review_weight
+    return weights
 
 
 def train_model(
@@ -943,6 +981,63 @@ def run_oof_predictions(
     return oof_df, fold_summary
 
 
+def add_confident_learning_scores(
+    score_df: pd.DataFrame,
+    *,
+    target_col: str = TARGET_COL,
+) -> pd.DataFrame:
+    """Add CL-style label-quality scores derived only from OOF probabilities.
+
+    The implementation intentionally avoids a hard dependency on `cleanlab`.
+    These columns mirror the core signals used by confident-learning workflows:
+    self-confidence for the observed label, normalized margin against the best
+    competing class, and uncertainty weighted by low observed-label confidence.
+    """
+    out = score_df.copy()
+    prob_cols = [f"prob_{cls}" for cls in range(4)]
+    missing = sorted(set(prob_cols + [target_col]) - set(out.columns))
+    if missing:
+        raise ValueError(f"Missing columns for label-quality scores: {missing}")
+    prob_matrix = out[prob_cols].to_numpy(dtype=np.float64, copy=True)
+    prob_matrix = np.nan_to_num(prob_matrix, nan=0.0, posinf=0.0, neginf=0.0)
+    prob_matrix = np.clip(prob_matrix, 0.0, 1.0)
+    row_sum = prob_matrix.sum(axis=1, keepdims=True)
+    prob_matrix = np.divide(
+        prob_matrix,
+        row_sum,
+        out=np.full_like(prob_matrix, 0.25),
+        where=row_sum > 0,
+    )
+    true_idx = out[target_col].to_numpy(dtype=np.int64, copy=False)
+    p_true = prob_matrix[np.arange(len(out)), true_idx]
+    other_probs = prob_matrix.copy()
+    other_probs[np.arange(len(out)), true_idx] = -np.inf
+    max_other = other_probs.max(axis=1)
+    normalized_margin = p_true - max_other
+    with np.errstate(divide="ignore", invalid="ignore"):
+        entropy = -np.sum(
+            np.where(prob_matrix > 0.0, prob_matrix * np.log(prob_matrix), 0.0),
+            axis=1,
+        ) / math.log(prob_matrix.shape[1])
+
+    out["p_true"] = p_true.astype(np.float32)
+    out["max_other_prob"] = max_other.astype(np.float32)
+    out["normalized_margin"] = normalized_margin.astype(np.float32)
+    out["self_confidence_quality"] = out["p_true"]
+    out["label_conflict_score"] = (1.0 - p_true).astype(np.float32)
+    out["prediction_entropy"] = entropy.astype(np.float32)
+    out["cl_self_confidence_score"] = out["label_conflict_score"]
+    out["cl_normalized_margin_score"] = np.clip(
+        1.0 - ((normalized_margin + 1.0) / 2.0),
+        0.0,
+        1.0,
+    ).astype(np.float32)
+    out["cl_confidence_weighted_entropy_score"] = (
+        entropy * (1.0 - p_true)
+    ).astype(np.float32)
+    return out
+
+
 def centered_direction_inconsistency(frame: pd.DataFrame, *, window: int = 9) -> pd.DataFrame:
     """Offline temporal-neighborhood disagreement score inside train data."""
     ordered = frame.sort_values(["batch_id", "timestamp"]).copy()
@@ -1028,15 +1123,7 @@ def build_base_noise_table(
     score_df = oof_df.copy()
     for cls in range(4):
         score_df.loc[:, f"prob_{cls}"] = score_df[f"prob_{cls}"].astype(np.float32)
-    prob_matrix = score_df[[f"prob_{cls}" for cls in range(4)]].to_numpy(
-        dtype=np.float32,
-        copy=False,
-    )
-    true_idx = score_df[TARGET_COL].to_numpy(dtype=np.int64, copy=False)
-    score_df["p_true"] = prob_matrix[np.arange(len(score_df)), true_idx].astype(
-        np.float32
-    )
-    score_df["label_conflict_score"] = 1.0 - score_df["p_true"]
+    score_df = add_confident_learning_scores(score_df)
     score_df["ensemble_disagreement_proxy"] = (
         score_df["pred_label"] != score_df[TARGET_COL]
     ).astype(float)
@@ -1068,6 +1155,9 @@ def build_base_noise_table(
         "ensemble_disagreement_proxy",
         "temporal_inconsistency",
         "class_conditional_outlier_score",
+        "cl_self_confidence_score",
+        "cl_normalized_margin_score",
+        "cl_confidence_weighted_entropy_score",
     ]
     for col in signal_cols:
         score_df[f"{col}_rank"] = score_df.groupby(TARGET_COL)[col].rank(
@@ -1126,12 +1216,15 @@ def summarize_actions(
     config: AblationConfig,
 ) -> pd.DataFrame:
     """Count train actions and anomaly classes for one config."""
+    agg_spec: dict[str, tuple[str, str]] = {
+        "rows": ("row_id", "count"),
+        "avg_weight_anomaly": ("sample_weight_anomaly", "mean"),
+    }
+    if "sample_weight_cleaned" in train8_df.columns:
+        agg_spec["avg_weight_cleaned"] = ("sample_weight_cleaned", "mean")
     summary = (
         train8_df.groupby(["training_action", TARGET_COL])
-        .agg(
-            rows=("row_id", "count"),
-            avg_weight=("sample_weight_anomaly", "mean"),
-        )
+        .agg(**agg_spec)
         .reset_index()
     )
     summary["class_name"] = summary[TARGET_COL].map(CLASS_NAMES_4)
@@ -1140,6 +1233,141 @@ def summarize_actions(
     summary["threshold_pct"] = config.threshold_pct
     summary["opposite_policy"] = config.opposite_policy
     return summary
+
+
+def _matrix_count_records(matrix: pd.DataFrame, *, value_name: str) -> list[dict[str, Any]]:
+    """Convert a 4x4 observed/predicted count matrix into JSON records."""
+    records: list[dict[str, Any]] = []
+    for observed_class in range(4):
+        for predicted_class in range(4):
+            records.append(
+                {
+                    "observed_class": observed_class,
+                    "observed_name": CLASS_NAMES_4[observed_class],
+                    "predicted_class": predicted_class,
+                    "predicted_name": CLASS_NAMES_4[predicted_class],
+                    value_name: int(matrix.loc[observed_class, predicted_class]),
+                }
+            )
+    return records
+
+
+def build_confident_learning_diagnostics(
+    scored_df: pd.DataFrame,
+    decisions_df: pd.DataFrame,
+    *,
+    target_col: str = TARGET_COL,
+) -> dict[str, Any]:
+    """Summarize OOF label-quality behavior for audit and CL-style review."""
+    prob_cols = [f"prob_{cls}" for cls in range(4)]
+    missing = sorted(set(prob_cols + [target_col, "pred_label"]) - set(scored_df.columns))
+    if missing:
+        raise ValueError(f"Missing columns for confident-learning diagnostics: {missing}")
+    scored = scored_df.copy()
+    decisions = decisions_df.copy()
+
+    confusion = pd.crosstab(
+        scored[target_col].astype(int),
+        scored["pred_label"].astype(int),
+    ).reindex(index=range(4), columns=range(4), fill_value=0)
+
+    class_thresholds = (
+        scored.groupby(target_col)["p_true"]
+        .mean()
+        .reindex(range(4))
+        .fillna(float(scored["p_true"].mean()) if len(scored) else 0.25)
+    )
+    prob_matrix = scored[prob_cols].to_numpy(dtype=np.float64, copy=False)
+    pred = scored["pred_label"].to_numpy(dtype=np.int64, copy=False)
+    pred_prob = prob_matrix[np.arange(len(scored)), pred]
+    threshold_for_pred = class_thresholds.reindex(pred).to_numpy(dtype=np.float64)
+    confident = pred_prob >= threshold_for_pred
+    confident_frame = scored.loc[confident]
+    confident_joint = pd.crosstab(
+        confident_frame[target_col].astype(int),
+        confident_frame["pred_label"].astype(int),
+    ).reindex(index=range(4), columns=range(4), fill_value=0)
+
+    rate_rows: list[dict[str, Any]] = []
+    for cls in range(4):
+        cls_rows = decisions[decisions[target_col].astype(int) == cls]
+        row_count = int(len(cls_rows))
+        suspicious_count = int(cls_rows.get("suspicious", pd.Series(dtype=bool)).sum())
+        review_count = int((cls_rows["training_action"] == "review_exclude").sum())
+        anomaly_count = int(
+            (cls_rows["training_action"] == "same_parent_anomaly").sum()
+        )
+        opposite_count = int(
+            cls_rows.get("opposite_direction_prediction", pd.Series(dtype=bool)).sum()
+        )
+        denom = max(1, row_count)
+        rate_rows.append(
+            {
+                "observed_class": cls,
+                "observed_name": CLASS_NAMES_4[cls],
+                "rows": row_count,
+                "suspicious_rows": suspicious_count,
+                "same_parent_anomaly_rows": anomaly_count,
+                "review_rows": review_count,
+                "opposite_direction_rows": opposite_count,
+                "noise_rate": float(suspicious_count / denom),
+                "anomaly_rate": float(anomaly_count / denom),
+                "review_rate": float(review_count / denom),
+                "opposite_direction_rate": float(opposite_count / denom),
+                "mean_p_true": float(
+                    cls_rows["p_true"].mean() if "p_true" in cls_rows else np.nan
+                ),
+                "mean_normalized_margin": float(
+                    cls_rows["normalized_margin"].mean()
+                    if "normalized_margin" in cls_rows
+                    else np.nan
+                ),
+            }
+        )
+
+    return {
+        "argmax_confusion_observed_vs_oof_pred": _matrix_count_records(
+            confusion,
+            value_name="count",
+        ),
+        "confident_joint_like_counts": _matrix_count_records(
+            confident_joint,
+            value_name="count",
+        ),
+        "class_self_confidence_thresholds": [
+            {
+                "class": int(cls),
+                "class_name": CLASS_NAMES_4[int(cls)],
+                "threshold": float(value),
+            }
+            for cls, value in class_thresholds.items()
+        ],
+        "rates_by_observed_class": rate_rows,
+        "noise_rate_by_observed_class": [
+            {
+                "observed_class": row["observed_class"],
+                "observed_name": row["observed_name"],
+                "rate": row["noise_rate"],
+            }
+            for row in rate_rows
+        ],
+        "review_rate_by_observed_class": [
+            {
+                "observed_class": row["observed_class"],
+                "observed_name": row["observed_name"],
+                "rate": row["review_rate"],
+            }
+            for row in rate_rows
+        ],
+        "anomaly_rate_by_observed_class": [
+            {
+                "observed_class": row["observed_class"],
+                "observed_name": row["observed_name"],
+                "rate": row["anomaly_rate"],
+            }
+            for row in rate_rows
+        ],
+    }
 
 
 def _prediction_frame(
@@ -1217,6 +1445,73 @@ def export_review_set(
         "parquet_path": str(parquet_path),
         "csv_path": str(csv_path),
     }
+
+
+def run_catboost_cleaned_model(
+    data: LoadedUnitData,
+    train8_df: pd.DataFrame,
+    *,
+    params: ExperimentParams,
+    config: AblationConfig,
+) -> tuple[list[dict[str, Any]], list[pd.DataFrame], list[pd.DataFrame]]:
+    """Train a 4-class CatBoost model with OOF-suspicious rows downweighted."""
+    if "sample_weight_cleaned" not in train8_df.columns:
+        raise ValueError("sample_weight_cleaned is required for cleaned 4-class model")
+    train_fit = train8_df[train8_df["sample_weight_cleaned"] > 0].copy()
+    if train_fit[TARGET_COL].nunique() < 2:
+        raise RuntimeError("Cleaned target has fewer than two classes after filtering")
+    model = train_model(
+        train_fit[data.selected_features],
+        train_fit[TARGET_COL].astype(int).to_numpy(),
+        n_classes=4,
+        sample_weight=train_fit["sample_weight_cleaned"].to_numpy(dtype=np.float32),
+        params=params,
+        seed=params.random_seed + 50,
+    )
+    metric_rows: list[dict[str, Any]] = []
+    prediction_parts: list[pd.DataFrame] = []
+    reliability_parts: list[pd.DataFrame] = []
+    for split_name, split_df in [("val", data.val_df), ("test", data.test_df)]:
+        y_true4 = split_df[TARGET_COL].astype(int).to_numpy()
+        proba4 = predict_proba_model(model, split_df[data.selected_features])
+        pred4 = proba4.argmax(axis=1)
+        metrics, bins = compute_eval_metrics(
+            y_true4,
+            pred4,
+            proba4,
+            calibration_bins=params.calibration_bins,
+        )
+        metric_rows.append(
+            {
+                "model": "catboost_cleaned_4class",
+                "config_id": config.config_id,
+                "detector": config.detector,
+                "threshold_pct": config.threshold_pct,
+                "opposite_policy": config.opposite_policy,
+                "split": split_name,
+                "backend": model.backend,
+                **metrics,
+            }
+        )
+        if bins is not None:
+            reliability_parts.append(
+                bins.assign(
+                    model="catboost_cleaned_4class",
+                    config_id=config.config_id,
+                    split=split_name,
+                )
+            )
+        prediction_parts.append(
+            _prediction_frame(
+                split_df,
+                model_name="catboost_cleaned_4class",
+                config_id=config.config_id,
+                split_name=split_name,
+                pred_leaf=pred4,
+                proba=proba4,
+            )
+        )
+    return metric_rows, prediction_parts, reliability_parts
 
 
 def run_catboost_anomaly_model(
@@ -1541,13 +1836,65 @@ def compare_to_baseline(metrics_df: pd.DataFrame) -> pd.DataFrame:
     merged["pass_macro_f1_stable_or_up"] = merged["macro_f1_4_delta"] >= -0.002
     merged["pass_direction_accuracy_up"] = merged["direction_accuracy_delta"] > 0
     merged["pass_cross_direction_error_down"] = merged["cross_direction_error_delta"] < 0
+    merged["pass_ece_not_materially_worse"] = merged["ece_4_delta"] <= 0.01
+    merged["pass_logloss_not_materially_worse"] = merged["logloss_4_delta"] <= 0.02
     merged["passes_acceptance"] = (
         merged["pass_accuracy_up"]
         & merged["pass_macro_f1_stable_or_up"]
         & merged["pass_direction_accuracy_up"]
         & merged["pass_cross_direction_error_down"]
+        & merged["pass_ece_not_materially_worse"]
+        & merged["pass_logloss_not_materially_worse"]
     )
     return merged
+
+
+def build_matrix_decision(comparison_df: pd.DataFrame) -> pd.DataFrame:
+    """Aggregate representative-matrix deltas and apply the promotion gate."""
+    if comparison_df.empty:
+        return pd.DataFrame()
+    matrix = (
+        comparison_df.groupby(["model", "config_id", "split"])
+        .agg(
+            units=("target_asset", "count"),
+            median_accuracy_delta=("collapsed_4_accuracy_delta", "median"),
+            median_macro_f1_delta=("macro_f1_4_delta", "median"),
+            median_direction_accuracy_delta=("direction_accuracy_delta", "median"),
+            median_cross_direction_error_delta=("cross_direction_error_delta", "median"),
+            median_logloss_delta=("logloss_4_delta", "median"),
+            median_brier_delta=("brier_4_delta", "median"),
+            median_ece_delta=("ece_4_delta", "median"),
+            median_primary_score_delta=("primary_score_delta", "median"),
+            pass_rate=("passes_acceptance", "mean"),
+        )
+        .reset_index()
+    )
+    matrix["pass_median_accuracy_up"] = matrix["median_accuracy_delta"] > 0
+    matrix["pass_median_macro_f1_stable_or_up"] = (
+        matrix["median_macro_f1_delta"] >= -0.002
+    )
+    matrix["pass_median_direction_accuracy_up"] = (
+        matrix["median_direction_accuracy_delta"] > 0
+    )
+    matrix["pass_median_cross_direction_error_down"] = (
+        matrix["median_cross_direction_error_delta"] < 0
+    )
+    matrix["pass_median_ece_not_materially_worse"] = matrix["median_ece_delta"] <= 0.01
+    matrix["pass_median_logloss_not_materially_worse"] = (
+        matrix["median_logloss_delta"] <= 0.02
+    )
+    matrix["passes_median_gate"] = (
+        matrix["pass_median_accuracy_up"]
+        & matrix["pass_median_macro_f1_stable_or_up"]
+        & matrix["pass_median_direction_accuracy_up"]
+        & matrix["pass_median_cross_direction_error_down"]
+        & matrix["pass_median_ece_not_materially_worse"]
+        & matrix["pass_median_logloss_not_materially_worse"]
+    )
+    return matrix.sort_values(
+        ["split", "passes_median_gate", "median_primary_score_delta"],
+        ascending=[True, False, False],
+    ).reset_index(drop=True)
 
 
 def run_unit(
@@ -1606,6 +1953,10 @@ def run_unit(
     review_manifests: list[dict[str, Any]] = []
     label_dir = unit_output_dir / "anomaly_labels"
     label_dir.mkdir(parents=True, exist_ok=True)
+    quality_dir = unit_output_dir / "label_quality_scores"
+    quality_dir.mkdir(parents=True, exist_ok=True)
+    diagnostics_dir = unit_output_dir / "confident_learning_diagnostics"
+    diagnostics_dir.mkdir(parents=True, exist_ok=True)
     primary_config = next(
         (config for config in ablation_configs if config.is_primary),
         ablation_configs[0],
@@ -1620,7 +1971,66 @@ def run_unit(
             opposite_high_confidence=params.opposite_high_confidence,
         )
         train8_df = attach_anomaly_decisions(data.train_df, decisions)
+        train8_df["sample_weight_cleaned"] = compute_cleaned_sample_weights(
+            train8_df,
+            suspicious_weight=params.cleaned_suspicious_weight,
+            review_weight=params.cleaned_review_weight,
+        )
         action_summaries.append(summarize_actions(train8_df, config=config))
+        quality_cols = [
+            "row_id",
+            "timestamp",
+            "batch_id",
+            TARGET_COL,
+            "pred_label",
+            "prob_0",
+            "prob_1",
+            "prob_2",
+            "prob_3",
+            "p_true",
+            "max_other_prob",
+            "normalized_margin",
+            "self_confidence_quality",
+            "label_conflict_score",
+            "prediction_entropy",
+            "cl_self_confidence_score",
+            "cl_normalized_margin_score",
+            "cl_confidence_weighted_entropy_score",
+            "ensemble_disagreement_proxy",
+            "temporal_inconsistency",
+            "class_conditional_outlier_score",
+            "noise_score",
+            "detector",
+            "training_action",
+            "target_8class_anomaly",
+            "sample_weight_anomaly",
+            "sample_weight_cleaned",
+        ]
+        quality_out = decisions.merge(
+            train8_df[["row_id", "sample_weight_cleaned"]],
+            on="row_id",
+            how="left",
+        )
+        quality_out[[col for col in quality_cols if col in quality_out.columns]].to_parquet(
+            quality_dir / f"{config.config_id}.parquet",
+            index=False,
+        )
+        diagnostics = build_confident_learning_diagnostics(scored, decisions)
+        (diagnostics_dir / f"{config.config_id}.json").write_text(
+            json.dumps(diagnostics, indent=2, default=str)
+        )
+        pd.DataFrame(diagnostics["argmax_confusion_observed_vs_oof_pred"]).to_csv(
+            diagnostics_dir / f"{config.config_id}_observed_vs_pred.csv",
+            index=False,
+        )
+        pd.DataFrame(diagnostics["confident_joint_like_counts"]).to_csv(
+            diagnostics_dir / f"{config.config_id}_confident_joint.csv",
+            index=False,
+        )
+        pd.DataFrame(diagnostics["rates_by_observed_class"]).to_csv(
+            diagnostics_dir / f"{config.config_id}_class_rates.csv",
+            index=False,
+        )
         labels_out = train8_df[
             [
                 "row_id",
@@ -1629,6 +2039,7 @@ def run_unit(
                 TARGET_COL,
                 "target_8class_anomaly",
                 "sample_weight_anomaly",
+                "sample_weight_cleaned",
                 "training_action",
                 "noise_score",
             ]
@@ -1644,6 +2055,16 @@ def run_unit(
                 )
             )
         if "catboost" in models:
+            rows, preds, reliability = run_catboost_cleaned_model(
+                data,
+                train8_df,
+                params=params,
+                config=config,
+            )
+            metric_rows.extend(rows)
+            reliability_parts.extend(reliability)
+            if save_predictions:
+                prediction_parts.extend(preds)
             rows, preds, reliability = run_catboost_anomaly_model(
                 data,
                 train8_df,
@@ -1738,6 +2159,12 @@ def run_unit(
         "selected_features": int(len(data.selected_features)),
         "ablation_configs": [asdict(config) | {"config_id": config.config_id} for config in ablation_configs],
         "models": sorted(models),
+        "artifact_dirs": {
+            "anomaly_labels": str(label_dir),
+            "label_quality_scores": str(quality_dir),
+            "confident_learning_diagnostics": str(diagnostics_dir),
+            "review_sets": str(unit_output_dir / "review_sets"),
+        },
         "review_sets": review_manifests,
     }
     (unit_output_dir / "manifest.json").write_text(
@@ -1815,7 +2242,11 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--detectors",
         default="all",
-        help="all or CSV of label_conflict,conflict_temporal,conflict_temporal_outlier,full_hybrid.",
+        help=(
+            "all or CSV of label_conflict, conflict_temporal, "
+            "conflict_temporal_outlier, full_hybrid, cl_self_confidence, "
+            "cl_normalized_margin, cl_confidence_weighted_entropy."
+        ),
     )
     parser.add_argument(
         "--opposite-policies",
@@ -1840,6 +2271,8 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--min-oof-train-batches", type=int, default=120)
     parser.add_argument("--outlier-feature-count", type=int, default=250)
     parser.add_argument("--opposite-high-confidence", type=float, default=0.80)
+    parser.add_argument("--cleaned-suspicious-weight", type=float, default=0.35)
+    parser.add_argument("--cleaned-review-weight", type=float, default=0.0)
     parser.add_argument("--random-seed", type=int, default=42)
     parser.add_argument("--catboost-iterations", type=int, default=220)
     parser.add_argument("--catboost-depth", type=int, default=6)
@@ -1890,6 +2323,8 @@ def main() -> int:
         min_oof_train_batches=int(args.min_oof_train_batches),
         outlier_feature_count=int(args.outlier_feature_count),
         opposite_high_confidence=float(args.opposite_high_confidence),
+        cleaned_suspicious_weight=float(args.cleaned_suspicious_weight),
+        cleaned_review_weight=float(args.cleaned_review_weight),
         random_seed=int(args.random_seed),
         catboost_iterations=int(args.catboost_iterations),
         catboost_depth=int(args.catboost_depth),
@@ -1983,26 +2418,21 @@ def main() -> int:
         comparison_df = compare_to_baseline(metrics_df)
         comparison_df.to_parquet(run_dir / "comparison_to_baseline.parquet", index=False)
         comparison_df.to_csv(run_dir / "comparison_to_baseline.csv", index=False)
-        matrix_summary = (
-            comparison_df.groupby(["model", "config_id", "split"])
-            .agg(
-                units=("target_asset", "count"),
-                median_accuracy_delta=("collapsed_4_accuracy_delta", "median"),
-                median_macro_f1_delta=("macro_f1_4_delta", "median"),
-                median_direction_accuracy_delta=("direction_accuracy_delta", "median"),
-                median_cross_direction_error_delta=("cross_direction_error_delta", "median"),
-                pass_rate=("passes_acceptance", "mean"),
-            )
-            .reset_index()
-        )
+        matrix_summary = build_matrix_decision(comparison_df)
         matrix_summary.to_csv(run_dir / "matrix_summary.csv", index=False)
         matrix_summary.to_json(
             run_dir / "matrix_summary.json",
             orient="records",
             indent=2,
         )
+        matrix_summary.to_csv(run_dir / "matrix_decision.csv", index=False)
+        matrix_summary.to_json(
+            run_dir / "matrix_decision.json",
+            orient="records",
+            indent=2,
+        )
         print("\nMATRIX SUMMARY")
-        print(matrix_summary.sort_values(["split", "pass_rate"], ascending=[True, False]).head(30))
+        print(matrix_summary.head(30))
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "run_id": run_id,

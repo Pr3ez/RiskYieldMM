@@ -22,7 +22,8 @@ validation artifacts from that canonical layer.
 - [x] Local-data-derived canonical OHLCV layer.
 - [x] Open-session gap fill with zero volume and explicit flags.
 - [x] No fill across observed session breaks, weekends, or other closed spans.
-- [x] Canonical `15m` derivation from canonical `1m`.
+- [x] Canonical `15m`, `1h`, `4h`, `8h`, `12h`, and `1d` derivation from
+      canonical `1m`; `24h` is accepted only as an alias for `1d`.
 - [x] Calendar/session/fill metadata preserved into combined, feature, label,
       optimized, and helper schemas through `FAMILY_META_COLS`.
 - [x] `is_label_half` computed by timestamp window, not fixed row position.

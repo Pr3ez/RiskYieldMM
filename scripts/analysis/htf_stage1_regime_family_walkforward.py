@@ -518,6 +518,19 @@ def _parse_args() -> argparse.Namespace:
         help="Output directory for generated merged Stage-1 dataset roots.",
     )
     parser.add_argument(
+        "--include-ta-flags",
+        action="store_true",
+        help=(
+            "Join precomputed TA signal flags from "
+            "data/htf_multiasset/{asset}/ta_signal_flags into merged Stage-1 roots."
+        ),
+    )
+    parser.add_argument(
+        "--ta-timeframes",
+        default="15m,1h,4h,8h,12h,1d",
+        help="Comma-separated TA flag timeframes to join when --include-ta-flags is set.",
+    )
+    parser.add_argument(
         "--n-steps",
         type=int,
         default=500,
@@ -618,6 +631,12 @@ def _build_execution_entries(
                 root_key=root_key,
                 output_base_dir=Path(args.multiasset_dataset_dir),
                 input_base_dir=PROJECT_ROOT / "data" / "htf_multiasset",
+                include_ta_flags=bool(args.include_ta_flags),
+                ta_timeframes=tuple(
+                    part.strip()
+                    for part in str(args.ta_timeframes).split(",")
+                    if part.strip()
+                ),
             )
             root_cfg = {
                 **ROOTS[root_key],
@@ -634,6 +653,7 @@ def _build_execution_entries(
                     "context_assets": list(context_assets),
                     "context_hash": assembly.context_hash,
                     "manifest_path": str(assembly.manifest_path),
+                    "include_ta_flags": bool(args.include_ta_flags),
                 }
             )
     return entries
@@ -641,6 +661,8 @@ def _build_execution_entries(
 
 def main() -> int:
     args = _parse_args()
+    if bool(args.include_ta_flags) and not bool(args.build_merged_dataset):
+        raise ValueError("--include-ta-flags requires --build-merged-dataset")
     selected_roots = list(dict.fromkeys(args.roots))
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -687,6 +709,12 @@ def main() -> int:
             if bool(args.build_merged_dataset)
             else None
         ),
+        "include_ta_flags": bool(args.include_ta_flags),
+        "ta_timeframes": [
+            part.strip() for part in str(args.ta_timeframes).split(",") if part.strip()
+        ]
+        if bool(args.include_ta_flags)
+        else [],
         "n_steps": int(args.n_steps),
         "resume_mode": str(args.resume_mode),
         "runtime_mode": str(args.runtime_mode),
@@ -706,6 +734,7 @@ def main() -> int:
                 "context_assets": entry["context_assets"],
                 "context_hash": entry["context_hash"],
                 "manifest_path": entry["manifest_path"],
+                "include_ta_flags": entry.get("include_ta_flags", False),
                 "regime": entry["root_cfg"]["regime"],
                 "family": entry["root_cfg"]["family"],
                 "run_id": _resolve_root_run_id(
