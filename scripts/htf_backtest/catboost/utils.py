@@ -6,8 +6,9 @@ Data loading, feature utilities, class weighting.
 Used by 1m/5m/15m CatBoost optimizers.
 """
 
+from __future__ import annotations
+
 import json
-import optuna
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -17,6 +18,12 @@ import numpy as np
 import polars as pl
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import f1_score
+
+try:
+    import optuna
+except ModuleNotFoundError:  # pragma: no cover - lightweight schema utilities still work.
+    optuna = None
+
 from scripts.feature_engineering.htf_feature_acceptance import (
     get_final_output_excluded_columns,
 )
@@ -60,6 +67,25 @@ MODEL_METADATA_EXCLUDE = {
     "family_shift_hours",
     "anchor_utc",
     "entry_window_hours",
+    "asset_id",
+    "calendar_id",
+    "is_market_open",
+    "is_synthetic_no_trade",
+    "is_open_session_gap_fill",
+    "minutes_since_prev_real_bar",
+    "session_id",
+    "session_date",
+    "session_bar_pos",
+    "session_minutes_to_close",
+    "is_session_open_bar",
+    "is_session_close_bar",
+    "is_weekly_open_bar",
+    "is_weekly_close_bar",
+    "expected_rows_in_batch",
+    "actual_rows_in_batch",
+    "expected_entry_rows",
+    "actual_entry_rows",
+    "has_synthetic_open_gap_fill",
 }
 
 
@@ -418,9 +444,22 @@ def compute_class_counts_up_to(
 
 
 def get_batch_count(labels_dir: Path, tf: str) -> int:
-    """Get number of batches for a timeframe."""
+    """Get the highest available batch id for a timeframe.
+
+    Legacy roots usually contain contiguous `batch_0001...batch_N` files, so
+    this equals the file count. Merged multi-asset roots can be sparse when the
+    exact timestamp context intersection starts later than the target asset's
+    history. Returning the highest id lets validity scanning see those later
+    batches instead of only checking `1..file_count`.
+    """
     tf_dir = labels_dir / tf
-    return len(list(tf_dir.glob("batch_*.parquet")))
+    batch_ids: list[int] = []
+    for path in tf_dir.glob("batch_*.parquet"):
+        try:
+            batch_ids.append(int(path.stem.removeprefix("batch_")))
+        except ValueError:
+            continue
+    return max(batch_ids, default=0)
 
 
 def get_valid_batches(

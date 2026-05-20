@@ -116,9 +116,10 @@ These outputs are generated artifacts and are not committed.
 
 ## Run Stage-1 Walk-Forward Analysis
 
-The commands below describe the current legacy Stage-1 runner. Multi-asset
-target-asset selection and optional context-asset joins are not implemented yet;
-do not treat these commands as the final multi-asset analysis layer.
+The Stage-1 launcher can run legacy six-root analysis or build a
+Stage-1-compatible merged dataset from per-asset HTF outputs first. In
+multi-asset mode, each run has one target asset; context assets are joined by
+exact `timestamp`, and labels come only from the target asset.
 
 Plan a run first:
 
@@ -126,20 +127,48 @@ Plan a run first:
 python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only
 ```
 
+Build one merged multi-asset root without training:
+
+```bash
+python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets ETHUSDT,EURUSD,USDJPY,GC,CL,ES,NQ \
+  --roots 8h/B \
+  --plan-only
+```
+
 Example focused run for the documented `8h/B` root:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets ETHUSDT,EURUSD,USDJPY,GC,CL,ES,NQ \
   --roots 8h/B \
-  --n-steps 500 \
+  --n-steps 1 \
   --resume-mode skip_completed \
-  --stage1-version v2 \
-  --stage1-v2-execution-mode fixed_policy
+  --runtime-mode routine
 ```
+
+Current local smoke evidence for `BTCUSDT`, `8h/B`, and `core-ex-target`
+context:
+
+```text
+all-core exact timestamp rows: 413,652
+merged manifest duplicate_count: 0
+merged manifest null_feature_count: 0
+Stage-1 smoke: steps_ok=1, steps_error=0
+quality: weak smoke only, winner_accuracy=0.2667, macro_f1=0.1053
+```
+
+That smoke validates plumbing, not predictive quality. Run more walk-forward
+steps and inspect `stage1_step_summary.json` before making modelling decisions.
 
 Generated Stage-1 outputs are written below:
 
 ```text
+data/htf_multiasset_merged/{target}/{context_hash}/{root_id}/
 data/htf_backtest_results/stage1_catboost_*_live/
 ```
 

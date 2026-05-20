@@ -89,30 +89,24 @@ These pieces are implemented in this branch:
 
 These are the next implementation items:
 
-1. Stage-1 multi-asset dataset assembly
-   - choose one prediction target asset at a time
-   - read that asset's HTF feature and label roots
-   - optionally join causal context features from other assets
-   - keep labels target-specific; do not merge labels from other assets into
-     the target label
+1. Full production validation on real local data
+   - run HTF for all core assets
+   - confirm labels exist for every asset/regime/family where enough future
+     window data exists
+   - build one merged Stage-1 dataset for the intended target/context set
+   - confirm each manifest reports duplicate count `0` and null feature count
+     `0`
 
-2. Cross-asset context features
+2. Additional cross-asset feature engineering
    - compute only as-of features available at or before the target timestamp
    - start with lagged returns, volatility/range, rolling correlation/beta,
      relative strength, and basket proxies
    - prefix columns with `ctx_{asset}_...` or `basket_...`
    - add truncation tests to prove no future context leakage
 
-3. Stage-1 runner updates
-   - add `--target-asset`
-   - add `--context-assets`
-   - resolve asset-scoped HTF roots under `data/htf_multiasset/{asset}/`
-   - keep current regime/family selection behavior
-
-4. Full production validation on real local data
-   - run HTF for all core assets
-   - confirm labels exist for every asset/regime/family where enough future
-     window data exists
+3. Downstream multi-asset analysis updates
+   - update causal-method analysis, walk-forward diagnostics, and Stage-1 Step-2
+     reports to group results by target asset and context set
    - inspect latest tails, especially C labels that need the next B window
 
 ## Step-By-Step Multi-Asset Workflow
@@ -202,12 +196,13 @@ complete yet. That is correct and should not be force-filled.
 
 ### 5. Stage-1 analysis
 
-This is the next implementation step after HTF is complete:
+The Stage-1 launcher can now build merged target/context roots before running
+CatBoost:
 
 1. choose target asset
-2. load that asset's feature and label roots
-3. optionally add causal cross-asset context features
-4. run walk-forward selection
+2. choose context assets, or use `core-ex-target`
+3. build `data/htf_multiasset_merged/{target}/{context_hash}/...`
+4. run walk-forward selection with the generated feature/label directories
 5. compare standalone vs cross-asset feature groups with ablations
 
 Do not merge all assets into one target before label preparation. Labels remain
@@ -226,8 +221,8 @@ Before Stage-1:
 5. Labels contain `label_window_*` metadata.
 6. Latest unlabeled tails are explained by missing future opposite-family
    windows, not by schema or source errors.
-7. After Stage-1 is updated for multi-asset, its plan points to the intended
-   target asset roots.
+7. Stage-1 plan with `--build-merged-dataset` points to the intended merged
+   target/context roots and writes a manifest beside the generated dataset.
 
 ## Research Position On Cross-Asset Features
 

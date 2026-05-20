@@ -14,13 +14,14 @@ being extended into a reproducible multi-asset source layer: crypto
 (`GC` gold), energy (`CL` WTI crude), and equity-index futures (`ES` S&P 500,
 `NQ` Nasdaq 100). It builds higher-timeframe batches, generates current
 prediction labels, attaches helper/regime features, and keeps the legacy
-CatBoost Stage-1 audit layer available while the multi-asset target/context
-analysis layer is being updated.
+CatBoost Stage-1 audit layer available. The Stage-1 launcher can now build
+target-asset/context-asset merged datasets from the per-asset HTF roots before
+running the existing walk-forward engine.
 
 The current model-facing HTF materializer is asset-aware. Crypto, FX futures
 proxies, commodities, and equity-index futures are prepared as separate HTF
 artifact trees first; Stage-1 analysis can then choose the prediction target and
-optionally add causal cross-asset context.
+optionally add causal cross-asset context by exact timestamp joins.
 
 This is not trading advice and is not a live trading bot. The focus is ML engineering discipline: temporal validation, reproducible artifacts, auditability, and careful treatment of non-stationary market data.
 
@@ -136,10 +137,10 @@ Key locations:
 ### 2. Stage-1 CatBoost Selection Audits
 
 Stage-1 is the main model-selection audit layer for the HTF workflow. The
-current Stage-1 runner still targets the legacy regime/family roots. In the
-multi-asset path, HTF now prepares per-asset feature/label roots first; the next
-Stage-1 implementation work is to choose one prediction target asset, load that
-asset's roots, and optionally join causal context features from other assets.
+launcher still uses the existing CatBoost walk-forward engine, but it can now
+build a Stage-1-compatible merged dataset from per-asset HTF roots first. Each
+merged run has one prediction target asset; selected context assets are joined
+by exact `timestamp`, and labels always come only from the target asset.
 
 Stage-1 stores raw validation and prediction-batch payloads so model-selection behavior can be studied after the run without leaking future information into selector decisions. Each step records the fold windows, combo metadata, validation predictions, prediction-batch predictions, pre-decision context, and runtime profile.
 
@@ -164,6 +165,7 @@ Available walk-forward analysis layers:
 | Layer | Purpose | Main outputs |
 |-------|---------|--------------|
 | Legacy Stage-1 run | Produce live-style CatBoost walk-forward payloads for the current regime/family roots | `data/htf_backtest_results/stage1_catboost_*_live` |
+| Multi-asset Stage-1 dataset assembly | Build target/context feature roots that preserve the existing Stage-1 file contract | `data/htf_multiasset_merged/{target}/{context_hash}/...` |
 | Causal multiregime method analysis | Compare no-lookahead ensemble/post-processing methods such as online hedge, diversity subset, per-class specialist, regime router, stacking, and discounted model averaging | `test_output/htf_causal_multiregime_method_analysis/` |
 | Walk-forward diagnostics | Build root profiles, cross-root summaries, base-model diagnostics, causal-method refresh tables, and feature-quality joins | `test_output/htf_walkforward_diagnostics/` |
 | Stage-1 Step-2 | Run recursive SHAP feature pruning/importance analysis for `winner_only` and `root_topk` scopes | `stage1_step2_*` artifact trees under each Stage-1 run |
@@ -172,6 +174,7 @@ Available walk-forward analysis layers:
 Key locations:
 
 - `scripts/analysis/htf_stage1_regime_family_walkforward.py`
+- `scripts/htf_backtest/catboost/stage1_multiasset_dataset.py`
 - `scripts/analysis/htf_walkforward_diagnostics.py`
 - `scripts/analysis/htf_causal_multiregime_method_analysis.py`
 - `scripts/htf_backtest/catboost/stage1_runner.py`
@@ -375,15 +378,17 @@ flowchart TD
     A["Core source update<br/>python update_data.py --core --htf-only"] --> B["Source 1m/15m raw roots<br/>Bybit + Databento + Yahoo tail"]
     B --> C["Calendar-aware canonical bars<br/>24/7 crypto + observed session assets"]
     C --> D["Per-asset HTF materialization<br/>HTF_ASSETS=core HTF_ASSET_OUTPUT_MODE=multiasset"]
-    D --> E["Pending Stage-1 multi-asset assembly<br/>target asset + optional context assets"]
-    E --> F["Pending multi-asset causal method analysis"]
-    E --> G["Pending multi-asset walk-forward diagnostics"]
+    D --> E["Stage-1 merged dataset assembly<br/>target asset + exact timestamp context"]
+    E --> F["CatBoost Stage-1 walk-forward<br/>one run per target/root/context set"]
+    F --> G["Pending multi-asset causal method analysis"]
+    F --> H["Pending multi-asset walk-forward diagnostics"]
 ```
 
 The operational rule for the implemented part is simple: update raw data first,
-then build HTF artifacts. Stage-1 and downstream diagnostics still need the
-target-asset/context-asset update before they should be treated as complete
-multi-asset analysis.
+then build HTF artifacts, then build a merged Stage-1 dataset for the chosen
+target/context assets. Downstream causal-method and walk-forward diagnostics
+still need multi-asset-aware updates before they should be treated as complete
+cross-asset analysis.
 
 ### 1. Prepare the Environment
 
@@ -685,12 +690,8 @@ version in `scripts/feature_engineering/htf_shared_config.py`.
 
 ### 4. Resolve the Stage-1 Walk-Forward Plan
 
-This section describes the current legacy Stage-1 runner. It is useful for
-existing regime/family outputs, but it is not yet the multi-asset target/context
-analysis layer for `data/htf_multiasset/{asset}/`.
-
 Before training, ask the runner to print and persist the resolved execution
-plan:
+plan. Without multi-asset flags, this keeps the legacy six-root behavior:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only
@@ -698,17 +699,77 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py --plan-only
 
 The plan is written under `test_output/htf_stage1_regime_family_walkforward/`
 and includes selected roots, feature directories, label directories, run ids,
-prediction-batch limits, Stage-1 version, and selector configuration.
+prediction-batch limits, Stage-1 version, selector configuration, and any
+multi-asset merged dataset manifest paths.
+
+To build a merged dataset for one target/root without training:
+
+```bash
+python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets ETHUSDT,EURUSD,USDJPY,GC,CL,ES,NQ \
+  --roots 8h/B \
+  --plan-only
+```
+
+The merged features and target labels are written under:
+
+```text
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/
+```
+
+The target asset is the row authority. Context assets are exact timestamp joins
+only; rows missing any selected context asset are dropped and reported in the
+manifest. Rows with null model feature values after the merge are also dropped
+and reported separately. Target feature columns are prefixed as
+`T_<asset>__*`, context feature columns are prefixed as `C_<asset>__*`, and
+`timestamp`, `batch_id`, `bar_in_batch_norm`, and `target_4class` keep the
+Stage-1-compatible names.
 
 For a small local smoke run:
 
 ```bash
 python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets ETHUSDT,EURUSD,USDJPY,GC,CL,ES,NQ \
   --roots 8h/B \
-  --n-steps 5 \
+  --n-steps 1 \
   --resume-mode skip_completed \
   --runtime-mode routine
 ```
+
+For all core targets, use `core` plus `core-ex-target`; this expands into one
+independent Stage-1 run per target asset. This can write many GB of generated
+merged data, so run it target-by-target first unless you have planned disk and
+runtime:
+
+```bash
+python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --n-steps 1 \
+  --resume-mode skip_completed \
+  --runtime-mode routine
+```
+
+Current local `8h/B` all-core-context smoke evidence:
+
+```text
+common exact-timestamp rows across all core assets: 413,652
+common range: 2024-01-23 08:00 UTC -> 2026-05-06 19:59 UTC
+BTCUSDT all-core-context smoke: steps_ok=1, steps_error=0
+merged manifest: duplicate_count=0, null_feature_count=0
+quality signal: weak smoke only, winner_accuracy=0.2667, macro_f1=0.1053
+```
+
+Do not treat that one-step quality number as strategy evidence. It only proves
+the merged dataset, sparse-batch scanning, leakage guard, and Stage-1 payload
+generation path work end to end.
 
 For the current full regime/family Stage-1 v1 run:
 
@@ -740,8 +801,7 @@ a full 500-step run.
 
 ### 5. Inspect Stage-1 Outputs
 
-Current Stage-1 writes one run tree per regime/family run id. Multi-asset
-target-asset run ids and context-asset joins are pending:
+Legacy Stage-1 writes one run tree per regime/family run id:
 
 ```text
 data/htf_backtest_results/stage1_catboost_8h_b_live/
@@ -751,6 +811,24 @@ data/htf_backtest_results/stage1_catboost_24h_c_live/
 data/htf_backtest_results/stage1_catboost_7d_b_live/
 data/htf_backtest_results/stage1_catboost_7d_c_live/
 ```
+
+Merged multi-asset runs include the target asset and context hash in the run id:
+
+```text
+data/htf_backtest_results/stage1_catboost_btcusdt_8h_b_ctx_corexself_live/
+```
+
+The generated dataset manifest is stored beside the merged feature/label roots:
+
+```text
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/manifest.json
+```
+
+Merged roots can be sparse because exact timestamp alignment may begin later
+than the target asset history or skip closed-session gaps. Stage-1 validity
+scanning supports sparse `batch_*.parquet` ids, but some candidate triplets can
+still fail near missing local batch spans; check `fail_reasons` in
+`stage1_step_summary.json` before judging model quality.
 
 Key files and folders:
 
@@ -825,10 +903,14 @@ Before considering a workflow run complete, verify:
 4. Matching label roots exist under
    `data/htf_multiasset/{asset}/htf_4class_labels*/`.
 5. Label files contain `label_window_*` metadata.
-6. For legacy analysis only, Stage-1 run summaries exist under
+6. For multi-asset Stage-1, merged manifests exist under
+   `data/htf_multiasset_merged/{target}/{context_hash}/{root_id}/manifest.json`
+   and report `duplicate_count=0` and `null_feature_count=0`.
+7. Stage-1 run summaries exist under
    `data/htf_backtest_results/`.
-7. For legacy analysis only, post-run diagnostics exist under `test_output/`.
-8. Any reviewer-facing summary in the repository points to tracked snapshots or
+8. For legacy downstream diagnostics, post-run diagnostics exist under
+   `test_output/`.
+9. Any reviewer-facing summary in the repository points to tracked snapshots or
    clearly marks raw `data/` artifacts as local-only.
 
 ## Common Commands

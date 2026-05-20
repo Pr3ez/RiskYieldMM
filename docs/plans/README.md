@@ -7,7 +7,8 @@ This branch now focuses on the multi-asset HTF workflow.
 
 | Status | Document | Purpose |
 |---|---|---|
-| Implemented + active next steps | [`htf_multi_asset_update_plan_2026-05-07.md`](htf_multi_asset_update_plan_2026-05-07.md) | Current HTF multi-asset implementation status, run commands, label policy, and next Stage-1 work |
+| Implemented + active next steps | [`htf_multi_asset_update_plan_2026-05-07.md`](htf_multi_asset_update_plan_2026-05-07.md) | Current HTF multi-asset implementation status, run commands, label policy, and downstream analysis work |
+| Implemented Stage-1 assembly | [`multi_asset_stage1_dataset_assembly_2026-05-20.md`](multi_asset_stage1_dataset_assembly_2026-05-20.md) | Target/context merged dataset contract, commands, validation, and deferred as-of joins |
 | Implemented, pending full core run | [`session_aware_multi_asset_htf_implementation_2026-05-16.md`](session_aware_multi_asset_htf_implementation_2026-05-16.md) | Calendar-aware canonical bars, session assets, open-session fill policy, and validation commands |
 | Implemented source layer | [`multi_asset_data_sources.md`](multi_asset_data_sources.md) | Multi-asset source plan and provider decisions |
 | Implemented speedups + safeguards | [`htf_speedup_no_leakage_fix_plan_2026-05-11.md`](htf_speedup_no_leakage_fix_plan_2026-05-11.md) | HTF runtime improvements, no-leakage invariants, and validation commands |

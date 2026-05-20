@@ -171,7 +171,13 @@ both `1m` and `15m`, not fixed row counts for session assets.
 ## Model-Facing Label Columns
 
 The active HTF label surface is `1m/target_4class`. Stage-1 multi-asset
-target/context analysis is still pending.
+assembly keeps labels target-specific: context labels are never joined as
+features, and merged Stage-1 labels are filtered target-label rows under
+`data/htf_multiasset_merged/{target}/{context_hash}/{root_id}/labels/1m/`.
+Merged feature rows use exact timestamp context joins only. Rows missing any
+selected context asset, or containing null model feature values after the join,
+are dropped and reported in the manifest. Written merged feature batches must
+have no duplicate `timestamp,batch_id` rows and no null model feature values.
 
 Required label outputs include:
 

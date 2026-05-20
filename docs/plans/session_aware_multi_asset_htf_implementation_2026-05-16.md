@@ -92,5 +92,6 @@ Expected before full core run: nonzero valid labels for `8h/B`, `8h/C`,
 ## Still Pending
 
 - Full local core run across all assets after this branch is accepted.
-- Stage-1 multi-asset target/context assembly.
-- Cross-asset context features with causal as-of joins.
+- Downstream diagnostics and Stage-1 Step-2 grouping for multi-asset run ids.
+- Cross-asset context features with causal as-of joins. Exact timestamp
+  target/context assembly is implemented in the Stage-1 launcher.

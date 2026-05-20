@@ -34,8 +34,10 @@ This plan is based on the maintained HTF documentation and the current code path
    - C entries use the next B first-half outcome window.
 6. Latest rows may remain unlabeled when the required future opposite-family
    window is not complete.
-7. Stage-1 multi-asset target/context assembly remains pending and must not be
-   silently mixed into HTF materialization.
+7. Stage-1 multi-asset target/context assembly is separate from HTF
+   materialization. It is now implemented in the Stage-1 launcher as an
+   explicit `--build-merged-dataset` step and must not be silently mixed into
+   HTF materialization.
 8. Existing batch metadata and directory contracts must remain compatible unless
    the shared HTF artifact version is intentionally bumped.
 
@@ -119,8 +121,8 @@ This plan is based on the maintained HTF documentation and the current code path
      validation remains the safe default.
 
 5. Do not add cross-asset features in this speedup patch.
-   - Cross-asset context belongs to the later Stage-1 target/context assembly
-     work and needs separate as-of tests.
+   - Exact timestamp cross-asset context is handled by the Stage-1 merged
+     dataset assembly layer. As-of/freshness joins remain separate future work.
 
 6. Do not parallelize regimes or B/C families inside one asset.
    - C combined/features depend on B artifacts.
@@ -156,7 +158,7 @@ Still deferred:
 1. Asset subprocess parallelism (`HTF_ASSET_WORKERS` or equivalent).
 2. Full one-asset production rerun timing evidence after restarting from the new
    code.
-3. Stage-1 multi-asset target/context assembly.
+3. Downstream multi-asset diagnostics and Stage-1 Step-2 grouping.
 
 Restart evidence:
 
@@ -236,8 +238,9 @@ Implemented tests:
 
 4. Future cross-asset context remains deferred.
    - This speedup patch does not implement cross-asset features.
-   - The later Stage-1 target/context assembly should add an as-of regression
-     before any context features are productionized.
+   - Stage-1 exact timestamp target/context assembly is implemented separately.
+   - Any future as-of/freshness context join needs its own leakage regression
+     before production use.
 
 ### Phase 2: Fast Opposite-Family Label Kernel
 

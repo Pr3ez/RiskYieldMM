@@ -3,8 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
-from dataclasses import asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +20,11 @@ from scripts.htf_backtest.catboost.stage1_analysis import (  # noqa: E402
 )
 from scripts.htf_backtest.catboost.stage1_runner import (  # noqa: E402
     run_walk_forward_stage1_grid,
+)
+from scripts.htf_backtest.catboost.stage1_multiasset_dataset import (  # noqa: E402
+    build_multiasset_stage1_dataset,
+    parse_stage1_context_assets,
+    parse_stage1_target_assets,
 )
 from scripts.htf_backtest.catboost.stage1_v2_contract import (  # noqa: E402
     STAGE1_V2_EXECUTION_MODE_FIXED_POLICY,
@@ -482,6 +486,38 @@ def _parse_args() -> argparse.Namespace:
         help="Subset of regime/family roots to run. Default: all.",
     )
     parser.add_argument(
+        "--build-merged-dataset",
+        action="store_true",
+        help=(
+            "Build Stage-1-compatible merged multi-asset roots from "
+            "data/htf_multiasset/{asset}/ before planning or running."
+        ),
+    )
+    parser.add_argument(
+        "--target-assets",
+        default=None,
+        help=(
+            "Prediction target assets for merged Stage-1 runs. Use 'core' or a "
+            "comma-separated list such as BTCUSDT,ES. Default with "
+            "--build-merged-dataset: core."
+        ),
+    )
+    parser.add_argument(
+        "--context-assets",
+        default=None,
+        help=(
+            "Context assets joined by exact timestamp for each target. Use "
+            "'core-ex-target', 'core', a comma-separated list, or omit for "
+            "target-only merged datasets."
+        ),
+    )
+    parser.add_argument(
+        "--multiasset-dataset-dir",
+        type=Path,
+        default=PROJECT_ROOT / "data" / "htf_multiasset_merged",
+        help="Output directory for generated merged Stage-1 dataset roots.",
+    )
+    parser.add_argument(
         "--n-steps",
         type=int,
         default=500,
@@ -547,6 +583,62 @@ def _parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
+def _build_execution_entries(
+    *,
+    args: argparse.Namespace,
+    selected_roots: list[str],
+) -> list[dict[str, Any]]:
+    """Resolve legacy or merged multi-asset root configs for this invocation."""
+    if not bool(args.build_merged_dataset):
+        return [
+            {
+                "entry_key": root_key,
+                "root_key": root_key,
+                "root_cfg": ROOTS[root_key],
+                "target_asset": None,
+                "context_assets": [],
+                "context_hash": None,
+                "manifest_path": None,
+            }
+            for root_key in selected_roots
+        ]
+
+    target_assets = parse_stage1_target_assets(args.target_assets)
+    entries: list[dict[str, Any]] = []
+    for target_asset in target_assets:
+        context_assets = parse_stage1_context_assets(
+            args.context_assets,
+            target_asset=target_asset,
+        )
+        for root_key in selected_roots:
+            assembly = build_multiasset_stage1_dataset(
+                project_root=PROJECT_ROOT,
+                target_asset=target_asset,
+                context_assets=context_assets,
+                root_key=root_key,
+                output_base_dir=Path(args.multiasset_dataset_dir),
+                input_base_dir=PROJECT_ROOT / "data" / "htf_multiasset",
+            )
+            root_cfg = {
+                **ROOTS[root_key],
+                "features_dir": assembly.features_dir,
+                "labels_dir": assembly.labels_dir,
+                "run_id": assembly.run_id,
+            }
+            entries.append(
+                {
+                    "entry_key": f"{target_asset}/{root_key}",
+                    "root_key": root_key,
+                    "root_cfg": root_cfg,
+                    "target_asset": target_asset,
+                    "context_assets": list(context_assets),
+                    "context_hash": assembly.context_hash,
+                    "manifest_path": str(assembly.manifest_path),
+                }
+            )
+    return entries
+
+
 def main() -> int:
     args = _parse_args()
     selected_roots = list(dict.fromkeys(args.roots))
@@ -577,10 +669,24 @@ def main() -> int:
             }
         ).__dict__
 
+    execution_entries = _build_execution_entries(args=args, selected_roots=selected_roots)
+
     plan = {
-        "generated_at": datetime.utcnow().isoformat() + "Z",
+        "generated_at": datetime.now(timezone.utc).isoformat(),
         "reference_run_id": STAGE1_REFERENCE_RUN_ID,
         "selected_roots": selected_roots,
+        "build_merged_dataset": bool(args.build_merged_dataset),
+        "target_assets": (
+            list(parse_stage1_target_assets(args.target_assets))
+            if bool(args.build_merged_dataset)
+            else []
+        ),
+        "context_assets_selector": args.context_assets,
+        "multiasset_dataset_dir": (
+            str(Path(args.multiasset_dataset_dir))
+            if bool(args.build_merged_dataset)
+            else None
+        ),
         "n_steps": int(args.n_steps),
         "resume_mode": str(args.resume_mode),
         "runtime_mode": str(args.runtime_mode),
@@ -594,11 +700,16 @@ def main() -> int:
         "stage1_v2_selector_config": stage1_v2_selector_config,
         "triplet_report": triplet_report,
         "roots": {
-            root_key: {
-                "regime": ROOTS[root_key]["regime"],
-                "family": ROOTS[root_key]["family"],
+            entry["entry_key"]: {
+                "root_key": entry["root_key"],
+                "target_asset": entry["target_asset"],
+                "context_assets": entry["context_assets"],
+                "context_hash": entry["context_hash"],
+                "manifest_path": entry["manifest_path"],
+                "regime": entry["root_cfg"]["regime"],
+                "family": entry["root_cfg"]["family"],
                 "run_id": _resolve_root_run_id(
-                    ROOTS[root_key],
+                    entry["root_cfg"],
                     stage1_version,
                     stage1_v2_execution_mode=(
                         stage1_v2_selector_config.get("execution_mode")
@@ -608,17 +719,17 @@ def main() -> int:
                     pred_batch_min=args.pred_batch_min,
                     pred_batch_max=args.pred_batch_max,
                 ),
-                "features_dir": str(ROOTS[root_key]["features_dir"]),
-                "labels_dir": str(ROOTS[root_key]["labels_dir"]),
+                "features_dir": str(entry["root_cfg"]["features_dir"]),
+                "labels_dir": str(entry["root_cfg"]["labels_dir"]),
                 "fixed_policy_registry_path": (
-                    _resolve_fixed_policy_registry_path_for_root(ROOTS[root_key])
+                    _resolve_fixed_policy_registry_path_for_root(entry["root_cfg"])
                     if stage1_v2_selector_config is not None
                     and str(stage1_v2_selector_config.get("execution_mode"))
                     == STAGE1_V2_EXECUTION_MODE_FIXED_POLICY
                     else None
                 ),
             }
-            for root_key in selected_roots
+            for entry in execution_entries
         },
     }
     plan_path = OUTPUT_DIR / f"plan_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
@@ -630,24 +741,39 @@ def main() -> int:
         return 0
 
     summaries: list[dict[str, Any]] = []
-    for root_key in selected_roots:
+    for entry in execution_entries:
+        root_key = str(entry["root_key"])
         print("\n" + "=" * 100)
-        print(f"RUNNING ROOT {root_key}")
-        print("=" * 100)
-        summaries.append(
-            _run_root(
-                root_key=root_key,
-                root_cfg=ROOTS[root_key],
-                n_steps=int(args.n_steps),
-                resume_mode=str(args.resume_mode),
-                stage1_triplet_grid=stage1_triplet_grid,
-                runtime_mode=str(args.runtime_mode),
-                stage1_version=str(stage1_version),
-                stage1_v2_selector_config=stage1_v2_selector_config,
-                pred_batch_min=args.pred_batch_min,
-                pred_batch_max=args.pred_batch_max,
+        if entry["target_asset"]:
+            print(
+                f"RUNNING ROOT {root_key} target={entry['target_asset']} "
+                f"context={entry['context_hash']}"
             )
+        else:
+            print(f"RUNNING ROOT {root_key}")
+        print("=" * 100)
+        summary = _run_root(
+            root_key=root_key,
+            root_cfg=entry["root_cfg"],
+            n_steps=int(args.n_steps),
+            resume_mode=str(args.resume_mode),
+            stage1_triplet_grid=stage1_triplet_grid,
+            runtime_mode=str(args.runtime_mode),
+            stage1_version=str(stage1_version),
+            stage1_v2_selector_config=stage1_v2_selector_config,
+            pred_batch_min=args.pred_batch_min,
+            pred_batch_max=args.pred_batch_max,
         )
+        summary.update(
+            {
+                "entry_key": entry["entry_key"],
+                "target_asset": entry["target_asset"],
+                "context_assets": entry["context_assets"],
+                "context_hash": entry["context_hash"],
+                "manifest_path": entry["manifest_path"],
+            }
+        )
+        summaries.append(summary)
 
     summary_path = OUTPUT_DIR / f"summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     summary_path.write_text(json.dumps(summaries, indent=2, default=str))

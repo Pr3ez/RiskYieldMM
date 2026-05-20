@@ -4,8 +4,9 @@
 >
 > This research note predates the current multi-asset source and HTF
 > materialization branch. References to BTC-only features describe the older
-> state. Current HTF outputs can be prepared per asset; cross-asset Stage-1
-> context features are still planned.
+> state. Current HTF outputs can be prepared per asset, and Stage-1 can build
+> exact-timestamp target/context merged datasets; as-of/freshness context joins
+> and downstream diagnostics remain future work.
 
 **Date:** 2025-12-31  
 **Context:** RiskYieldMM BTC perpetual futures, 8h timeframe  

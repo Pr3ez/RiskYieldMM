@@ -200,6 +200,42 @@ def test_stage1_latest_runner_targets_six_htf_roots() -> None:
     }
 
 
+def test_stage1_runner_exposes_multiasset_dataset_assembly_flags() -> None:
+    source = (
+        PROJECT_ROOT / "scripts/analysis/htf_stage1_regime_family_walkforward.py"
+    ).read_text()
+
+    assert "--build-merged-dataset" in source
+    assert "--target-assets" in source
+    assert "--context-assets" in source
+    assert "--multiasset-dataset-dir" in source
+    assert "build_multiasset_stage1_dataset" in source
+
+
+def test_stage1_feature_policy_excludes_multiasset_calendar_metadata() -> None:
+    tree = _module_tree("scripts/htf_backtest/catboost/utils.py")
+    excluded = _literal_assignment(tree, "MODEL_METADATA_EXCLUDE")
+
+    assert {
+        "asset_id",
+        "calendar_id",
+        "is_market_open",
+        "is_synthetic_no_trade",
+        "is_open_session_gap_fill",
+        "minutes_since_prev_real_bar",
+        "session_id",
+        "session_date",
+        "session_bar_pos",
+        "session_minutes_to_close",
+        "expected_rows_in_batch",
+        "actual_rows_in_batch",
+        "expected_entry_rows",
+        "actual_entry_rows",
+        "has_synthetic_open_gap_fill",
+    } <= excluded
+    assert "bar_in_batch_norm" not in excluded
+
+
 def test_stage1_v1_artifact_contract_includes_required_audit_payloads() -> None:
     tree = _module_tree("scripts/htf_backtest/catboost/stage1_runner.py")
     constants = _string_constants_in_function(tree, "_stage1_required_artifact_paths")

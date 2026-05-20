@@ -1,10 +1,10 @@
 # HTF Workflow Architecture
 
 This is the maintained architecture overview for the current higher-timeframe
-research workflow. The source-data and HTF materialization layers are
-multi-asset-aware. Stage-1 and downstream analysis are still legacy
-regime/family workflows until target-asset and context-asset selection are
-implemented.
+research workflow. The source-data, HTF materialization, and Stage-1 merged
+dataset assembly layers are multi-asset-aware. Downstream diagnostics still
+need multi-asset-aware review before they should be treated as complete
+cross-asset analysis.
 
 ## System Flow
 
@@ -19,8 +19,8 @@ flowchart TD
     F --> H[Optimized model-facing features]
     G --> H
     H --> I[Helper feature cache]
-    I --> J[Pending Stage-1 multi-asset target/context assembly]
-    J --> K[Legacy Stage-1 CatBoost walk-forward until assembly is updated]
+    I --> J[Stage-1 target/context dataset assembly]
+    J --> K[CatBoost Stage-1 walk-forward per target/root/context set]
     K --> L[Persisted validation and prediction payloads]
     L --> M[Selector, pairwise, and subset audits]
 ```
@@ -34,10 +34,15 @@ flowchart TD
 | HTF calendar layer | `scripts/feature_engineering/htf_trading_calendar.py` | Canonical market-open bars, session metadata, and open-gap fill flags |
 | HTF materialization | `scripts/feature_engineering/htf_multiregime_pipeline.py` | Per-asset regime/family batches, features, labels, validation |
 | HTF launcher | `notebooks/htf_pythonscript.py` | Production orchestration and run logging through `HTF_ASSETS` |
-| Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | Legacy CatBoost walk-forward execution across regime/family roots |
+| Stage-1 runner | `scripts/analysis/htf_stage1_regime_family_walkforward.py` | Legacy six-root execution plus optional merged target/context dataset assembly |
 | Stage-1 core | `scripts/htf_backtest/catboost/` | Per-step training, selection, and persisted payloads |
 | Diagnostics | `scripts/analysis/htf_*` | Legacy offline audits and summary generation |
 | Rust helpers | `riskyield_rust/src/` | Accelerated helper models exposed through PyO3 |
+
+The Stage-1 merged dataset boundary is exact-timestamp only in v1. It drops
+missing context rows and null model-feature rows, writes an ignored
+`manifest.json`, and can produce sparse batch ids when the selected context set
+starts later than the target asset history.
 
 ## Temporal Safety Model
 

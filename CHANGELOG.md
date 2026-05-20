@@ -21,6 +21,13 @@ All notable repository-level changes are recorded here.
 - HTF asset registry and asset-aware HTF materialization. `HTF_ASSETS=core`
   with `HTF_ASSET_OUTPUT_MODE=multiasset` writes per-asset outputs under
   `data/htf_multiasset/{asset}/`.
+- Stage-1-compatible multi-asset dataset assembly. The Stage-1 launcher can now
+  build merged target/context roots with `--build-merged-dataset`,
+  `--target-assets`, and `--context-assets`, writing ignored outputs under
+  `data/htf_multiasset_merged/{target}/{context_hash}/`.
+- Stage-1 merged dataset tests and smoke documentation covering exact timestamp
+  joins, target-only labels, context prefixing, duplicate checks, null-row
+  dropping, sparse merged batch ids, and all-core `8h/B` readiness.
 - Calendar-aware canonical HTF OHLCV layer with `crypto_24_7` and
   `futures_session_observed` calendars, open-session gap-fill flags, derived
   canonical `15m` bars, and preserved session metadata in HTF artifacts.
@@ -70,6 +77,13 @@ All notable repository-level changes are recorded here.
 - Multi-asset HTF launcher runs now attempt remaining assets after a per-asset
   failure and raise a final summary error at the end; set
   `HTF_FAIL_FAST_ASSET_ERRORS=1` to restore immediate fail-fast behavior.
+- Stage-1 batch discovery now uses the highest available `batch_*.parquet` id
+  instead of file count, so sparse merged multi-asset roots can be scanned
+  correctly.
+- Stage-1 merged dataset assembly now drops rows with null model feature values
+  after exact timestamp joins and reports them as
+  `rows_dropped_by_null_features`, while preserving `null_feature_count=0` in
+  written outputs.
 - HTF helper validation now treats constant `H_*_garch_persistence` as a known
   fitted-parameter artifact instead of failing the full run.
 - Bybit fetching and compatibility aggregation are symbol-aware for both
@@ -90,7 +104,7 @@ All notable repository-level changes are recorded here.
   HTF `8h` regimes and legacy derived `*-8h-*` compatibility outputs.
 - Clarified documentation boundaries for the current multi-asset HTF workflow:
   active 4-class labeling, legacy 8-class notes, session-aware calendars, and
-  pending Stage-1 target/context assembly.
+  the Stage-1 target/context assembly layer.
 - Replaced the Astra extension test target that pointed at a missing VS Code
   test runner with a compile-and-lint smoke check.
 - Removed tracked local backup files from maintained source/notebook paths and
@@ -98,14 +112,13 @@ All notable repository-level changes are recorded here.
 
 ### Not Yet Implemented
 
-- Stage-1 and downstream analysis scripts are not fully multi-asset-aware yet.
-  The current merge prepares source data and HTF feature/label artifacts per
-  asset; the next implementation step is explicit target-asset selection,
-  optional causal context-asset joins, and analysis outputs that resolve
-  `data/htf_multiasset/{asset}/` roots.
-- Cross-asset context features are planned but not yet productionized. They
-  should be added after standalone per-asset HTF outputs are reproducible and
-  tested for no look-ahead leakage.
+- Downstream causal method analysis, walk-forward diagnostics, and Stage-1
+  Step-2 reports still need multi-asset-aware review. The current Stage-1
+  launcher can build target/context datasets and run one target asset per run,
+  but downstream comparison/reporting layers still assume older run groupings.
+- As-of/freshness-based cross-asset joins are intentionally deferred. The
+  implemented v1 assembly uses exact timestamp joins only and drops rows that
+  are missing any selected context asset.
 
 ### Security
 

@@ -4,8 +4,8 @@
 >
 > This validation note predates the multi-asset source and HTF materialization
 > work. Its "single-asset" references describe the older state. Current source
-> data and HTF outputs are multi-asset-aware, while Stage-1 analysis is still
-> pending target/context asset support.
+> data, HTF outputs, and Stage-1 merged target/context dataset assembly are
+> multi-asset-aware. Downstream diagnostics may still use older run groupings.
 
 **Status:** 📋 VALIDATION IN PROGRESS  
 **Purpose:** Verify plan completeness against universal template before implementation

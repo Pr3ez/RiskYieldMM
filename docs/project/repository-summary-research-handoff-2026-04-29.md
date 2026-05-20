@@ -8,8 +8,9 @@ Scope: local repository audit for `/media/przem/linux_data/RiskYieldMM (Copy)`.
 > This handoff predates the multi-asset branch. It describes the prior
 > BTCUSDT/Bybit-focused HTF workflow. Current source-data and HTF materialization
 > support `BTCUSDT`, `ETHUSDT`, `EURUSD`, `USDJPY`, `GC`, `CL`, `ES`, and `NQ`.
-> Stage-1 and downstream analysis are still being updated for multi-asset
-> target/context selection.
+> Stage-1 merged target/context dataset assembly is now implemented through the
+> Stage-1 launcher; downstream diagnostics and Step-2 grouping are still being
+> updated for multi-asset run identities.
 
 ## Executive Summary
 

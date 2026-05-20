@@ -9,9 +9,10 @@ visibility:
 
 ## Current Workflow Docs
 
-Current source data and HTF materialization are multi-asset-aware. Stage-1 and
-downstream analysis docs still describe the legacy regime/family workflow unless
-they explicitly mention `data/htf_multiasset/{asset}/` target/context support.
+Current source data, HTF materialization, and Stage-1 merged dataset assembly
+are multi-asset-aware. Downstream analysis docs may still describe the legacy
+regime/family workflow unless they explicitly mention
+`data/htf_multiasset_merged/` target/context support.
 
 | Area | Location | Purpose |
 |---|---|---|

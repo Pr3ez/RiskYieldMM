@@ -4,8 +4,28 @@
 >
 > These artifact paths describe the legacy regime/family Stage-1 outputs. The
 > multi-asset HTF layer writes per-asset feature and label roots under
-> `data/htf_multiasset/{asset}/`; Stage-1 artifact layout for target/context
-> asset analysis is still pending.
+> `data/htf_multiasset/{asset}/`. The Stage-1 launcher can now assemble
+> target/context feature and label roots under `data/htf_multiasset_merged/`
+> and then write normal CatBoost Stage-1 run artifacts.
+
+Merged dataset artifacts are written before training:
+
+```text
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/batch_*.parquet
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/batch_*.parquet
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/manifest.json
+```
+
+The manifest records target/context assets, source roots, output roots, input
+rows, output rows, `rows_dropped_by_missing_context`,
+`rows_dropped_by_null_features`, `duplicate_count`, `null_feature_count`,
+schema hash, feature count, and timestamp range. Merged feature outputs are
+valid only when `duplicate_count=0` and `null_feature_count=0`.
+
+Merged multi-asset roots may have sparse batch ids. This is expected when exact
+timestamp context coverage begins later than the target asset history. Stage-1
+validity scanning supports those sparse ids; per-combo missing-batch failures
+near local gaps are recorded in `stage1_step_summary.json`.
 
 Stage-1 step artifacts are written under:
 

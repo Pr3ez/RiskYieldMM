@@ -4,8 +4,9 @@
 >
 > This document describes the legacy regime/family Stage-1 analysis layer. The
 > multi-asset branch already prepares per-asset HTF roots under
-> `data/htf_multiasset/{asset}/`, but Stage-1 target-asset selection and
-> context-asset joins are not implemented yet.
+> `data/htf_multiasset/{asset}/`. The Stage-1 launcher can now build merged
+> target/context dataset roots under `data/htf_multiasset_merged/` before
+> calling the existing CatBoost walk-forward engine.
 
 ## Purpose
 Stage-1 is an offline dataset-generation run profile for fold-grid analysis.  
@@ -15,6 +16,53 @@ Primary objective:
 - generate raw validation and prediction-batch payloads for every Stage-1 combo
 - compute selection/quality metrics later in analysis scripts
 - keep optimization leakage-safe
+
+## Multi-Asset Assembly Layer
+
+The launcher option `--build-merged-dataset` prepares Stage-1-compatible roots
+without changing the CatBoost runner internals.
+
+Current v1 rules:
+- one prediction target asset per run
+- labels come only from the target asset
+- context features are exact `timestamp` joins only
+- rows missing any selected context asset are dropped
+- rows with null model feature values after the merge are dropped
+- target feature columns are prefixed as `T_<asset>__*`
+- context feature columns are prefixed as `C_<asset>__*`
+- `timestamp`, `batch_id`, `bar_in_batch_norm`, and `target_4class` keep the
+  existing Stage-1-compatible names
+- context `target_*` label columns are never joined as features
+
+Merged roots are written below:
+
+```text
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/
+```
+
+Each root also writes `manifest.json` with source paths, row counts, dropped-row
+counts, schema hash, duplicate count, null-feature count, and timestamp range.
+Written merged feature batches must have `duplicate_count=0` and
+`null_feature_count=0`.
+
+Merged roots can be sparse because exact context alignment can start later than
+the target asset history or skip periods where any selected context asset has no
+usable row. The Stage-1 loader scans up to the highest available batch id, not
+the number of files, so sparse roots are valid inputs. Candidate triplets can
+still fail near local missing batch spans; those failures are reported in
+`stage1_step_summary.json` under `fail_reasons`.
+
+Current local smoke status:
+
+```text
+root: 8h/B
+target: BTCUSDT
+context: core-ex-target
+common rows: 413,652
+stage1 smoke: steps_ok=1, steps_error=0
+quality signal: weak smoke only, winner_accuracy=0.2667, macro_f1=0.1053
+```
 
 ## Stage Split (Step-1 vs Step-2)
 - Step-1:
