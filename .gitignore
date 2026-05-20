@@ -54,6 +54,7 @@ test_output/htf_run_logs/*.out
 test_output/htf_run_logs/*_status.json
 test_output/htf_stage1_regime_family_walkforward/plan_*.json
 test_output/htf_stage1_regime_family_walkforward/summary_*.json
+test_output/stage1_label_anomaly_experiments/
 test_output/python_documentation_audit.md
 tmp/
 *.tmp

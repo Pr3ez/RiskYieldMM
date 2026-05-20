@@ -12,5 +12,6 @@ the current multi-asset implementation status.
 | [`astra-consciousness-research.md`](astra-consciousness-research.md) | Astra research summary |
 | [`supply-demand-pressure-research.md`](supply-demand-pressure-research.md) | Supply/demand pressure proxies across stocks and crypto |
 | [`codex-skills-time-series-ml-report.md`](codex-skills-time-series-ml-report.md) | Codex skills/time-series ML report |
+| [`stage1-label-anomaly-8h-b-research-brief-2026-05-20.md`](stage1-label-anomaly-8h-b-research-brief-2026-05-20.md) | Current Stage-1 label-anomaly research brief, 8h/B-only guardrail, CatBoost evidence, and PyTorch blocker |
 | [`market-trend-regime-detection-report.md`](market-trend-regime-detection-report.md) | Market trend and regime detection report |
 | [`engineering-macroeconomic-features-8h-models.pdf`](engineering-macroeconomic-features-8h-models.pdf) | Macroeconomic feature-engineering reference PDF |
