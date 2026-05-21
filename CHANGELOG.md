@@ -43,6 +43,18 @@ All notable repository-level changes are recorded here.
   post-close binary indicator flags from canonical OHLCV timeframes, writes
   reusable per-asset flag/event artifacts, and lets Stage-1 merged dataset
   assembly opt in with `--include-ta-flags --ta-timeframes ...`.
+- Research-guided compact TA signal set and diagnostics: compact flags are
+  written separately from raw indicator flags, Stage-1 can choose
+  `--ta-signal-set raw|compact|all`, and `diagnose_ta_flags.py` reports
+  activation rates, dead/always-on flags, long/short conflicts, and high-overlap
+  pairs before optimization.
+- TA-enabled merged Stage-1 datasets now include the TA signal-set/timeframe
+  variant in their generated path and run id so baseline, raw TA, compact TA,
+  and combined TA smoke runs remain isolated.
+- Stage-1 merged dataset assembly now has `--merged-batch-min`,
+  `--merged-batch-max`, and `--merged-batch-limit` for fast dataset-contract
+  smoke tests on mature batch windows; full production merged datasets still
+  omit these limits and assemble every target batch.
 - Multi-asset HTF tests for asset-specific raw routing, Databento/Yahoo
   recent-tail precedence, opposite-family label-window behavior, session
   calendar gap handling, and session `24h`/`7d` valid-label production.

@@ -598,14 +598,28 @@ python TA_backtest_optimization/materialize_ta_flags.py \
 python TA_backtest_optimization/materialize_ta_flags.py \
   --assets core \
   --timeframes 15m,1h,4h,8h,12h,1d
+
+# Build both raw independent flags and compact research-gated flags.
+python TA_backtest_optimization/materialize_ta_flags.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d \
+  --signal-set all
+
+# Report activation rates, conflicts, and high-overlap flag pairs.
+python TA_backtest_optimization/diagnose_ta_flags.py \
+  --assets core \
+  --timeframes 15m,1h,4h,8h,12h,1d \
+  --signal-set all
 ```
 
 TA outputs are written under
-`data/htf_multiasset/{asset}/ta_signal_flags/{tf}/`. They do not modify the
-HTF feature/helper/label roots. The default V1 flag set covers ADX+DMI, RSI,
-MACD, VWAP, Donchian, OBV, Bollinger Bands, Pivot Points, Supertrend, Aroon,
-and Stochastic; exits, sizing, leverage, and PnL optimization remain later
-research stages.
+`data/htf_multiasset/{asset}/ta_signal_flags/{tf}/`; compact gated flags are
+written separately under `ta_compact_signal_flags/{tf}/`. They do not modify
+the HTF feature/helper/label roots. The default V1 flag set covers ADX+DMI,
+RSI, MACD, VWAP, Donchian, OBV, Bollinger Bands, Pivot Points, Supertrend,
+Aroon, and Stochastic. Compact flags add the research-guided regime gate,
+confirmation, cooldown, and mutual-exclusion layer. Exits, sizing, leverage,
+and PnL optimization remain later research stages.
 
 Example output roots:
 
@@ -773,6 +787,17 @@ data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/t
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/
 ```
 
+When TA flags are enabled, the selected TA feature library is part of the
+dataset identity. TA-enabled roots add a variant directory so baseline, raw TA,
+compact TA, and combined TA datasets do not overwrite or resume from each
+other:
+
+```text
+data/htf_multiasset_merged/{target_asset}/{context_hash}/ta_raw_15m_1h_4h_8h_12h_1d/{root_id}/...
+data/htf_multiasset_merged/{target_asset}/{context_hash}/ta_compact_15m_1h_4h_8h_12h_1d/{root_id}/...
+data/htf_multiasset_merged/{target_asset}/{context_hash}/ta_raw_compact_15m_1h_4h_8h_12h_1d/{root_id}/...
+```
+
 The target asset is the row authority. Context assets are exact timestamp joins
 only; rows missing any selected context asset are dropped and reported in the
 manifest. Rows with null model feature values after the merge are also dropped
@@ -803,11 +828,20 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --build-merged-dataset \
   --include-ta-flags \
   --ta-timeframes 15m,1h,4h,8h,12h,1d \
+  --ta-signal-set raw \
   --target-assets BTCUSDT \
   --context-assets core-ex-target \
   --roots 8h/B \
+  --merged-batch-min 500 \
+  --merged-batch-limit 12 \
   --plan-only
 ```
+
+`--merged-batch-min` and `--merged-batch-limit` are only for dataset-contract
+smoke tests. Use a mature `--merged-batch-min` so warm-up helper columns do not
+turn a smoke run into a zero-row early-history test. Omit both flags for
+production datasets because the limit intentionally writes a partial merged
+root.
 
 For all core targets, use `core` plus `core-ex-target`; this expands into one
 independent Stage-1 run per target asset. This can write many GB of generated
@@ -899,10 +933,17 @@ Merged multi-asset runs include the target asset and context hash in the run id:
 data/htf_backtest_results/stage1_catboost_btcusdt_8h_b_ctx_corexself_live/
 ```
 
+TA-enabled merged runs also include the TA dataset variant:
+
+```text
+data/htf_backtest_results/stage1_catboost_btcusdt_8h_b_ctx_corexself_ta_raw_15m_1h_4h_8h_12h_1d_live/
+```
+
 The generated dataset manifest is stored beside the merged feature/label roots:
 
 ```text
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/manifest.json
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{ta_variant}/{root_id}/manifest.json
 ```
 
 Merged roots can be sparse because exact timestamp alignment may begin later

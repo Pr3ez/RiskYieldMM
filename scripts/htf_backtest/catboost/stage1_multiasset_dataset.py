@@ -25,7 +25,9 @@ from typing import Any
 import polars as pl
 
 from TA_backtest_optimization.materialize_ta_flags import (
+    TA_SIGNAL_SET_RAW,
     parse_ta_timeframes,
+    parse_ta_signal_sets,
     ta_flag_columns,
     ta_flags_path,
 )
@@ -159,6 +161,7 @@ class MultiAssetAssemblyResult:
     target_asset: str
     context_assets: tuple[str, ...]
     context_hash: str
+    dataset_variant_id: str
     root_key: str
     root_id: str
     features_dir: Path
@@ -237,17 +240,50 @@ def build_context_set_hash(
     return hashlib.sha1(payload.encode("utf-8")).hexdigest()[:12]
 
 
+def build_stage1_dataset_variant_id(
+    *,
+    include_ta_flags: bool,
+    ta_timeframes: tuple[str, ...] = (),
+    ta_signal_sets: tuple[str, ...] = (TA_SIGNAL_SET_RAW,),
+) -> str:
+    """Return a stable identity for optional feature-library variants.
+
+    Baseline multi-asset datasets keep the historical `base` identity and path.
+    TA-enabled datasets include the selected TA signal sets and timeframes so
+    baseline, raw TA, compact TA, and combined TA runs cannot overwrite or
+    resume from each other's outputs.
+    """
+    if not include_ta_flags:
+        return "base"
+    normalized_timeframes = parse_ta_timeframes(ta_timeframes)
+    normalized_signal_sets = parse_ta_signal_sets(ta_signal_sets)
+    payload = {
+        "ta_flags_enabled": True,
+        "ta_signal_sets": list(normalized_signal_sets),
+        "ta_timeframes": list(normalized_timeframes),
+    }
+    set_part = "_".join(normalized_signal_sets)
+    tf_part = "_".join(normalized_timeframes)
+    variant_id = f"ta_{set_part}_{tf_part}"
+    if len(variant_id) > 72:
+        digest = hashlib.sha1(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+        variant_id = f"ta_{digest[:12]}"
+    return variant_id
+
+
 def build_multiasset_stage1_run_id(
     *,
     target_asset: str,
     root_key: str,
     context_hash: str,
+    dataset_variant_id: str = "base",
 ) -> str:
-    """Return the Stage-1 run id for one target/root/context identity."""
+    """Return the Stage-1 run id for one target/root/context/dataset identity."""
     layout = _root_layout(root_key)
+    variant_suffix = "" if dataset_variant_id == "base" else f"_{dataset_variant_id}"
     return (
         f"stage1_catboost_{normalize_htf_asset_id(target_asset).lower()}_"
-        f"{layout.root_id}_ctx_{context_hash}_live"
+        f"{layout.root_id}_ctx_{context_hash}{variant_suffix}_live"
     )
 
 
@@ -265,12 +301,28 @@ def build_multiasset_stage1_dataset(
     clear_existing: bool = True,
     include_ta_flags: bool = False,
     ta_timeframes: tuple[str, ...] = (),
+    ta_signal_sets: tuple[str, ...] = (TA_SIGNAL_SET_RAW,),
+    max_batches: int | None = None,
+    batch_id_min: int | None = None,
+    batch_id_max: int | None = None,
 ) -> MultiAssetAssemblyResult:
     """Build one merged Stage-1 dataset root from per-asset HTF outputs."""
     project_root = Path(project_root)
     target_asset = normalize_htf_asset_id(target_asset)
     context_assets = tuple(normalize_htf_asset_id(asset) for asset in context_assets)
     ta_timeframes = parse_ta_timeframes(ta_timeframes) if include_ta_flags else ()
+    ta_signal_sets = parse_ta_signal_sets(ta_signal_sets) if include_ta_flags else ()
+    if max_batches is not None and int(max_batches) <= 0:
+        raise ValueError("max_batches must be a positive integer when provided")
+    max_batches = None if max_batches is None else int(max_batches)
+    batch_id_min = None if batch_id_min is None else int(batch_id_min)
+    batch_id_max = None if batch_id_max is None else int(batch_id_max)
+    if (
+        batch_id_min is not None
+        and batch_id_max is not None
+        and batch_id_min > batch_id_max
+    ):
+        raise ValueError("batch_id_min cannot be greater than batch_id_max")
     layout = _root_layout(root_key)
     input_base_dir = input_base_dir or project_root / "data" / MULTIASSET_SOURCE_ROOT
     output_base_dir = output_base_dir or project_root / "data" / MULTIASSET_MERGED_ROOT
@@ -278,9 +330,15 @@ def build_multiasset_stage1_dataset(
         target_asset=target_asset,
         context_assets=context_assets,
     )
-    root_output_dir = (
-        output_base_dir / target_asset.lower() / context_hash / layout.root_id
+    dataset_variant_id = build_stage1_dataset_variant_id(
+        include_ta_flags=include_ta_flags,
+        ta_timeframes=ta_timeframes,
+        ta_signal_sets=ta_signal_sets,
     )
+    root_output_dir = output_base_dir / target_asset.lower() / context_hash
+    if dataset_variant_id != "base":
+        root_output_dir = root_output_dir / dataset_variant_id
+    root_output_dir = root_output_dir / layout.root_id
     features_dir = root_output_dir / "features"
     labels_dir = root_output_dir / "labels"
     feature_output_dir = features_dir / tf / feature_target_col
@@ -360,6 +418,7 @@ def build_multiasset_stage1_dataset(
         asset_id=target_asset,
         role_prefix=f"T_{target_asset}__",
         ta_timeframes=ta_timeframes,
+        ta_signal_sets=ta_signal_sets,
         require=include_ta_flags,
     )
     context_ta_cols = {
@@ -368,6 +427,7 @@ def build_multiasset_stage1_dataset(
             asset_id=asset,
             role_prefix=f"C_{asset}__",
             ta_timeframes=ta_timeframes,
+            ta_signal_sets=ta_signal_sets,
             require=include_ta_flags,
         )
         for asset in context_assets
@@ -393,10 +453,18 @@ def build_multiasset_stage1_dataset(
     timestamp_min: datetime | None = None
     timestamp_max: datetime | None = None
 
+    processed_batches = 0
     for target_meta in target_index.files:
+        if batch_id_min is not None and target_meta.batch_id < batch_id_min:
+            continue
+        if batch_id_max is not None and target_meta.batch_id > batch_id_max:
+            continue
+        if max_batches is not None and processed_batches >= max_batches:
+            break
         if target_meta.timestamp_min is None or target_meta.timestamp_max is None:
             skipped_batches += 1
             continue
+        processed_batches += 1
 
         target_batch = _read_target_feature_batch(
             target_meta.path,
@@ -412,6 +480,7 @@ def build_multiasset_stage1_dataset(
                 asset_id=target_asset,
                 role_prefix=f"T_{target_asset}__",
                 ta_timeframes=ta_timeframes,
+                ta_signal_sets=ta_signal_sets,
                 timestamp_min=target_meta.timestamp_min,
                 timestamp_max=target_meta.timestamp_max,
             )
@@ -433,6 +502,7 @@ def build_multiasset_stage1_dataset(
                     asset_id=context_index.asset_id,
                     role_prefix=f"C_{context_index.asset_id}__",
                     ta_timeframes=ta_timeframes,
+                    ta_signal_sets=ta_signal_sets,
                     timestamp_min=target_meta.timestamp_min,
                     timestamp_max=target_meta.timestamp_max,
                 )
@@ -519,12 +589,14 @@ def build_multiasset_stage1_dataset(
         target_asset=target_asset,
         root_key=root_key,
         context_hash=context_hash,
+        dataset_variant_id=dataset_variant_id,
     )
     manifest = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "target_asset": target_asset,
         "context_assets": list(context_assets),
         "context_hash": context_hash,
+        "dataset_variant_id": dataset_variant_id,
         "root": root_key,
         "root_id": layout.root_id,
         "regime": layout.regime,
@@ -556,6 +628,10 @@ def build_multiasset_stage1_dataset(
         ),
         "rows_dropped_by_null_features": int(rows_dropped_by_null_features),
         "skipped_batches": int(skipped_batches),
+        "max_batches": max_batches,
+        "batch_id_min": batch_id_min,
+        "batch_id_max": batch_id_max,
+        "processed_batches": int(processed_batches),
         "written_batches": int(len(list(feature_output_dir.glob("batch_*.parquet")))),
         "duplicate_count": 0,
         "null_feature_count": int(null_feature_count),
@@ -565,10 +641,12 @@ def build_multiasset_stage1_dataset(
         "target_unprefixed_feature_columns": list(target_unprefixed_cols),
         "ta_flags_enabled": bool(include_ta_flags),
         "ta_timeframes": list(ta_timeframes),
+        "ta_signal_sets": list(ta_signal_sets),
         "ta_source_paths": _ta_source_paths(
             project_root=project_root,
             assets=(target_asset, *context_assets),
             ta_timeframes=ta_timeframes,
+            ta_signal_sets=ta_signal_sets,
         )
         if include_ta_flags
         else {},
@@ -591,6 +669,7 @@ def build_multiasset_stage1_dataset(
         target_asset=target_asset,
         context_assets=context_assets,
         context_hash=context_hash,
+        dataset_variant_id=dataset_variant_id,
         root_key=root_key,
         root_id=layout.root_id,
         features_dir=features_dir,
@@ -809,18 +888,20 @@ def _ta_output_columns(
     asset_id: str,
     role_prefix: str,
     ta_timeframes: tuple[str, ...],
+    ta_signal_sets: tuple[str, ...],
     require: bool,
 ) -> list[str]:
     """Return prefixed TA flag columns for one asset/timeframe selection."""
     columns: list[str] = []
-    for timeframe in ta_timeframes:
-        path = ta_flags_path(project_root, asset_id, timeframe)
-        if not path.exists():
-            if require:
-                raise FileNotFoundError(f"TA flag file not found: {path}")
-            continue
-        schema = pl.read_parquet(path, n_rows=0).schema
-        columns.extend(f"{role_prefix}{col}" for col in ta_flag_columns(list(schema), timeframe))
+    for signal_set in ta_signal_sets:
+        for timeframe in ta_timeframes:
+            path = ta_flags_path(project_root, asset_id, timeframe, signal_set=signal_set)
+            if not path.exists():
+                if require:
+                    raise FileNotFoundError(f"TA flag file not found: {path}")
+                continue
+            schema = pl.read_parquet(path, n_rows=0).schema
+            columns.extend(f"{role_prefix}{col}" for col in ta_flag_columns(list(schema), timeframe))
     return columns
 
 
@@ -830,34 +911,36 @@ def _read_ta_window(
     asset_id: str,
     role_prefix: str,
     ta_timeframes: tuple[str, ...],
+    ta_signal_sets: tuple[str, ...],
     timestamp_min: datetime,
     timestamp_max: datetime,
 ) -> tuple[pl.DataFrame, list[str]]:
     """Read and prefix TA flags for one asset over a target timestamp window."""
     parts: list[pl.DataFrame] = []
     output_columns: list[str] = []
-    for timeframe in ta_timeframes:
-        path = ta_flags_path(project_root, asset_id, timeframe)
-        if not path.exists():
-            raise FileNotFoundError(f"TA flag file not found: {path}")
-        schema = pl.read_parquet(path, n_rows=0).schema
-        source_cols = ta_flag_columns(list(schema), timeframe)
-        prefixed_cols = [f"{role_prefix}{col}" for col in source_cols]
-        output_columns.extend(prefixed_cols)
-        if not source_cols:
-            continue
-        frame = (
-            pl.scan_parquet(path)
-            .filter(pl.col("timestamp").is_between(timestamp_min, timestamp_max, closed="both"))
-            .select(
-                [
-                    pl.col("timestamp"),
-                    *(pl.col(col).alias(f"{role_prefix}{col}") for col in source_cols),
-                ]
+    for signal_set in ta_signal_sets:
+        for timeframe in ta_timeframes:
+            path = ta_flags_path(project_root, asset_id, timeframe, signal_set=signal_set)
+            if not path.exists():
+                raise FileNotFoundError(f"TA flag file not found: {path}")
+            schema = pl.read_parquet(path, n_rows=0).schema
+            source_cols = ta_flag_columns(list(schema), timeframe)
+            prefixed_cols = [f"{role_prefix}{col}" for col in source_cols]
+            output_columns.extend(prefixed_cols)
+            if not source_cols:
+                continue
+            frame = (
+                pl.scan_parquet(path)
+                .filter(pl.col("timestamp").is_between(timestamp_min, timestamp_max, closed="both"))
+                .select(
+                    [
+                        pl.col("timestamp"),
+                        *(pl.col(col).alias(f"{role_prefix}{col}") for col in source_cols),
+                    ]
+                )
+                .collect()
             )
-            .collect()
-        )
-        parts.append(frame)
+            parts.append(frame)
 
     if not output_columns:
         return pl.DataFrame({"timestamp": []}), []
@@ -870,7 +953,7 @@ def _read_ta_window(
         ), output_columns
     out = parts[0]
     for part in parts[1:]:
-        out = out.join(part, on="timestamp", how="outer_coalesce")
+        out = out.join(part, on="timestamp", how="full", coalesce=True)
     if _duplicate_count(out, ["timestamp"]):
         raise ValueError(
             f"TA flags for {asset_id} have duplicate timestamps in "
@@ -886,6 +969,7 @@ def _join_ta_flags(
     asset_id: str,
     role_prefix: str,
     ta_timeframes: tuple[str, ...],
+    ta_signal_sets: tuple[str, ...],
     timestamp_min: datetime,
     timestamp_max: datetime,
 ) -> pl.DataFrame:
@@ -895,6 +979,7 @@ def _join_ta_flags(
         asset_id=asset_id,
         role_prefix=role_prefix,
         ta_timeframes=ta_timeframes,
+        ta_signal_sets=ta_signal_sets,
         timestamp_min=timestamp_min,
         timestamp_max=timestamp_max,
     )
@@ -909,11 +994,15 @@ def _ta_source_paths(
     project_root: Path,
     assets: tuple[str, ...],
     ta_timeframes: tuple[str, ...],
+    ta_signal_sets: tuple[str, ...],
 ) -> dict[str, dict[str, str]]:
     """Return manifest-friendly TA source paths."""
     return {
         normalize_htf_asset_id(asset): {
-            timeframe: str(ta_flags_path(project_root, asset, timeframe))
+            f"{signal_set}/{timeframe}": str(
+                ta_flags_path(project_root, asset, timeframe, signal_set=signal_set)
+            )
+            for signal_set in ta_signal_sets
             for timeframe in ta_timeframes
         }
         for asset in assets

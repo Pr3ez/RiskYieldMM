@@ -9,6 +9,7 @@ import pytest
 from scripts.htf_backtest.catboost.stage1_multiasset_dataset import (
     build_context_set_hash,
     build_multiasset_stage1_dataset,
+    build_stage1_dataset_variant_id,
     parse_stage1_context_assets,
     parse_stage1_target_assets,
 )
@@ -79,16 +80,24 @@ def _write_ta_flags(
     timestamps: list[datetime],
     values: list[int],
     timeframe: str = "15m",
+    signal_set: str = "raw",
 ) -> None:
-    flag_dir = _asset_root(tmp_path, asset) / "ta_signal_flags" / timeframe
+    root_name = "ta_signal_flags" if signal_set == "raw" else "ta_compact_signal_flags"
+    suffix = "ta_flags" if signal_set == "raw" else "ta_compact_flags"
+    flag_dir = _asset_root(tmp_path, asset) / root_name / timeframe
     flag_dir.mkdir(parents=True, exist_ok=True)
     slug = asset.lower()
+    col_name = (
+        f"ta_{timeframe}_test_long"
+        if signal_set == "raw"
+        else f"ta_{timeframe}_compact_test_long"
+    )
     pl.DataFrame(
         {
             "timestamp": timestamps,
-            f"ta_{timeframe}_test_long": values,
+            col_name: values,
         }
-    ).write_parquet(flag_dir / f"{slug}_{timeframe}_ta_flags.parquet")
+    ).write_parquet(flag_dir / f"{slug}_{timeframe}_{suffix}.parquet")
 
 
 def test_asset_selector_parsing_and_context_hash() -> None:
@@ -106,6 +115,14 @@ def test_asset_selector_parsing_and_context_hash() -> None:
             context_assets=("ETHUSDT", "EURUSD", "USDJPY", "GC", "CL", "ES", "NQ"),
         )
         == "corexself"
+    )
+    assert (
+        build_stage1_dataset_variant_id(
+            include_ta_flags=True,
+            ta_timeframes=("15m",),
+            ta_signal_sets=("raw",),
+        )
+        == "ta_raw_15m"
     )
 
 
@@ -134,6 +151,34 @@ def test_target_only_assembly_preserves_target_rows_and_labels(tmp_path: Path) -
     assert result.manifest["output_rows"] == 3
     assert result.manifest["null_feature_count"] == 0
     assert result.manifest["duplicate_count"] == 0
+
+
+def test_assembly_can_limit_batches_for_smoke_runs(tmp_path: Path) -> None:
+    first = _timestamps(2)
+    second = [ts + timedelta(hours=1) for ts in first]
+    _write_asset_batches(tmp_path, asset="BTCUSDT", timestamps=first, batch_id=1)
+    _write_asset_batches(tmp_path, asset="BTCUSDT", timestamps=second, batch_id=2)
+
+    result = build_multiasset_stage1_dataset(
+        project_root=tmp_path,
+        target_asset="BTCUSDT",
+        context_assets=(),
+        root_key="8h/B",
+        max_batches=1,
+        batch_id_min=2,
+    )
+
+    assert result.manifest["processed_batches"] == 1
+    assert result.manifest["written_batches"] == 1
+    assert result.manifest["max_batches"] == 1
+    assert result.manifest["batch_id_min"] == 2
+    assert result.manifest["output_rows"] == 2
+    assert (
+        result.features_dir / "1m" / "target_4class" / "batch_0002.parquet"
+    ).exists()
+    assert not (
+        result.features_dir / "1m" / "target_4class" / "batch_0001.parquet"
+    ).exists()
 
 
 def test_exact_timestamp_context_join_drops_unmatched_rows(tmp_path: Path) -> None:
@@ -240,8 +285,45 @@ def test_stage1_assembly_joins_ta_flags_without_dropping_inactive_rows(tmp_path:
     assert features["C_ETHUSDT__ta_15m_test_long"].to_list() == [0, 1, 0]
     assert result.manifest["ta_flags_enabled"] is True
     assert result.manifest["ta_timeframes"] == ["15m"]
+    assert result.manifest["ta_signal_sets"] == ["raw"]
+    assert result.manifest["dataset_variant_id"] == "ta_raw_15m"
+    assert "ta_raw_15m" in str(result.features_dir)
+    assert "ta_raw_15m" in result.run_id
     assert result.manifest["ta_feature_columns_count"] == 2
     assert result.manifest["ta_null_count"] == 0
+
+
+def test_stage1_assembly_can_join_raw_and_compact_ta_flags(tmp_path: Path) -> None:
+    ts = _timestamps(2)
+    _write_asset_batches(tmp_path, asset="BTCUSDT", timestamps=ts)
+    _write_ta_flags(tmp_path, asset="BTCUSDT", timestamps=ts, values=[1, 0])
+    _write_ta_flags(
+        tmp_path,
+        asset="BTCUSDT",
+        timestamps=ts,
+        values=[0, 1],
+        signal_set="compact",
+    )
+
+    result = build_multiasset_stage1_dataset(
+        project_root=tmp_path,
+        target_asset="BTCUSDT",
+        context_assets=(),
+        root_key="8h/B",
+        include_ta_flags=True,
+        ta_timeframes=("15m",),
+        ta_signal_sets=("all",),
+    )
+
+    features = pl.read_parquet(
+        result.features_dir / "1m" / "target_4class" / "batch_0001.parquet"
+    )
+
+    assert features["T_BTCUSDT__ta_15m_test_long"].to_list() == [1, 0]
+    assert features["T_BTCUSDT__ta_15m_compact_test_long"].to_list() == [0, 1]
+    assert result.manifest["ta_signal_sets"] == ["raw", "compact"]
+    assert result.manifest["dataset_variant_id"] == "ta_raw_compact_15m"
+    assert result.manifest["ta_feature_columns_count"] == 2
 
 
 def test_sparse_merged_label_roots_report_highest_batch_id(tmp_path: Path) -> None:

@@ -518,6 +518,27 @@ def _parse_args() -> argparse.Namespace:
         help="Output directory for generated merged Stage-1 dataset roots.",
     )
     parser.add_argument(
+        "--merged-batch-limit",
+        type=int,
+        default=None,
+        help=(
+            "Optional cap on target batches assembled per merged root. Use this "
+            "for fast dataset-contract smoke tests; omit for production datasets."
+        ),
+    )
+    parser.add_argument(
+        "--merged-batch-min",
+        type=int,
+        default=None,
+        help="Optional minimum target batch id to assemble for merged-dataset smoke tests.",
+    )
+    parser.add_argument(
+        "--merged-batch-max",
+        type=int,
+        default=None,
+        help="Optional maximum target batch id to assemble for merged-dataset smoke tests.",
+    )
+    parser.add_argument(
         "--include-ta-flags",
         action="store_true",
         help=(
@@ -529,6 +550,12 @@ def _parse_args() -> argparse.Namespace:
         "--ta-timeframes",
         default="15m,1h,4h,8h,12h,1d",
         help="Comma-separated TA flag timeframes to join when --include-ta-flags is set.",
+    )
+    parser.add_argument(
+        "--ta-signal-set",
+        choices=["raw", "compact", "all"],
+        default="raw",
+        help="TA signal set to join when --include-ta-flags is set.",
     )
     parser.add_argument(
         "--n-steps",
@@ -637,6 +664,10 @@ def _build_execution_entries(
                     for part in str(args.ta_timeframes).split(",")
                     if part.strip()
                 ),
+                ta_signal_sets=(str(args.ta_signal_set),),
+                max_batches=args.merged_batch_limit,
+                batch_id_min=args.merged_batch_min,
+                batch_id_max=args.merged_batch_max,
             )
             root_cfg = {
                 **ROOTS[root_key],
@@ -652,6 +683,7 @@ def _build_execution_entries(
                     "target_asset": target_asset,
                     "context_assets": list(context_assets),
                     "context_hash": assembly.context_hash,
+                    "dataset_variant_id": assembly.dataset_variant_id,
                     "manifest_path": str(assembly.manifest_path),
                     "include_ta_flags": bool(args.include_ta_flags),
                 }
@@ -709,12 +741,22 @@ def main() -> int:
             if bool(args.build_merged_dataset)
             else None
         ),
+        "merged_batch_limit": (
+            None if args.merged_batch_limit is None else int(args.merged_batch_limit)
+        ),
+        "merged_batch_min": (
+            None if args.merged_batch_min is None else int(args.merged_batch_min)
+        ),
+        "merged_batch_max": (
+            None if args.merged_batch_max is None else int(args.merged_batch_max)
+        ),
         "include_ta_flags": bool(args.include_ta_flags),
         "ta_timeframes": [
             part.strip() for part in str(args.ta_timeframes).split(",") if part.strip()
         ]
         if bool(args.include_ta_flags)
         else [],
+        "ta_signal_set": str(args.ta_signal_set) if bool(args.include_ta_flags) else None,
         "n_steps": int(args.n_steps),
         "resume_mode": str(args.resume_mode),
         "runtime_mode": str(args.runtime_mode),
@@ -733,6 +775,7 @@ def main() -> int:
                 "target_asset": entry["target_asset"],
                 "context_assets": entry["context_assets"],
                 "context_hash": entry["context_hash"],
+                "dataset_variant_id": entry.get("dataset_variant_id", "base"),
                 "manifest_path": entry["manifest_path"],
                 "include_ta_flags": entry.get("include_ta_flags", False),
                 "regime": entry["root_cfg"]["regime"],
@@ -799,6 +842,7 @@ def main() -> int:
                 "target_asset": entry["target_asset"],
                 "context_assets": entry["context_assets"],
                 "context_hash": entry["context_hash"],
+                "dataset_variant_id": entry.get("dataset_variant_id", "base"),
                 "manifest_path": entry["manifest_path"],
             }
         )
