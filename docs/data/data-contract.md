@@ -136,6 +136,9 @@ Generated TA artifacts:
 data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_events.parquet
 data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_flags.parquet
 data/htf_multiasset/{asset}/ta_signal_flags/{tf}/{asset}_{tf}_ta_flags_meta.json
+data/htf_multiasset/{asset}/ta_compact_signal_flags/{tf}/{asset}_{tf}_ta_compact_events.parquet
+data/htf_multiasset/{asset}/ta_compact_signal_flags/{tf}/{asset}_{tf}_ta_compact_flags.parquet
+data/htf_multiasset/{asset}/ta_compact_signal_flags/{tf}/{asset}_{tf}_ta_compact_flags_meta.json
 ```
 
 TA event rows are one row per closed higher-timeframe source bar. Model-facing
@@ -154,6 +157,7 @@ Model-facing TA columns use:
 ta_{tf}_{indicator}_{signal}_long
 ta_{tf}_{indicator}_{signal}_short
 ta_{tf}_{indicator}_{state}
+ta_{tf}_compact_{signal}
 ```
 
 Signal metadata columns such as `signal_source_tf`, `signal_bar_open_ts`,
@@ -161,6 +165,8 @@ Signal metadata columns such as `signal_source_tf`, `signal_bar_open_ts`,
 `signal_params_hash` are excluded from Stage-1 model features. When Stage-1
 merged dataset assembly is run with `--include-ta-flags`, target TA flags are
 prefixed as `T_{asset}__ta_*` and context TA flags as `C_{asset}__ta_*`.
+`--ta-signal-set raw`, `compact`, or `all` chooses which reusable TA layer is
+joined.
 
 ## HTF Batch Metadata
 
@@ -237,6 +243,11 @@ The active HTF label surface is `1m/target_4class`. Stage-1 multi-asset
 assembly keeps labels target-specific: context labels are never joined as
 features, and merged Stage-1 labels are filtered target-label rows under
 `data/htf_multiasset_merged/{target}/{context_hash}/{root_id}/labels/1m/`.
+TA-enabled merged datasets add a dataset variant directory between
+`context_hash` and `root_id`, for example
+`data/htf_multiasset_merged/{target}/{context_hash}/ta_raw_15m_1h_4h_8h_12h_1d/{root_id}/`.
+The same variant is included in Stage-1 run ids so baseline, raw TA, compact
+TA, and combined TA runs cannot share output directories.
 Merged feature rows use exact timestamp context joins only. Rows missing any
 selected context asset, or containing null model feature values after the join,
 are dropped and reported in the manifest. Written merged feature batches must

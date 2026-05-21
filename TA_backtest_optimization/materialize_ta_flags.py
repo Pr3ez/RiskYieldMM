@@ -41,6 +41,10 @@ from scripts.feature_engineering.htf_trading_calendar import (  # noqa: E402
 
 
 DEFAULT_TA_TIMEFRAMES = CANONICAL_DERIVED_TIMEFRAMES
+TA_SIGNAL_SET_RAW = "raw"
+TA_SIGNAL_SET_COMPACT = "compact"
+TA_SIGNAL_SET_ALL = "all"
+TA_SIGNAL_SETS = (TA_SIGNAL_SET_RAW, TA_SIGNAL_SET_COMPACT)
 TA_METADATA_COLUMNS = (
     "signal_source_tf",
     "signal_bar_open_ts",
@@ -65,6 +69,22 @@ INDICATOR_PARAMS: dict[str, Any] = {
 PARAMS_HASH = hashlib.sha256(
     json.dumps(INDICATOR_PARAMS, sort_keys=True).encode("utf-8")
 ).hexdigest()[:16]
+COMPACT_SIGNAL_PARAMS: dict[str, Any] = {
+    "cooldown_bars": 3,
+    "trend_gate": "adx>=25_and_dmi_direction",
+    "range_gate": "adx<=20_or_bollinger_squeeze",
+    "trend_primary": "donchian_or_macd_or_supertrend",
+    "range_primary": "rsi_or_stochastic_or_bollinger_reentry",
+    "value_primary": "vwap_or_pivot_break",
+    "confirmation": "obv_direction_for_trend_and_value",
+    "conflict_policy": "mutual_exclusion_drop_conflicts",
+}
+COMPACT_PARAMS_HASH = hashlib.sha256(
+    json.dumps(
+        {"indicator_params": INDICATOR_PARAMS, "compact_signal_params": COMPACT_SIGNAL_PARAMS},
+        sort_keys=True,
+    ).encode("utf-8")
+).hexdigest()[:16]
 
 
 @dataclass(frozen=True)
@@ -79,6 +99,7 @@ class MaterializeTAResult:
     flags_path: Path
     meta_path: Path
     status: str
+    signal_set: str = TA_SIGNAL_SET_RAW
     event_rows: int = 0
     flag_rows: int = 0
     flag_columns: int = 0
@@ -111,31 +132,85 @@ def canonical_ohlcv_path(project_root: Path, asset_id: str, timeframe: str) -> P
     )
 
 
-def ta_signal_dir(project_root: Path, asset_id: str, timeframe: str) -> Path:
+def normalize_ta_signal_set(signal_set: str) -> str:
+    """Normalize a TA signal-set selector."""
+    value = str(signal_set).strip().lower()
+    if value not in (*TA_SIGNAL_SETS, TA_SIGNAL_SET_ALL):
+        known = ", ".join((*TA_SIGNAL_SETS, TA_SIGNAL_SET_ALL))
+        raise ValueError(f"Unknown TA signal set {signal_set!r}. Known: {known}")
+    return value
+
+
+def parse_ta_signal_sets(raw: str | tuple[str, ...] | list[str]) -> tuple[str, ...]:
+    """Parse TA signal-set selectors into concrete output sets."""
+    parts = (
+        [part.strip() for part in raw.split(",") if part.strip()]
+        if isinstance(raw, str)
+        else [str(part).strip() for part in raw if str(part).strip()]
+    )
+    if not parts:
+        parts = [TA_SIGNAL_SET_RAW]
+    out: list[str] = []
+    for part in parts:
+        signal_set = normalize_ta_signal_set(part)
+        concrete = TA_SIGNAL_SETS if signal_set == TA_SIGNAL_SET_ALL else (signal_set,)
+        for item in concrete:
+            if item not in out:
+                out.append(item)
+    return tuple(out)
+
+
+def ta_signal_dir(
+    project_root: Path,
+    asset_id: str,
+    timeframe: str,
+    signal_set: str = TA_SIGNAL_SET_RAW,
+) -> Path:
     """Return the TA signal output directory for one asset/timeframe."""
     spec = get_htf_asset_spec(asset_id)
     tf = normalize_canonical_timeframe(timeframe)
-    return project_root / "data" / "htf_multiasset" / spec.slug / "ta_signal_flags" / tf
+    normalized_signal_set = normalize_ta_signal_set(signal_set)
+    root_name = "ta_signal_flags" if normalized_signal_set == TA_SIGNAL_SET_RAW else "ta_compact_signal_flags"
+    return project_root / "data" / "htf_multiasset" / spec.slug / root_name / tf
 
 
-def ta_events_path(project_root: Path, asset_id: str, timeframe: str) -> Path:
+def ta_events_path(
+    project_root: Path,
+    asset_id: str,
+    timeframe: str,
+    signal_set: str = TA_SIGNAL_SET_RAW,
+) -> Path:
     """Return the HTF TA event parquet path."""
     spec = get_htf_asset_spec(asset_id)
     tf = normalize_canonical_timeframe(timeframe)
-    return ta_signal_dir(project_root, asset_id, tf) / f"{spec.slug}_{tf}_ta_events.parquet"
+    normalized_signal_set = normalize_ta_signal_set(signal_set)
+    suffix = "ta_events" if normalized_signal_set == TA_SIGNAL_SET_RAW else "ta_compact_events"
+    return ta_signal_dir(project_root, asset_id, tf, normalized_signal_set) / f"{spec.slug}_{tf}_{suffix}.parquet"
 
 
-def ta_flags_path(project_root: Path, asset_id: str, timeframe: str) -> Path:
+def ta_flags_path(
+    project_root: Path,
+    asset_id: str,
+    timeframe: str,
+    signal_set: str = TA_SIGNAL_SET_RAW,
+) -> Path:
     """Return the expanded 1m TA flags parquet path."""
     spec = get_htf_asset_spec(asset_id)
     tf = normalize_canonical_timeframe(timeframe)
-    return ta_signal_dir(project_root, asset_id, tf) / f"{spec.slug}_{tf}_ta_flags.parquet"
+    normalized_signal_set = normalize_ta_signal_set(signal_set)
+    suffix = "ta_flags" if normalized_signal_set == TA_SIGNAL_SET_RAW else "ta_compact_flags"
+    return ta_signal_dir(project_root, asset_id, tf, normalized_signal_set) / f"{spec.slug}_{tf}_{suffix}.parquet"
 
 
-def ta_meta_path(project_root: Path, asset_id: str, timeframe: str) -> Path:
+def ta_meta_path(
+    project_root: Path,
+    asset_id: str,
+    timeframe: str,
+    signal_set: str = TA_SIGNAL_SET_RAW,
+) -> Path:
     """Return the TA signal metadata sidecar path."""
-    return ta_flags_path(project_root, asset_id, timeframe).with_name(
-        f"{ta_flags_path(project_root, asset_id, timeframe).stem}_meta.json"
+    return ta_flags_path(project_root, asset_id, timeframe, signal_set).with_name(
+        f"{ta_flags_path(project_root, asset_id, timeframe, signal_set).stem}_meta.json"
     )
 
 
@@ -432,6 +507,134 @@ def compute_ta_events(htf_df: pl.DataFrame, timeframe: str) -> pl.DataFrame:
     )
 
 
+def _cooldown_flag(value: pd.Series, cooldown_bars: int) -> pd.Series:
+    """Suppress repeated true values until the cooldown window has passed."""
+    flags = value.fillna(False).to_numpy(dtype=bool)
+    out = np.zeros(len(flags), dtype=np.int8)
+    last_emit = -cooldown_bars - 1
+    for idx, active in enumerate(flags):
+        if not active:
+            continue
+        if idx - last_emit <= cooldown_bars:
+            continue
+        out[idx] = 1
+        last_emit = idx
+    return pd.Series(out, index=value.index)
+
+
+def _compact_col(pdf: pd.DataFrame, timeframe: str, suffix: str) -> pd.Series:
+    """Read a raw TA flag column as a bool Series."""
+    col = f"ta_{timeframe}_{suffix}"
+    if col not in pdf.columns:
+        return pd.Series(False, index=pdf.index)
+    return pdf[col].fillna(0).astype(bool)
+
+
+def compute_compact_ta_events(raw_events: pl.DataFrame, timeframe: str) -> pl.DataFrame:
+    """Derive compact, regime-gated TA events from the raw TA event layer.
+
+    The compact layer follows the research note hierarchy: gate first, choose
+    one primary family per regime, require OBV confirmation for trend/value
+    drivers, then apply cooldown and mutual exclusion.
+    """
+    tf = normalize_canonical_timeframe(timeframe)
+    if raw_events.is_empty():
+        return pl.DataFrame({"timestamp": []})
+
+    pdf = raw_events.to_pandas().sort_values("timestamp").reset_index(drop=True)
+    prefix = f"ta_{tf}_compact_"
+    adx = pd.to_numeric(pdf.get(f"ind_{tf}_adx"), errors="coerce")
+    plus_di = pd.to_numeric(pdf.get(f"ind_{tf}_plus_di"), errors="coerce")
+    minus_di = pd.to_numeric(pdf.get(f"ind_{tf}_minus_di"), errors="coerce")
+    obv = pd.to_numeric(pdf.get(f"ind_{tf}_obv"), errors="coerce")
+    obv_ma = pd.to_numeric(pdf.get(f"ind_{tf}_obv_ma"), errors="coerce")
+
+    trend_gate_long = (plus_di > minus_di) & (adx >= 25.0) & (adx.diff() > 0)
+    trend_gate_short = (minus_di > plus_di) & (adx >= 25.0) & (adx.diff() > 0)
+    trend_gate_state = trend_gate_long | trend_gate_short
+    range_gate_state = (adx <= 20.0) | _compact_col(pdf, tf, "bollinger_squeeze_state")
+    obv_confirm_long = (obv > obv_ma) | _compact_col(pdf, tf, "obv_ma_cross_long")
+    obv_confirm_short = (obv < obv_ma) | _compact_col(pdf, tf, "obv_ma_cross_short")
+
+    trend_driver_long = (
+        _compact_col(pdf, tf, "donchian_breakout_long")
+        | _compact_col(pdf, tf, "macd_hist_cross_long")
+        | _compact_col(pdf, tf, "supertrend_flip_long")
+    )
+    trend_driver_short = (
+        _compact_col(pdf, tf, "donchian_breakout_short")
+        | _compact_col(pdf, tf, "macd_hist_cross_short")
+        | _compact_col(pdf, tf, "supertrend_flip_short")
+    )
+    range_driver_long = (
+        _compact_col(pdf, tf, "rsi_reentry_long")
+        | _compact_col(pdf, tf, "stoch_cross_long")
+        | _compact_col(pdf, tf, "bollinger_reentry_long")
+    )
+    range_driver_short = (
+        _compact_col(pdf, tf, "rsi_reentry_short")
+        | _compact_col(pdf, tf, "stoch_cross_short")
+        | _compact_col(pdf, tf, "bollinger_reentry_short")
+    )
+    value_driver_long = _compact_col(pdf, tf, "vwap_cross_long") | _compact_col(pdf, tf, "pivot_r1_break_long")
+    value_driver_short = _compact_col(pdf, tf, "vwap_cross_short") | _compact_col(pdf, tf, "pivot_s1_break_short")
+
+    cooldown = int(COMPACT_SIGNAL_PARAMS["cooldown_bars"])
+    trend_long = _cooldown_flag(trend_gate_long & trend_driver_long & obv_confirm_long, cooldown)
+    trend_short = _cooldown_flag(trend_gate_short & trend_driver_short & obv_confirm_short, cooldown)
+    range_long = _cooldown_flag(~trend_gate_state & range_gate_state & range_driver_long, cooldown)
+    range_short = _cooldown_flag(~trend_gate_state & range_gate_state & range_driver_short, cooldown)
+    value_long = _cooldown_flag(
+        ~trend_gate_state & ~range_gate_state & value_driver_long & obv_confirm_long,
+        cooldown,
+    )
+    value_short = _cooldown_flag(
+        ~trend_gate_state & ~range_gate_state & value_driver_short & obv_confirm_short,
+        cooldown,
+    )
+
+    entry_long = (trend_long.astype(bool) | range_long.astype(bool) | value_long.astype(bool))
+    entry_short = (trend_short.astype(bool) | range_short.astype(bool) | value_short.astype(bool))
+    conflict = entry_long & entry_short
+    entry_long = entry_long & ~conflict
+    entry_short = entry_short & ~conflict
+
+    compact = pd.DataFrame(
+        {
+            "timestamp": pdf["timestamp"],
+            "signal_source_tf": tf,
+            "signal_bar_open_ts": pdf["signal_bar_open_ts"],
+            "signal_available_ts": pdf["signal_available_ts"],
+            "signal_valid_until_ts": pdf["signal_valid_until_ts"],
+            "signal_valid_rows": pdf["signal_valid_rows"],
+            "signal_params_hash": COMPACT_PARAMS_HASH,
+            f"{prefix}trend_gate_long": _bool_flag(trend_gate_long),
+            f"{prefix}trend_gate_short": _bool_flag(trend_gate_short),
+            f"{prefix}trend_gate_state": _bool_flag(trend_gate_state),
+            f"{prefix}range_gate_state": _bool_flag(range_gate_state),
+            f"{prefix}obv_confirm_long": _bool_flag(obv_confirm_long),
+            f"{prefix}obv_confirm_short": _bool_flag(obv_confirm_short),
+            f"{prefix}trend_long": trend_long.astype("int8"),
+            f"{prefix}trend_short": trend_short.astype("int8"),
+            f"{prefix}range_reversion_long": range_long.astype("int8"),
+            f"{prefix}range_reversion_short": range_short.astype("int8"),
+            f"{prefix}value_acceptance_long": value_long.astype("int8"),
+            f"{prefix}value_acceptance_short": value_short.astype("int8"),
+            f"{prefix}entry_long": entry_long.astype("int8"),
+            f"{prefix}entry_short": entry_short.astype("int8"),
+            f"{prefix}conflict_dropped_state": _bool_flag(conflict),
+        }
+    )
+    return pl.from_pandas(compact).with_columns(
+        [
+            pl.col("timestamp").cast(pl.Datetime("us", "UTC")),
+            pl.col("signal_bar_open_ts").cast(pl.Datetime("us", "UTC")),
+            pl.col("signal_available_ts").cast(pl.Datetime("us", "UTC")),
+            pl.col("signal_valid_until_ts").cast(pl.Datetime("us", "UTC")),
+        ]
+    )
+
+
 def _timestamp_us(df: pl.DataFrame, column: str = "timestamp") -> np.ndarray:
     return (
         df.select(pl.col(column).dt.timestamp("us").alias(column))
@@ -481,7 +684,6 @@ def expand_events_to_1m(
 ) -> pl.DataFrame:
     """Expand closed-bar TA events onto future 1m canonical rows only."""
     tf = normalize_canonical_timeframe(timeframe)
-    minutes = timeframe_minutes(tf)
     one_minute = canonical_1m.select("timestamp").sort("timestamp")
     n_rows = len(one_minute)
     flag_cols = ta_flag_columns(events.columns, tf)
@@ -495,7 +697,12 @@ def expand_events_to_1m(
     one_ts = _timestamp_us(one_minute)
     avail = _timestamp_us(events, "signal_available_ts")
     starts = np.searchsorted(one_ts, avail, side="left")
-    ends = np.minimum(starts + minutes, n_rows)
+    if "signal_valid_until_ts" in events.columns:
+        valid_until = _timestamp_us(events, "signal_valid_until_ts")
+        ends = np.searchsorted(one_ts, valid_until, side="left")
+    else:
+        ends = starts + timeframe_minutes(tf)
+    ends = np.minimum(np.maximum(ends, starts), n_rows)
     valid = starts < n_rows
     columns: list[pl.Series] = []
     for col in flag_cols:
@@ -510,53 +717,110 @@ def expand_events_to_1m(
     return out.with_columns(columns)
 
 
+def _apply_expanded_compact_mutual_exclusion(flags: pl.DataFrame, timeframe: str) -> pl.DataFrame:
+    """Drop compact long/short rows that overlap after 1m expansion.
+
+    Compact event rows already drop same-bar conflicts. Session-aware validity
+    can still overlap when a signal remains valid across a maintenance break and
+    the next source bar has the opposite direction. The compact contract is a
+    cleaner, mutually-exclusive feature layer, so those expanded overlaps are
+    treated as conflicts and both sides are disabled for the affected 1m rows.
+    """
+    tf = normalize_canonical_timeframe(timeframe)
+    prefix = f"ta_{tf}_compact_"
+    flag_cols = ta_flag_columns(flags.columns, tf)
+    flag_set = set(flag_cols)
+    pairs: list[tuple[str, str]] = []
+    for long_col in flag_cols:
+        if not long_col.startswith(prefix) or not long_col.endswith("_long"):
+            continue
+        short_col = f"{long_col[:-5]}_short"
+        if short_col in flag_set:
+            pairs.append((long_col, short_col))
+    if not pairs:
+        return flags
+
+    conflict_exprs = [(pl.col(long_col) > 0) & (pl.col(short_col) > 0) for long_col, short_col in pairs]
+    any_conflict = conflict_exprs[0]
+    for expr in conflict_exprs[1:]:
+        any_conflict = any_conflict | expr
+
+    updates: list[pl.Expr] = []
+    for long_col, short_col in pairs:
+        pair_conflict = (pl.col(long_col) > 0) & (pl.col(short_col) > 0)
+        updates.append(pl.when(pair_conflict).then(0).otherwise(pl.col(long_col)).cast(pl.Int8).alias(long_col))
+        updates.append(pl.when(pair_conflict).then(0).otherwise(pl.col(short_col)).cast(pl.Int8).alias(short_col))
+
+    conflict_col = f"{prefix}conflict_dropped_state"
+    if conflict_col in flags.columns:
+        updates.append(
+            pl.when(any_conflict)
+            .then(1)
+            .otherwise(pl.col(conflict_col).fill_null(0))
+            .cast(pl.Int8)
+            .alias(conflict_col)
+        )
+    return flags.with_columns(updates)
+
+
 def materialize_one(
     *,
     project_root: Path,
     asset_id: str,
     timeframe: str,
+    signal_set: str = TA_SIGNAL_SET_RAW,
     dry_run: bool = False,
 ) -> MaterializeTAResult:
     """Compute and write TA events plus expanded 1m flags for one asset/timeframe."""
     asset_id = get_htf_asset_spec(asset_id).asset_id
     tf = normalize_canonical_timeframe(timeframe)
+    signal_set = normalize_ta_signal_set(signal_set)
     source_path = canonical_ohlcv_path(project_root, asset_id, tf)
     source_1m_path = canonical_ohlcv_path(project_root, asset_id, "1m")
-    events_path = ta_events_path(project_root, asset_id, tf)
-    flags_path = ta_flags_path(project_root, asset_id, tf)
-    meta_path = ta_meta_path(project_root, asset_id, tf)
+    events_path = ta_events_path(project_root, asset_id, tf, signal_set)
+    flags_path = ta_flags_path(project_root, asset_id, tf, signal_set)
+    meta_path = ta_meta_path(project_root, asset_id, tf, signal_set)
     if not source_path.exists():
         return MaterializeTAResult(
-            asset_id,
-            tf,
-            source_path,
-            source_1m_path,
-            events_path,
-            flags_path,
-            meta_path,
-            "missing_source_tf",
+            asset_id=asset_id,
+            timeframe=tf,
+            source_path=source_path,
+            source_1m_path=source_1m_path,
+            events_path=events_path,
+            flags_path=flags_path,
+            meta_path=meta_path,
+            status="missing_source_tf",
+            signal_set=signal_set,
             detail=f"Missing canonical source: {source_path}",
         )
     if not source_1m_path.exists():
         return MaterializeTAResult(
-            asset_id,
-            tf,
-            source_path,
-            source_1m_path,
-            events_path,
-            flags_path,
-            meta_path,
-            "missing_source_1m",
+            asset_id=asset_id,
+            timeframe=tf,
+            source_path=source_path,
+            source_1m_path=source_1m_path,
+            events_path=events_path,
+            flags_path=flags_path,
+            meta_path=meta_path,
+            status="missing_source_1m",
+            signal_set=signal_set,
             detail=f"Missing canonical 1m source: {source_1m_path}",
         )
     if dry_run:
-        return status_one(project_root, asset_id, tf, dry_run=True)
+        return status_one(project_root, asset_id, tf, signal_set=signal_set, dry_run=True)
 
     htf_df = pl.read_parquet(source_path)
     canonical_1m = pl.read_parquet(source_1m_path, columns=["timestamp"])
-    events = compute_ta_events(htf_df, tf)
-    events = _apply_canonical_valid_until(events, canonical_1m, tf)
+    raw_events = compute_ta_events(htf_df, tf)
+    raw_events = _apply_canonical_valid_until(raw_events, canonical_1m, tf)
+    events = (
+        raw_events
+        if signal_set == TA_SIGNAL_SET_RAW
+        else compute_compact_ta_events(raw_events, tf)
+    )
     flags = expand_events_to_1m(events, canonical_1m, tf)
+    if signal_set == TA_SIGNAL_SET_COMPACT:
+        flags = _apply_expanded_compact_mutual_exclusion(flags, tf)
     flag_cols = ta_flag_columns(flags.columns, tf)
 
     flags_path.parent.mkdir(parents=True, exist_ok=True)
@@ -581,8 +845,11 @@ def materialize_one(
         "events_path": events_path,
         "flags_path": flags_path,
         "meta_path": meta_path,
+        "signal_set": signal_set,
         "indicator_params": INDICATOR_PARAMS,
-        "signal_params_hash": PARAMS_HASH,
+        "compact_signal_params": COMPACT_SIGNAL_PARAMS if signal_set == TA_SIGNAL_SET_COMPACT else None,
+        "signal_params_hash": PARAMS_HASH if signal_set == TA_SIGNAL_SET_RAW else COMPACT_PARAMS_HASH,
+        "compact_signal_params_hash": COMPACT_PARAMS_HASH if signal_set == TA_SIGNAL_SET_COMPACT else None,
         "signal_timing": "post_close",
         "expansion": "next_timeframe_minutes_over_canonical_1m_market_open_rows",
         "event_rows": len(events),
@@ -605,6 +872,7 @@ def materialize_one(
         flags_path=flags_path,
         meta_path=meta_path,
         status="written",
+        signal_set=signal_set,
         event_rows=len(events),
         flag_rows=len(flags),
         flag_columns=len(flag_cols),
@@ -618,28 +886,30 @@ def status_one(
     asset_id: str,
     timeframe: str,
     *,
+    signal_set: str = TA_SIGNAL_SET_RAW,
     dry_run: bool = False,
 ) -> MaterializeTAResult:
     """Return current status for one TA flag output."""
     asset_id = get_htf_asset_spec(asset_id).asset_id
     tf = normalize_canonical_timeframe(timeframe)
+    signal_set = normalize_ta_signal_set(signal_set)
     source_path = canonical_ohlcv_path(project_root, asset_id, tf)
     source_1m_path = canonical_ohlcv_path(project_root, asset_id, "1m")
-    events_path = ta_events_path(project_root, asset_id, tf)
-    flags_path = ta_flags_path(project_root, asset_id, tf)
-    meta_path = ta_meta_path(project_root, asset_id, tf)
+    events_path = ta_events_path(project_root, asset_id, tf, signal_set)
+    flags_path = ta_flags_path(project_root, asset_id, tf, signal_set)
+    meta_path = ta_meta_path(project_root, asset_id, tf, signal_set)
     if not source_path.exists():
-        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_source_tf")
+        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_source_tf", signal_set=signal_set)
     if not source_1m_path.exists():
-        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_source_1m")
+        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_source_1m", signal_set=signal_set)
     if dry_run:
         status = "would_write" if flags_path.exists() else "would_create"
         rows, min_ts, max_ts, flag_cols = _scan_flags(flags_path)
-        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, status, flag_rows=rows, flag_columns=flag_cols, min_ts=min_ts, max_ts=max_ts)
+        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, status, signal_set=signal_set, flag_rows=rows, flag_columns=flag_cols, min_ts=min_ts, max_ts=max_ts)
     if not events_path.exists() or not flags_path.exists():
-        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_output")
+        return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "missing_output", signal_set=signal_set)
     rows, min_ts, max_ts, flag_cols = _scan_flags(flags_path)
-    return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "ok" if rows else "empty_output", flag_rows=rows, flag_columns=flag_cols, min_ts=min_ts, max_ts=max_ts)
+    return MaterializeTAResult(asset_id, tf, source_path, source_1m_path, events_path, flags_path, meta_path, "ok" if rows else "empty_output", signal_set=signal_set, flag_rows=rows, flag_columns=flag_cols, min_ts=min_ts, max_ts=max_ts)
 
 
 def _scan_flags(path: Path) -> tuple[int, datetime | None, datetime | None, int]:
@@ -666,15 +936,15 @@ def _asset_ids(raw: str) -> tuple[str, ...]:
 
 def print_results(results: list[MaterializeTAResult]) -> None:
     """Print a compact status table."""
-    print("| Asset | TF | Status | Flag Rows | Flags | Range UTC |")
-    print("|---|---:|---|---:|---:|---|")
+    print("| Asset | TF | Set | Status | Flag Rows | Flags | Range UTC |")
+    print("|---|---:|---|---|---:|---:|---|")
     for result in results:
         if result.min_ts is not None and result.max_ts is not None:
             rng = f"{result.min_ts} -> {result.max_ts}"
         else:
             rng = result.detail or "-"
         print(
-            f"| {result.asset_id} | {result.timeframe} | {result.status} | "
+            f"| {result.asset_id} | {result.timeframe} | {result.signal_set} | {result.status} | "
             f"{result.flag_rows} | {result.flag_columns} | {rng} |"
         )
 
@@ -690,6 +960,12 @@ def build_arg_parser() -> argparse.ArgumentParser:
         default=",".join(DEFAULT_TA_TIMEFRAMES),
         help="Comma-separated canonical timeframes, e.g. 15m,1h,4h,8h,12h,1d",
     )
+    parser.add_argument(
+        "--signal-set",
+        default=TA_SIGNAL_SET_RAW,
+        choices=(TA_SIGNAL_SET_RAW, TA_SIGNAL_SET_COMPACT, TA_SIGNAL_SET_ALL),
+        help="TA signal set to materialize/status: raw, compact, or all.",
+    )
     parser.add_argument("--project-root", type=Path, default=None)
     parser.add_argument("--status", action="store_true", help="Report output status without writing")
     parser.add_argument("--dry-run", action="store_true", help="Preview write targets without writing")
@@ -702,20 +978,23 @@ def main(argv: list[str] | None = None) -> int:
     project_root = Path(args.project_root).resolve() if args.project_root else project_root_from_cwd()
     assets = _asset_ids(args.assets)
     timeframes = parse_ta_timeframes(args.timeframes)
+    signal_sets = parse_ta_signal_sets(args.signal_set)
     results: list[MaterializeTAResult] = []
     for asset_id in assets:
         for timeframe in timeframes:
-            if args.status:
-                results.append(status_one(project_root, asset_id, timeframe))
-            else:
-                results.append(
-                    materialize_one(
-                        project_root=project_root,
-                        asset_id=asset_id,
-                        timeframe=timeframe,
-                        dry_run=bool(args.dry_run),
+            for signal_set in signal_sets:
+                if args.status:
+                    results.append(status_one(project_root, asset_id, timeframe, signal_set=signal_set))
+                else:
+                    results.append(
+                        materialize_one(
+                            project_root=project_root,
+                            asset_id=asset_id,
+                            timeframe=timeframe,
+                            signal_set=signal_set,
+                            dry_run=bool(args.dry_run),
+                        )
                     )
-                )
     print_results(results)
     bad_statuses = {"missing_source_tf", "missing_source_1m", "missing_output", "empty_output"}
     if args.status and any(result.status in bad_statuses for result in results):
