@@ -47,10 +47,20 @@ All notable repository-level changes are recorded here.
   written separately from raw indicator flags, Stage-1 can choose
   `--ta-signal-set raw|compact|all`, and `diagnose_ta_flags.py` reports
   activation rates, dead/always-on flags, long/short conflicts, and high-overlap
-  pairs before optimization.
+  pairs before optimization. Diagnostics now also assign `gold/silver/bronze/fail`
+  quality tiers so Stage-1 analysis can reject redundant/noisy flag sets before
+  model runs.
 - TA-enabled merged Stage-1 datasets now include the TA signal-set/timeframe
   variant in their generated path and run id so baseline, raw TA, compact TA,
   and combined TA smoke runs remain isolated.
+- Experimental Stage-1 target-survey layer for triple-barrier four-class labels:
+  `materialize_stage1_target_variants.py` writes separate BTCUSDT `8h/B`
+  `target_4class_tb_*_v1` label roots, Stage-1 accepts
+  `--stage1-target-col`, and target variants receive separate merged dataset
+  paths/run ids. Sanity reporting now separates label-eligible entry-window
+  invalids from non-entry rows, keeps the original v1 variants for diagnostics,
+  and adds `tb_atr_wide_v2`, a wider symmetric ATR candidate that passes the
+  BTCUSDT `8h/B` label sanity gate for first Stage-1 comparison.
 - Stage-1 merged dataset assembly now has `--merged-batch-min`,
   `--merged-batch-max`, and `--merged-batch-limit` for fast dataset-contract
   smoke tests on mature batch windows; full production merged datasets still

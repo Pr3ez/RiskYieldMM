@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import shutil
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -242,6 +243,7 @@ def build_context_set_hash(
 
 def build_stage1_dataset_variant_id(
     *,
+    target_col: str = TARGET_COL,
     include_ta_flags: bool,
     ta_timeframes: tuple[str, ...] = (),
     ta_signal_sets: tuple[str, ...] = (TA_SIGNAL_SET_RAW,),
@@ -249,26 +251,51 @@ def build_stage1_dataset_variant_id(
     """Return a stable identity for optional feature-library variants.
 
     Baseline multi-asset datasets keep the historical `base` identity and path.
-    TA-enabled datasets include the selected TA signal sets and timeframes so
-    baseline, raw TA, compact TA, and combined TA runs cannot overwrite or
-    resume from each other's outputs.
+    Non-default target labels and TA-enabled datasets include their selected
+    identity parts so baseline, target-survey, raw TA, compact TA, and combined
+    TA runs cannot overwrite or resume from each other's outputs.
     """
+    parts: list[str] = []
+    if str(target_col) != TARGET_COL:
+        parts.append(_target_variant_id(str(target_col)))
+
     if not include_ta_flags:
-        return "base"
+        if not parts:
+            return "base"
+        return "_".join(parts)
+
     normalized_timeframes = parse_ta_timeframes(ta_timeframes)
     normalized_signal_sets = parse_ta_signal_sets(ta_signal_sets)
+    parts.append(f"ta_{'_'.join(normalized_signal_sets)}_{'_'.join(normalized_timeframes)}")
+    variant_id = "_".join(parts)
+    if len(variant_id) <= 72:
+        return variant_id
+
     payload = {
+        "target_col": str(target_col),
         "ta_flags_enabled": True,
         "ta_signal_sets": list(normalized_signal_sets),
         "ta_timeframes": list(normalized_timeframes),
     }
-    set_part = "_".join(normalized_signal_sets)
-    tf_part = "_".join(normalized_timeframes)
-    variant_id = f"ta_{set_part}_{tf_part}"
-    if len(variant_id) > 72:
-        digest = hashlib.sha1(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
-        variant_id = f"ta_{digest[:12]}"
-    return variant_id
+    digest = hashlib.sha1(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+    prefix = _target_variant_id(str(target_col)) if str(target_col) != TARGET_COL else "ta"
+    return f"{prefix}_{digest[:12]}"
+
+
+def _target_variant_id(target_col: str) -> str:
+    """Return a filesystem/run-id-safe compact target label identity."""
+    target_col = str(target_col)
+    if target_col == TARGET_COL:
+        return "base"
+    short = target_col
+    if short.startswith(f"{TARGET_COL}_"):
+        short = short[len(f"{TARGET_COL}_") :]
+    elif short.startswith("target_"):
+        short = short[len("target_") :]
+    sanitized = re.sub(r"[^A-Za-z0-9_]+", "_", short).strip("_").lower()
+    if not sanitized:
+        sanitized = hashlib.sha1(target_col.encode("utf-8")).hexdigest()[:12]
+    return f"target_{sanitized}"
 
 
 def build_multiasset_stage1_run_id(
@@ -331,6 +358,7 @@ def build_multiasset_stage1_dataset(
         context_assets=context_assets,
     )
     dataset_variant_id = build_stage1_dataset_variant_id(
+        target_col=target_col,
         include_ta_flags=include_ta_flags,
         ta_timeframes=ta_timeframes,
         ta_signal_sets=ta_signal_sets,
@@ -356,10 +384,11 @@ def build_multiasset_stage1_dataset(
         tf=tf,
         feature_target_col=feature_target_col,
     )
+    target_label_root = _label_root_for_target(layout.label_root, target_col)
     target_label_dir = _asset_label_dir(
         input_base_dir,
         asset_id=target_asset,
-        layout=layout,
+        label_root=target_label_root,
         tf=tf,
     )
     target_index = _build_feature_index(
@@ -724,10 +753,18 @@ def _asset_label_dir(
     input_base_dir: Path,
     *,
     asset_id: str,
-    layout: Stage1RootLayout,
+    label_root: str,
     tf: str,
 ) -> Path:
-    return Path(input_base_dir) / _asset_slug(asset_id) / layout.label_root / tf
+    return Path(input_base_dir) / _asset_slug(asset_id) / label_root / tf
+
+
+def _label_root_for_target(label_root: str, target_col: str) -> str:
+    """Map a target column to the label root that owns it."""
+    if str(target_col) == TARGET_COL:
+        return str(label_root)
+    suffix = _target_variant_id(str(target_col)).removeprefix("target_")
+    return f"{label_root}_{suffix}"
 
 
 def _batch_id_from_path(path: Path) -> int:

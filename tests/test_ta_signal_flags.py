@@ -18,6 +18,8 @@ from TA_backtest_optimization.materialize_ta_flags import (
 )
 from scripts.htf_backtest.catboost.utils import get_feature_columns
 from TA_backtest_optimization.diagnose_ta_flags import (
+    QUALITY_FAIL,
+    QUALITY_GOLD,
     TADiagnosticConfig,
     run_diagnostics,
 )
@@ -327,6 +329,38 @@ def test_ta_diagnostics_reports_activation_conflicts_and_overlap(tmp_path: Path)
     activation = pl.read_csv(outputs["activation"])
     conflicts = pl.read_csv(outputs["conflicts"])
     overlaps = pl.read_csv(outputs["high_overlap"])
+    summary = pl.read_csv(outputs["summary"])
     assert activation.filter(pl.col("flag") == "ta_15m_dead_long")["is_dead"][0]
     assert conflicts["conflict_rows"].to_list() == [1]
     assert len(overlaps) >= 1
+    assert summary["quality_tier"].to_list() == [QUALITY_FAIL]
+    assert summary["dead_model_flags"].to_list() == [1]
+
+
+def test_ta_diagnostics_grades_clean_compact_flags_as_gold(tmp_path: Path) -> None:
+    flag_dir = tmp_path / "data" / "htf_multiasset" / "btcusdt" / "ta_compact_signal_flags" / "15m"
+    flag_dir.mkdir(parents=True)
+    pl.DataFrame(
+        {
+            "timestamp": _minute_rows(datetime(2024, 1, 1, tzinfo=timezone.utc), 4),
+            "ta_15m_compact_entry_long": [1, 0, 0, 0],
+            "ta_15m_compact_entry_short": [0, 0, 1, 0],
+            "ta_15m_compact_conflict_dropped_state": [0, 0, 0, 0],
+        }
+    ).write_parquet(flag_dir / "btcusdt_15m_ta_compact_flags.parquet")
+
+    outputs = run_diagnostics(
+        TADiagnosticConfig(
+            project_root=tmp_path,
+            assets=("BTCUSDT",),
+            timeframes=("15m",),
+            signal_sets=("compact",),
+            output_dir=tmp_path / "diagnostics",
+        )
+    )
+
+    summary = pl.read_csv(outputs["summary"])
+    assert summary["quality_tier"].to_list() == [QUALITY_GOLD]
+    assert summary["stage1_candidate"].to_list() == [True]
+    assert summary["dead_model_flags"].to_list() == [0]
+    assert summary["diagnostic_dead_flags"].to_list() == [1]

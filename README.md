@@ -605,7 +605,7 @@ python TA_backtest_optimization/materialize_ta_flags.py \
   --timeframes 15m,1h,4h,8h,12h,1d \
   --signal-set all
 
-# Report activation rates, conflicts, and high-overlap flag pairs.
+# Report activation rates, conflicts, high-overlap pairs, and readiness tiers.
 python TA_backtest_optimization/diagnose_ta_flags.py \
   --assets core \
   --timeframes 15m,1h,4h,8h,12h,1d \
@@ -620,6 +620,10 @@ RSI, MACD, VWAP, Donchian, OBV, Bollinger Bands, Pivot Points, Supertrend,
 Aroon, and Stochastic. Compact flags add the research-guided regime gate,
 confirmation, cooldown, and mutual-exclusion layer. Exits, sizing, leverage,
 and PnL optimization remain later research stages.
+
+Use compact TA first for Stage-1 when diagnostics grade the compact core matrix
+as `gold`. Raw TA can be used as a broader `silver` feature-library comparison,
+but it is not a mutually exclusive directional signal layer.
 
 Example output roots:
 
@@ -828,7 +832,7 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --build-merged-dataset \
   --include-ta-flags \
   --ta-timeframes 15m,1h,4h,8h,12h,1d \
-  --ta-signal-set raw \
+  --ta-signal-set compact \
   --target-assets BTCUSDT \
   --context-assets core-ex-target \
   --roots 8h/B \
@@ -885,6 +889,52 @@ docs/research/stage1-label-anomaly-8h-b-diagnostics-2026-05-20.md
 
 Current decision: continue `8h/B` research only. ES/GC validation instability
 blocks all-root promotion and automatic use of `target_8class_anomaly`.
+
+Triple-barrier parent-label research is implemented as an experimental label
+layer, not as a replacement for `target_4class`. Materialize BTCUSDT `8h/B`
+target variants with:
+
+```bash
+python scripts/analysis/materialize_stage1_target_variants.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variants tb_atr_v1,tb_bollinger_v1,tb_keltner_v1,tb_atr_wide_v2 \
+  --write-sanity-report
+```
+
+The generated label roots are separate, for example:
+
+```text
+data/htf_multiasset/btcusdt/htf_4class_labels_tb_atr_v1/1m/
+data/htf_multiasset/btcusdt/htf_4class_labels_tb_atr_wide_v2/1m/
+```
+
+Stage-1 can point at one of these targets while still using the existing
+`target_4class` feature source:
+
+```bash
+python scripts/analysis/htf_stage1_regime_family_walkforward.py \
+  --build-merged-dataset \
+  --stage1-target-col target_4class_tb_atr_wide_v2 \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --n-steps 2 \
+  --resume-mode skip_completed \
+  --runtime-mode routine
+```
+
+The first BTCUSDT `8h/B` report showed that the original v1
+ATR/Bollinger/Keltner barriers are not model-ready because they collapse almost
+all eligible rows into expansion classes. The follow-up `tb_atr_wide_v2`
+candidate uses wider symmetric ATR barriers and passes the label sanity gate.
+Sanity gates are evaluated on label-eligible entry-window rows only; non-entry
+rows remain `-1` by design and Stage-1 filters them before training.
+The current BTCUSDT `8h/B` two-step smoke comparison is documented in:
+
+```text
+docs/research/tb-target-survey-8h-b-btcusdt-stage1-smoke-2026-05-21.md
+```
 
 For the current full regime/family Stage-1 v1 run:
 
