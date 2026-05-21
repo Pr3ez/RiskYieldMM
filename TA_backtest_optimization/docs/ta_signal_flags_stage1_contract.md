@@ -75,6 +75,24 @@ after Stage-1 validation.
 Warm-up periods emit inactive flags. Breakout rules that can leak through the
 current bar, such as Donchian channels, use previous-channel values.
 
+## Quality Tiers
+
+TA diagnostics classify each asset/timeframe/signal-set output before Stage-1
+analysis:
+
+- `gold`: clean first candidate. No model dead flags, no always-on flags, no
+  high-overlap pairs, and no compact long/short conflicts.
+- `silver`: usable feature library, but not a clean directional decision layer.
+  Raw independent flags may be silver when they have expected long/short
+  overlaps but no dead, always-on, or high-overlap noise.
+- `bronze`: generated and inspectable, but not ready for promotion.
+- `fail`: missing/empty output or material noise such as model dead flags,
+  always-on flags, or high-overlap pairs.
+
+For Stage-1 quality tests, use `compact` first when the core matrix is `gold`.
+Use `raw` only as a broader feature-library comparison because raw flags are not
+mutually exclusive by design.
+
 ## Stage-1 Integration
 
 TA flags are optional in Stage-1 merged dataset assembly:
@@ -84,7 +102,7 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
   --build-merged-dataset \
   --include-ta-flags \
   --ta-timeframes 15m,1h,4h,8h,12h,1d \
-  --ta-signal-set raw \
+  --ta-signal-set compact \
   --target-assets BTCUSDT \
   --context-assets core-ex-target \
   --roots 8h/B \

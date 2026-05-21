@@ -24,6 +24,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from TA_backtest_optimization.materialize_ta_flags import (  # noqa: E402
+    TA_SIGNAL_SET_COMPACT,
     TA_SIGNAL_SET_ALL,
     TA_SIGNAL_SET_RAW,
     parse_ta_signal_sets,
@@ -36,6 +37,12 @@ from scripts.feature_engineering.htf_asset_registry import (  # noqa: E402
     CORE_HTF_ASSET_IDS,
     htf_asset_ids_from_csv,
 )
+
+
+QUALITY_GOLD = "gold"
+QUALITY_SILVER = "silver"
+QUALITY_BRONZE = "bronze"
+QUALITY_FAIL = "fail"
 
 
 @dataclass(frozen=True)
@@ -70,10 +77,131 @@ def _flag_side(column: str) -> str | None:
     return None
 
 
+def _is_diagnostic_dead_flag(column: str) -> bool:
+    """Return true for diagnostic state columns that may legitimately be zero.
+
+    `compact_conflict_dropped_state` is a health/audit flag. If it is dead, that
+    means no compact post-expansion conflicts were dropped, which is a good
+    result rather than model-facing missing coverage.
+    """
+    return column.endswith("_compact_conflict_dropped_state")
+
+
+def _quality_grade(
+    *,
+    status: str,
+    signal_set: str,
+    activation_rows: list[dict[str, Any]],
+    conflict_rows: list[dict[str, Any]],
+    overlap_rows: list[dict[str, Any]],
+) -> tuple[str, bool, int, int, str]:
+    """Classify one asset/timeframe/signal-set into a Stage-1 readiness tier.
+
+    Gold is clean enough to be the first Stage-1 candidate. Silver is usable as a
+    broader feature library but needs stricter comparison. Bronze/fail should
+    not be promoted before fixing the reported noise or organization issues.
+    """
+    if status != "ok":
+        return QUALITY_FAIL, False, 0, 0, f"status={status}"
+
+    always_on = [row["flag"] for row in activation_rows if row["is_always_on"]]
+    dead_model = [
+        row["flag"]
+        for row in activation_rows
+        if row["is_dead"] and not _is_diagnostic_dead_flag(str(row["flag"]))
+    ]
+    diagnostic_dead = [
+        row["flag"]
+        for row in activation_rows
+        if row["is_dead"] and _is_diagnostic_dead_flag(str(row["flag"]))
+    ]
+    reasons: list[str] = []
+    if dead_model:
+        reasons.append(f"dead_model_flags={len(dead_model)}")
+    if always_on:
+        reasons.append(f"always_on_flags={len(always_on)}")
+    if overlap_rows:
+        reasons.append(f"high_overlap_pairs={len(overlap_rows)}")
+    if signal_set == TA_SIGNAL_SET_COMPACT and conflict_rows:
+        reasons.append(f"compact_conflict_pairs={len(conflict_rows)}")
+
+    if dead_model or always_on or overlap_rows:
+        return (
+            QUALITY_FAIL,
+            False,
+            len(dead_model),
+            len(diagnostic_dead),
+            ";".join(reasons),
+        )
+    if signal_set == TA_SIGNAL_SET_COMPACT:
+        if conflict_rows:
+            return (
+                QUALITY_BRONZE,
+                False,
+                len(dead_model),
+                len(diagnostic_dead),
+                ";".join(reasons),
+            )
+        note = (
+            f"diagnostic_dead_flags={len(diagnostic_dead)}"
+            if diagnostic_dead
+            else "compact_clean"
+        )
+        return QUALITY_GOLD, True, len(dead_model), len(diagnostic_dead), note
+
+    if conflict_rows:
+        return (
+            QUALITY_SILVER,
+            True,
+            len(dead_model),
+            len(diagnostic_dead),
+            f"raw_independent_conflict_pairs={len(conflict_rows)}",
+        )
+    return QUALITY_GOLD, True, len(dead_model), len(diagnostic_dead), "raw_clean"
+
+
 def _write_frame(df: pl.DataFrame, output_dir: Path, stem: str) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     df.write_csv(output_dir / f"{stem}.csv")
     df.write_parquet(output_dir / f"{stem}.parquet")
+
+
+def _status_summary(
+    *,
+    asset_id: str,
+    timeframe: str,
+    signal_set: str,
+    status: str,
+    path: Path,
+) -> dict[str, Any]:
+    """Return a summary row for missing/empty/non-usable outputs."""
+    quality_tier, stage1_candidate, dead_model_flags, diagnostic_dead_flags, quality_notes = _quality_grade(
+        status=status,
+        signal_set=signal_set,
+        activation_rows=[],
+        conflict_rows=[],
+        overlap_rows=[],
+    )
+    return {
+        "asset_id": asset_id,
+        "timeframe": timeframe,
+        "signal_set": signal_set,
+        "status": status,
+        "path": str(path),
+        "rows": 0,
+        "flag_columns": 0,
+        "dead_flags": 0,
+        "always_on_flags": 0,
+        "conflict_pairs": 0,
+        "high_overlap_pairs": 0,
+        "dead_model_flags": dead_model_flags,
+        "diagnostic_dead_flags": diagnostic_dead_flags,
+        "quality_tier": quality_tier,
+        "stage1_candidate": stage1_candidate,
+        "quality_notes": quality_notes,
+        "timestamp_min": None,
+        "timestamp_max": None,
+    }
 
 
 def _diagnose_one(
@@ -87,35 +215,35 @@ def _diagnose_one(
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
     path = ta_flags_path(project_root, asset_id, timeframe, signal_set=signal_set)
     if not path.exists():
-        return [], [], [], {
-            "asset_id": asset_id,
-            "timeframe": timeframe,
-            "signal_set": signal_set,
-            "status": "missing_output",
-            "path": str(path),
-        }
+        return [], [], [], _status_summary(
+            asset_id=asset_id,
+            timeframe=timeframe,
+            signal_set=signal_set,
+            status="missing_output",
+            path=path,
+        )
 
     schema = pl.scan_parquet(path).collect_schema().names()
     flag_cols = ta_flag_columns(schema, timeframe)
     if not flag_cols:
-        return [], [], [], {
-            "asset_id": asset_id,
-            "timeframe": timeframe,
-            "signal_set": signal_set,
-            "status": "no_flag_columns",
-            "path": str(path),
-        }
+        return [], [], [], _status_summary(
+            asset_id=asset_id,
+            timeframe=timeframe,
+            signal_set=signal_set,
+            status="no_flag_columns",
+            path=path,
+        )
 
     df = pl.read_parquet(path, columns=["timestamp", *flag_cols]).sort("timestamp")
     row_count = len(df)
     if row_count == 0:
-        return [], [], [], {
-            "asset_id": asset_id,
-            "timeframe": timeframe,
-            "signal_set": signal_set,
-            "status": "empty_output",
-            "path": str(path),
-        }
+        return [], [], [], _status_summary(
+            asset_id=asset_id,
+            timeframe=timeframe,
+            signal_set=signal_set,
+            status="empty_output",
+            path=path,
+        )
 
     sums = df.select([pl.col(col).fill_null(0).sum().alias(col) for col in flag_cols]).row(0, named=True)
     activation_rows: list[dict[str, Any]] = []
@@ -195,6 +323,13 @@ def _diagnose_one(
                     }
                 )
 
+    quality_tier, stage1_candidate, dead_model_flags, diagnostic_dead_flags, quality_notes = _quality_grade(
+        status="ok",
+        signal_set=signal_set,
+        activation_rows=activation_rows,
+        conflict_rows=conflict_rows,
+        overlap_rows=overlap_rows,
+    )
     summary = {
         "asset_id": asset_id,
         "timeframe": timeframe,
@@ -207,6 +342,11 @@ def _diagnose_one(
         "always_on_flags": sum(1 for row in activation_rows if row["is_always_on"]),
         "conflict_pairs": len(conflict_rows),
         "high_overlap_pairs": len(overlap_rows),
+        "dead_model_flags": dead_model_flags,
+        "diagnostic_dead_flags": diagnostic_dead_flags,
+        "quality_tier": quality_tier,
+        "stage1_candidate": stage1_candidate,
+        "quality_notes": quality_notes,
         "timestamp_min": df["timestamp"].min(),
         "timestamp_max": df["timestamp"].max(),
     }

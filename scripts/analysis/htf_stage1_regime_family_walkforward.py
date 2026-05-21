@@ -41,6 +41,7 @@ from scripts.htf_backtest.catboost.stage1_v2_contract import (  # noqa: E402
 MODEL_NAME = "catboost"
 TF = "1m"
 TARGET_COL = "target_4class"
+FEATURE_TARGET_COL = TARGET_COL
 CLASS_NAMES_4 = [
     "DOWN_BALANCED",
     "DOWN_EXPANSION",
@@ -171,10 +172,17 @@ def _resolve_stage1_triplet_grid(
     *,
     project_root: Path,
     reference_run_id: str,
+    target_col: str,
     portfolio_rebuild: bool = False,
 ) -> tuple[list[tuple[int, int, int]], dict[str, Any]]:
-    unit_key = f"{TF}/{TARGET_COL}"
-    manual_triplets = list(STAGE1_FALLBACK_MANUAL_TRIPLETS[unit_key])
+    unit_key = f"{TF}/{target_col}"
+    fallback_unit_key = f"{TF}/{TARGET_COL}"
+    manual_triplets = list(
+        STAGE1_FALLBACK_MANUAL_TRIPLETS.get(
+            unit_key,
+            STAGE1_FALLBACK_MANUAL_TRIPLETS[fallback_unit_key],
+        )
+    )
     meta_dir = (
         project_root / "data" / "htf_backtest_results" / "stage1_meta" / MODEL_NAME / reference_run_id
     )
@@ -245,6 +253,7 @@ def _build_root_override(
     *,
     features_dir: Path,
     labels_dir: Path,
+    target_col: str,
     stage1_triplet_grid: list[tuple[int, int, int]],
     runtime_mode: str,
 ) -> dict[str, Any]:
@@ -277,7 +286,7 @@ def _build_root_override(
         "balance_apply_to": "train",
         "cb_base_params": STAGE1_CB_BASE_PARAMS,
         "optuna_metric": "cross_direction_error",
-        "stage1_validity_target_col": TARGET_COL,
+        "stage1_validity_target_col": target_col,
         "features_dir_override": str(features_dir),
         "labels_dir_override": str(labels_dir),
         "window_space": {
@@ -341,6 +350,7 @@ def _run_root(
     *,
     root_key: str,
     root_cfg: dict[str, Any],
+    target_col: str,
     n_steps: int,
     resume_mode: str,
     stage1_triplet_grid: list[tuple[int, int, int]],
@@ -391,6 +401,7 @@ def _run_root(
     overrides = _build_root_override(
         features_dir=Path(root_cfg["features_dir"]),
         labels_dir=Path(root_cfg["labels_dir"]),
+        target_col=target_col,
         stage1_triplet_grid=stage1_triplet_grid,
         runtime_mode=runtime_mode,
     )
@@ -398,7 +409,7 @@ def _run_root(
         n_steps=n_steps,
         timeframes=[TF],
         run_description=(
-            f"HTF Stage-1 {stage1_version} full walk-forward (CatBoost, 1m/target_4class) "
+            f"HTF Stage-1 {stage1_version} full walk-forward (CatBoost, 1m/{target_col}) "
             f"regime={root_cfg['regime']} family={root_cfg['family']}"
         ),
         verbose=True,
@@ -408,14 +419,14 @@ def _run_root(
         resume_mode=resume_mode,
         model_name=MODEL_NAME,
         optuna_overrides_by_model={
-            MODEL_NAME: {TF: {TARGET_COL: overrides}},
+            MODEL_NAME: {TF: {target_col: overrides}},
         },
-        targets_by_model={MODEL_NAME: {TF: [TARGET_COL]}},
-        n_classes_by_model={MODEL_NAME: {TF: {TARGET_COL: 4}}},
-        class_names_by_model={MODEL_NAME: {TF: {TARGET_COL: CLASS_NAMES_4}}},
-        feature_source_by_model={MODEL_NAME: {TF: {TARGET_COL: TARGET_COL}}},
+        targets_by_model={MODEL_NAME: {TF: [target_col]}},
+        n_classes_by_model={MODEL_NAME: {TF: {target_col: 4}}},
+        class_names_by_model={MODEL_NAME: {TF: {target_col: CLASS_NAMES_4}}},
+        feature_source_by_model={MODEL_NAME: {TF: {target_col: FEATURE_TARGET_COL}}},
         target_registry={
-            TARGET_COL: {
+            target_col: {
                 "n_classes": 4,
                 "class_names": CLASS_NAMES_4,
             }
@@ -438,6 +449,8 @@ def _run_root(
         "regime": root_cfg["regime"],
         "family": root_cfg["family"],
         "run_id": run_id,
+        "target_col": target_col,
+        "feature_target_col": FEATURE_TARGET_COL,
         "features_dir": str(root_cfg["features_dir"]),
         "labels_dir": str(root_cfg["labels_dir"]),
         "resume": run_dir.exists(),
@@ -491,6 +504,15 @@ def _parse_args() -> argparse.Namespace:
         help=(
             "Build Stage-1-compatible merged multi-asset roots from "
             "data/htf_multiasset/{asset}/ before planning or running."
+        ),
+    )
+    parser.add_argument(
+        "--stage1-target-col",
+        default=TARGET_COL,
+        help=(
+            "Label column to train/evaluate. Feature source remains "
+            f"{FEATURE_TARGET_COL}; non-default target columns are for "
+            "experimental label roots such as target_4class_tb_atr_v1."
         ),
     )
     parser.add_argument(
@@ -658,6 +680,8 @@ def _build_execution_entries(
                 root_key=root_key,
                 output_base_dir=Path(args.multiasset_dataset_dir),
                 input_base_dir=PROJECT_ROOT / "data" / "htf_multiasset",
+                target_col=str(args.stage1_target_col),
+                feature_target_col=FEATURE_TARGET_COL,
                 include_ta_flags=bool(args.include_ta_flags),
                 ta_timeframes=tuple(
                     part.strip()
@@ -701,6 +725,7 @@ def main() -> int:
     stage1_triplet_grid, triplet_report = _resolve_stage1_triplet_grid(
         project_root=PROJECT_ROOT,
         reference_run_id=STAGE1_REFERENCE_RUN_ID,
+        target_col=str(args.stage1_target_col),
         portfolio_rebuild=bool(args.portfolio_rebuild or STAGE1_PORTFOLIO_REBUILD),
     )
     stage1_version = normalize_stage1_version(args.stage1_version)
@@ -758,6 +783,8 @@ def main() -> int:
         else [],
         "ta_signal_set": str(args.ta_signal_set) if bool(args.include_ta_flags) else None,
         "n_steps": int(args.n_steps),
+        "stage1_target_col": str(args.stage1_target_col),
+        "feature_target_col": FEATURE_TARGET_COL,
         "resume_mode": str(args.resume_mode),
         "runtime_mode": str(args.runtime_mode),
         "stage1_version": str(stage1_version),
@@ -778,6 +805,8 @@ def main() -> int:
                 "dataset_variant_id": entry.get("dataset_variant_id", "base"),
                 "manifest_path": entry["manifest_path"],
                 "include_ta_flags": entry.get("include_ta_flags", False),
+                "target_col": str(args.stage1_target_col),
+                "feature_target_col": FEATURE_TARGET_COL,
                 "regime": entry["root_cfg"]["regime"],
                 "family": entry["root_cfg"]["family"],
                 "run_id": _resolve_root_run_id(
@@ -827,6 +856,7 @@ def main() -> int:
         summary = _run_root(
             root_key=root_key,
             root_cfg=entry["root_cfg"],
+            target_col=str(args.stage1_target_col),
             n_steps=int(args.n_steps),
             resume_mode=str(args.resume_mode),
             stage1_triplet_grid=stage1_triplet_grid,
