@@ -975,6 +975,110 @@ is:
 docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-27.md
 ```
 
+Volatility-normalized distance regression targets are available as a
+label-only research layer. They use the same row authority and next
+opposite-family first-half `15m` label window as `tb_atr_wide_v2`, but write
+continuous distances instead of four classes.
+
+The historical `distance_vol_v1` columns divide multi-hour future excursions by
+the row's short-horizon prediction-time volatility:
+
+```text
+target_reg_distance_up_extreme_vol_v1
+target_reg_distance_up_mean_high_vol_v1
+target_reg_distance_down_mean_low_vol_v1
+target_reg_distance_down_extreme_vol_v1
+```
+
+That v1 scale is arithmetically valid but too large for multi-hour label
+windows. The preferred corrected research variant is
+`distance_horizon_vol_v2`, which keeps the same raw distances and normalizes by
+horizon-adjusted volatility:
+
+```text
+horizon_minutes = future_15m_bar_count * 15
+horizon_vol_pct = tb_volatility_pct * sqrt(horizon_minutes)
+target = raw_distance_pct / horizon_vol_pct
+```
+
+Its columns are:
+
+```text
+target_reg_distance_up_extreme_hvol_v2
+target_reg_distance_up_mean_high_hvol_v2
+target_reg_distance_down_mean_low_hvol_v2
+target_reg_distance_down_extreme_hvol_v2
+```
+
+For example, `0.82` means the future excursion reached `0.82x` the
+horizon-adjusted causal volatility estimate. Invalid rows are stored as `null`
+with `target_reg_distance_valid_v2=false`.
+
+Materialize the first BTCUSDT `8h/B` research slice with:
+
+```bash
+python scripts/analysis/materialize_stage1_regression_targets.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variant distance_horizon_vol_v2 \
+  --write-sanity-report
+```
+
+These labels are written under a separate root such as:
+
+```text
+data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m/
+```
+
+Validate all four distance targets row-by row against the source future `15m`
+label windows with:
+
+```bash
+python scripts/analysis/validate_stage1_regression_targets.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variant distance_horizon_vol_v2 \
+  --write-report
+```
+
+Stage-1 merged dataset assembly can resolve these label roots. The main
+`htf_stage1_regime_family_walkforward.py` runner remains a four-class
+classification workflow, so do not train it directly on these continuous
+targets. Use the dedicated regression smoke runner instead:
+
+```bash
+/media/przem/linux_data/conda/envs/ml_env/bin/python \
+  scripts/analysis/htf_stage1_regression_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --stage1-target-col target_reg_distance_up_extreme_hvol_v2 \
+  --feature-policy target_specific_v1 \
+  --max-features 300 \
+  --merged-batch-min 5800 \
+  --merged-batch-limit 180 \
+  --n-steps 20 \
+  --lookback-batches 120 \
+  --val-batches 20 \
+  --iterations 200 \
+  --depth 4 \
+  --learning-rate 0.05 \
+  --task-type CPU
+```
+
+Use `--task-type GPU` when the local CatBoost build and CUDA runtime are ready.
+The `target_specific_v1` feature policy selects features inside each
+walk-forward step using train rows only, removes raw OHLCV/leakage/bad-quality
+columns, deduplicates near-identical features, and applies train-derived clip
+bounds to validation and prediction rows.
+
+The first bounded BTCUSDT `8h/B` v2 smoke completed all four target columns.
+Those tiny one- or two-step runs only validate wiring and target-specific
+feature selection; they are not prediction-quality evidence. Full comparison
+requires more chronological steps and target-by-target review of MAE, RMSE,
+R2, Pearson, Spearman, bias, and prediction/target quantiles.
+
 For the current full regime/family Stage-1 v1 run:
 
 ```bash

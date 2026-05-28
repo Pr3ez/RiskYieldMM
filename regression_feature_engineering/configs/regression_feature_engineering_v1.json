@@ -1,0 +1,59 @@
+{
+  "feature_set": "regression_path_features_v1",
+  "target_variant": "distance_horizon_vol_v2",
+  "first_benchmark": {
+    "asset": "BTCUSDT",
+    "root": "8h/B",
+    "root_id": "8h_b"
+  },
+  "core_assets": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "EURUSD",
+    "USDJPY",
+    "GC",
+    "CL",
+    "ES",
+    "NQ"
+  ],
+  "roots": [
+    "8h/B",
+    "8h/C",
+    "24h/B",
+    "24h/C",
+    "7d/B",
+    "7d/C"
+  ],
+  "root_ids": [
+    "8h_b",
+    "8h_c",
+    "24h_b",
+    "24h_c",
+    "7d_b",
+    "7d_c"
+  ],
+  "targets": [
+    "target_reg_distance_up_extreme_hvol_v2",
+    "target_reg_distance_up_mean_high_hvol_v2",
+    "target_reg_distance_down_mean_low_hvol_v2",
+    "target_reg_distance_down_extreme_hvol_v2"
+  ],
+  "output_path_template": "data/htf_multiasset/{asset}/regression_path_features_v1/{root_id}/1m/",
+  "input_layers": {
+    "canonical_ohlcv": "data/htf_multiasset/{asset}/htf_canonical_ohlcv/{timeframe}/{asset}_{timeframe}_canonical.parquet",
+    "ta_flags": "data/htf_multiasset/{asset}/ta_signal_flags/{timeframe}/{asset}_{timeframe}_ta_flags.parquet",
+    "ta_compact_flags": "data/htf_multiasset/{asset}/ta_compact_signal_flags/{timeframe}/{asset}_{timeframe}_ta_compact_flags.parquet",
+    "htf_with_helpers": "data/htf_multiasset/{asset}/{layout_label_root}/1m/target_4class/",
+    "regression_labels": "data/htf_multiasset/{asset}/{layout_label_root}_reg_distance_horizon_vol_v2/1m/"
+  },
+  "feature_families": [
+    "volatility_state",
+    "structural_room",
+    "acceptance_persistence",
+    "spike_breakout",
+    "rejection_chop",
+    "cross_asset_context"
+  ],
+  "metadata_version": "2026-05-28-regression-feature-scaffold-v1"
+}
+

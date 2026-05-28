@@ -44,6 +44,24 @@ TARGET_COL = "target_4class"
 FEATURE_TARGET_COL = TARGET_COL
 MULTIASSET_SOURCE_ROOT = "htf_multiasset"
 MULTIASSET_MERGED_ROOT = "htf_multiasset_merged"
+REG_DISTANCE_VOL_V1_LABEL_SUFFIX = "reg_distance_vol_v1"
+REG_DISTANCE_VOL_V1_TARGET_COLS = frozenset(
+    {
+        "target_reg_distance_up_extreme_vol_v1",
+        "target_reg_distance_up_mean_high_vol_v1",
+        "target_reg_distance_down_mean_low_vol_v1",
+        "target_reg_distance_down_extreme_vol_v1",
+    }
+)
+REG_DISTANCE_HORIZON_VOL_V2_LABEL_SUFFIX = "reg_distance_horizon_vol_v2"
+REG_DISTANCE_HORIZON_VOL_V2_TARGET_COLS = frozenset(
+    {
+        "target_reg_distance_up_extreme_hvol_v2",
+        "target_reg_distance_up_mean_high_hvol_v2",
+        "target_reg_distance_down_mean_low_hvol_v2",
+        "target_reg_distance_down_extreme_hvol_v2",
+    }
+)
 
 # `bar_in_batch_norm` is intentionally kept unprefixed for the target asset.
 # Existing Stage-1 loaders use this column name for optional tail filtering, and
@@ -804,9 +822,14 @@ def _asset_label_dir(
 
 def _label_root_for_target(label_root: str, target_col: str) -> str:
     """Map a target column to the label root that owns it."""
-    if str(target_col) == TARGET_COL:
+    target_col = str(target_col)
+    if target_col == TARGET_COL:
         return str(label_root)
-    suffix = _target_variant_id(str(target_col)).removeprefix("target_")
+    if target_col in REG_DISTANCE_VOL_V1_TARGET_COLS:
+        return f"{label_root}_{REG_DISTANCE_VOL_V1_LABEL_SUFFIX}"
+    if target_col in REG_DISTANCE_HORIZON_VOL_V2_TARGET_COLS:
+        return f"{label_root}_{REG_DISTANCE_HORIZON_VOL_V2_LABEL_SUFFIX}"
+    suffix = _target_variant_id(target_col).removeprefix("target_")
     return f"{label_root}_{suffix}"
 
 

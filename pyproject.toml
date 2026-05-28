@@ -48,7 +48,13 @@ rust = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["fetchingByBit*", "fetchingMultiAsset*", "schemas*", "scripts*"]
+include = [
+    "fetchingByBit*",
+    "fetchingMultiAsset*",
+    "regression_feature_engineering*",
+    "schemas*",
+    "scripts*",
+]
 namespaces = true
 
 [tool.ruff]
@@ -89,4 +95,4 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.ruff.lint.isort]
-known-first-party = ["scripts", "schemas"]
+known-first-party = ["regression_feature_engineering", "scripts", "schemas"]
