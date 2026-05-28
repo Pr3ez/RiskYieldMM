@@ -183,6 +183,12 @@ data/htf_multiasset_merged/{target}/{context_hash}/{root_id}/
 data/htf_backtest_results/stage1_catboost_*_live/
 ```
 
+Merged roots include a `stage1_batch_index.parquet` sidecar beside
+`manifest.json`. Exact timestamp context joins can make merged batch ids
+sparse; this is supported. Stage-1 keeps original `batch_id` values for
+traceability while train/validation windows count dense available batches and
+fold artifacts preserve explicit `train_batch_ids` / `val_batch_ids`.
+
 Tracked summary snapshots live under `test_output/` when they are intentionally
 kept as review artifacts.
 

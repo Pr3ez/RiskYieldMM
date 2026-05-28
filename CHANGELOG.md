@@ -61,6 +61,20 @@ All notable repository-level changes are recorded here.
   invalids from non-entry rows, keeps the original v1 variants for diagnostics,
   and adds `tb_atr_wide_v2`, a wider symmetric ATR candidate that passes the
   BTCUSDT `8h/B` label sanity gate for first Stage-1 comparison.
+- Stage-1 target-survey held-out prediction summarizer and BTCUSDT `8h/B`
+  comparison report. The first `tb_atr_wide_v2` extended run attempted 250
+  steps but produced 134 scorable winners before the sparse-window fix,
+  exposing the old numeric-batch continuity assumption that blocked a fair
+  target comparison.
+- Sparse-aware BTCUSDT `8h/B` target-survey report for
+  `target_4class_tb_atr_wide_v2` versus legacy `target_4class`. Both targets
+  now complete 250/250 comparable steps; the candidate improves plain
+  four-class accuracy and macro F1 but is not promoted because direction
+  accuracy and cross-direction error are slightly worse than legacy.
+- Sparse-batch Stage-1 window handling. Merged roots now write a
+  `stage1_batch_index.parquet` sidecar, Stage-1 windows count dense available
+  batches instead of numeric `batch_id` ranges, and fold artifacts preserve
+  explicit train/validation batch lists for selector and Step-2 reloads.
 - Stage-1 merged dataset assembly now has `--merged-batch-min`,
   `--merged-batch-max`, and `--merged-batch-limit` for fast dataset-contract
   smoke tests on mature batch windows; full production merged datasets still
@@ -111,9 +125,13 @@ All notable repository-level changes are recorded here.
 - Multi-asset HTF launcher runs now attempt remaining assets after a per-asset
   failure and raise a final summary error at the end; set
   `HTF_FAIL_FAST_ASSET_ERRORS=1` to restore immediate fail-fast behavior.
-- Stage-1 batch discovery now uses the highest available `batch_*.parquet` id
-  instead of file count, so sparse merged multi-asset roots can be scanned
-  correctly.
+- Stage-1 batch discovery now uses the actual feature/label batch-file
+  intersection instead of file count or numeric `1..max(batch_id)` continuity,
+  so sparse merged multi-asset roots can be scanned correctly.
+- Stage-1 walk-forward eligibility now requires `lookback_min` previous
+  available valid batches instead of comparing the prediction `batch_id` to
+  `lookback_min`. This keeps original `batch_id` traceability while preventing
+  valid sparse merged roots from failing on missing numeric ids.
 - Stage-1 merged dataset assembly now drops rows with null model feature values
   after exact timestamp joins and reports them as
   `rows_dropped_by_null_features`, while preserving `null_feature_count=0` in

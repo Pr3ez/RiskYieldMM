@@ -23,8 +23,10 @@ import numpy as np
 import polars as pl
 
 from .utils import (
+    coerce_stage1_batch_ids,
     get_feature_columns,
     load_batch,
+    load_batches_by_ids,
     load_batches_range,
     prepare_features_target,
 )
@@ -396,6 +398,9 @@ def evaluate_stage1_grid(
     train_end: int,
     pred_batch: int,
     step_stage1_dir: Path,
+    available_batch_ids: list[int] | None = None,
+    batch_positions: dict[int, int] | None = None,
+    pred_pos: int | None = None,
     combo_grid_override: list[dict[str, Any]] | None = None,
     append_mode: bool = False,
     candidate_source: str = "base_grid",
@@ -417,17 +422,41 @@ def evaluate_stage1_grid(
 
     t0 = time.perf_counter()
     lookback_max = int(max(1, getattr(win, "lookback_max", 300)))
-    range_start = max(1, int(train_end) - lookback_max + 1)
-    df_all = load_batches_range(
-        cfg.features_dir,
-        cfg.labels_dir,
-        step_optimizer.TIMEFRAME,
-        range_start,
-        int(train_end) + 1,
-        target_col=cfg.target,
-        feature_target_col=(cfg.feature_target or cfg.target),
-        exclude_tail_pct=cfg.exclude_tail_pct,
-    )
+    if available_batch_ids is not None:
+        ordered_available = [int(v) for v in available_batch_ids]
+        if int(pred_batch) in ordered_available:
+            pred_local_pos = ordered_available.index(int(pred_batch))
+            available_train_batches = ordered_available[:pred_local_pos]
+        else:
+            available_train_batches = [
+                int(v) for v in ordered_available if int(v) <= int(train_end)
+            ]
+        if not available_train_batches:
+            raise ValueError("No available Stage-1 train batches before prediction batch")
+        lookback_batch_ids = available_train_batches[-lookback_max:]
+        range_start = int(lookback_batch_ids[0])
+        df_all = load_batches_by_ids(
+            cfg.features_dir,
+            cfg.labels_dir,
+            step_optimizer.TIMEFRAME,
+            lookback_batch_ids,
+            target_col=cfg.target,
+            feature_target_col=(cfg.feature_target or cfg.target),
+            exclude_tail_pct=cfg.exclude_tail_pct,
+        )
+    else:
+        range_start = max(1, int(train_end) - lookback_max + 1)
+        lookback_batch_ids = list(range(range_start, int(train_end) + 1))
+        df_all = load_batches_range(
+            cfg.features_dir,
+            cfg.labels_dir,
+            step_optimizer.TIMEFRAME,
+            range_start,
+            int(train_end) + 1,
+            target_col=cfg.target,
+            feature_target_col=(cfg.feature_target or cfg.target),
+            exclude_tail_pct=cfg.exclude_tail_pct,
+        )
     df_all = df_all.filter(pl.col(cfg.target) >= 0).sort(["batch_id", "timestamp"])
     if len(df_all) == 0:
         raise ValueError("No stage1 rows available in lookback window")
@@ -488,7 +517,7 @@ def evaluate_stage1_grid(
     batch_cache.clear()
 
     available_batch_set = set(batch_bounds.keys())
-    range_cache: dict[tuple[int, int], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
+    range_cache: dict[tuple[int, ...], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]] = {}
 
     # Pre-decision context snapshot for downstream meta-learning.
     def _class_dist(arr: np.ndarray, n_classes: int) -> tuple[list[int], list[float]]:
@@ -521,6 +550,22 @@ def evaluate_stage1_grid(
         "n_classes": int(cfg.n_classes),
         "lookback_range_start_batch": int(range_start),
         "lookback_range_end_batch": int(train_end),
+        "stage1_window_index_mode": (
+            "available_batch_pos" if available_batch_ids is not None else "numeric_batch_id"
+        ),
+        "pred_pos": None if pred_pos is None else int(pred_pos),
+        "lookback_available_batch_count": int(len(lookback_batch_ids)),
+        "lookback_first_available_batch": (
+            int(lookback_batch_ids[0]) if lookback_batch_ids else None
+        ),
+        "lookback_last_available_batch": (
+            int(lookback_batch_ids[-1]) if lookback_batch_ids else None
+        ),
+        "lookback_numeric_gap_count": int(
+            max(0, int(lookback_batch_ids[-1]) - int(lookback_batch_ids[0]) + 1 - len(set(lookback_batch_ids)))
+            if lookback_batch_ids
+            else 0
+        ),
         "available_batches": int(len(batch_bounds)),
         "lookback_rows": int(len(y_compact)),
         "rows_per_batch_min": int(min(rows_per_batch)) if rows_per_batch else 0,
@@ -544,16 +589,18 @@ def evaluate_stage1_grid(
         },
     }
 
-    def _slice_batch_range(start_batch: int, end_batch: int):
-        key = (int(start_batch), int(end_batch))
+    def _slice_batch_ids(batch_ids: list[int]):
+        ids = [int(v) for v in batch_ids]
+        key = tuple(ids)
         cached = range_cache.get(key)
         if cached is not None:
             return cached, None
-        missing = [b for b in range(key[0], key[1] + 1) if b not in available_batch_set]
+        missing = [b for b in ids if b not in available_batch_set]
         if missing:
             return None, f"missing_batch:{','.join(str(b) for b in missing)}"
-        start_idx = int(batch_bounds[key[0]][0])
-        end_idx = int(batch_bounds[key[1]][1])
+        parts = [batch_bounds[int(batch_id)] for batch_id in ids]
+        start_idx = int(parts[0][0])
+        end_idx = int(parts[-1][1])
         sliced = (
             X_compact[start_idx:end_idx],
             y_compact[start_idx:end_idx],
@@ -562,6 +609,12 @@ def evaluate_stage1_grid(
         )
         range_cache[key] = sliced
         return sliced, None
+
+    def _batch_ids_from_window(row: dict[str, Any], prefix: str, start_batch: int, end_batch: int) -> list[int]:
+        ids = coerce_stage1_batch_ids(row.get(f"{prefix}_batch_ids"))
+        if ids:
+            return ids
+        return list(range(int(start_batch), int(end_batch) + 1))
 
     pred_X = None
     pred_y = None
@@ -673,7 +726,7 @@ def evaluate_stage1_grid(
     fold_window_records: list[dict[str, Any]] = []
     fail_counter: Counter[str] = Counter()
 
-    train_model_cache: dict[tuple[int, int], Any] = {}
+    train_model_cache: dict[tuple[int, ...], Any] = {}
     train_model_cache_hits = 0
     train_model_cache_misses = 0
     fold_count_total = 0
@@ -699,8 +752,23 @@ def evaluate_stage1_grid(
             train_batches_per_fold=train_batches,
             val_batches_per_fold=val_batches,
             min_batch=min_batch,
+            available_batches=available_batches if available_batch_ids is not None else None,
+            batch_positions=batch_positions,
+            pred_pos=pred_pos,
         )
         for w in windows:
+            train_batch_ids = _batch_ids_from_window(
+                w,
+                "train",
+                int(w["train_start_batch"]),
+                int(w["train_end_batch"]),
+            )
+            val_batch_ids = _batch_ids_from_window(
+                w,
+                "val",
+                int(w["val_start_batch"]),
+                int(w["val_end_batch"]),
+            )
             fold_window_records.append(
                 {
                     "combo_id": combo_id,
@@ -711,6 +779,16 @@ def evaluate_stage1_grid(
                     "val_start_batch": int(w["val_start_batch"]),
                     "val_end_batch": int(w["val_end_batch"]),
                     "val_batch": int(w["val_batch"]),
+                    "train_start_pos": w.get("train_start_pos"),
+                    "train_end_pos": w.get("train_end_pos"),
+                    "val_start_pos": w.get("val_start_pos"),
+                    "val_end_pos": w.get("val_end_pos"),
+                    "pred_pos": w.get("pred_pos"),
+                    "train_batch_ids": train_batch_ids,
+                    "val_batch_ids": val_batch_ids,
+                    "train_batch_count": int(len(train_batch_ids)),
+                    "val_batch_count": int(len(val_batch_ids)),
+                    "window_is_sparse": bool(w.get("window_is_sparse", False)),
                     "candidate_source": str(candidate_source or "base_grid"),
                     "probe_tier": int(probe_tier if probe_tier is not None else -1),
                     "discovered_from": str(discovered_from or ""),
@@ -747,6 +825,18 @@ def evaluate_stage1_grid(
             train_end_batch = int(w["train_end_batch"])
             val_start_batch = int(w["val_start_batch"])
             val_end_batch = int(w["val_end_batch"])
+            train_batch_ids = _batch_ids_from_window(
+                w,
+                "train",
+                train_start_batch,
+                train_end_batch,
+            )
+            val_batch_ids = _batch_ids_from_window(
+                w,
+                "val",
+                val_start_batch,
+                val_end_batch,
+            )
 
             if (
                 train_start_batch > int(train_end)
@@ -758,12 +848,12 @@ def evaluate_stage1_grid(
                 combo_fail_reason = "leakage_guard_fold_batch_exceeds_train_end"
                 break
 
-            train_data, train_fail = _slice_batch_range(train_start_batch, train_end_batch)
+            train_data, train_fail = _slice_batch_ids(train_batch_ids)
             if train_fail is not None:
                 combo_ok = False
                 combo_fail_reason = f"{train_fail}:train"
                 break
-            val_data, val_fail = _slice_batch_range(val_start_batch, val_end_batch)
+            val_data, val_fail = _slice_batch_ids(val_batch_ids)
             if val_fail is not None:
                 combo_ok = False
                 combo_fail_reason = f"{val_fail}:val"
@@ -780,7 +870,7 @@ def evaluate_stage1_grid(
                 combo_fail_reason = "insufficient_class_diversity_in_fold_train"
                 break
 
-            train_key = (train_start_batch, train_end_batch)
+            train_key = tuple(train_batch_ids)
             model = train_model_cache.get(train_key)
             if model is None:
                 train_model_cache_misses += 1
@@ -915,6 +1005,16 @@ def evaluate_stage1_grid(
                 "val_start_batch": pl.Series([], dtype=pl.Int32),
                 "val_end_batch": pl.Series([], dtype=pl.Int32),
                 "val_batch": pl.Series([], dtype=pl.Int32),
+                "train_start_pos": pl.Series([], dtype=pl.Int32),
+                "train_end_pos": pl.Series([], dtype=pl.Int32),
+                "val_start_pos": pl.Series([], dtype=pl.Int32),
+                "val_end_pos": pl.Series([], dtype=pl.Int32),
+                "pred_pos": pl.Series([], dtype=pl.Int32),
+                "train_batch_ids": pl.Series([], dtype=pl.List(pl.Int32)),
+                "val_batch_ids": pl.Series([], dtype=pl.List(pl.Int32)),
+                "train_batch_count": pl.Series([], dtype=pl.Int32),
+                "val_batch_count": pl.Series([], dtype=pl.Int32),
+                "window_is_sparse": pl.Series([], dtype=pl.Boolean),
                 "candidate_source": pl.Series([], dtype=pl.Utf8),
                 "probe_tier": pl.Series([], dtype=pl.Int16),
                 "discovered_from": pl.Series([], dtype=pl.Utf8),

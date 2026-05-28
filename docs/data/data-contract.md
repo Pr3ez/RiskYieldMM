@@ -253,6 +253,32 @@ selected context asset, or containing null model feature values after the join,
 are dropped and reported in the manifest. Written merged feature batches must
 have no duplicate `timestamp,batch_id` rows and no null model feature values.
 
+Merged Stage-1 roots may be sparse. The original `batch_id` remains the HTF
+source identifier, but Stage-1 window planning uses the dense available-batch
+sidecar:
+
+```text
+data/htf_multiasset_merged/{target}/{context_hash}/{variant?}/{root_id}/stage1_batch_index.parquet
+```
+
+Required sidecar columns:
+
+```text
+stage1_available_pos
+batch_id
+batch_start_ts
+batch_end_ts
+row_count
+valid_row_count
+target_col
+feature_target_col
+```
+
+Fold-window artifacts must preserve explicit `train_batch_ids` and
+`val_batch_ids` when sparse windows are used. Context rows are still joined only
+by exact `timestamp`; the sparse index never authorizes stale/as-of context
+fills.
+
 Required label outputs include:
 
 ```text

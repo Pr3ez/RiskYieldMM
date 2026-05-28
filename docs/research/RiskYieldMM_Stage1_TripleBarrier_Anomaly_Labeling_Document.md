@@ -1202,6 +1202,27 @@ same_bar_both_hit_policy = invalid
 label_window_policy = opposite_family_first_half
 ```
 
+Operationally, each label-eligible entry row is handled as follows:
+
+```text
+1. Compute volatility from prediction-time data only:
+   volatility_t = max(ATR_pct_14, rolling_std_return_120)
+2. Clip the 15x volatility distance into [0.05%, 5.00%].
+3. Set barriers around the entry close:
+   upper = close_t * (1 + clipped_distance)
+   lower = close_t * (1 - clipped_distance)
+4. Scan the next opposite-family first-half 15m label window:
+   upper first -> UP_EXPANSION
+   lower first -> DOWN_EXPANSION
+   both in the same 15m bar -> INVALID
+5. If neither barrier is hit, use terminal return sign:
+   terminal_return >= 0 -> UP_BALANCED
+   terminal_return < 0  -> DOWN_BALANCED
+```
+
+The future hit path, MFE/MAE, terminal return, and hit offset are stored only as
+label diagnostics. They must not be joined as Stage-1 model features.
+
 Current BTCUSDT `8h/B` sanity result:
 
 ```text
@@ -1219,3 +1240,89 @@ class shares:
 This makes `target_4class_tb_atr_wide_v2` the next Stage‑1 comparison target.
 The v1 variants should not be used for model comparison unless their barrier
 geometry is revised.
+
+### 15.2 Completed pre-fix 250-step Stage-1 diagnostic
+
+The requested BTCUSDT `8h/B` run for `target_4class_tb_atr_wide_v2` finished
+on 2026-05-21, before sparse-batch Stage-1 window handling was implemented.
+The run attempted `250` Stage-1 steps, but only `134` produced a selected model
+and held-out prediction payload. The remaining `116` steps had no winner
+because all configured train-window combinations still assumed numeric
+`batch_id` continuity and failed around missing sparse merged batches.
+
+Scorable candidate metrics across the 134 usable steps:
+
+```text
+rows: 31,843
+accuracy: 0.3047
+macro F1: 0.2999
+direction accuracy: 0.5266
+cross-direction error: 0.4734
+logloss: 2.7856
+Brier score: 0.8365
+```
+
+This result is not ready for target promotion:
+
+```text
+1. The comparable legacy no-TA baseline currently contains only 2 steps.
+2. Candidate coverage is incomplete because this was a pre-fix sparse-window
+   run.
+3. Direction quality is unstable: 62 of 134 scorable steps are below 50%
+   direction accuracy.
+```
+
+Detailed report:
+
+```text
+docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-26.md
+```
+
+Before continuing to anomaly overlays or other target roots:
+
+```text
+1. rerun both legacy target_4class and target_4class_tb_atr_wide_v2 with the
+   sparse-batch Stage-1 window fix;
+2. confirm both runs use matching available prediction steps and no
+   missing_batch:* no-winner failures;
+3. compare only matching scorable prediction batches until coverage is verified.
+```
+
+### 15.3 Sparse-aware 250-step Stage-1 comparison
+
+After sparse-batch Stage-1 window handling was implemented, both BTCUSDT `8h/B`
+runs completed the same `250` prediction steps with `0` no-winner steps and no
+recorded fail reasons.
+
+Comparable full-scope metrics:
+
+| Target | Steps | Rows | Accuracy | Macro F1 | Direction Accuracy | Cross-Direction Error | Logloss | Brier |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| `target_4class` | 250 | 59,583 | 0.4608 | 0.4361 | 0.6794 | 0.3206 | 1.4135 | 0.7126 |
+| `target_4class_tb_atr_wide_v2` | 250 | 59,583 | 0.5046 | 0.5036 | 0.6711 | 0.3289 | 1.5254 | 0.6897 |
+
+Delta, candidate minus baseline:
+
+```text
+accuracy:              +0.0438
+macro F1:              +0.0675
+direction accuracy:    -0.0083
+cross-direction error: +0.0083
+logloss:               +0.1120
+Brier score:           -0.0229
+```
+
+Decision:
+
+```text
+Do not promote target_4class_tb_atr_wide_v2 as the default Stage-1 target yet.
+It improves four-class separability, but it fails the direction-sensitive gate
+because direction accuracy is slightly lower and cross-direction error is
+slightly higher than legacy target_4class.
+```
+
+Current fair comparison report:
+
+```text
+docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-27.md
+```

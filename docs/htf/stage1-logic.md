@@ -48,10 +48,10 @@ Written merged feature batches must have `duplicate_count=0` and
 
 Merged roots can be sparse because exact context alignment can start later than
 the target asset history or skip periods where any selected context asset has no
-usable row. The Stage-1 loader scans up to the highest available batch id, not
-the number of files, so sparse roots are valid inputs. Candidate triplets can
-still fail near local missing batch spans; those failures are reported in
-`stage1_step_summary.json` under `fail_reasons`.
+usable row. Sparse roots are valid inputs. Stage-1 keeps the original `batch_id`
+for traceability, but train/validation fold windows are planned over dense
+available-batch positions. Merged roots write `stage1_batch_index.parquet`, and
+fold artifacts store explicit `train_batch_ids` and `val_batch_ids`.
 
 Current local smoke status:
 
@@ -103,8 +103,9 @@ For each walk-forward step and each execution unit (`model/timeframe/target`):
    - `val_batches_per_fold`
    - `train_batches_per_fold`
 2. Build leakage-safe fold windows:
-   - each fold uses contiguous train window and contiguous validation window
-   - validation windows move backward from `train_end`
+   - each fold uses contiguous available-batch train and validation windows
+   - validation windows move backward from the previous available batch before
+     prediction
 3. Train baseline CatBoost for each required train window.
 4. Save raw fold validation predictions:
    - `y_true`, `y_pred`, `prob_class_*`, `timestamp`, `batch_id`
@@ -131,7 +132,8 @@ Detailed Step-2 plan: `docs/htf/stage1-step2-plan.md`.
 
 ## Leakage Constraints
 Leakage guard enforced in Stage-1:
-- fold train batches and fold validation batches must satisfy `batch_id <= train_end`
+- fold train batches and fold validation batches must be earlier than the
+  prediction batch by dense available-batch position
 - prediction batch is inference-only payload generation
 - prediction batch rows are not used in fold fitting or fold validation
 

@@ -151,6 +151,10 @@ def test_target_only_assembly_preserves_target_rows_and_labels(tmp_path: Path) -
     assert result.manifest["output_rows"] == 3
     assert result.manifest["null_feature_count"] == 0
     assert result.manifest["duplicate_count"] == 0
+    batch_index = pl.read_parquet(result.manifest["output_paths"]["stage1_batch_index"])
+    assert batch_index["stage1_available_pos"].to_list() == [0]
+    assert batch_index["batch_id"].to_list() == [1]
+    assert batch_index["valid_row_count"].to_list() == [3]
 
 
 def test_assembly_can_limit_batches_for_smoke_runs(tmp_path: Path) -> None:

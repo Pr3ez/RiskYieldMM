@@ -46,9 +46,10 @@ from .utils import (
     BaseOptimizerConfig,
     ModelSearchSpace,
     WindowSearchSpace,
+    coerce_stage1_batch_ids,
     get_feature_columns,
     load_batch,
-    load_batches_range,
+    load_batches_by_ids,
     prepare_features_target,
 )
 
@@ -68,6 +69,35 @@ class _Step2UnitConfig:
     allowed_combo_keys: set[tuple[int, int, int]] | None
     features_dir: Path
     labels_dir: Path
+
+
+def _fold_batch_ids(
+    fold_row: dict[str, Any],
+    *,
+    prefix: str,
+    start_batch: int,
+    end_batch: int,
+) -> list[int]:
+    ids = coerce_stage1_batch_ids(fold_row.get(f"{prefix}_batch_ids"))
+    if ids:
+        return ids
+    return list(range(int(start_batch), int(end_batch) + 1))
+
+
+def _fold_order_ok(fold_row: dict[str, Any], *, pred_batch: int) -> bool:
+    pos_keys = ("train_end_pos", "val_start_pos", "val_end_pos", "pred_pos")
+    if all(fold_row.get(key) is not None for key in pos_keys):
+        try:
+            return bool(
+                int(fold_row["train_end_pos"]) < int(fold_row["val_start_pos"])
+                and int(fold_row["val_end_pos"]) < int(fold_row["pred_pos"])
+            )
+        except Exception:
+            pass
+    return bool(
+        int(fold_row["train_end_batch"]) < int(fold_row["val_start_batch"])
+        and int(fold_row["val_end_batch"]) < int(pred_batch)
+    )
 
 
 def _init_step2_unit_state(total_steps: int) -> dict[str, Any]:
@@ -1119,9 +1149,19 @@ def run_stage1_step2_feature_pruning(
                     fold_val_start = int(fold_w["val_start_batch"])
                     fold_val_end = int(fold_w["val_end_batch"])
 
-                    leakage_ok = bool(
-                        fold_train_end < fold_val_start and fold_val_end < int(pred_batch)
+                    train_batch_ids = _fold_batch_ids(
+                        fold_w,
+                        prefix="train",
+                        start_batch=fold_train_start,
+                        end_batch=fold_train_end,
                     )
+                    val_batch_ids = _fold_batch_ids(
+                        fold_w,
+                        prefix="val",
+                        start_batch=fold_val_start,
+                        end_batch=fold_val_end,
+                    )
+                    leakage_ok = _fold_order_ok(fold_w, pred_batch=int(pred_batch))
                     if debug_walkforward and (
                         step_idx % debug_walkforward_every_steps == 0
                     ):
@@ -1148,14 +1188,13 @@ def run_stage1_step2_feature_pruning(
                         fold_ok = False
                         break
 
-                    train_key = (fold_train_start, fold_train_end)
+                    train_key = tuple(train_batch_ids)
                     if train_key not in train_df_cache:
-                        train_df_cache[train_key] = load_batches_range(
+                        train_df_cache[train_key] = load_batches_by_ids(
                             unit.features_dir,
                             unit.labels_dir,
                             unit.timeframe,
-                            fold_train_start,
-                            fold_train_end + 1,
+                            train_batch_ids,
                             target_col=unit.target,
                             feature_target_col=unit.feature_target,
                             exclude_tail_pct=unit.exclude_tail_pct,
@@ -1176,14 +1215,13 @@ def run_stage1_step2_feature_pruning(
                         fold_ok = False
                         break
 
-                    val_key = (fold_val_start, fold_val_end)
+                    val_key = tuple(val_batch_ids)
                     if val_key not in val_df_cache:
-                        val_df_cache[val_key] = load_batches_range(
+                        val_df_cache[val_key] = load_batches_by_ids(
                             unit.features_dir,
                             unit.labels_dir,
                             unit.timeframe,
-                            fold_val_start,
-                            fold_val_end + 1,
+                            val_batch_ids,
                             target_col=unit.target,
                             feature_target_col=unit.feature_target,
                             exclude_tail_pct=unit.exclude_tail_pct,
@@ -1412,13 +1450,25 @@ def run_stage1_step2_feature_pruning(
                         fold_val_start = int(fold_w["val_start_batch"])
                         fold_val_end = int(fold_w["val_end_batch"])
 
-                        train_key = (fold_train_start, fold_train_end)
+                        train_batch_ids = _fold_batch_ids(
+                            fold_w,
+                            prefix="train",
+                            start_batch=fold_train_start,
+                            end_batch=fold_train_end,
+                        )
+                        val_batch_ids = _fold_batch_ids(
+                            fold_w,
+                            prefix="val",
+                            start_batch=fold_val_start,
+                            end_batch=fold_val_end,
+                        )
+                        train_key = tuple(train_batch_ids)
                         train_df = train_df_cache.get(train_key)
                         if train_df is None:
                             filtered_fold_ok = False
                             fail_reason = "missing_train_cache"
                             break
-                        val_key = (fold_val_start, fold_val_end)
+                        val_key = tuple(val_batch_ids)
                         fold_val_df = val_df_cache.get(val_key)
                         if fold_val_df is None:
                             filtered_fold_ok = False
@@ -1741,9 +1791,19 @@ def run_stage1_step2_feature_pruning(
                 fold_val_start = int(fold_w["val_start_batch"])
                 fold_val_end = int(fold_w["val_end_batch"])
 
-                leakage_ok = bool(
-                    fold_train_end < fold_val_start and fold_val_end < int(pred_batch)
+                train_batch_ids = _fold_batch_ids(
+                    fold_w,
+                    prefix="train",
+                    start_batch=fold_train_start,
+                    end_batch=fold_train_end,
                 )
+                val_batch_ids = _fold_batch_ids(
+                    fold_w,
+                    prefix="val",
+                    start_batch=fold_val_start,
+                    end_batch=fold_val_end,
+                )
+                leakage_ok = _fold_order_ok(fold_w, pred_batch=int(pred_batch))
                 if debug_walkforward and (
                     step_idx % debug_walkforward_every_steps == 0
                 ):
@@ -1770,14 +1830,13 @@ def run_stage1_step2_feature_pruning(
                     fold_ok = False
                     break
 
-                train_key = (fold_train_start, fold_train_end)
+                train_key = tuple(train_batch_ids)
                 if train_key not in train_df_cache:
-                    train_df_cache[train_key] = load_batches_range(
+                    train_df_cache[train_key] = load_batches_by_ids(
                         unit.features_dir,
                         unit.labels_dir,
                         unit.timeframe,
-                        fold_train_start,
-                        fold_train_end + 1,
+                        train_batch_ids,
                         target_col=unit.target,
                         feature_target_col=unit.feature_target,
                         exclude_tail_pct=unit.exclude_tail_pct,
@@ -1798,14 +1857,13 @@ def run_stage1_step2_feature_pruning(
                     fold_ok = False
                     break
 
-                val_key = (fold_val_start, fold_val_end)
+                val_key = tuple(val_batch_ids)
                 if val_key not in val_df_cache:
-                    val_df_cache[val_key] = load_batches_range(
+                    val_df_cache[val_key] = load_batches_by_ids(
                         unit.features_dir,
                         unit.labels_dir,
                         unit.timeframe,
-                        fold_val_start,
-                        fold_val_end + 1,
+                        val_batch_ids,
                         target_col=unit.target,
                         feature_target_col=unit.feature_target,
                         exclude_tail_pct=unit.exclude_tail_pct,

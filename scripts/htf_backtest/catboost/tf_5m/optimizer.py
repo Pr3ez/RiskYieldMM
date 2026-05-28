@@ -458,6 +458,9 @@ class StepOptimizer5m:
         train_batches_per_fold: int,
         val_batches_per_fold: int,
         min_batch: int,
+        available_batches: list[int] | None = None,
+        batch_positions: dict[int, int] | None = None,
+        pred_pos: int | None = None,
     ) -> list[dict]:
         """
         Build rolling fold windows:
@@ -467,6 +470,63 @@ class StepOptimizer5m:
         embargo_tv, embargo_vp = self._stage1_resolve_embargo()
         windows: list[dict] = []
         val_batches_per_fold = int(max(1, val_batches_per_fold))
+        if available_batches is not None:
+            available = [int(b) for b in available_batches if int(b) <= int(train_end)]
+            if not available:
+                return []
+            local_pos = {int(batch_id): idx for idx, batch_id in enumerate(available)}
+            global_pos = {
+                int(k): int(v)
+                for k, v in (batch_positions or local_pos).items()
+            }
+            pred_pos_value = (
+                int(pred_pos)
+                if pred_pos is not None
+                else int(global_pos.get(int(available[-1]), len(available) - 1)) + 1
+            )
+            first_val_end_pos = len(available) - 1 - int(embargo_vp)
+            for i in range(int(fold_count)):
+                val_end_pos = first_val_end_pos - i * val_batches_per_fold
+                val_start_pos = val_end_pos - val_batches_per_fold + 1
+                train_end_pos = val_start_pos - int(embargo_tv) - 1
+                train_start_pos = train_end_pos - int(train_batches_per_fold) + 1
+                if min(train_start_pos, train_end_pos, val_start_pos, val_end_pos) < 0:
+                    return []
+                train_ids = [int(v) for v in available[train_start_pos : train_end_pos + 1]]
+                val_ids = [int(v) for v in available[val_start_pos : val_end_pos + 1]]
+                if len(train_ids) != int(train_batches_per_fold):
+                    return []
+                if len(val_ids) != int(val_batches_per_fold):
+                    return []
+                train_start_batch = int(train_ids[0])
+                train_end_batch = int(train_ids[-1])
+                val_start_batch = int(val_ids[0])
+                val_end_batch = int(val_ids[-1])
+                train_sparse = (train_end_batch - train_start_batch + 1) != len(train_ids)
+                val_sparse = (val_end_batch - val_start_batch + 1) != len(val_ids)
+                windows.append(
+                    {
+                        "fold_id": int(i + 1),
+                        "val_start_batch": val_start_batch,
+                        "val_end_batch": val_end_batch,
+                        # Backward-compatible alias used by downstream consumers.
+                        "val_batch": val_end_batch,
+                        "train_start_batch": train_start_batch,
+                        "train_end_batch": train_end_batch,
+                        "train_start_pos": int(global_pos.get(train_start_batch, train_start_pos)),
+                        "train_end_pos": int(global_pos.get(train_end_batch, train_end_pos)),
+                        "val_start_pos": int(global_pos.get(val_start_batch, val_start_pos)),
+                        "val_end_pos": int(global_pos.get(val_end_batch, val_end_pos)),
+                        "pred_pos": int(pred_pos_value),
+                        "train_batch_ids": train_ids,
+                        "val_batch_ids": val_ids,
+                        "train_batch_count": int(len(train_ids)),
+                        "val_batch_count": int(len(val_ids)),
+                        "window_is_sparse": bool(train_sparse or val_sparse),
+                    }
+                )
+            return windows
+
         first_val_end_batch = int(train_end) - int(embargo_vp)
         for i in range(int(fold_count)):
             val_end_batch = first_val_end_batch - i * val_batches_per_fold
@@ -488,6 +548,11 @@ class StepOptimizer5m:
                     "val_batch": int(val_end_batch),
                     "train_start_batch": int(train_start_batch),
                     "train_end_batch": int(train_end_batch),
+                    "train_batch_ids": list(range(int(train_start_batch), int(train_end_batch) + 1)),
+                    "val_batch_ids": list(range(int(val_start_batch), int(val_end_batch) + 1)),
+                    "train_batch_count": int(train_end_batch - train_start_batch + 1),
+                    "val_batch_count": int(val_end_batch - val_start_batch + 1),
+                    "window_is_sparse": False,
                 }
             )
         return windows

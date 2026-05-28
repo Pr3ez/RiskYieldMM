@@ -36,7 +36,7 @@ from .stage1_v2_contract import (
     stage1_mode_name,
     stage1_v2_contract_payload,
 )
-from .utils import compute_label_distribution, get_valid_batches
+from .utils import build_stage1_batch_index, compute_label_distribution, get_valid_batches
 
 
 def _stage1_required_artifact_paths(step_dir: Path) -> dict[str, Path]:
@@ -1605,6 +1605,7 @@ def run_walk_forward_stage1_grid(
                         )
 
     valid_by_unit: dict[tuple[str, str], list[int]] = {}
+    batch_index_by_unit: dict[tuple[str, str], pl.DataFrame] = {}
     for unit in execution_units:
         tf = unit["tf"]
         cfg = unit["optimizer"].config
@@ -1620,6 +1621,15 @@ def run_walk_forward_stage1_grid(
             validity_target_col=validity_target_col,
         )
         valid_by_unit[(tf, cfg.target)] = batches
+        batch_index_by_unit[(tf, cfg.target)] = build_stage1_batch_index(
+            cfg.features_dir,
+            cfg.labels_dir,
+            tf,
+            target_col=cfg.target,
+            feature_target_col=(cfg.feature_target or cfg.target),
+            validity_target_col=validity_target_col,
+            batch_ids=batches,
+        )
         if verbose:
             total = len(list((cfg.labels_dir / tf).glob("batch_*.parquet")))
             invalid = max(0, total - len(batches))
@@ -1637,7 +1647,31 @@ def run_walk_forward_stage1_grid(
     for batches in valid_by_unit.values():
         s = set(batches)
         common_valid = s if common_valid is None else (common_valid & s)
-    common_valid_desc = sorted(common_valid or [], reverse=True)
+    batch_start_maps: list[dict[int, datetime]] = []
+    for index_df in batch_index_by_unit.values():
+        if index_df.is_empty() or "batch_start_ts" not in index_df.columns:
+            continue
+        batch_start_maps.append(
+            {
+                int(row["batch_id"]): row["batch_start_ts"]
+                for row in index_df.select(["batch_id", "batch_start_ts"]).iter_rows(named=True)
+                if row["batch_start_ts"] is not None
+            }
+        )
+
+    def _common_batch_sort_key(batch_id: int) -> tuple[int, datetime, int]:
+        starts = [
+            start_map[int(batch_id)]
+            for start_map in batch_start_maps
+            if int(batch_id) in start_map
+        ]
+        if starts:
+            return (0, min(starts), int(batch_id))
+        return (1, datetime.max, int(batch_id))
+
+    common_valid_asc = sorted((common_valid or []), key=_common_batch_sort_key)
+    common_valid_desc = list(reversed(common_valid_asc))
+    common_batch_pos = {int(batch_id): int(pos) for pos, batch_id in enumerate(common_valid_asc)}
     if verbose:
         print(f"  Common valid across all units: {len(common_valid_desc)} batches")
 
@@ -1645,27 +1679,34 @@ def run_walk_forward_stage1_grid(
         raise ValueError("No common valid batches across execution units")
 
     max_lookback_min = max(int(u["optimizer"].window_space.lookback_min) for u in execution_units)
-    eligible_desc = [b for b in common_valid_desc if b > max_lookback_min]
+    eligible_asc = [
+        int(batch_id)
+        for pos, batch_id in enumerate(common_valid_asc)
+        if int(pos) >= int(max_lookback_min)
+    ]
     if pred_batch_min is not None:
-        eligible_desc = [b for b in eligible_desc if int(b) >= int(pred_batch_min)]
+        eligible_asc = [b for b in eligible_asc if int(b) >= int(pred_batch_min)]
     if pred_batch_max is not None:
-        eligible_desc = [b for b in eligible_desc if int(b) <= int(pred_batch_max)]
-    if not eligible_desc:
+        eligible_asc = [b for b in eligible_asc if int(b) <= int(pred_batch_max)]
+    if not eligible_asc:
         raise ValueError(
-            f"No valid batches with sufficient training data. Need batch > {max_lookback_min}, have 0 valid."
+            "No valid batches with sufficient training data. "
+            f"Need at least {max_lookback_min} previous available batches, have 0 eligible."
         )
 
-    max_steps = len(eligible_desc)
+    max_steps = len(eligible_asc)
     if n_steps is None:
         n_steps = max_steps
     n_steps = min(int(n_steps), max_steps)
-    step_batches = list(reversed(eligible_desc[:n_steps]))
+    step_batches = eligible_asc[-n_steps:]
+    step_batch_positions = [int(common_batch_pos[int(batch_id)]) for batch_id in step_batches]
 
     if verbose:
         print(f"\n  Running {n_steps} steps (max possible: {max_steps})")
         print("  Walk direction: oldest_to_newest")
         print(f"  First prediction batch: {step_batches[0]}")
         print(f"  Last prediction batch: {step_batches[-1]}")
+        print(f"  Lookback_min requirement: {max_lookback_min} previous available batches")
         if resume:
             print("\n  Resume coverage against active triplet grid:")
             for unit in execution_units:
@@ -1713,12 +1754,15 @@ def run_walk_forward_stage1_grid(
     t_start = time.time()
 
     for step_idx, pred_batch in enumerate(step_batches, start=1):
-        train_end = int(pred_batch) - 1
+        pred_pos = int(common_batch_pos[int(pred_batch)])
+        train_end = int(common_valid_asc[pred_pos - 1])
         step_t0 = time.time()
         if verbose:
             print("\n" + "#" * 80)
             print(
-                f"#  STEP {step_idx}/{n_steps} | Train batches 1-{train_end} → Predict batch {pred_batch}"
+                f"#  STEP {step_idx}/{n_steps} | Train available batches through "
+                f"{train_end} (pos {pred_pos - 1}) → Predict batch {pred_batch} "
+                f"(pos {pred_pos})"
             )
             print("#" * 80)
 
@@ -1908,6 +1952,9 @@ def run_walk_forward_stage1_grid(
                         train_end=int(train_end),
                         pred_batch=int(pred_batch),
                         step_stage1_dir=stage1_dir,
+                        available_batch_ids=common_valid_asc,
+                        batch_positions=common_batch_pos,
+                        pred_pos=int(pred_pos),
                         combo_grid_override=base_combo_override,
                         append_mode=False,
                         candidate_source="base_grid",
@@ -2014,6 +2061,9 @@ def run_walk_forward_stage1_grid(
                             train_end=int(train_end),
                             pred_batch=int(pred_batch),
                             step_stage1_dir=stage1_dir,
+                            available_batch_ids=common_valid_asc,
+                            batch_positions=common_batch_pos,
+                            pred_pos=int(pred_pos),
                             combo_grid_override=tier_combo_override,
                             append_mode=True,
                             candidate_source="archive_probe",
@@ -2183,6 +2233,7 @@ def run_walk_forward_stage1_grid(
                     "target": target_col,
                     "feature_target": feature_target_col,
                     "pred_batch": int(pred_batch),
+                    "pred_pos": int(pred_pos),
                     "train_end": int(train_end),
                     "step": int(step_idx),
                     "stage1_summary": summary_updated,
@@ -2202,6 +2253,7 @@ def run_walk_forward_stage1_grid(
                         "target": target_col,
                         "feature_target": feature_target_col,
                         "pred_batch": int(pred_batch),
+                        "pred_pos": int(pred_pos),
                         "step": int(step_idx),
                         "batch_dir": str(step_dir),
                         "stage1_summary": summary_updated,
@@ -2212,6 +2264,7 @@ def run_walk_forward_stage1_grid(
                     {
                         "step": int(step_idx),
                         "pred_batch": int(pred_batch),
+                        "pred_pos": int(pred_pos),
                         "train_end": int(train_end),
                         "runtime_s": float(runtime),
                         "summary": summary_updated,
@@ -2223,6 +2276,7 @@ def run_walk_forward_stage1_grid(
                         "timeframe": tf,
                         "target": target_col,
                         "pred_batch": int(pred_batch),
+                        "pred_pos": int(pred_pos),
                         "step": int(step_idx),
                         "status": "completed",
                         "reason": (
@@ -2332,6 +2386,7 @@ def run_walk_forward_stage1_grid(
         "stage1_promoted_combo_cap_per_unit": int(stage1_promoted_combo_cap_per_unit),
         "timeframes": sorted({u["tf"] for u in execution_units}),
         "step_batches": [int(b) for b in step_batches],
+        "step_batch_positions": [int(v) for v in step_batch_positions],
         "results": {k: v for k, v in step_results.items()},
         "runtime_s": float(time.time() - t_start),
         "dynamic_combo_registry": (
@@ -2376,12 +2431,19 @@ def run_walk_forward_stage1_grid(
         "stage1_promotion_mode": str(stage1_promotion_mode),
         "stage1_promoted_combo_cap_per_unit": int(stage1_promoted_combo_cap_per_unit),
         "step_batches": [int(b) for b in step_batches],
+        "step_batch_positions": [int(v) for v in step_batch_positions],
         "execution_units": [
             {
                 "timeframe": u["tf"],
                 "target": u["target_col"],
                 "feature_target": u["feature_target_col"],
                 "lookback_min": int(u["optimizer"].window_space.lookback_min),
+                "valid_batch_count": int(
+                    len(valid_by_unit.get((u["tf"], u["target_col"]), []))
+                ),
+                "batch_index_rows": int(
+                    batch_index_by_unit.get((u["tf"], u["target_col"]), pl.DataFrame()).height
+                ),
                 "features_dir": str(u["optimizer"].config.features_dir),
                 "labels_dir": str(u["optimizer"].config.labels_dir),
             }

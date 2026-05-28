@@ -14,6 +14,7 @@ Merged dataset artifacts are written before training:
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/batch_*.parquet
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/batch_*.parquet
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/manifest.json
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/stage1_batch_index.parquet
 ```
 
 The manifest records target/context assets, source roots, output roots, input
@@ -23,9 +24,10 @@ schema hash, feature count, and timestamp range. Merged feature outputs are
 valid only when `duplicate_count=0` and `null_feature_count=0`.
 
 Merged multi-asset roots may have sparse batch ids. This is expected when exact
-timestamp context coverage begins later than the target asset history. Stage-1
-validity scanning supports those sparse ids; per-combo missing-batch failures
-near local gaps are recorded in `stage1_step_summary.json`.
+timestamp context coverage begins later than the target asset history or skips
+closed-session spans. Stage-1 uses dense available-batch positions for
+walk-forward windows while preserving original `batch_id` values in prediction
+payloads.
 
 Stage-1 step artifacts are written under:
 
@@ -71,6 +73,11 @@ Default `output_subdir` is `stage1_step2`.
   - `fold_id`
   - `train_start_batch`, `train_end_batch`
   - `val_start_batch`, `val_end_batch`, `val_batch`
+  - `train_start_pos`, `train_end_pos`
+  - `val_start_pos`, `val_end_pos`, `pred_pos`
+  - `train_batch_ids`, `val_batch_ids`
+  - `train_batch_count`, `val_batch_count`
+  - `window_is_sparse`
 
 4. `stage1_val_predictions.parquet`
 - raw validation predictions across all combos/folds

@@ -23,9 +23,10 @@ from .stage1_selector_kernel import (
 )
 from .stage1_v2_contract import STAGE1_V2_STEP_ARTIFACTS, Stage1V2SelectorConfig
 from .utils import (
+    coerce_stage1_batch_ids,
     get_feature_columns,
     load_batch,
-    load_batches_range,
+    load_batches_by_ids,
     prepare_features_target,
 )
 
@@ -77,6 +78,35 @@ def _rows_to_df(rows: list[dict[str, Any]]) -> pl.DataFrame:
     keys = sorted({k for row in rows for k in row.keys()})
     normalized = [{k: row.get(k) for k in keys} for row in rows]
     return pl.from_dicts(normalized, infer_schema_length=None)
+
+
+def _fold_batch_ids(
+    fold_row: dict[str, Any],
+    *,
+    prefix: str,
+    start_batch: int,
+    end_batch: int,
+) -> list[int]:
+    ids = coerce_stage1_batch_ids(fold_row.get(f"{prefix}_batch_ids"))
+    if ids:
+        return ids
+    return list(range(int(start_batch), int(end_batch) + 1))
+
+
+def _fold_order_ok(fold_row: dict[str, Any], *, pred_batch: int) -> bool:
+    pos_keys = ("train_end_pos", "val_start_pos", "val_end_pos", "pred_pos")
+    if all(fold_row.get(key) is not None for key in pos_keys):
+        try:
+            return bool(
+                int(fold_row["train_end_pos"]) < int(fold_row["val_start_pos"])
+                and int(fold_row["val_end_pos"]) < int(fold_row["pred_pos"])
+            )
+        except Exception:
+            pass
+    return bool(
+        int(fold_row["train_end_batch"]) < int(fold_row["val_start_batch"])
+        and int(fold_row["val_end_batch"]) < int(pred_batch)
+    )
 
 
 def _rank_stage1_rows(rows: list[dict[str, Any]], prefix: str) -> list[dict[str, Any]]:
@@ -336,20 +366,31 @@ def _replay_fixed_policy_step(
             fold_val_start = int(fold_row["val_start_batch"])
             fold_val_end = int(fold_row["val_end_batch"])
 
-            leakage_ok = bool(fold_train_end < fold_val_start and fold_val_end < int(pred_batch))
+            train_batch_ids = _fold_batch_ids(
+                fold_row,
+                prefix="train",
+                start_batch=fold_train_start,
+                end_batch=fold_train_end,
+            )
+            val_batch_ids = _fold_batch_ids(
+                fold_row,
+                prefix="val",
+                start_batch=fold_val_start,
+                end_batch=fold_val_end,
+            )
+            leakage_ok = _fold_order_ok(fold_row, pred_batch=int(pred_batch))
             if not leakage_ok:
                 fold_ok = False
                 fail_reason = "leakage_guard_fold_order_violation"
                 break
 
-            train_key = (fold_train_start, fold_train_end)
+            train_key = tuple(train_batch_ids)
             if train_key not in train_df_cache:
-                train_df_cache[train_key] = load_batches_range(
+                train_df_cache[train_key] = load_batches_by_ids(
                     unit.features_dir,
                     unit.labels_dir,
                     unit.timeframe,
-                    fold_train_start,
-                    fold_train_end + 1,
+                    train_batch_ids,
                     target_col=unit.target,
                     feature_target_col=unit.feature_target,
                     exclude_tail_pct=unit.exclude_tail_pct,
@@ -360,14 +401,13 @@ def _replay_fixed_policy_step(
                 fail_reason = "insufficient_rows_for_training"
                 break
 
-            val_key = (fold_val_start, fold_val_end)
+            val_key = tuple(val_batch_ids)
             if val_key not in val_df_cache:
-                val_df_cache[val_key] = load_batches_range(
+                val_df_cache[val_key] = load_batches_by_ids(
                     unit.features_dir,
                     unit.labels_dir,
                     unit.timeframe,
-                    fold_val_start,
-                    fold_val_end + 1,
+                    val_batch_ids,
                     target_col=unit.target,
                     feature_target_col=unit.feature_target,
                     exclude_tail_pct=unit.exclude_tail_pct,
@@ -1050,7 +1090,19 @@ def process_stage1_selector_step(
             fold_val_start = int(fold_row["val_start_batch"])
             fold_val_end = int(fold_row["val_end_batch"])
 
-            leakage_ok = bool(fold_train_end < fold_val_start and fold_val_end < int(pred_batch))
+            train_batch_ids = _fold_batch_ids(
+                fold_row,
+                prefix="train",
+                start_batch=fold_train_start,
+                end_batch=fold_train_end,
+            )
+            val_batch_ids = _fold_batch_ids(
+                fold_row,
+                prefix="val",
+                start_batch=fold_val_start,
+                end_batch=fold_val_end,
+            )
+            leakage_ok = _fold_order_ok(fold_row, pred_batch=int(pred_batch))
             if not leakage_ok:
                 failed_steps.append(
                     {
@@ -1066,14 +1118,13 @@ def process_stage1_selector_step(
                 fold_ok = False
                 break
 
-            train_key = (fold_train_start, fold_train_end)
+            train_key = tuple(train_batch_ids)
             if train_key not in train_df_cache:
-                train_df_cache[train_key] = load_batches_range(
+                train_df_cache[train_key] = load_batches_by_ids(
                     unit.features_dir,
                     unit.labels_dir,
                     unit.timeframe,
-                    fold_train_start,
-                    fold_train_end + 1,
+                    train_batch_ids,
                     target_col=unit.target,
                     feature_target_col=unit.feature_target,
                     exclude_tail_pct=unit.exclude_tail_pct,
@@ -1091,14 +1142,13 @@ def process_stage1_selector_step(
                 fold_ok = False
                 break
 
-            val_key = (fold_val_start, fold_val_end)
+            val_key = tuple(val_batch_ids)
             if val_key not in val_df_cache:
-                val_df_cache[val_key] = load_batches_range(
+                val_df_cache[val_key] = load_batches_by_ids(
                     unit.features_dir,
                     unit.labels_dir,
                     unit.timeframe,
-                    fold_val_start,
-                    fold_val_end + 1,
+                    val_batch_ids,
                     target_col=unit.target,
                     feature_target_col=unit.feature_target,
                     exclude_tail_pct=unit.exclude_tail_pct,
@@ -1282,8 +1332,20 @@ def process_stage1_selector_step(
                 fold_val_start = int(fold_row["val_start_batch"])
                 fold_val_end = int(fold_row["val_end_batch"])
 
-                train_df = train_df_cache.get((fold_train_start, fold_train_end))
-                fold_val_df = val_df_cache.get((fold_val_start, fold_val_end))
+                train_batch_ids = _fold_batch_ids(
+                    fold_row,
+                    prefix="train",
+                    start_batch=fold_train_start,
+                    end_batch=fold_train_end,
+                )
+                val_batch_ids = _fold_batch_ids(
+                    fold_row,
+                    prefix="val",
+                    start_batch=fold_val_start,
+                    end_batch=fold_val_end,
+                )
+                train_df = train_df_cache.get(tuple(train_batch_ids))
+                fold_val_df = val_df_cache.get(tuple(val_batch_ids))
                 if train_df is None or fold_val_df is None:
                     filtered_fold_ok = False
                     fail_reason = "missing_cached_training_or_validation_range"

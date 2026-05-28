@@ -12,7 +12,7 @@ import json
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal
 
 import numpy as np
 import polars as pl
@@ -304,6 +304,46 @@ class ModelSearchSpace:
 # ============================================================================
 # DATA LOADING
 # ============================================================================
+def _batch_id_from_path(path: Path) -> int | None:
+    """Parse `batch_XXXX.parquet` into an integer id."""
+    stem = Path(path).stem
+    if not stem.startswith("batch_"):
+        return None
+    try:
+        return int(stem.removeprefix("batch_"))
+    except ValueError:
+        return None
+
+
+def list_existing_batch_ids(
+    features_dir: Path,
+    labels_dir: Path,
+    tf: str,
+    feature_target_col: str | None = None,
+) -> list[int]:
+    """Return sorted batch ids that have both feature and label files.
+
+    Stage-1 merged multi-asset roots can be sparse because exact timestamp
+    context joins legitimately skip closed-session spans. This helper treats
+    the files that actually exist as the source of truth instead of assuming
+    `1..max(batch_id)` continuity.
+    """
+    feature_target = feature_target_col or "target_4class"
+    feature_path = Path(features_dir) / tf / feature_target
+    label_path = Path(labels_dir) / tf
+    feature_ids = {
+        bid
+        for path in feature_path.glob("batch_*.parquet")
+        if (bid := _batch_id_from_path(path)) is not None
+    }
+    label_ids = {
+        bid
+        for path in label_path.glob("batch_*.parquet")
+        if (bid := _batch_id_from_path(path)) is not None
+    }
+    return sorted(feature_ids & label_ids)
+
+
 def load_batch(
     features_dir: Path,
     labels_dir: Path,
@@ -352,6 +392,46 @@ def load_batch(
     return df
 
 
+def load_batches_by_ids(
+    features_dir: Path,
+    labels_dir: Path,
+    tf: str,
+    batch_ids: list[int] | tuple[int, ...] | np.ndarray,
+    target_col: str = "target_4class",
+    feature_target_col: str | None = None,
+    exclude_tail_pct: float = 0.0,
+) -> pl.DataFrame:
+    """Load explicit batches with features and labels.
+
+    Use this for sparse Stage-1 windows where the logical train/validation
+    window is a list of available batches, not an integer range.
+    """
+    dfs = []
+    seen: set[int] = set()
+    for raw_batch_id in batch_ids:
+        batch_id = int(raw_batch_id)
+        if batch_id in seen:
+            continue
+        seen.add(batch_id)
+        try:
+            dfs.append(
+                load_batch(
+                    features_dir,
+                    labels_dir,
+                    tf,
+                    batch_id,
+                    target_col=target_col,
+                    feature_target_col=feature_target_col,
+                    exclude_tail_pct=exclude_tail_pct,
+                )
+            )
+        except FileNotFoundError:
+            pass
+    if not dfs:
+        raise ValueError(f"No batches found for explicit ids: {list(batch_ids)}")
+    return pl.concat(dfs, how="diagonal_relaxed").sort(["batch_id", "timestamp"])
+
+
 def load_batches_range(
     features_dir: Path,
     labels_dir: Path,
@@ -363,25 +443,126 @@ def load_batches_range(
     exclude_tail_pct: float = 0.0,
 ) -> pl.DataFrame:
     """Load range of batches with features and labels."""
-    dfs = []
-    for i in range(start, end):
+    batch_ids = [
+        batch_id
+        for batch_id in list_existing_batch_ids(
+            features_dir,
+            labels_dir,
+            tf,
+            feature_target_col=feature_target_col or target_col,
+        )
+        if int(start) <= int(batch_id) < int(end)
+    ]
+    try:
+        return load_batches_by_ids(
+            features_dir,
+            labels_dir,
+            tf,
+            batch_ids,
+            target_col=target_col,
+            feature_target_col=feature_target_col,
+            exclude_tail_pct=exclude_tail_pct,
+        )
+    except ValueError as exc:
+        raise ValueError(f"No batches in [{start}, {end})") from exc
+
+
+def coerce_stage1_batch_ids(value: Any) -> list[int]:
+    """Normalize list-valued fold-window batch ids from parquet or JSON."""
+    if value is None:
+        return []
+    if isinstance(value, np.ndarray):
+        return [int(v) for v in value.tolist()]
+    if isinstance(value, pl.Series):
+        return [int(v) for v in value.to_list()]
+    if isinstance(value, (list, tuple)):
+        return [int(v) for v in value]
+    if isinstance(value, str):
+        stripped = value.strip()
+        if not stripped:
+            return []
         try:
-            dfs.append(
-                load_batch(
-                    features_dir,
-                    labels_dir,
-                    tf,
-                    i,
-                    target_col=target_col,
-                    feature_target_col=feature_target_col,
-                    exclude_tail_pct=exclude_tail_pct,
-                )
-            )
-        except FileNotFoundError:
+            loaded = json.loads(stripped)
+            if isinstance(loaded, list):
+                return [int(v) for v in loaded]
+        except Exception:
             pass
-    if not dfs:
-        raise ValueError(f"No batches in [{start}, {end})")
-    return pl.concat(dfs)
+        return [int(v.strip()) for v in stripped.split(",") if v.strip()]
+    return []
+
+
+def build_stage1_batch_index(
+    features_dir: Path,
+    labels_dir: Path,
+    tf: str,
+    target_col: str = "target_4class",
+    feature_target_col: str | None = None,
+    validity_target_col: str | None = None,
+    batch_ids: list[int] | None = None,
+) -> pl.DataFrame:
+    """Build dense available-position metadata for Stage-1 batches."""
+    feature_target = feature_target_col or target_col
+    ref_target = validity_target_col or target_col
+    ids = (
+        list(batch_ids)
+        if batch_ids is not None
+        else list_existing_batch_ids(
+            features_dir,
+            labels_dir,
+            tf,
+            feature_target_col=feature_target,
+        )
+    )
+    rows: list[dict[str, Any]] = []
+    for batch_id in sorted({int(v) for v in ids}):
+        try:
+            df = load_batch(
+                features_dir,
+                labels_dir,
+                tf,
+                batch_id,
+                target_col=ref_target,
+                feature_target_col=feature_target,
+                exclude_tail_pct=0.0,
+            )
+        except (FileNotFoundError, ValueError):
+            continue
+        if df.is_empty():
+            continue
+        valid_rows = int(len(df.filter(pl.col(ref_target) >= 0)))
+        rows.append(
+            {
+                "batch_id": int(batch_id),
+                "batch_start_ts": df["timestamp"].min(),
+                "batch_end_ts": df["timestamp"].max(),
+                "row_count": int(len(df)),
+                "valid_row_count": valid_rows,
+                "target_col": str(target_col),
+                "feature_target_col": str(feature_target),
+                "validity_target_col": str(ref_target),
+            }
+        )
+
+    if not rows:
+        return pl.DataFrame(
+            schema={
+                "stage1_available_pos": pl.Int32,
+                "batch_id": pl.Int32,
+                "batch_start_ts": pl.Datetime(time_unit="us", time_zone="UTC"),
+                "batch_end_ts": pl.Datetime(time_unit="us", time_zone="UTC"),
+                "row_count": pl.Int32,
+                "valid_row_count": pl.Int32,
+                "target_col": pl.Utf8,
+                "feature_target_col": pl.Utf8,
+                "validity_target_col": pl.Utf8,
+            }
+        )
+
+    return (
+        pl.from_dicts(rows, infer_schema_length=None)
+        .sort(["batch_start_ts", "batch_id"])
+        .with_row_index("stage1_available_pos")
+    )
 
 
 def compute_label_distribution(
@@ -450,13 +631,11 @@ def compute_class_counts_up_to(
 
 
 def get_batch_count(labels_dir: Path, tf: str) -> int:
-    """Get the highest available batch id for a timeframe.
+    """Get the highest available label batch id for legacy callers.
 
-    Legacy roots usually contain contiguous `batch_0001...batch_N` files, so
-    this equals the file count. Merged multi-asset roots can be sparse when the
-    exact timestamp context intersection starts later than the target asset's
-    history. Returning the highest id lets validity scanning see those later
-    batches instead of only checking `1..file_count`.
+    New sparse-aware Stage-1 paths use `list_existing_batch_ids` and dense
+    available positions instead of interpreting this maximum as a contiguous
+    `1..max(batch_id)` range.
     """
     tf_dir = labels_dir / tf
     batch_ids: list[int] = []
@@ -502,11 +681,16 @@ def get_valid_batches(
     Returns:
         Sorted list of valid batch indices
     """
-    batch_count = get_batch_count(labels_dir, tf)
     valid_rows_by_batch = {}
     ref_target_col = validity_target_col or target_col
+    candidate_batch_ids = list_existing_batch_ids(
+        features_dir,
+        labels_dir,
+        tf,
+        feature_target_col=feature_target_col or target_col,
+    )
 
-    for batch_idx in range(1, batch_count + 1):
+    for batch_idx in candidate_batch_ids:
         try:
             df = load_batch(
                 features_dir,
@@ -521,8 +705,8 @@ def get_valid_batches(
             # Count only rows that can actually be used by training/prediction.
             valid_rows = int(len(df.filter(pl.col(ref_target_col) >= 0)))
             valid_rows_by_batch[batch_idx] = valid_rows
-        except FileNotFoundError:
-            valid_rows_by_batch[batch_idx] = 0
+        except (FileNotFoundError, ValueError):
+            valid_rows_by_batch[int(batch_idx)] = 0
 
     if min_rows is None:
         nonzero_counts = np.array(

@@ -789,6 +789,7 @@ The merged features and target labels are written under:
 ```text
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/stage1_batch_index.parquet
 ```
 
 When TA flags are enabled, the selected TA feature library is part of the
@@ -877,6 +878,13 @@ Do not treat that one-step quality number as strategy evidence. It only proves
 the merged dataset, sparse-batch scanning, leakage guard, and Stage-1 payload
 generation path work end to end.
 
+Sparse merged roots are first-class Stage-1 inputs. The original `batch_id`
+and parquet filenames stay unchanged for HTF traceability, while Stage-1 uses a
+dense available-batch position for train/validation windows. Merged roots write
+`stage1_batch_index.parquet` beside `manifest.json`, and fold artifacts include
+explicit `train_batch_ids` and `val_batch_ids` so missing numeric batch ids do
+not invalidate otherwise valid sparse windows.
+
 Experimental label-anomaly research exists for the merged `8h/B` Stage-1
 dataset, but it is not promoted into production Stage-1 training. The current
 runner writes derived anomaly labels, review sets, and diagnostics under
@@ -927,13 +935,44 @@ python scripts/analysis/htf_stage1_regime_family_walkforward.py \
 The first BTCUSDT `8h/B` report showed that the original v1
 ATR/Bollinger/Keltner barriers are not model-ready because they collapse almost
 all eligible rows into expansion classes. The follow-up `tb_atr_wide_v2`
-candidate uses wider symmetric ATR barriers and passes the label sanity gate.
-Sanity gates are evaluated on label-eligible entry-window rows only; non-entry
-rows remain `-1` by design and Stage-1 filters them before training.
-The current BTCUSDT `8h/B` two-step smoke comparison is documented in:
+candidate uses wider symmetric ATR barriers and passes the label sanity gate:
+
+```text
+volatility_t = max(ATR_pct_14, rolling_std_return_120)
+upper_barrier = close_t * (1 + clip(15.0 * volatility_t, 0.05%, 5.00%))
+lower_barrier = close_t * (1 - clip(15.0 * volatility_t, 0.05%, 5.00%))
+label window = next opposite-family first-half 15m bars
+same 15m bar hitting both barriers = invalid
+no barrier hit = terminal return sign, with theta_terminal = 0.0
+```
+
+Barrier inputs are computed from prediction-time rows only. Future barrier-scan
+diagnostics are label-only and are not joined as model features. Sanity gates
+are evaluated on label-eligible entry-window rows only; non-entry rows remain
+`-1` by design and Stage-1 filters them before training. The BTCUSDT `8h/B`
+two-step smoke comparison is documented in:
 
 ```text
 docs/research/tb-target-survey-8h-b-btcusdt-stage1-smoke-2026-05-21.md
+```
+
+A later `250`-step `tb_atr_wide_v2` execution finished before sparse-batch
+window handling was corrected, so only `134/250` steps produced selected
+held-out predictions. That pre-fix diagnostic is documented in:
+
+```text
+docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-26.md
+```
+
+After the sparse-aware Stage-1 window fix, both legacy `target_4class` and
+`target_4class_tb_atr_wide_v2` completed `250/250` comparable BTCUSDT `8h/B`
+steps. The candidate improved plain four-class accuracy and macro F1, but it
+slightly worsened direction accuracy and cross-direction error, so it is not
+promoted as the default Stage-1 target yet. The current fair comparison report
+is:
+
+```text
+docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-27.md
 ```
 
 For the current full regime/family Stage-1 v1 run:
@@ -997,10 +1036,11 @@ data/htf_multiasset_merged/{target_asset}/{context_hash}/{ta_variant}/{root_id}/
 ```
 
 Merged roots can be sparse because exact timestamp alignment may begin later
-than the target asset history or skip closed-session gaps. Stage-1 validity
-scanning supports sparse `batch_*.parquet` ids, but some candidate triplets can
-still fail near missing local batch spans; check `fail_reasons` in
-`stage1_step_summary.json` before judging model quality.
+than the target asset history or skip closed-session gaps. Stage-1 now plans
+walk-forward windows over dense available-batch positions while preserving
+original `batch_id` values in data and artifacts. Sparse roots should not
+produce `missing_batch:*` failures for valid available-batch windows; if they
+do, treat it as a data/artifact consistency issue before judging model quality.
 
 Key files and folders:
 

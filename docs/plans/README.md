@@ -9,6 +9,7 @@ This branch now focuses on the multi-asset HTF workflow.
 |---|---|---|
 | Implemented + active next steps | [`htf_multi_asset_update_plan_2026-05-07.md`](htf_multi_asset_update_plan_2026-05-07.md) | Current HTF multi-asset implementation status, run commands, label policy, and downstream analysis work |
 | Implemented Stage-1 assembly | [`multi_asset_stage1_dataset_assembly_2026-05-20.md`](multi_asset_stage1_dataset_assembly_2026-05-20.md) | Target/context merged dataset contract, commands, validation, and deferred as-of joins |
+| Implemented sparse Stage-1 windows | [`stage1_sparse_batch_window_handling_2026-05-27.md`](stage1_sparse_batch_window_handling_2026-05-27.md) | Dense available-batch sidecar, sparse train/validation window semantics, selector/Step-2 reload contract, and validation commands |
 | Implemented experimental runner | [`stage1_label_anomaly_research_plan_2026-05-20.md`](stage1_label_anomaly_research_plan_2026-05-20.md) | Research-backed label-quality scoring, anomaly-class experiments, review exports, and representative-matrix validation commands |
 | Implemented, pending full core run | [`session_aware_multi_asset_htf_implementation_2026-05-16.md`](session_aware_multi_asset_htf_implementation_2026-05-16.md) | Calendar-aware canonical bars, session assets, open-session fill policy, and validation commands |
 | Implemented source layer | [`multi_asset_data_sources.md`](multi_asset_data_sources.md) | Multi-asset source plan and provider decisions |

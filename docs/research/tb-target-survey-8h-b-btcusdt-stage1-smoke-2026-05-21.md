@@ -4,6 +4,14 @@ Date: 2026-05-21
 Scope: BTCUSDT, `8h/B`, all-core exact-timestamp context, no TA flags, no anomaly overlay
 Purpose: first sanity-gated Stage-1 comparison of an experimental triple-barrier parent target against legacy `target_4class`.
 
+Status update: this two-step smoke has been superseded by the later 250-step
+execution analysis in
+`docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-26.md`.
+That run found only `134/250` scorable candidate steps because sparse merged
+batch windows caused no-winner steps before sparse-batch Stage-1 window
+handling was implemented. Treat that extended run as a pre-fix diagnostic and
+rerun the target survey after the sparse-aware window contract is in place.
+
 ## Inputs
 
 Label materialization command:

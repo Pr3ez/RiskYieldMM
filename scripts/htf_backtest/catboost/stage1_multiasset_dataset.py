@@ -481,6 +481,7 @@ def build_multiasset_stage1_dataset(
     rows_dropped_by_null_features = 0
     timestamp_min: datetime | None = None
     timestamp_max: datetime | None = None
+    batch_index_rows: list[dict[str, Any]] = []
 
     processed_batches = 0
     for target_meta in target_index.files:
@@ -600,6 +601,22 @@ def build_multiasset_stage1_dataset(
                 if timestamp_max is None or batch_max > timestamp_max
                 else timestamp_max
             )
+            batch_index_rows.append(
+                {
+                    "batch_id": int(target_meta.batch_id),
+                    "batch_start_ts": batch_min,
+                    "batch_end_ts": batch_max,
+                    "row_count": int(batch_output_rows),
+                    "valid_row_count": int(
+                        labels_out.filter(pl.col(target_col) >= 0).height
+                    ),
+                    "target_col": str(target_col),
+                    "feature_target_col": str(feature_target_col),
+                    "root": str(root_key),
+                    "target_asset": str(target_asset),
+                    "context_hash": str(context_hash),
+                }
+            )
 
         batch_summaries.append(
             {
@@ -611,6 +628,27 @@ def build_multiasset_stage1_dataset(
                 "feature_path": str(target_meta.path),
                 "label_path": str(label_path),
             }
+        )
+
+    batch_index_path = root_output_dir / "stage1_batch_index.parquet"
+    batch_index_df = _stage1_batch_index_frame(batch_index_rows)
+    batch_index_df.write_parquet(batch_index_path)
+
+    written_batch_ids = batch_index_df["batch_id"].to_list() if not batch_index_df.is_empty() else []
+    numeric_gap_count = 0
+    if written_batch_ids:
+        written_set = {int(v) for v in written_batch_ids}
+        numeric_gap_count = int(
+            len(
+                [
+                    batch_id
+                    for batch_id in range(
+                        int(min(written_set)),
+                        int(max(written_set)) + 1,
+                    )
+                    if batch_id not in written_set
+                ]
+            )
         )
 
     schema_hash = _schema_hash(["timestamp", "batch_id", *output_feature_columns])
@@ -645,6 +683,7 @@ def build_multiasset_stage1_dataset(
             "features_dir": str(features_dir),
             "labels_dir": str(labels_dir),
             "manifest_path": str(root_output_dir / "manifest.json"),
+            "stage1_batch_index": str(batch_index_path),
         },
         "input_rows": {
             "target_features": int(target_feature_rows),
@@ -662,6 +701,10 @@ def build_multiasset_stage1_dataset(
         "batch_id_max": batch_id_max,
         "processed_batches": int(processed_batches),
         "written_batches": int(len(list(feature_output_dir.glob("batch_*.parquet")))),
+        "stage1_batch_index_rows": int(batch_index_df.height),
+        "stage1_batch_id_min": int(min(written_batch_ids)) if written_batch_ids else None,
+        "stage1_batch_id_max": int(max(written_batch_ids)) if written_batch_ids else None,
+        "stage1_numeric_gap_count": int(numeric_gap_count),
         "duplicate_count": 0,
         "null_feature_count": int(null_feature_count),
         "schema_hash": schema_hash,
@@ -1072,8 +1115,40 @@ def _read_target_labels_for_merged_rows(
         raise ValueError(
             f"Merged rows do not have one target label each for {label_path}: "
             f"merged={len(merged)} labels={len(out)}"
-        )
+    )
     return out
+
+
+def _stage1_batch_index_frame(rows: list[dict[str, Any]]) -> pl.DataFrame:
+    """Return dense available-batch metadata for the generated merged root."""
+    schema = {
+        "stage1_available_pos": pl.Int32,
+        "batch_id": pl.Int32,
+        "batch_start_ts": pl.Datetime(time_unit="us", time_zone="UTC"),
+        "batch_end_ts": pl.Datetime(time_unit="us", time_zone="UTC"),
+        "row_count": pl.Int32,
+        "valid_row_count": pl.Int32,
+        "target_col": pl.Utf8,
+        "feature_target_col": pl.Utf8,
+        "root": pl.Utf8,
+        "target_asset": pl.Utf8,
+        "context_hash": pl.Utf8,
+    }
+    if not rows:
+        return pl.DataFrame(schema=schema)
+    return (
+        pl.from_dicts(rows, infer_schema_length=None)
+        .sort(["batch_start_ts", "batch_id"])
+        .with_row_index("stage1_available_pos")
+        .with_columns(
+            [
+                pl.col("stage1_available_pos").cast(pl.Int32),
+                pl.col("batch_id").cast(pl.Int32),
+                pl.col("row_count").cast(pl.Int32),
+                pl.col("valid_row_count").cast(pl.Int32),
+            ]
+        )
+    )
 
 
 def _duplicate_count(df: pl.DataFrame, subset: list[str]) -> int:

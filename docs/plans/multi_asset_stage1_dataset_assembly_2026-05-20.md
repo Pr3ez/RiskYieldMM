@@ -30,6 +30,7 @@ Output layout:
 ```text
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/features/1m/target_4class/batch_*.parquet
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/labels/1m/batch_*.parquet
+data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/stage1_batch_index.parquet
 data/htf_multiasset_merged/{target_asset}/{context_hash}/{root_id}/manifest.json
 ```
 
@@ -44,8 +45,15 @@ Context `target_*` label columns are excluded from merged features.
 
 Sparse batch ids are allowed. Exact timestamp alignment can drop early target
 history or local closed-session spans, so merged roots may not contain every
-batch id between the first and last written file. Stage-1 scans up to the
-highest available batch id and treats missing files as invalid batches.
+batch id between the first and last written file. Stage-1 treats the actual
+written feature/label batch intersection as the valid batch set, writes a dense
+`stage1_available_pos` sidecar, and plans train/validation windows by available
+position instead of numeric `batch_id` continuity.
+
+The original `batch_id` remains the historical HTF/root identifier. Fold
+artifacts preserve both the backward-compatible start/end batch columns and
+explicit `train_batch_ids` / `val_batch_ids` lists, so sparse roots are
+first-class Stage-1 inputs rather than expected no-winner failures.
 
 ## Commands
 

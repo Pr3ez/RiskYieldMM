@@ -42,7 +42,10 @@ flowchart TD
 The Stage-1 merged dataset boundary is exact-timestamp only in v1. It drops
 missing context rows and null model-feature rows, writes an ignored
 `manifest.json`, and can produce sparse batch ids when the selected context set
-starts later than the target asset history.
+starts later than the target asset history. Sparse roots are supported through
+the `stage1_batch_index.parquet` sidecar: original `batch_id` values remain
+unchanged, while Stage-1 train/validation windows use dense available-batch
+positions and explicit fold batch-id lists.
 
 ## Temporal Safety Model
 
