@@ -116,11 +116,15 @@ UP_EXTREME_HVOL_V2_COL = "target_reg_distance_up_extreme_hvol_v2"
 UP_MEAN_HIGH_HVOL_V2_COL = "target_reg_distance_up_mean_high_hvol_v2"
 DOWN_MEAN_LOW_HVOL_V2_COL = "target_reg_distance_down_mean_low_hvol_v2"
 DOWN_EXTREME_HVOL_V2_COL = "target_reg_distance_down_extreme_hvol_v2"
+EXTREME_UP_SHARE_HVOL_V2_COL = "target_reg_direction_extreme_up_share_hvol_v2"
+MEAN_UP_SHARE_HVOL_V2_COL = "target_reg_direction_mean_up_share_hvol_v2"
 TARGET_COLS_HVOL_V2 = (
     UP_EXTREME_HVOL_V2_COL,
     UP_MEAN_HIGH_HVOL_V2_COL,
     DOWN_MEAN_LOW_HVOL_V2_COL,
     DOWN_EXTREME_HVOL_V2_COL,
+    EXTREME_UP_SHARE_HVOL_V2_COL,
+    MEAN_UP_SHARE_HVOL_V2_COL,
 )
 if set(TARGET_COLS_HVOL_V2) != set(REG_DISTANCE_HORIZON_VOL_V2_TARGET_COLS):
     raise RuntimeError("Horizon-vol regression target columns are out of sync with Stage-1 mapping")
@@ -188,6 +192,17 @@ def all_target_cols() -> tuple[str, ...]:
     for spec in REGRESSION_VARIANT_SPECS.values():
         cols.extend(spec.target_cols)
     return tuple(cols)
+
+
+def _bounded_up_share(up_value: float, down_value: float) -> float:
+    """Return bounded upside share; neutral when both sides have zero reach."""
+
+    up = max(float(up_value), 0.0)
+    down = max(float(down_value), 0.0)
+    total = up + down
+    if total <= 0.0:
+        return 0.5
+    return min(max(up / total, 0.0), 1.0)
 
 
 def compute_distance_regression_targets(
@@ -327,6 +342,10 @@ def scan_distance_regression_targets(
         out[spec.target_cols[1]][i] = up_mean_high_pct / denominator
         out[spec.target_cols[2]][i] = down_mean_low_pct / denominator
         out[spec.target_cols[3]][i] = down_extreme_pct / denominator
+        if EXTREME_UP_SHARE_HVOL_V2_COL in spec.target_cols:
+            out[EXTREME_UP_SHARE_HVOL_V2_COL][i] = _bounded_up_share(up_extreme_pct, down_extreme_pct)
+        if MEAN_UP_SHARE_HVOL_V2_COL in spec.target_cols:
+            out[MEAN_UP_SHARE_HVOL_V2_COL][i] = _bounded_up_share(up_mean_high_pct, down_mean_low_pct)
         out[spec.extreme_metadata_cols[0]][i] = max_high_offset
         out[spec.extreme_metadata_cols[1]][i] = timestamps[max_high_offset]
         out[spec.extreme_metadata_cols[2]][i] = min_low_offset

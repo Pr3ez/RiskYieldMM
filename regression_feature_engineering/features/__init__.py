@@ -1,6 +1,1 @@
-"""Regression feature-family modules.
-
-The modules currently contain family contracts only. Formula implementation is
-deferred until the documentation and validation contracts are accepted.
-"""
-
+"""Regression feature-family modules for causal path-distance features."""

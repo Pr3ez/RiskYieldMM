@@ -11,8 +11,10 @@ from scripts.analysis.materialize_stage1_regression_targets import (
     DOWN_EXTREME_COL,
     DOWN_MEAN_LOW_HVOL_V2_COL,
     DOWN_MEAN_LOW_COL,
+    EXTREME_UP_SHARE_HVOL_V2_COL,
     HORIZON_MINUTES_COL_V2,
     HORIZON_VOL_COL_V2,
+    MEAN_UP_SHARE_HVOL_V2_COL,
     REGRESSION_VARIANT,
     REGRESSION_VARIANT_HORIZON_VOL_V2,
     UP_EXTREME_HVOL_V2_COL,
@@ -107,6 +109,8 @@ def test_target_columns_share_one_regression_variant() -> None:
         UP_MEAN_HIGH_HVOL_V2_COL,
         DOWN_MEAN_LOW_HVOL_V2_COL,
         DOWN_EXTREME_HVOL_V2_COL,
+        EXTREME_UP_SHARE_HVOL_V2_COL,
+        MEAN_UP_SHARE_HVOL_V2_COL,
     )
 
 
@@ -141,6 +145,40 @@ def test_horizon_vol_v2_normalizes_by_future_window_horizon() -> None:
     assert out[UP_MEAN_HIGH_HVOL_V2_COL][0] == pytest.approx(0.02 / denominator)
     assert out[DOWN_MEAN_LOW_HVOL_V2_COL][0] == pytest.approx(0.03 / denominator)
     assert out[DOWN_EXTREME_HVOL_V2_COL][0] == pytest.approx(0.05 / denominator)
+    assert out[EXTREME_UP_SHARE_HVOL_V2_COL][0] == pytest.approx(0.03 / (0.03 + 0.05))
+    assert out[MEAN_UP_SHARE_HVOL_V2_COL][0] == pytest.approx(0.02 / (0.02 + 0.03))
+
+
+def test_horizon_vol_v2_up_share_targets_are_neutral_when_future_path_is_flat() -> None:
+    rows = pl.DataFrame(
+        {
+            "close": [100.0],
+            "tb_volatility_pct": [0.02],
+            "label_window_batch_id": [10],
+            "is_label_half": [True],
+        }
+    )
+    windows = {
+        10: {
+            "high": pl.Series([100.0, 100.0]).to_numpy(),
+            "low": pl.Series([100.0, 100.0]).to_numpy(),
+            "timestamp": _timestamps(2),
+        }
+    }
+
+    out = scan_distance_regression_targets(
+        rows,
+        windows,
+        variant=REGRESSION_VARIANT_HORIZON_VOL_V2,
+    )
+
+    assert out[VALID_COL_V2] == [True]
+    assert out[UP_EXTREME_HVOL_V2_COL][0] == 0.0
+    assert out[UP_MEAN_HIGH_HVOL_V2_COL][0] == 0.0
+    assert out[DOWN_MEAN_LOW_HVOL_V2_COL][0] == 0.0
+    assert out[DOWN_EXTREME_HVOL_V2_COL][0] == 0.0
+    assert out[EXTREME_UP_SHARE_HVOL_V2_COL][0] == 0.5
+    assert out[MEAN_UP_SHARE_HVOL_V2_COL][0] == 0.5
 
 
 def test_volatility_inputs_match_existing_triple_barrier_causal_logic() -> None:
@@ -344,6 +382,7 @@ def test_stage1_assembly_reads_horizon_vol_v2_root(tmp_path: Path) -> None:
             "timestamp": ts,
             "batch_id": [1, 1, 1],
             UP_EXTREME_HVOL_V2_COL: [0.5, None, 1.5],
+            EXTREME_UP_SHARE_HVOL_V2_COL: [0.75, None, 0.25],
             VALID_COL_V2: [True, False, True],
         }
     ).write_parquet(label_dir / "batch_0001.parquet")
@@ -362,3 +401,17 @@ def test_stage1_assembly_reads_horizon_vol_v2_root(tmp_path: Path) -> None:
     assert result.manifest["target_col"] == UP_EXTREME_HVOL_V2_COL
     assert result.manifest["dataset_variant_id"] == "target_reg_distance_up_extreme_hvol_v2"
     assert labels[UP_EXTREME_HVOL_V2_COL].to_list() == [0.5, None, 1.5]
+
+    share_result = build_multiasset_stage1_dataset(
+        project_root=tmp_path,
+        target_asset="BTCUSDT",
+        context_assets=(),
+        root_key="8h/B",
+        target_col=EXTREME_UP_SHARE_HVOL_V2_COL,
+        feature_target_col="target_4class",
+    )
+    share_labels = pl.read_parquet(share_result.labels_dir / "1m" / "batch_0001.parquet")
+
+    assert share_result.manifest["target_col"] == EXTREME_UP_SHARE_HVOL_V2_COL
+    assert share_result.manifest["dataset_variant_id"] == EXTREME_UP_SHARE_HVOL_V2_COL
+    assert share_labels[EXTREME_UP_SHARE_HVOL_V2_COL].to_list() == [0.75, None, 0.25]

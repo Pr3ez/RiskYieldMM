@@ -1054,8 +1054,9 @@ targets. Use the dedicated regression smoke runner instead:
   --context-assets core-ex-target \
   --roots 8h/B \
   --stage1-target-col target_reg_distance_up_extreme_hvol_v2 \
-  --feature-policy target_specific_v1 \
+  --feature-policy target_specific_v2 \
   --max-features 300 \
+  --min-selected-features 20 \
   --merged-batch-min 5800 \
   --merged-batch-limit 180 \
   --n-steps 20 \
@@ -1068,16 +1069,18 @@ targets. Use the dedicated regression smoke runner instead:
 ```
 
 Use `--task-type GPU` when the local CatBoost build and CUDA runtime are ready.
-The `target_specific_v1` feature policy selects features inside each
+The `target_specific_v2` feature policy selects features inside each
 walk-forward step using train rows only, removes raw OHLCV/leakage/bad-quality
-columns, deduplicates near-identical features, and applies train-derived clip
-bounds to validation and prediction rows.
+columns, requires enough train-only Spearman evidence, penalizes sign-flipping
+chronological subwindows, deduplicates near-identical features, and applies
+train-derived clip bounds to validation and prediction rows.
 
 The first bounded BTCUSDT `8h/B` v2 smoke completed all four target columns.
 Those tiny one- or two-step runs only validate wiring and target-specific
 feature selection; they are not prediction-quality evidence. Full comparison
-requires more chronological steps and target-by-target review of MAE, RMSE,
-R2, Pearson, Spearman, bias, and prediction/target quantiles.
+requires more chronological steps and target-by-target review of validation
+metrics first, then prediction-batch confirmation: MAE, RMSE, R2, Pearson,
+Spearman, bias, p95 coverage, and tail error.
 
 For the current full regime/family Stage-1 v1 run:
 

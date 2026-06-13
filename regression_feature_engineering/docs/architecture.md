@@ -7,8 +7,14 @@ Define the separate regression feature workflow that will later generate
 
 ## Current Status
 
-Design scaffold only. Existing HTF, TA, Stage-1, and regression target scripts
-are unchanged.
+Phase 1 through Phase 13 are implemented, materialized, and
+engineering-validated on `BTCUSDT 8h/B`. Phase 12 deterministic factor proxies
+and Phase 13 deterministic sequence-shape proxies passed prefix validation but
+are not predictively promoted. The Stage-1 regression runner can compare
+HTF-only, regression-only, and HTF-plus-regression feature sources with
+fold-local strict feature selection. Existing HTF, TA, Stage-1 classification,
+and regression target artifacts remain unchanged unless their explicit commands
+are run.
 
 ## Scope
 
@@ -42,6 +48,8 @@ Layer responsibilities:
 - **Validation layer:** zero-target checks, feature quality, temporal safety,
   and target-relationship diagnostics.
 
-The first benchmark is `BTCUSDT 8h/B`. Full rollout is core assets times six
-roots after the benchmark passes.
-
+The first benchmark was `BTCUSDT 8h/B`. The current Phase 1/2 rollout covers
+core assets times six roots, with one independent feature root and manifest per
+asset/root. Phase 3 through Phase 13 are currently materialized and
+engineering-validated for `BTCUSDT 8h/B`. Promotion still requires
+walk-forward ablation after the static feature surface validates.

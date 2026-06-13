@@ -1,0 +1,46 @@
+{
+  "asset": "BTCUSDT",
+  "root": "8h/B",
+  "root_id": "8h_b",
+  "feature_set": "regression_path_features_v1",
+  "target_variant": "distance_horizon_vol_v2",
+  "target_col": "target_reg_direction_extreme_up_share_hvol_v2",
+  "feature_source": "regression_only",
+  "feature_policy": "all_manifest_features",
+  "feature_ablation": "all",
+  "optimization_scope": {
+    "tune_window_geometry": true,
+    "tune_catboost_hyperparameters": true,
+    "tune_feature_policy": false
+  },
+  "lookback_batches": 120,
+  "val_batches": 10,
+  "embargo_batches": 0,
+  "n_steps": 20,
+  "min_prediction_unique": 10,
+  "min_prediction_std": 0.000001,
+  "max_collapsed_window_rate": 0.25,
+  "min_prediction_to_target_std_ratio": 0.10,
+  "policy": {
+    "policy": "all_manifest_features",
+    "max_features": 0,
+    "min_abs_spearman": 0.02,
+    "min_selected_features": 20,
+    "dedupe_corr_threshold": 0.995,
+    "clip_quantiles": [0.001, 0.999],
+    "stability_segments": 5,
+    "tail_quantile": 0.8
+  },
+  "model": {
+    "iterations": 200,
+    "depth": 4,
+    "learning_rate": 0.03,
+    "l2_leaf_reg": 30.0,
+    "loss_function": "RMSE",
+    "eval_metric": "RMSE",
+    "early_stopping_rounds": 50,
+    "od_type": "Iter",
+    "od_wait": 50,
+    "has_time": true
+  }
+}

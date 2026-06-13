@@ -7,29 +7,33 @@ and validated beyond the first BTCUSDT `8h/B` benchmark.
 
 ## Current Status
 
-The target materializer and validator already support all Stage-1 roots through
-the shared Stage-1 root layout registry. Local generated target coverage is not
-complete yet.
+The target materializer and validator support all Stage-1 roots through the
+shared Stage-1 root layout registry. Local `distance_horizon_vol_v2` target
+coverage is present for every core asset and root. ES `7d/C` has materially
+shorter local coverage than the other session assets and must remain marked as a
+coverage caveat before any cross-asset 7d/C promotion.
 
 Current local coverage:
 
 | Asset | `8h_b` | `8h_c` | `24h_b` | `24h_c` | `7d_b` | `7d_c` |
-|---|---|---|---|---|---|---|
-| BTCUSDT | materialized | missing | missing | missing | missing | missing |
-| ETHUSDT | missing | missing | missing | missing | missing | missing |
-| EURUSD | missing | missing | missing | missing | missing | missing |
-| USDJPY | missing | missing | missing | missing | missing | missing |
-| GC | missing | missing | missing | missing | missing | missing |
-| CL | missing | missing | missing | missing | missing | missing |
-| ES | missing | missing | missing | missing | missing | missing |
-| NQ | missing | missing | missing | missing | missing | missing |
+|---|---:|---:|---:|---:|---:|---:|
+| BTCUSDT | 5856 | 5855 | 1952 | 1951 | 278 | 279 |
+| ETHUSDT | 5637 | 5636 | 1879 | 1878 | 268 | 268 |
+| EURUSD | 4129 | 4138 | 1381 | 1381 | 278 | 279 |
+| USDJPY | 4129 | 4138 | 1381 | 1381 | 278 | 279 |
+| GC | 4124 | 4133 | 1378 | 1378 | 278 | 279 |
+| CL | 4124 | 4133 | 1378 | 1378 | 278 | 279 |
+| ES | 4129 | 4138 | 1381 | 1381 | 278 | 199 |
+| NQ | 4129 | 4138 | 1381 | 1381 | 278 | 279 |
+
+Values are local batch counts in the generated regression target roots.
 
 ## Scope
 
 Applies to the full core target matrix:
 
 ```text
-8 assets x 6 roots x 4 regression target columns = 192 target series
+8 assets x 6 roots x 6 regression target columns = 288 target series
 ```
 
 Assets:
@@ -51,6 +55,8 @@ target_reg_distance_up_extreme_hvol_v2
 target_reg_distance_up_mean_high_hvol_v2
 target_reg_distance_down_mean_low_hvol_v2
 target_reg_distance_down_extreme_hvol_v2
+target_reg_direction_extreme_up_share_hvol_v2
+target_reg_direction_mean_up_share_hvol_v2
 ```
 
 ## Source Of Truth
@@ -99,7 +105,7 @@ optimize features target-by-target.
    and horizon-volatility distribution.
 5. Build regression features once the target matrix is complete.
 6. Run target-specific feature selection inside walk-forward training for each
-   of the four target columns.
+   target column.
 7. Compare target families together so feature decisions do not help one path
    distance while damaging its opposite-direction counterpart.
 
@@ -167,9 +173,8 @@ order:
 1. shared causal feature formulas across all assets/roots;
 2. per-target train-only feature selection;
 3. per-target clipping and duplicate removal;
-4. matrix-level comparison of four targets per asset/root;
+4. matrix-level comparison of six targets per asset/root;
 5. ablation by feature family before promotion.
 
 This preserves one clean feature workflow while still allowing each distance
 target to select the features it actually needs.
-

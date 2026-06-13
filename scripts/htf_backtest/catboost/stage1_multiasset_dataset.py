@@ -60,6 +60,8 @@ REG_DISTANCE_HORIZON_VOL_V2_TARGET_COLS = frozenset(
         "target_reg_distance_up_mean_high_hvol_v2",
         "target_reg_distance_down_mean_low_hvol_v2",
         "target_reg_distance_down_extreme_hvol_v2",
+        "target_reg_direction_extreme_up_share_hvol_v2",
+        "target_reg_direction_mean_up_share_hvol_v2",
     }
 )
 

@@ -36,7 +36,9 @@
     "target_reg_distance_up_extreme_hvol_v2",
     "target_reg_distance_up_mean_high_hvol_v2",
     "target_reg_distance_down_mean_low_hvol_v2",
-    "target_reg_distance_down_extreme_hvol_v2"
+    "target_reg_distance_down_extreme_hvol_v2",
+    "target_reg_direction_extreme_up_share_hvol_v2",
+    "target_reg_direction_mean_up_share_hvol_v2"
   ],
   "output_path_template": "data/htf_multiasset/{asset}/regression_path_features_v1/{root_id}/1m/",
   "input_layers": {
@@ -47,13 +49,19 @@
     "regression_labels": "data/htf_multiasset/{asset}/{layout_label_root}_reg_distance_horizon_vol_v2/1m/"
   },
   "feature_families": [
+    "foundation_alignment",
     "volatility_state",
     "structural_room",
     "acceptance_persistence",
-    "spike_breakout",
+    "temporal_memory_transforms",
     "rejection_chop",
-    "cross_asset_context"
+    "spike_breakout",
+    "liquidity_volume_pressure",
+    "regime_calendar_state",
+    "interaction_confluence",
+    "cross_asset_context",
+    "unsupervised_factor_layer",
+    "sequence_embedding_layer"
   ],
-  "metadata_version": "2026-05-28-regression-feature-scaffold-v1"
+  "metadata_version": "2026-06-02-regression-feature-coverage-v1"
 }
-

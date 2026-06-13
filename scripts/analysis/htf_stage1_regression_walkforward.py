@@ -44,11 +44,27 @@ PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 OUTPUT_ROOT = PROJECT_ROOT / "test_output" / "stage1_regression_walkforward"
 FEATURE_POLICY_FULL = "full"
 FEATURE_POLICY_TARGET_SPECIFIC_V1 = "target_specific_v1"
+FEATURE_POLICY_TARGET_SPECIFIC_V2 = "target_specific_v2"
+FEATURE_POLICIES = (
+    FEATURE_POLICY_FULL,
+    FEATURE_POLICY_TARGET_SPECIFIC_V1,
+    FEATURE_POLICY_TARGET_SPECIFIC_V2,
+)
+FEATURE_SOURCE_HTF_ONLY = "htf_only"
+FEATURE_SOURCE_REGRESSION_ONLY = "regression_only"
+FEATURE_SOURCE_HTF_PLUS_REGRESSION = "htf_plus_regression"
+FEATURE_SOURCE_MODES = (
+    FEATURE_SOURCE_HTF_ONLY,
+    FEATURE_SOURCE_REGRESSION_ONLY,
+    FEATURE_SOURCE_HTF_PLUS_REGRESSION,
+)
+REGRESSION_FEATURE_SET = "regression_path_features_v1"
 RAW_OHLCV_BASE_NAMES = {"open", "high", "low", "close", "volume"}
 LEAKAGE_NAME_RE = re.compile(
     r"(^|__)target_|(^|__)tb_|label_window|future|diagnostic",
     re.IGNORECASE,
 )
+REGRESSION_FEATURE_METADATA_PREFIXES = ("rpf_align_",)
 
 
 @dataclass(frozen=True)
@@ -82,6 +98,47 @@ class FeaturePolicyConfig:
     min_abs_spearman: float = 0.01
     dedupe_corr_threshold: float = 0.995
     clip_quantiles: tuple[float, float] = (0.001, 0.999)
+    min_selected_features: int = 20
+    stability_segments: int = 5
+    tail_quantile: float = 0.80
+
+
+@dataclass(frozen=True)
+class FeatureSourceConfig:
+    """Control which feature roots are visible to the regression walk-forward."""
+
+    mode: str = FEATURE_SOURCE_HTF_ONLY
+    regression_feature_set: str = REGRESSION_FEATURE_SET
+    data_root: Path = PROJECT_ROOT / "data"
+
+
+@dataclass(frozen=True)
+class CatBoostModelConfig:
+    """CatBoost parameters that are safe to record and replay for one WF run."""
+
+    iterations: int = 200
+    depth: int = 6
+    learning_rate: float = 0.05
+    l2_leaf_reg: float = 3.0
+    loss_function: str = "RMSE"
+    eval_metric: str = "RMSE"
+    early_stopping_rounds: int = 50
+    od_type: str = "Iter"
+    od_wait: int | None = None
+    random_strength: float | None = None
+    bootstrap_type: str | None = None
+    bagging_temperature: float | None = None
+    subsample: float | None = None
+    mvs_reg: float | None = None
+    border_count: int | None = None
+    grow_policy: str | None = None
+    min_data_in_leaf: int | None = None
+    max_leaves: int | None = None
+    leaf_estimation_method: str | None = None
+    leaf_estimation_iterations: int | None = None
+    boosting_type: str | None = None
+    has_time: bool = True
+    gpu_ram_part: float | None = None
 
 
 @dataclass(frozen=True)
@@ -91,12 +148,23 @@ class FeaturePolicyResult:
     detail: pl.DataFrame
 
 
-def build_regression_run_id(dataset: RegressionDataset) -> str:
+def build_regression_run_id(
+    dataset: RegressionDataset,
+    *,
+    feature_source_config: FeatureSourceConfig | None = None,
+    run_suffix: str | None = None,
+) -> str:
     slug = _target_slug(dataset.target_col)
-    return (
+    feature_source_config = feature_source_config or FeatureSourceConfig()
+    run_id = (
         f"stage1_regression_{dataset.target_asset.lower()}_"
         f"{dataset.root_id}_ctx_{dataset.context_hash}_{slug}_live"
     )
+    if feature_source_config.mode != FEATURE_SOURCE_HTF_ONLY:
+        run_id = f"{run_id}_feat_{_slug(feature_source_config.mode)}"
+    if run_suffix:
+        run_id = f"{run_id}_{_slug(run_suffix)}"
+    return run_id
 
 
 def run_regression_walkforward(
@@ -109,65 +177,123 @@ def run_regression_walkforward(
     iterations: int,
     depth: int,
     learning_rate: float,
+    l2_leaf_reg: float = 3.0,
     task_type: str,
     thread_count: int,
+    catboost_model_config: CatBoostModelConfig | None = None,
     feature_policy_config: FeaturePolicyConfig | None = None,
+    feature_source_config: FeatureSourceConfig | None = None,
+    frozen_step_index_path: Path | None = None,
+    step_callback: Any | None = None,
+    log_every_steps: int = 1,
+    run_suffix: str | None = None,
     output_root: Path = OUTPUT_ROOT,
 ) -> dict[str, Any]:
     """Run a compact sparse-aware CatBoostRegressor walk-forward evaluation."""
     feature_policy_config = feature_policy_config or FeaturePolicyConfig()
-    batch_index = _load_batch_index(dataset.batch_index_path, target_col=dataset.target_col)
-    steps = plan_regression_steps(
-        batch_index,
-        n_steps=n_steps,
-        lookback_batches=lookback_batches,
-        val_batches=val_batches,
-        embargo_batches=embargo_batches,
+    feature_source_config = feature_source_config or FeatureSourceConfig()
+    catboost_model_config = catboost_model_config or CatBoostModelConfig(
+        iterations=int(iterations),
+        depth=int(depth),
+        learning_rate=float(learning_rate),
+        l2_leaf_reg=float(l2_leaf_reg),
     )
+    _validate_feature_source_config(feature_source_config)
+    batch_index = _load_batch_index(dataset.batch_index_path, target_col=dataset.target_col)
+    if frozen_step_index_path is not None:
+        steps = load_regression_steps_from_index(Path(frozen_step_index_path))
+    else:
+        steps = plan_regression_steps(
+            batch_index,
+            n_steps=n_steps,
+            lookback_batches=lookback_batches,
+            val_batches=val_batches,
+            embargo_batches=embargo_batches,
+        )
     if not steps:
         raise ValueError(
             "No eligible regression walk-forward steps. Reduce lookback/val/embargo "
             "or build more merged batches."
         )
 
-    run_id = build_regression_run_id(dataset)
+    run_id = build_regression_run_id(
+        dataset,
+        feature_source_config=feature_source_config,
+        run_suffix=run_suffix,
+    )
     run_dir = output_root / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
+    event_log_path = run_dir / "run_events.jsonl"
+    _append_event(
+        event_log_path,
+        "run_start",
+        run_id=run_id,
+        target_asset=dataset.target_asset,
+        root=dataset.root_key,
+        target_col=dataset.target_col,
+        requested_steps=int(n_steps),
+        planned_steps=int(len(steps)),
+        lookback_batches=int(lookback_batches),
+        val_batches=int(val_batches),
+        embargo_batches=int(embargo_batches),
+        feature_source_mode=feature_source_config.mode,
+        feature_policy=feature_policy_config.policy,
+        frozen_step_index_path=str(frozen_step_index_path) if frozen_step_index_path else None,
+    )
+    _progress(
+        f"[wf] start run={run_id} target={dataset.target_col} steps={len(steps)} "
+        f"source={feature_source_config.mode} policy={feature_policy_config.policy}"
+    )
 
     step_rows: list[dict[str, Any]] = []
     pred_frames: list[pl.DataFrame] = []
+    val_frames: list[pl.DataFrame] = []
+    val_true_chunks: list[np.ndarray] = []
+    val_pred_chunks: list[np.ndarray] = []
     feature_policy_frames: list[pl.DataFrame] = []
     selected_feature_counter: Counter[str] = Counter()
     selected_feature_counts: list[int] = []
     feature_cols_ref: list[str] | None = None
-    for step in steps:
-        train_df = load_batches_by_ids(
-            dataset.features_dir,
-            dataset.labels_dir,
-            "1m",
+    total_steps = len(steps)
+    for planned_idx, step in enumerate(steps, start=1):
+        should_log_step = _should_log_step(planned_idx, total_steps, log_every_steps)
+        if should_log_step:
+            _progress(
+                f"[wf] step {planned_idx}/{total_steps} pred_batch={step.pred_batch_id} "
+                f"train={len(step.train_batch_ids)} val={len(step.val_batch_ids)}"
+            )
+        _append_event(
+            event_log_path,
+            "step_start",
+            run_id=run_id,
+            planned_step_index=int(planned_idx),
+            planned_step_count=int(total_steps),
+            pred_batch_id=int(step.pred_batch_id),
+            pred_pos=int(step.pred_pos),
+            train_batch_count=int(len(step.train_batch_ids)),
+            val_batch_count=int(len(step.val_batch_ids)),
+        )
+        train_df = load_regression_feature_frame(
+            dataset,
             step.train_batch_ids,
-            target_col=dataset.target_col,
-            feature_target_col=dataset.feature_target_col,
+            feature_source_config=feature_source_config,
         )
-        val_df = load_batches_by_ids(
-            dataset.features_dir,
-            dataset.labels_dir,
-            "1m",
+        val_df = load_regression_feature_frame(
+            dataset,
             step.val_batch_ids,
-            target_col=dataset.target_col,
-            feature_target_col=dataset.feature_target_col,
+            feature_source_config=feature_source_config,
         )
-        pred_df = load_batches_by_ids(
-            dataset.features_dir,
-            dataset.labels_dir,
-            "1m",
+        pred_df = load_regression_feature_frame(
+            dataset,
             (step.pred_batch_id,),
-            target_col=dataset.target_col,
-            feature_target_col=dataset.feature_target_col,
+            feature_source_config=feature_source_config,
         )
 
         base_feature_cols = get_feature_columns(train_df, target_col=dataset.target_col)
-        if feature_policy_config.policy == FEATURE_POLICY_TARGET_SPECIFIC_V1:
+        if feature_policy_config.policy in {
+            FEATURE_POLICY_TARGET_SPECIFIC_V1,
+            FEATURE_POLICY_TARGET_SPECIFIC_V2,
+        }:
             policy_result = select_target_specific_features(
                 train_df,
                 dataset.target_col,
@@ -198,7 +324,7 @@ def run_regression_walkforward(
             feature_cols=feature_cols,
             clip_bounds=clip_bounds,
         )
-        X_val, y_val, _, _ = prepare_regression_frame(
+        X_val, y_val, _, val_meta = prepare_regression_frame(
             val_df,
             dataset.target_col,
             feature_cols=feature_cols,
@@ -211,6 +337,16 @@ def run_regression_walkforward(
             clip_bounds=clip_bounds,
         )
         if X_train.size == 0 or X_val.size == 0 or X_pred.size == 0:
+            _append_event(
+                event_log_path,
+                "step_skipped_empty_frame",
+                run_id=run_id,
+                planned_step_index=int(planned_idx),
+                pred_batch_id=int(step.pred_batch_id),
+                train_size=int(X_train.size),
+                val_size=int(X_val.size),
+                pred_size=int(X_pred.size),
+            )
             continue
         feature_cols_ref = feature_cols if feature_cols_ref is None else feature_cols_ref
         model = fit_catboost_regressor(
@@ -218,14 +354,48 @@ def run_regression_walkforward(
             y_train,
             X_val,
             y_val,
-            iterations=iterations,
-            depth=depth,
-            learning_rate=learning_rate,
+            model_config=catboost_model_config,
             task_type=task_type,
             thread_count=thread_count,
         )
+        model_diagnostics = catboost_model_diagnostics(model)
+        y_val_pred = np.asarray(model.predict(X_val), dtype=float)
         y_pred = np.asarray(model.predict(X_pred), dtype=float)
-        metrics = regression_metrics(y_pred_true, y_pred)
+        validation_metrics = regression_metrics(y_val, y_val_pred)
+        prediction_metrics = regression_metrics(y_pred_true, y_pred)
+        if should_log_step:
+            _progress(
+                f"[wf] done {planned_idx}/{total_steps} pred_batch={step.pred_batch_id} "
+                f"features={len(feature_cols)} "
+                f"val_spearman={_fmt(validation_metrics.get('spearman'))} "
+                f"val_rmse={_fmt(validation_metrics.get('rmse'))} "
+                f"pred_spearman={_fmt(prediction_metrics.get('spearman'))} "
+                f"pred_std={_fmt(prediction_metrics.get('pred_std'))} "
+                f"pred_unique={prediction_metrics.get('pred_unique')} "
+                f"best_iter={model_diagnostics.get('model_best_iteration')}"
+            )
+        _append_event(
+            event_log_path,
+            "step_done",
+            run_id=run_id,
+            planned_step_index=int(planned_idx),
+            pred_batch_id=int(step.pred_batch_id),
+            selected_feature_count=int(len(feature_cols)),
+            **model_diagnostics,
+            validation_spearman=validation_metrics.get("spearman"),
+            validation_rmse=validation_metrics.get("rmse"),
+            validation_p95_coverage_ratio=validation_metrics.get("p95_coverage_ratio"),
+            validation_pred_std=validation_metrics.get("pred_std"),
+            validation_spearman_null_reason=validation_metrics.get("spearman_null_reason"),
+            prediction_spearman=prediction_metrics.get("spearman"),
+            prediction_rmse=prediction_metrics.get("rmse"),
+            prediction_p95_coverage_ratio=prediction_metrics.get("p95_coverage_ratio"),
+            prediction_pred_std=prediction_metrics.get("pred_std"),
+            prediction_pred_unique=prediction_metrics.get("pred_unique"),
+            prediction_spearman_null_reason=prediction_metrics.get("spearman_null_reason"),
+        )
+        val_true_chunks.append(y_val)
+        val_pred_chunks.append(y_val_pred)
         step_rows.append(
             {
                 "step_idx": int(step.step_idx),
@@ -238,9 +408,30 @@ def run_regression_walkforward(
                 "val_start_batch_id": int(step.val_batch_ids[0]),
                 "val_end_batch_id": int(step.val_batch_ids[-1]),
                 "selected_feature_count": int(len(feature_cols)),
-                **metrics,
+                **model_diagnostics,
+                **prediction_metrics,
+                **_prefix_metrics(prediction_metrics, "prediction"),
+                **_prefix_metrics(validation_metrics, "validation"),
             }
         )
+        val_frames.append(
+            val_meta.with_columns(
+                [
+                    pl.Series("y_true", y_val),
+                    pl.Series("y_pred", y_val_pred),
+                    pl.lit(int(step.step_idx)).alias("step_idx"),
+                    pl.lit(int(step.pred_pos)).alias("pred_pos"),
+                    pl.lit(int(step.pred_batch_id)).alias("pred_batch_id"),
+                    (pl.Series("y_pred", y_val_pred) - pl.Series("y_true", y_val)).alias("error"),
+                ]
+            )
+        )
+        if step_callback is not None:
+            cumulative_validation = regression_metrics(
+                np.concatenate(val_true_chunks),
+                np.concatenate(val_pred_chunks),
+            )
+            step_callback(int(len(step_rows)), cumulative_validation, step)
         pred_frames.append(
             pred_meta.with_columns(
                 [
@@ -258,6 +449,7 @@ def run_regression_walkforward(
         raise ValueError("No regression steps produced predictions")
 
     predictions = pl.concat(pred_frames, how="diagonal_relaxed").sort(["step_idx", "timestamp"])
+    validation_predictions = pl.concat(val_frames, how="diagonal_relaxed").sort(["step_idx", "timestamp"])
     step_metrics = pl.DataFrame(step_rows).sort("step_idx")
     feature_policy_detail = (
         pl.concat(feature_policy_frames, how="diagonal_relaxed")
@@ -265,9 +457,13 @@ def run_regression_walkforward(
         else pl.DataFrame()
     )
     selected_frequency = _selected_feature_frequency_frame(selected_feature_counter, len(step_rows))
-    aggregate = regression_metrics(
+    prediction_aggregate = regression_metrics(
         predictions["y_true"].to_numpy(),
         predictions["y_pred"].to_numpy(),
+    )
+    validation_aggregate = regression_metrics(
+        validation_predictions["y_true"].to_numpy(),
+        validation_predictions["y_pred"].to_numpy(),
     )
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -283,6 +479,17 @@ def run_regression_walkforward(
         "labels_dir": str(dataset.labels_dir),
         "manifest_path": str(dataset.manifest_path),
         "batch_index_path": str(dataset.batch_index_path),
+        "frozen_step_index_path": str(frozen_step_index_path) if frozen_step_index_path else None,
+        "feature_source": {
+            "mode": feature_source_config.mode,
+            "regression_feature_set": feature_source_config.regression_feature_set,
+            "data_root": str(feature_source_config.data_root),
+            "target_regression_feature_root": str(
+                regression_path_feature_root(dataset, feature_source_config)
+            )
+            if feature_source_config.mode != FEATURE_SOURCE_HTF_ONLY
+            else None,
+        },
         "n_requested_steps": int(n_steps),
         "n_completed_steps": int(step_metrics.height),
         "lookback_batches": int(lookback_batches),
@@ -291,9 +498,7 @@ def run_regression_walkforward(
         "feature_count": int(len(feature_cols_ref or [])),
         "model": {
             "type": "CatBoostRegressor",
-            "iterations": int(iterations),
-            "depth": int(depth),
-            "learning_rate": float(learning_rate),
+            **_catboost_model_config_payload(catboost_model_config),
             "task_type": str(task_type),
         },
         "feature_policy": {
@@ -302,13 +507,22 @@ def run_regression_walkforward(
             "min_abs_spearman": float(feature_policy_config.min_abs_spearman),
             "dedupe_corr_threshold": float(feature_policy_config.dedupe_corr_threshold),
             "clip_quantiles": list(feature_policy_config.clip_quantiles),
+            "min_selected_features": int(feature_policy_config.min_selected_features),
+            "stability_segments": int(feature_policy_config.stability_segments),
+            "tail_quantile": float(feature_policy_config.tail_quantile),
             "selected_feature_count_min": int(min(selected_feature_counts)) if selected_feature_counts else 0,
             "selected_feature_count_max": int(max(selected_feature_counts)) if selected_feature_counts else 0,
             "selected_feature_count_mean": _safe_float(np.mean(selected_feature_counts)) if selected_feature_counts else None,
         },
-        "aggregate_metrics": aggregate,
+        "aggregate_metrics": prediction_aggregate,
+        "prediction_metrics": prediction_aggregate,
+        "validation_metrics": validation_aggregate,
+        "selection_metrics": validation_aggregate,
+        "optimization_decision_basis": "validation_metrics",
         "outputs": {
+            "run_events": str(event_log_path),
             "predictions": str(run_dir / "predictions.parquet"),
+            "validation_predictions": str(run_dir / "validation_predictions.parquet"),
             "step_metrics": str(run_dir / "step_metrics.parquet"),
             "feature_policy_detail": str(run_dir / "feature_policy_detail.parquet") if not feature_policy_detail.is_empty() else None,
             "selected_feature_frequency": str(run_dir / "selected_feature_frequency.parquet"),
@@ -317,6 +531,7 @@ def run_regression_walkforward(
         },
     }
     predictions.write_parquet(run_dir / "predictions.parquet")
+    validation_predictions.write_parquet(run_dir / "validation_predictions.parquet")
     step_metrics.write_parquet(run_dir / "step_metrics.parquet")
     if not feature_policy_detail.is_empty():
         feature_policy_detail.write_parquet(run_dir / "feature_policy_detail.parquet")
@@ -324,7 +539,196 @@ def run_regression_walkforward(
     (run_dir / "summary.json").write_text(json.dumps(payload, indent=2, default=str))
     _write_markdown_report(run_dir / "summary.md", payload, step_metrics)
     _write_feature_policy_summary(run_dir / "feature_policy_summary.md", payload, selected_frequency)
+    _append_event(
+        event_log_path,
+        "run_done",
+        run_id=run_id,
+        completed_steps=int(step_metrics.height),
+        prediction_spearman=prediction_aggregate.get("spearman"),
+        prediction_rmse=prediction_aggregate.get("rmse"),
+        validation_spearman=validation_aggregate.get("spearman"),
+        validation_rmse=validation_aggregate.get("rmse"),
+        summary_path=str(run_dir / "summary.json"),
+    )
+    _progress(
+        f"[wf] done run={run_id} completed={step_metrics.height}/{len(steps)} "
+        f"val_spearman={_fmt(validation_aggregate.get('spearman'))} "
+        f"pred_spearman={_fmt(prediction_aggregate.get('spearman'))}"
+    )
     return payload
+
+
+def load_regression_feature_frame(
+    dataset: RegressionDataset,
+    batch_ids: list[int] | tuple[int, ...] | np.ndarray,
+    *,
+    feature_source_config: FeatureSourceConfig,
+) -> pl.DataFrame:
+    """Load Stage-1 rows and optionally join target regression-path features.
+
+    The merged HTF dataset remains the row authority. Regression-path features are
+    joined by exact `timestamp,batch_id` for the target asset only in v1.
+    """
+
+    base = load_batches_by_ids(
+        dataset.features_dir,
+        dataset.labels_dir,
+        "1m",
+        batch_ids,
+        target_col=dataset.target_col,
+        feature_target_col=dataset.feature_target_col,
+    )
+    if feature_source_config.mode == FEATURE_SOURCE_HTF_ONLY:
+        return base
+
+    regression_features = load_target_regression_path_features(
+        dataset,
+        batch_ids,
+        feature_source_config=feature_source_config,
+    )
+    regression_feature_cols = [
+        col for col in regression_features.columns if col not in {"timestamp", "batch_id"}
+    ]
+    if not regression_feature_cols:
+        raise ValueError("Regression feature source has no model-facing columns")
+
+    if feature_source_config.mode == FEATURE_SOURCE_REGRESSION_ONLY:
+        keep_cols = ["timestamp", "batch_id"]
+        for col in (dataset.feature_target_col, dataset.target_col):
+            if col in base.columns and col not in keep_cols:
+                keep_cols.append(col)
+        joined = base.select(keep_cols).join(
+            regression_features,
+            on=["timestamp", "batch_id"],
+            how="left",
+        )
+    elif feature_source_config.mode == FEATURE_SOURCE_HTF_PLUS_REGRESSION:
+        joined = base.join(
+            regression_features,
+            on=["timestamp", "batch_id"],
+            how="left",
+        )
+    else:
+        raise ValueError(f"Unsupported feature source mode: {feature_source_config.mode}")
+
+    null_count = int(
+        joined.select(pl.sum_horizontal([pl.col(col).is_null() for col in regression_feature_cols]))
+        .to_series()
+        .sum()
+    )
+    if null_count:
+        raise ValueError(
+            f"Regression feature join produced {null_count} null feature values "
+            f"for {dataset.target_asset} {dataset.root_key}. "
+            "Materialize regression_path_features_v1 for this asset/root first."
+        )
+    return joined
+
+
+def load_target_regression_path_features(
+    dataset: RegressionDataset,
+    batch_ids: list[int] | tuple[int, ...] | np.ndarray,
+    *,
+    feature_source_config: FeatureSourceConfig,
+) -> pl.DataFrame:
+    """Load target-asset regression-path features for explicit batch ids."""
+
+    root = regression_path_feature_root(dataset, feature_source_config)
+    if not root.exists():
+        raise FileNotFoundError(f"Regression feature root not found: {root}")
+
+    manifest_feature_cols = _regression_path_manifest_feature_columns(root)
+    frames: list[pl.DataFrame] = []
+    seen: set[int] = set()
+    for raw_batch_id in batch_ids:
+        batch_id = int(raw_batch_id)
+        if batch_id in seen:
+            continue
+        seen.add(batch_id)
+        path = root / f"batch_{batch_id:04d}.parquet"
+        if not path.exists():
+            raise FileNotFoundError(f"Regression feature batch not found: {path}")
+        df = pl.read_parquet(path)
+        feature_cols = _regression_path_model_feature_columns(
+            df,
+            manifest_feature_cols=manifest_feature_cols,
+            path=path,
+        )
+        rename = {col: f"T_{dataset.target_asset}__{col}" for col in feature_cols}
+        frames.append(df.select(["timestamp", "batch_id", *feature_cols]).rename(rename))
+    if not frames:
+        raise ValueError(f"No regression feature batches requested: {list(batch_ids)}")
+    return pl.concat(frames, how="diagonal_relaxed").sort(["batch_id", "timestamp"])
+
+
+def _regression_path_manifest_feature_columns(root: Path) -> tuple[str, ...] | None:
+    """Return the model-facing RPF feature contract from manifest.json if present."""
+
+    path = root / "manifest.json"
+    if not path.exists():
+        return None
+    manifest = json.loads(path.read_text())
+    raw = manifest.get("feature_columns")
+    if not isinstance(raw, list) or not raw:
+        raise ValueError(f"Regression feature manifest has no feature_columns list: {path}")
+    cols = tuple(str(col) for col in raw)
+    bad = [col for col in cols if not col.startswith("rpf_")]
+    if bad:
+        raise ValueError(f"Regression feature manifest contains non-rpf feature columns: {bad[:5]}")
+    return cols
+
+
+def _regression_path_model_feature_columns(
+    df: pl.DataFrame,
+    *,
+    manifest_feature_cols: tuple[str, ...] | None,
+    path: Path,
+) -> list[str]:
+    """Return model-facing RPF columns and exclude diagnostic alignment metadata."""
+
+    if manifest_feature_cols is not None:
+        missing = [col for col in manifest_feature_cols if col not in df.columns]
+        if missing:
+            raise ValueError(
+                f"Regression feature batch is missing manifest feature columns: {path}; "
+                f"missing={missing[:10]}"
+            )
+        non_numeric = [
+            col
+            for col in manifest_feature_cols
+            if not _is_model_numeric_dtype(df.schema[col])
+        ]
+        if non_numeric:
+            raise ValueError(
+                f"Regression feature manifest contains non-numeric model columns: {path}; "
+                f"non_numeric={non_numeric[:10]}"
+            )
+        return list(manifest_feature_cols)
+
+    return [
+        col
+        for col, dtype in df.schema.items()
+        if col not in {"timestamp", "batch_id", "asset_id", "root_id", "feature_set"}
+        and col.startswith("rpf_")
+        and not col.startswith(REGRESSION_FEATURE_METADATA_PREFIXES)
+        and _is_model_numeric_dtype(dtype)
+    ]
+
+
+def regression_path_feature_root(
+    dataset: RegressionDataset,
+    feature_source_config: FeatureSourceConfig,
+) -> Path:
+    """Return the target-asset regression-path feature root for this dataset."""
+
+    return (
+        Path(feature_source_config.data_root)
+        / "htf_multiasset"
+        / dataset.target_asset.lower()
+        / feature_source_config.regression_feature_set
+        / dataset.root_id
+        / "1m"
+    )
 
 
 def prepare_regression_frame(
@@ -364,6 +768,14 @@ def select_target_specific_features(
     config: FeaturePolicyConfig,
 ) -> FeaturePolicyResult:
     """Select and clip features using training rows only."""
+    if config.policy not in {FEATURE_POLICY_TARGET_SPECIFIC_V1, FEATURE_POLICY_TARGET_SPECIFIC_V2}:
+        raise ValueError(f"Unsupported target-specific feature policy: {config.policy}")
+    if int(config.min_selected_features) < 1:
+        raise ValueError("min_selected_features must be positive")
+    if int(config.stability_segments) < 2:
+        raise ValueError("stability_segments must be at least 2")
+    if not (0.5 < float(config.tail_quantile) < 1.0):
+        raise ValueError("tail_quantile must satisfy 0.5 < tail_quantile < 1")
     clean = train_df.filter(pl.col(target_col).is_not_null() & pl.col(target_col).is_finite())
     if clean.is_empty():
         raise ValueError("Cannot select regression features from an empty training frame")
@@ -397,10 +809,40 @@ def select_target_specific_features(
             continue
         pearson = _correlation(y, values)
         spearman = _correlation(_rankdata_average(y), _rankdata_average(values))
-        stability = _stability_score(y, values, segments=3)
         abs_pearson = abs(float(pearson or 0.0))
         abs_spearman = abs(float(spearman or 0.0))
-        rank_score = abs_spearman + 0.5 * abs_pearson + 0.25 * max(stability, 0.0)
+        if config.policy == FEATURE_POLICY_TARGET_SPECIFIC_V2:
+            stability = _signed_stability_score(
+                y,
+                values,
+                global_corr=spearman,
+                segments=int(config.stability_segments),
+            )
+            tail_score = _tail_spread_score(
+                y,
+                values,
+                quantile=float(config.tail_quantile),
+            )
+            p95_score = _p95_separation_score(y, values)
+            rank_score = (
+                abs_spearman
+                + 0.35 * max(float(stability["signed_stability_score"]), 0.0)
+                + 0.25 * max(float(tail_score), 0.0)
+                + 0.15 * max(float(p95_score), 0.0)
+                + 0.10 * abs_pearson
+            )
+            extra_scores = {
+                "stability_score": float(stability["signed_stability_score"]),
+                "sign_consistency": float(stability["sign_consistency"]),
+                "segment_abs_spearman_mean": float(stability["segment_abs_spearman_mean"]),
+                "segment_abs_spearman_std": float(stability["segment_abs_spearman_std"]),
+                "tail_spread_score": float(tail_score),
+                "p95_separation_score": float(p95_score),
+            }
+        else:
+            stability = _stability_score(y, values, segments=3)
+            rank_score = abs_spearman + 0.5 * abs_pearson + 0.25 * max(stability, 0.0)
+            extra_scores = {"stability_score": stability}
         scored_rows.append(
             _feature_policy_row(
                 feature,
@@ -408,8 +850,8 @@ def select_target_specific_features(
                 drop_reason="candidate",
                 pearson=pearson,
                 spearman=spearman,
-                stability_score=stability,
                 rank_score=rank_score,
+                **extra_scores,
             )
         )
         kept_indices.append(idx)
@@ -428,7 +870,19 @@ def select_target_specific_features(
         for row in candidate_rows
         if float(row["abs_spearman"] or 0.0) >= float(config.min_abs_spearman)
     ]
-    if len(threshold_rows) >= 50:
+    if config.policy == FEATURE_POLICY_TARGET_SPECIFIC_V2:
+        threshold_features = {row["feature"] for row in threshold_rows}
+        for row in candidate_rows:
+            if row["feature"] not in threshold_features:
+                row["drop_reason"] = "below_min_abs_spearman"
+        if len(threshold_rows) < int(config.min_selected_features):
+            raise ValueError(
+                "target_specific_v2 found too few train-only eligible features: "
+                f"{len(threshold_rows)} < {int(config.min_selected_features)} "
+                f"with min_abs_spearman={float(config.min_abs_spearman):.6g}"
+            )
+        eligible_rows = threshold_rows
+    elif len(threshold_rows) >= 50:
         eligible_rows = threshold_rows
         threshold_features = {row["feature"] for row in threshold_rows}
         for row in candidate_rows:
@@ -444,6 +898,14 @@ def select_target_specific_features(
         max_features=int(config.max_features),
         threshold=float(config.dedupe_corr_threshold),
     )
+    if (
+        config.policy == FEATURE_POLICY_TARGET_SPECIFIC_V2
+        and len(selected) < int(config.min_selected_features)
+    ):
+        raise ValueError(
+            "target_specific_v2 selected too few features after dedupe: "
+            f"{len(selected)} < {int(config.min_selected_features)}"
+        )
     selected_set = set(selected)
     selected_indices = [candidate_cols.index(feature) for feature in selected]
     clip_bounds = _clip_bounds(
@@ -462,7 +924,7 @@ def select_target_specific_features(
         elif row["drop_reason"] == "candidate":
             row["drop_reason"] = "rank_below_selected"
 
-    detail = pl.DataFrame([*base_rows, *scored_rows])
+    detail = pl.DataFrame([*base_rows, *scored_rows], infer_schema_length=None)
     return FeaturePolicyResult(
         selected_features=tuple(selected),
         clip_bounds=clip_bounds,
@@ -472,6 +934,8 @@ def select_target_specific_features(
 
 def _static_feature_drop_reason(feature: str) -> str | None:
     base = feature.split("__", 1)[-1]
+    if base.startswith(REGRESSION_FEATURE_METADATA_PREFIXES):
+        return "regression_feature_metadata"
     if base in RAW_OHLCV_BASE_NAMES:
         return "raw_ohlcv_unscaled"
     if LEAKAGE_NAME_RE.search(feature) or LEAKAGE_NAME_RE.search(base):
@@ -511,6 +975,11 @@ def _feature_policy_row(
     pearson: float | None = None,
     spearman: float | None = None,
     stability_score: float | None = None,
+    sign_consistency: float | None = None,
+    segment_abs_spearman_mean: float | None = None,
+    segment_abs_spearman_std: float | None = None,
+    tail_spread_score: float | None = None,
+    p95_separation_score: float | None = None,
     rank_score: float | None = None,
 ) -> dict[str, Any]:
     return {
@@ -522,6 +991,11 @@ def _feature_policy_row(
         "abs_pearson": abs(float(pearson)) if pearson is not None else None,
         "abs_spearman": abs(float(spearman)) if spearman is not None else None,
         "stability_score": stability_score,
+        "sign_consistency": sign_consistency,
+        "segment_abs_spearman_mean": segment_abs_spearman_mean,
+        "segment_abs_spearman_std": segment_abs_spearman_std,
+        "tail_spread_score": tail_spread_score,
+        "p95_separation_score": p95_separation_score,
         "rank_score": rank_score,
         "clip_low": None,
         "clip_high": None,
@@ -541,6 +1015,98 @@ def _stability_score(y: np.ndarray, x: np.ndarray, *, segments: int) -> float:
     if not scores:
         return 0.0
     return float(np.mean(scores) - np.std(scores))
+
+
+def _signed_stability_score(
+    y: np.ndarray,
+    x: np.ndarray,
+    *,
+    global_corr: float | None,
+    segments: int,
+) -> dict[str, float]:
+    """Return a signed train-only stability score for chronological subwindows."""
+    if len(y) < segments * 3:
+        return {
+            "signed_stability_score": 0.0,
+            "sign_consistency": 0.0,
+            "segment_abs_spearman_mean": 0.0,
+            "segment_abs_spearman_std": 0.0,
+        }
+    global_sign = _sign(global_corr)
+    scores: list[float] = []
+    matching = 0
+    for idx in np.array_split(np.arange(len(y)), segments):
+        if len(idx) < 3:
+            continue
+        corr = _correlation(_rankdata_average(y[idx]), _rankdata_average(x[idx]))
+        if corr is None:
+            continue
+        corr = float(corr)
+        scores.append(corr)
+        if global_sign != 0 and _sign(corr) == global_sign:
+            matching += 1
+    if not scores:
+        return {
+            "signed_stability_score": 0.0,
+            "sign_consistency": 0.0,
+            "segment_abs_spearman_mean": 0.0,
+            "segment_abs_spearman_std": 0.0,
+        }
+    abs_scores = np.abs(np.asarray(scores, dtype=float))
+    sign_consistency = float(matching / len(scores)) if global_sign != 0 else 0.0
+    stability = float(np.mean(abs_scores) - np.std(abs_scores))
+    signed_multiplier = (2.0 * sign_consistency) - 1.0
+    return {
+        "signed_stability_score": stability * signed_multiplier,
+        "sign_consistency": sign_consistency,
+        "segment_abs_spearman_mean": float(np.mean(abs_scores)),
+        "segment_abs_spearman_std": float(np.std(abs_scores)),
+    }
+
+
+def _tail_spread_score(y: np.ndarray, x: np.ndarray, *, quantile: float) -> float:
+    """Measure target separation between high and low feature quantile bins."""
+    if len(y) < 10:
+        return 0.0
+    low_q = max(0.0, min(0.49, 1.0 - float(quantile)))
+    high_q = min(1.0, max(0.51, float(quantile)))
+    low_cut = float(np.quantile(x, low_q))
+    high_cut = float(np.quantile(x, high_q))
+    low_mask = x <= low_cut
+    high_mask = x >= high_cut
+    if int(low_mask.sum()) < 3 or int(high_mask.sum()) < 3:
+        return 0.0
+    scale = float(np.std(y))
+    if scale <= 0.0:
+        return 0.0
+    return float(abs(np.mean(y[high_mask]) - np.mean(y[low_mask])) / scale)
+
+
+def _p95_separation_score(y: np.ndarray, x: np.ndarray) -> float:
+    """Measure whether high feature values separate high target-tail rows."""
+    if len(y) < 20:
+        return 0.0
+    high_cut = float(np.quantile(x, 0.95))
+    rest_cut = float(np.quantile(x, 0.50))
+    high_mask = x >= high_cut
+    rest_mask = x <= rest_cut
+    if int(high_mask.sum()) < 3 or int(rest_mask.sum()) < 3:
+        return 0.0
+    scale = float(np.std(y))
+    if scale <= 0.0:
+        return 0.0
+    return float(abs(np.mean(y[high_mask]) - np.mean(y[rest_mask])) / scale)
+
+
+def _sign(value: float | None) -> int:
+    if value is None:
+        return 0
+    value = float(value)
+    if value > 0:
+        return 1
+    if value < 0:
+        return -1
+    return 0
 
 
 def _dedupe_and_select_features(
@@ -624,6 +1190,10 @@ def _apply_clip_bounds(
     return out
 
 
+def _prefix_metrics(metrics: dict[str, float | int | None], prefix: str) -> dict[str, float | int | None]:
+    return {f"{prefix}_{key}": value for key, value in metrics.items()}
+
+
 def _selected_feature_frequency_frame(counter: Counter[str], step_count: int) -> pl.DataFrame:
     rows = [
         {
@@ -644,9 +1214,7 @@ def fit_catboost_regressor(
     X_val: np.ndarray,
     y_val: np.ndarray,
     *,
-    iterations: int,
-    depth: int,
-    learning_rate: float,
+    model_config: CatBoostModelConfig,
     task_type: str,
     thread_count: int,
 ) -> Any:
@@ -655,20 +1223,11 @@ def fit_catboost_regressor(
     except Exception as exc:  # pragma: no cover
         raise RuntimeError("CatBoost is required for regression walk-forward") from exc
 
-    params = {
-        "loss_function": "RMSE",
-        "eval_metric": "RMSE",
-        "iterations": int(iterations),
-        "depth": int(depth),
-        "learning_rate": float(learning_rate),
-        "random_seed": 42,
-        "allow_writing_files": False,
-        "verbose": False,
-        "thread_count": int(thread_count),
-        "task_type": str(task_type).upper(),
-    }
-    if params["task_type"] == "GPU":
-        params["devices"] = "0"
+    params = build_catboost_params(
+        model_config,
+        task_type=task_type,
+        thread_count=thread_count,
+    )
     model = CatBoostRegressor(**params)
     try:
         model.fit(
@@ -676,7 +1235,7 @@ def fit_catboost_regressor(
             y_train,
             eval_set=(X_val, y_val),
             use_best_model=True,
-            early_stopping_rounds=50,
+            early_stopping_rounds=int(model_config.early_stopping_rounds),
             verbose=False,
         )
         return model
@@ -691,10 +1250,135 @@ def fit_catboost_regressor(
             y_train,
             eval_set=(X_val, y_val),
             use_best_model=True,
-            early_stopping_rounds=50,
+            early_stopping_rounds=int(model_config.early_stopping_rounds),
             verbose=False,
         )
         return model
+
+
+def catboost_model_diagnostics(model: Any) -> dict[str, int | None]:
+    """Return compact model diagnostics that show whether early stopping fired."""
+
+    best_iteration = None
+    get_best_iteration = getattr(model, "get_best_iteration", None)
+    if callable(get_best_iteration):
+        try:
+            value = get_best_iteration()
+            best_iteration = None if value is None else int(value)
+        except Exception:
+            best_iteration = None
+    tree_count = getattr(model, "tree_count_", None)
+    try:
+        tree_count = None if tree_count is None else int(tree_count)
+    except Exception:
+        tree_count = None
+    return {
+        "model_best_iteration": best_iteration,
+        "model_tree_count": tree_count,
+    }
+
+
+def build_catboost_params(
+    model_config: CatBoostModelConfig,
+    *,
+    task_type: str,
+    thread_count: int,
+) -> dict[str, Any]:
+    """Build validated CatBoostRegressor parameters for the current backend."""
+
+    task = str(task_type).upper()
+    if task not in {"CPU", "GPU"}:
+        raise ValueError(f"Unsupported CatBoost task_type: {task_type!r}")
+    if int(model_config.iterations) <= 0:
+        raise ValueError("CatBoost iterations must be positive")
+    if int(model_config.depth) <= 0:
+        raise ValueError("CatBoost depth must be positive")
+    if float(model_config.learning_rate) <= 0:
+        raise ValueError("CatBoost learning_rate must be positive")
+    if float(model_config.l2_leaf_reg) < 0:
+        raise ValueError("CatBoost l2_leaf_reg must be nonnegative")
+    if int(model_config.early_stopping_rounds) <= 0:
+        raise ValueError("CatBoost early_stopping_rounds must be positive")
+
+    params: dict[str, Any] = {
+        "loss_function": str(model_config.loss_function),
+        "eval_metric": str(model_config.eval_metric),
+        "iterations": int(model_config.iterations),
+        "depth": int(model_config.depth),
+        "learning_rate": float(model_config.learning_rate),
+        "l2_leaf_reg": float(model_config.l2_leaf_reg),
+        "random_seed": 42,
+        "allow_writing_files": False,
+        "verbose": False,
+        "thread_count": int(thread_count),
+        "task_type": task,
+        "has_time": bool(model_config.has_time),
+    }
+    if model_config.od_type is not None:
+        params["od_type"] = str(model_config.od_type)
+    if model_config.od_wait is not None:
+        params["od_wait"] = int(model_config.od_wait)
+    if model_config.random_strength is not None:
+        params["random_strength"] = float(model_config.random_strength)
+    if model_config.border_count is not None:
+        params["border_count"] = int(model_config.border_count)
+    if model_config.grow_policy is not None:
+        params["grow_policy"] = str(model_config.grow_policy)
+    if model_config.leaf_estimation_method is not None:
+        params["leaf_estimation_method"] = str(model_config.leaf_estimation_method)
+    if model_config.leaf_estimation_iterations is not None:
+        params["leaf_estimation_iterations"] = int(model_config.leaf_estimation_iterations)
+    if model_config.boosting_type is not None:
+        params["boosting_type"] = str(model_config.boosting_type)
+    if model_config.gpu_ram_part is not None:
+        if task != "GPU":
+            raise ValueError("gpu_ram_part is only valid for GPU CatBoost runs")
+        params["gpu_ram_part"] = float(model_config.gpu_ram_part)
+
+    bootstrap_type = str(model_config.bootstrap_type) if model_config.bootstrap_type else None
+    if bootstrap_type:
+        params["bootstrap_type"] = bootstrap_type
+    if model_config.bagging_temperature is not None:
+        if bootstrap_type != "Bayesian":
+            raise ValueError("bagging_temperature is valid only with bootstrap_type=Bayesian")
+        params["bagging_temperature"] = float(model_config.bagging_temperature)
+    if model_config.subsample is not None:
+        if bootstrap_type not in {"Bernoulli", "Poisson", "MVS"}:
+            raise ValueError("subsample requires bootstrap_type Bernoulli, Poisson, or MVS")
+        if bootstrap_type == "Poisson" and task != "GPU":
+            raise ValueError("bootstrap_type=Poisson is GPU-only in CatBoost")
+        params["subsample"] = float(model_config.subsample)
+    if model_config.mvs_reg is not None:
+        if bootstrap_type != "MVS":
+            raise ValueError("mvs_reg is valid only with bootstrap_type=MVS")
+        if task == "GPU":
+            raise ValueError("mvs_reg is not enabled for GPU-first staged runs")
+        params["mvs_reg"] = float(model_config.mvs_reg)
+
+    grow_policy = str(model_config.grow_policy) if model_config.grow_policy else None
+    if model_config.min_data_in_leaf is not None:
+        if grow_policy not in {"Depthwise", "Lossguide"}:
+            raise ValueError("min_data_in_leaf requires grow_policy Depthwise or Lossguide")
+        params["min_data_in_leaf"] = int(model_config.min_data_in_leaf)
+    if model_config.max_leaves is not None:
+        if grow_policy != "Lossguide":
+            raise ValueError("max_leaves requires grow_policy=Lossguide")
+        if int(model_config.max_leaves) > 64:
+            raise ValueError("max_leaves is capped at 64 for staged RPF optimization")
+        params["max_leaves"] = int(model_config.max_leaves)
+    if params.get("grow_policy") != "Lossguide" and "max_leaves" in params:
+        raise ValueError("max_leaves can only be passed with Lossguide")
+    if task == "GPU":
+        params["devices"] = "0"
+    return params
+
+
+def _catboost_model_config_payload(model_config: CatBoostModelConfig) -> dict[str, Any]:
+    return {
+        key: value
+        for key, value in model_config.__dict__.items()
+        if value is not None
+    }
 
 
 def plan_regression_steps(
@@ -735,6 +1419,50 @@ def plan_regression_steps(
     return steps[-int(n_steps) :] if n_steps > 0 else steps
 
 
+def regression_steps_to_frame(steps: list[RegressionStep]) -> pl.DataFrame:
+    """Serialize sparse walk-forward steps with explicit train/val batch ids."""
+
+    return pl.DataFrame(
+        [
+            {
+                "step_idx": int(step.step_idx),
+                "pred_pos": int(step.pred_pos),
+                "pred_batch_id": int(step.pred_batch_id),
+                "train_batch_ids": list(step.train_batch_ids),
+                "val_batch_ids": list(step.val_batch_ids),
+                "train_batch_count": int(len(step.train_batch_ids)),
+                "val_batch_count": int(len(step.val_batch_ids)),
+            }
+            for step in steps
+        ],
+        infer_schema_length=None,
+    )
+
+
+def load_regression_steps_from_index(path: Path) -> list[RegressionStep]:
+    """Load explicit frozen sparse walk-forward steps."""
+
+    if not Path(path).exists():
+        raise FileNotFoundError(f"Frozen regression step index not found: {path}")
+    frame = pl.read_parquet(path).sort("step_idx")
+    required = {"step_idx", "pred_pos", "pred_batch_id", "train_batch_ids", "val_batch_ids"}
+    missing = required.difference(frame.columns)
+    if missing:
+        raise ValueError(f"Frozen regression step index is missing columns {sorted(missing)}: {path}")
+    steps: list[RegressionStep] = []
+    for row in frame.iter_rows(named=True):
+        steps.append(
+            RegressionStep(
+                step_idx=int(row["step_idx"]),
+                pred_pos=int(row["pred_pos"]),
+                pred_batch_id=int(row["pred_batch_id"]),
+                train_batch_ids=tuple(int(value) for value in row["train_batch_ids"]),
+                val_batch_ids=tuple(int(value) for value in row["val_batch_ids"]),
+            )
+        )
+    return steps
+
+
 def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, float | int | None]:
     y_true = np.asarray(y_true, dtype=float)
     y_pred = np.asarray(y_pred, dtype=float)
@@ -751,26 +1479,57 @@ def regression_metrics(y_true: np.ndarray, y_pred: np.ndarray) -> dict[str, floa
             "r2": None,
             "pearson": None,
             "spearman": None,
+            "spearman_null_reason": "too_few_rows",
             "bias": None,
+            "target_std": None,
+            "pred_std": None,
+            "target_unique": 0,
+            "pred_unique": 0,
+            "target_p95": None,
+            "pred_p95": None,
+            "p95_coverage_ratio": None,
+            "tail_rows": 0,
+            "tail_mae": None,
+            "tail_rmse": None,
         }
     error = y_pred - y_true
     ss_res = float(np.sum(error**2))
     ss_tot = float(np.sum((y_true - np.mean(y_true)) ** 2))
+    target_std = float(np.std(y_true))
+    pred_std = float(np.std(y_pred))
+    target_unique = int(len(np.unique(np.round(y_true, 12))))
+    pred_unique = int(len(np.unique(np.round(y_pred, 12))))
+    pearson = _correlation(y_true, y_pred)
+    spearman = _correlation(_rankdata_average(y_true), _rankdata_average(y_pred))
+    target_p95 = float(np.quantile(y_true, 0.95))
+    pred_p95 = float(np.quantile(y_pred, 0.95))
+    tail_cut = float(np.quantile(y_true, 0.80))
+    tail_mask = y_true >= tail_cut
+    tail_error = error[tail_mask]
     return {
         "rows": n,
         "mae": _safe_float(np.mean(np.abs(error))),
         "rmse": _safe_float(math.sqrt(np.mean(error**2))),
         "median_abs_error": _safe_float(np.median(np.abs(error))),
         "r2": _safe_float(1.0 - ss_res / ss_tot) if ss_tot > 0 else None,
-        "pearson": _correlation(y_true, y_pred),
-        "spearman": _correlation(_rankdata_average(y_true), _rankdata_average(y_pred)),
+        "pearson": pearson,
+        "spearman": spearman,
+        "spearman_null_reason": _correlation_null_reason(y_true, y_pred) if spearman is None else None,
         "bias": _safe_float(np.mean(error)),
         "target_mean": _safe_float(np.mean(y_true)),
         "pred_mean": _safe_float(np.mean(y_pred)),
+        "target_std": _safe_float(target_std),
+        "pred_std": _safe_float(pred_std),
+        "target_unique": target_unique,
+        "pred_unique": pred_unique,
         "target_p50": _safe_float(np.quantile(y_true, 0.50)),
         "pred_p50": _safe_float(np.quantile(y_pred, 0.50)),
-        "target_p95": _safe_float(np.quantile(y_true, 0.95)),
-        "pred_p95": _safe_float(np.quantile(y_pred, 0.95)),
+        "target_p95": _safe_float(target_p95),
+        "pred_p95": _safe_float(pred_p95),
+        "p95_coverage_ratio": _safe_float(pred_p95 / target_p95) if target_p95 > 0 else None,
+        "tail_rows": int(tail_mask.sum()),
+        "tail_mae": _safe_float(np.mean(np.abs(tail_error))) if len(tail_error) else None,
+        "tail_rmse": _safe_float(math.sqrt(np.mean(tail_error**2))) if len(tail_error) else None,
     }
 
 
@@ -876,6 +1635,16 @@ def _rankdata_average(values: np.ndarray) -> np.ndarray:
     return ranks
 
 
+def _correlation_null_reason(a: np.ndarray, b: np.ndarray) -> str | None:
+    if len(a) < 2:
+        return "too_few_rows"
+    if np.std(a) == 0:
+        return "constant_target"
+    if np.std(b) == 0:
+        return "constant_prediction"
+    return None
+
+
 def _correlation(a: np.ndarray, b: np.ndarray) -> float | None:
     if len(a) < 2 or np.std(a) == 0 or np.std(b) == 0:
         return None
@@ -889,16 +1658,46 @@ def _safe_float(value: Any) -> float | None:
     return value
 
 
+def _is_model_numeric_dtype(dtype: pl.DataType) -> bool:
+    return dtype in {
+        pl.Float32,
+        pl.Float64,
+        pl.Int8,
+        pl.Int16,
+        pl.Int32,
+        pl.Int64,
+        pl.UInt8,
+        pl.UInt16,
+        pl.UInt32,
+        pl.UInt64,
+        pl.Boolean,
+    }
+
+
+def _validate_feature_source_config(config: FeatureSourceConfig) -> None:
+    if config.mode not in FEATURE_SOURCE_MODES:
+        raise ValueError(
+            f"Unsupported feature source mode {config.mode!r}; "
+            f"expected one of {list(FEATURE_SOURCE_MODES)}"
+        )
+    if not str(config.regression_feature_set).strip():
+        raise ValueError("regression_feature_set cannot be empty")
+
+
 def _target_slug(target_col: str) -> str:
     slug = str(target_col)
     if slug.startswith("target_"):
         slug = slug[len("target_") :]
-    slug = re.sub(r"[^A-Za-z0-9_]+", "_", slug).strip("_").lower()
-    return slug or "target"
+    return _slug(slug) or "target"
+
+
+def _slug(value: str) -> str:
+    return re.sub(r"[^A-Za-z0-9_]+", "_", str(value)).strip("_").lower()
 
 
 def _write_markdown_report(path: Path, payload: dict[str, Any], step_metrics: pl.DataFrame) -> None:
-    metrics = payload["aggregate_metrics"]
+    pred_metrics = payload["prediction_metrics"]
+    val_metrics = payload["validation_metrics"]
     lines = [
         "# Stage-1 Regression Walk-Forward Summary",
         "",
@@ -906,13 +1705,37 @@ def _write_markdown_report(path: Path, payload: dict[str, Any], step_metrics: pl
         f"Target: `{payload['target_col']}`",
         f"Asset/root: `{payload['target_asset']} {payload['root']}`",
         f"Completed steps: {payload['n_completed_steps']} / {payload['n_requested_steps']}",
-        f"Rows: {metrics.get('rows')}",
+        f"Prediction rows: {pred_metrics.get('rows')}",
+        f"Validation rows: {val_metrics.get('rows')}",
+        f"Optimization decision basis: `{payload['optimization_decision_basis']}`",
+        "",
+        "## Validation Metrics",
         "",
         "| Metric | Value |",
         "|---|---:|",
     ]
-    for key in ("mae", "rmse", "median_abs_error", "r2", "pearson", "spearman", "bias", "target_mean", "pred_mean"):
-        value = metrics.get(key)
+    metric_keys = (
+        "mae",
+        "rmse",
+        "median_abs_error",
+        "r2",
+        "pearson",
+        "spearman",
+        "bias",
+        "target_mean",
+        "pred_mean",
+        "target_p95",
+        "pred_p95",
+        "p95_coverage_ratio",
+        "tail_mae",
+        "tail_rmse",
+    )
+    for key in metric_keys:
+        value = val_metrics.get(key)
+        lines.append(f"| `{key}` | {_fmt(value)} |")
+    lines.extend(["", "## Prediction Metrics", "", "| Metric | Value |", "|---|---:|"])
+    for key in metric_keys:
+        value = pred_metrics.get(key)
         lines.append(f"| `{key}` | {_fmt(value)} |")
     if not step_metrics.is_empty():
         lines.extend(["", "Per-step metrics are stored in `step_metrics.parquet`."])
@@ -934,6 +1757,9 @@ def _write_feature_policy_summary(path: Path, payload: dict[str, Any], selected_
         f"| `max_features` | {policy['max_features']} |",
         f"| `min_abs_spearman` | {_fmt(policy['min_abs_spearman'])} |",
         f"| `dedupe_corr_threshold` | {_fmt(policy['dedupe_corr_threshold'])} |",
+        f"| `min_selected_features` | {policy['min_selected_features']} |",
+        f"| `stability_segments` | {policy['stability_segments']} |",
+        f"| `tail_quantile` | {_fmt(policy['tail_quantile'])} |",
         f"| `selected_feature_count_min` | {policy['selected_feature_count_min']} |",
         f"| `selected_feature_count_mean` | {_fmt(policy['selected_feature_count_mean'])} |",
         f"| `selected_feature_count_max` | {policy['selected_feature_count_max']} |",
@@ -956,6 +1782,27 @@ def _fmt(value: Any) -> str:
     return f"{float(value):.6g}"
 
 
+def _append_event(path: Path, event: str, **fields: Any) -> None:
+    payload = {
+        "event": event,
+        "ts": datetime.now(timezone.utc).isoformat(),
+        **fields,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a") as handle:
+        handle.write(json.dumps(payload, default=str) + "\n")
+
+
+def _progress(message: str) -> None:
+    print(message, flush=True)
+
+
+def _should_log_step(step_index: int, total_steps: int, log_every_steps: int) -> bool:
+    if int(log_every_steps) <= 0:
+        return False
+    return step_index == 1 or step_index == total_steps or step_index % int(log_every_steps) == 0
+
+
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Sparse-aware CatBoostRegressor walk-forward for Stage-1 regression targets."
@@ -976,17 +1823,55 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--iterations", type=int, default=200)
     parser.add_argument("--depth", type=int, default=6)
     parser.add_argument("--learning-rate", type=float, default=0.05)
+    parser.add_argument("--l2-leaf-reg", type=float, default=3.0)
+    parser.add_argument("--loss-function", default="RMSE")
+    parser.add_argument("--eval-metric", default="RMSE")
+    parser.add_argument("--early-stopping-rounds", type=int, default=50)
+    parser.add_argument("--od-type", default="Iter")
+    parser.add_argument("--od-wait", type=int, default=None)
+    parser.add_argument("--random-strength", type=float, default=None)
+    parser.add_argument("--bootstrap-type", default=None)
+    parser.add_argument("--bagging-temperature", type=float, default=None)
+    parser.add_argument("--subsample", type=float, default=None)
+    parser.add_argument("--mvs-reg", type=float, default=None)
+    parser.add_argument("--border-count", type=int, default=None)
+    parser.add_argument("--grow-policy", default=None)
+    parser.add_argument("--min-data-in-leaf", type=int, default=None)
+    parser.add_argument("--max-leaves", type=int, default=None)
+    parser.add_argument("--leaf-estimation-method", default=None)
+    parser.add_argument("--leaf-estimation-iterations", type=int, default=None)
+    parser.add_argument("--boosting-type", default=None)
+    parser.add_argument("--has-time", dest="has_time", action="store_true", default=True)
+    parser.add_argument("--no-has-time", dest="has_time", action="store_false")
+    parser.add_argument("--gpu-ram-part", type=float, default=None)
     parser.add_argument("--task-type", choices=["CPU", "GPU"], default="CPU")
     parser.add_argument("--thread-count", type=int, default=-1)
     parser.add_argument(
         "--feature-policy",
-        choices=[FEATURE_POLICY_FULL, FEATURE_POLICY_TARGET_SPECIFIC_V1],
+        choices=list(FEATURE_POLICIES),
         default=FEATURE_POLICY_FULL,
     )
     parser.add_argument("--max-features", type=int, default=300)
     parser.add_argument("--min-abs-spearman", type=float, default=0.01)
+    parser.add_argument("--min-selected-features", type=int, default=20)
+    parser.add_argument("--stability-segments", type=int, default=5)
+    parser.add_argument("--tail-quantile", type=float, default=0.80)
     parser.add_argument("--dedupe-corr-threshold", type=float, default=0.995)
     parser.add_argument("--clip-quantiles", default="0.001,0.999")
+    parser.add_argument(
+        "--feature-source-mode",
+        choices=list(FEATURE_SOURCE_MODES),
+        default=FEATURE_SOURCE_HTF_ONLY,
+        help=(
+            "Feature roots visible to the regressor. `htf_only` preserves current behavior; "
+            "`regression_only` uses target regression_path_features_v1 only; "
+            "`htf_plus_regression` joins both."
+        ),
+    )
+    parser.add_argument("--regression-feature-set", default=REGRESSION_FEATURE_SET)
+    parser.add_argument("--frozen-step-index-path", type=Path, default=None)
+    parser.add_argument("--log-every-steps", type=int, default=1)
+    parser.add_argument("--run-suffix", default=None)
     parser.add_argument("--output-dir", type=Path, default=OUTPUT_ROOT)
     parser.add_argument("--plan-only", action="store_true")
     return parser.parse_args()
@@ -1015,6 +1900,39 @@ def main() -> int:
         min_abs_spearman=float(args.min_abs_spearman),
         dedupe_corr_threshold=float(args.dedupe_corr_threshold),
         clip_quantiles=_parse_clip_quantiles(str(args.clip_quantiles)),
+        min_selected_features=int(args.min_selected_features),
+        stability_segments=int(args.stability_segments),
+        tail_quantile=float(args.tail_quantile),
+    )
+    feature_source_config = FeatureSourceConfig(
+        mode=str(args.feature_source_mode),
+        regression_feature_set=str(args.regression_feature_set),
+        data_root=PROJECT_ROOT / "data",
+    )
+    catboost_model_config = CatBoostModelConfig(
+        iterations=int(args.iterations),
+        depth=int(args.depth),
+        learning_rate=float(args.learning_rate),
+        l2_leaf_reg=float(args.l2_leaf_reg),
+        loss_function=str(args.loss_function),
+        eval_metric=str(args.eval_metric),
+        early_stopping_rounds=int(args.early_stopping_rounds),
+        od_type=str(args.od_type) if args.od_type is not None else None,
+        od_wait=args.od_wait,
+        random_strength=args.random_strength,
+        bootstrap_type=args.bootstrap_type,
+        bagging_temperature=args.bagging_temperature,
+        subsample=args.subsample,
+        mvs_reg=args.mvs_reg,
+        border_count=args.border_count,
+        grow_policy=args.grow_policy,
+        min_data_in_leaf=args.min_data_in_leaf,
+        max_leaves=args.max_leaves,
+        leaf_estimation_method=args.leaf_estimation_method,
+        leaf_estimation_iterations=args.leaf_estimation_iterations,
+        boosting_type=args.boosting_type,
+        has_time=bool(args.has_time),
+        gpu_ram_part=args.gpu_ram_part,
     )
     for dataset in entries:
         payload = run_regression_walkforward(
@@ -1026,9 +1944,15 @@ def main() -> int:
             iterations=int(args.iterations),
             depth=int(args.depth),
             learning_rate=float(args.learning_rate),
+            l2_leaf_reg=float(args.l2_leaf_reg),
             task_type=str(args.task_type),
             thread_count=int(args.thread_count),
+            catboost_model_config=catboost_model_config,
             feature_policy_config=feature_policy_config,
+            feature_source_config=feature_source_config,
+            frozen_step_index_path=args.frozen_step_index_path,
+            log_every_steps=int(args.log_every_steps),
+            run_suffix=args.run_suffix,
             output_root=Path(args.output_dir),
         )
         metrics = payload["aggregate_metrics"]

@@ -97,8 +97,46 @@ def _validate_basic_invariants(paths: list[str], *, variant: str) -> dict[str, A
     denom = spec.horizon_vol_col or vol
     future = spec.future_bars_col
     maxoff, maxts, minoff, mints = spec.extreme_metadata_cols
-    up, upm, dm, dx = spec.target_cols
+    distance_target_cols = spec.target_cols[:4]
+    share_target_cols = spec.target_cols[4:]
+    up, upm, dm, dx = distance_target_cols
     raw_up, raw_upm, raw_dm, raw_dx = spec.raw_distance_cols
+    share_checks: list[pl.Expr] = []
+    if len(share_target_cols) >= 2:
+        extreme_share, mean_share = share_target_cols[:2]
+        extreme_total = pl.col(raw_up) + pl.col(raw_dx)
+        mean_total = pl.col(raw_upm) + pl.col(raw_dm)
+        expected_extreme_share = pl.when(extreme_total > 0.0).then(pl.col(raw_up) / extreme_total).otherwise(0.5)
+        expected_mean_share = pl.when(mean_total > 0.0).then(pl.col(raw_upm) / mean_total).otherwise(0.5)
+        share_checks.extend(
+            [
+                (
+                    (pl.col(valid))
+                    & (
+                        (pl.col(extreme_share) < 0.0)
+                        | (pl.col(extreme_share) > 1.0)
+                        | (pl.col(mean_share) < 0.0)
+                        | (pl.col(mean_share) > 1.0)
+                    )
+                ).sum().alias("direction_share_out_of_bounds"),
+                (
+                    (pl.col(valid))
+                    & (~(pl.col(extreme_share).is_finite() & pl.col(mean_share).is_finite()))
+                ).sum().alias("direction_share_nonfinite"),
+                (
+                    (pl.col(valid))
+                    & ((pl.col(extreme_share) - expected_extreme_share).abs() > 1e-9)
+                ).sum().alias(f"{extreme_share}_bad_share"),
+                (
+                    (pl.col(valid))
+                    & ((pl.col(mean_share) - expected_mean_share).abs() > 1e-9)
+                ).sum().alias(f"{mean_share}_bad_share"),
+                (
+                    (~pl.col(valid))
+                    & (pl.col(extreme_share).is_not_null() | pl.col(mean_share).is_not_null())
+                ).sum().alias("invalid_nonnull_direction_shares"),
+            ]
+        )
     result = lf.select(
         pl.len().alias("rows"),
         pl.struct(["timestamp", "batch_id"]).n_unique().alias("unique_ts_batch"),
@@ -155,8 +193,9 @@ def _validate_basic_invariants(paths: list[str], *, variant: str) -> dict[str, A
                 (pl.col(valid))
                 & ((pl.col(target) - (pl.col(raw) / pl.col(denom))).abs() > 1e-9)
             ).sum().alias(f"{target}_bad_norm")
-            for target, raw in zip(spec.target_cols, spec.raw_distance_cols, strict=True)
+            for target, raw in zip(distance_target_cols, spec.raw_distance_cols, strict=True)
         ],
+        *share_checks,
         *(
             [
                 (

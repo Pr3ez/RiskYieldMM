@@ -7,8 +7,9 @@ for `regression_path_features_v1`.
 
 ## Current Status
 
-Design backlog only. No formula in this document is promoted, implemented, or
-used by Stage-1 yet.
+Research backlog and coverage tracker. Implemented entries are still not
+promoted by this document; promotion requires walk-forward ablation and the
+optimization gates in `optimization_strategy.md`.
 
 ## Scope
 
@@ -45,13 +46,17 @@ regression design:
 - validate every family by walk-forward ablation, chronological stability, and
   target-specific usefulness.
 
-The useful feature surface for the four regression targets is therefore not
-just direction. It must explain path shape:
+The useful feature surface for the four distance targets is therefore not just
+direction. It must explain path shape:
 
 - `target_reg_distance_up_extreme_hvol_v2`: upside spike/reach capacity.
 - `target_reg_distance_up_mean_high_hvol_v2`: sustained upside acceptance.
 - `target_reg_distance_down_mean_low_hvol_v2`: sustained downside acceptance.
 - `target_reg_distance_down_extreme_hvol_v2`: downside spike/reach capacity.
+- `target_reg_direction_extreme_up_share_hvol_v2`: bounded extreme-path
+  directional balance.
+- `target_reg_direction_mean_up_share_hvol_v2`: bounded persistent-path
+  directional balance.
 
 ## Temporal Safety Rules
 
@@ -68,6 +73,37 @@ All candidate signals must satisfy these rules before implementation:
 
 ## Candidate Signal Families
 
+## Generic Feature-Type Coverage
+
+This section maps the generic time-series feature search list to the active
+`regression_path_features_v1` plan. It exists to prevent useful feature classes
+from being implied but not tracked.
+
+| Generic Type | Current Coverage | Status |
+|---|---|---|
+| lags | closed-bar as-of context plus `temporal_memory_transforms` | engineering_validated_not_promoted; BTCUSDT `8h/B` sliced validation clean |
+| rolling means | volatility state, structural value, acceptance value/share windows | engineering_validated_not_promoted for implemented families |
+| rolling standard deviations | `tb_volatility_pct`, realized-vol inputs, volatility-state windows | engineering_validated_not_promoted |
+| EWM means | `temporal_memory_transforms` | engineering_validated_not_promoted; BTCUSDT `8h/B` sliced validation clean |
+| differences, returns, slopes | closed-bar returns, return persistence, trend efficiency, cross-asset spreads | engineering_validated_not_promoted / planned depending on family |
+| z-scores and rank-position proxies | volatility z/relative-median plus `temporal_memory_transforms` rank-position state | engineering_validated_not_promoted |
+| ratios and spreads | ATR/std dominance, room asymmetry, return/vol spreads, cross-asset spreads | engineering_validated_not_promoted / planned |
+| distance-to-reference | structural room, value distance, band/VWAP/support/resistance candidates | engineering_validated_not_promoted plus planned refinements |
+| regime flags | `regime_calendar_state` plus existing HTF helper regimes as context | engineering_validated_not_promoted |
+| interaction/confluence features | `interaction_confluence` | engineering_validated_not_promoted |
+| cross-series/context features | cross-asset relative context backlog | engineering_validated_not_promoted |
+| calendar/session features | `regime_calendar_state` | engineering_validated_not_promoted |
+| CNN/sequence embeddings | `sequence_embedding_layer` | deterministic proxy engineering-validated, not promoted; learned encoders deferred |
+
+Priority for trading regression remains:
+
+1. distance-to-band, value, VWAP, support, and resistance features;
+2. volatility denominator and volatility-regime features;
+3. trend/range and acceptance/rejection regime features;
+4. reversal/bounce and failed-break features;
+5. multi-timeframe context features;
+6. interaction/confluence features after the base families are stable.
+
 ### 1. Multi-Timeframe Closed-Bar Context
 
 Purpose: give each 1m row stable context from completed `15m`, `1h`, `4h`,
@@ -77,7 +113,7 @@ Candidate signals:
 
 | Signal | Meaning | Target Use |
 |---|---|---|
-| closed-bar return by timeframe | log or percent return of the last completed bar | direction axis for all four targets |
+| closed-bar return by timeframe | log or percent return of the last completed bar | direction axis for distance and share targets |
 | closed-bar high-low range in horizon-vol units | realized range scaled by prediction-time volatility | extreme target scale and expansion risk |
 | close location inside closed bar | `(close - low) / (high - low)` | acceptance versus rejection |
 | body-to-range ratio | candle body divided by high-low range | directional pressure versus wick noise |
@@ -86,6 +122,26 @@ Candidate signals:
 
 Implementation note: these are not raw OHLCV columns. They are normalized
 summary signals derived from closed bars.
+
+### 1b. Temporal Memory Transforms
+
+Purpose: describe how validated base signals behaved recently, without
+creating every possible lag for every generated column.
+
+Candidate signals:
+
+| Signal | Meaning | Target Use |
+|---|---|---|
+| selected signal lag | prior value of a validated feature | persistence and delayed reaction |
+| selected signal difference | current causal value minus prior causal value | acceleration or fading pressure |
+| selected signal slope | normalized slope over prior rows | direction and persistence |
+| EWM mean | past exponential average of a selected signal | smooth state without long hard windows |
+| EWM residual | current signal minus past EWM state | unusualness and regime shift |
+| rolling percentile rank | signal rank inside prior window | compression, stretch, and anomaly state |
+
+Implementation note: this family must use a curated source list. Applying lags,
+EWM, and ranks to every generated feature would create redundant noise and high
+memory cost.
 
 ### 2. Volatility Denominator And Expansion State
 
@@ -253,6 +309,26 @@ Candidate signals:
 Implementation note: true order-flow imbalance requires data not currently in
 the canonical OHLCV set. For v1, keep these as OHLCV-derived proxies.
 
+### 10. Interaction And Confluence
+
+Purpose: describe when multiple causal signals agree in a way that should
+change the expected future path distance.
+
+Candidate signals:
+
+| Signal | Meaning | Target Use |
+|---|---|---|
+| compression plus breakout proximity | low volatility and price near prior high/low | extreme targets |
+| trend plus acceptance | directional pressure confirmed by closes above/below value | mean targets |
+| volume wake-up plus impulse | participation confirming directional movement | spike and persistence |
+| room plus pressure | available path distance plus directional force | all directional targets |
+| rejection plus chop gate | conditions that reduce mean-target confidence | mean versus extreme separation |
+| TA compact confluence | optional agreement with deterministic TA flags | context only |
+
+Implementation note: every confluence feature must be compared against its
+component features. If the interaction does not add value beyond components, it
+should be rejected or quarantined.
+
 ## First Implementation Priority
 
 The first implementation should be small enough to validate cleanly on
@@ -261,11 +337,16 @@ The first implementation should be small enough to validate cleanly on
 1. Volatility denominator and expansion state.
 2. Structural room above/below in horizon-vol units.
 3. Acceptance/persistence from closed-bar close location and value distance.
-4. Rejection/chop from wick, path efficiency, and two-sided volatility.
-5. Cross-asset relative return and volatility spread for BTC versus ETH.
+4. Temporal memory transforms for a curated list of validated base signals.
+5. Rejection/chop from wick, path efficiency, and two-sided volatility.
+6. Spike/breakout and volume-pressure confirmation.
+7. Regime/calendar state for session-aware behavior.
+8. Interaction/confluence features after base families are stable.
+9. Cross-asset relative return and volatility spread for BTC versus ETH.
 
-This covers all four target needs without introducing global PCA,
-cointegration, or lead-lag estimation too early.
+This covers the distance-target needs and gives the two bounded share targets
+the same causal directional and path-shape evidence without introducing global
+PCA, cointegration, or lead-lag estimation too early.
 
 ## Signals To Defer
 
@@ -292,4 +373,3 @@ Each candidate signal must pass:
 - walk-forward ablation improves at least one target without damaging the
   opposite direction target family;
 - selected feature importance is stable across chronological folds.
-

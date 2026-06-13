@@ -57,7 +57,14 @@ test_output/htf_stage1_regime_family_walkforward/summary_*.json
 test_output/stage1_label_anomaly_experiments/
 test_output/stage1_feature_target_quality_audit/
 test_output/stage1_regression_walkforward/
+test_output/stage1_regression_grid_search/
+test_output/stage1_regression_optuna*/
+test_output/stage1_regression_walkforward_*/
 test_output/stage1_target_survey_metrics/
+test_output/regression_feature_engineering*/
+test_output/rpf_clean_classification*/
+test_output/rpf_clean_walkforward/
+test_output/rpf_feature_panels/
 test_output/quarantine/
 test_output/ta_signal_diagnostics/
 test_output/tmp_stage1_*/
