@@ -743,7 +743,7 @@
     "package": "vsce package"
   },
   "devDependencies": {
-    "@types/node": "^20.10.0",
+    "@types/node": "^25.6.0",
     "@types/vscode": "^1.118.0",
     "@eslint/js": "^10.0.1",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
