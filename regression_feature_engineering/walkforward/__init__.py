@@ -8,5 +8,12 @@ __all__ = [
     "model",
     "optimize",
     "policy",
+    "decision_bank",
+    "ema_gate",
+    "regime_gate",
+    "rank_signal_transfer_diagnostic",
+    "rank_signal_meta_router_simulator",
+    "rank_signal_transfer_separator",
+    "signal_bank",
     "windows",
 ]

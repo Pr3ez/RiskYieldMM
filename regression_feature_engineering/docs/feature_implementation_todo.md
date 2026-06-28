@@ -11,8 +11,10 @@ Planning and tracking contract. Current implemented families have engineering
 validation evidence, but they are not predictively promoted. Earlier
 `BTCUSDT 8h/B` comparison evidence showed the old HTF/helper baseline beating
 initial RPF combinations, so promotion now requires RPF-first staged
-walk-forward optimization rather than another broad mixed-source run. The
-registry in
+walk-forward optimization rather than another broad mixed-source run. Current
+model research is focused on binary UP/DOWN `2x` targets and stable
+regime-gated prediction, while the feature families remain
+engineering-valid-not-promoted. The registry in
 `regression_feature_engineering/core/registry.py` defines stable family IDs,
 phase order, source inputs, availability rules, output prefixes, and target
 intent.
@@ -33,6 +35,7 @@ Applies to `distance_horizon_vol_v2` regression targets, starting with
 - Actual code/artifact status:
   `../reports/code_vs_plan_status_2026-06-02.md`
 - Validation rules: `optimization_strategy.md`
+- Regime-gate tracker: `rpf_regime_gate_implementation_todo.md`
 
 ## What This Does Not Decide
 
@@ -47,8 +50,9 @@ feature selection thresholds, or CatBoost parameters.
   or train-window-safe derived factors.
 - Write one manifest and feature catalog per generated asset/root.
 - Validate one feature family at a time before combining families.
-- Optimize feature selection per target inside walk-forward training, not by
-  global correlations.
+- During the current clean RPF pass, use fixed all-manifest or fixed
+  family-ablation scopes. Per-feature selection is deferred; when enabled, it
+  must be train-window-only and never chosen from global correlations.
 
 ## Phase Checklist
 
@@ -67,6 +71,31 @@ feature selection thresholds, or CatBoost parameters.
 | 11 | `cross_asset_context` | engineering_validated_not_promoted | `rpf_xasset_` | relative pressure and common risk state | BTCUSDT `8h/B` rebuilt and prefix-validations clean; modest BTC/ETH context signal, not predictively promoted |
 | 12 | `unsupervised_factor_layer` | engineering_validated_not_promoted | `rpf_factor_` | deterministic factor/anomaly context | BTCUSDT `8h/B` materialized; all factor timeframe-prefix validations passed |
 | 13 | `sequence_embedding_layer` | engineering_validated_not_promoted | `rpf_seq_` | deterministic multi-timeframe sequence shape | BTCUSDT `8h/B` materialized; sequence-prefix validation passed |
+
+## Current Post-Build Modeling TODO
+
+Feature-family implementation has reached a complete deterministic v1 surface
+for `BTCUSDT 8h/B`. The active next task is not another formula family. It is
+model evaluation and gating:
+
+1. Keep both binary direction targets:
+
+   ```text
+   target_cls_extreme_up_ge_2x_down_hvol_v2
+   target_cls_extreme_down_ge_2x_up_hvol_v2
+   ```
+
+2. Use `regression_feature_engineering/walkforward/classify.py` for
+   RPF-native binary classification experiments.
+3. Evaluate binary target quality by regime, not by one global score.
+4. Use label/performance diagnostics only as post-hoc analysis; never use
+   same-batch label values as live features.
+5. Validate the implemented live-safe regime gate described in
+   `rpf_regime_gated_prediction_plan.md` and tracked in
+   `rpf_regime_gate_implementation_todo.md`.
+6. Return to feature formulas only if the gate analysis identifies a missing
+   live-safe proxy for future up-dominant, down-dominant, two-sided, or
+   no-edge regimes.
 
 ## Phase 1: Foundation And Alignment
 

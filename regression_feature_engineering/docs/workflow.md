@@ -30,6 +30,15 @@ The workflow targets `regression_path_features_v1` for
 - Clean RPF walk-forward: `clean_rpf_walkforward_reset.md`
 - Detailed walk-forward report: `rpf_walkforward_optimization_report.md`
 - Optimization: `optimization_strategy.md`
+- Binary classification: `rpf_binary_classification_experiment.md`
+- Binary prediction pipeline contract:
+  `rpf_binary_prediction_pipeline_contract.md`
+- Regime-gated prediction: `rpf_regime_gated_prediction_plan.md`
+- Regime-gate implementation tracker:
+  `rpf_regime_gate_implementation_todo.md`
+- Signal-bank batch selection: `rpf_signal_bank_batch_selection.md`
+- EMA-regime classifier batch selection:
+  `rpf_ema_regime_batch_selection.md` (abandoned active path; historical reference only)
 
 ## What This Does Not Decide
 
@@ -62,7 +71,26 @@ This document does not choose feature formulas or final CatBoost parameters.
     locks.
 13. Compare the final locked RPF confirmation run against a same-window
     historical HTF baseline report.
-14. Promote only after target-specific stability and tail coverage improve.
+14. For binary decision-layer work, evaluate both UP and DOWN `2x` targets by
+    regime before making any promotion decision.
+15. For the current binary path, run chronological recent windows with
+    labeled-row-only supervised learning, train-only ElasticNet feature
+    selection, and CatBoost final prediction.
+16. Score candidate configs by prediction-batch decision cost, but require
+    per-window stability: no whole-batch-positive collapse, no zero-positive
+    collapse across most windows, bounded per-window FPR, and sufficient
+    threshold-pass rate.
+17. Reserve holdout windows with `--holdout-steps`; holdout is confirmation
+    only and must not feed back into the same search.
+18. Add CNN sequence embeddings only after the chronological tabular contract
+    is stable; CNN may use all causal rows as sequence context, but supervised
+    loss and scoring must use only labeled eligible anchors.
+19. Treat EMA gates and EMA-regime banks as abandoned for the active path.
+    Keep their code and docs only to reproduce historical evidence. Learned
+    gates, signal banks, and decision banks are also deferred diagnostics
+    unless a new plan explicitly reopens them.
+20. Promote only after target-specific stability, tail coverage, and
+    regime-conditioned false-positive control improve.
 
 The full rollout repeats the same workflow for each core asset and each root ID.
 Target materialization and validation details are tracked in
@@ -309,10 +337,115 @@ Clean RPF CatBoost tuning:
   --task-type GPU
 ```
 
-The clean RPF optimizer keeps the feature policy fixed at
+The clean RPF optimizer baseline keeps the feature policy fixed at
 `all_manifest_features`. It uses every model-facing manifest feature and does
 not run selected-feature counts, Spearman thresholds, dedupe thresholds, clip
 quantiles, stability segments, or tail quantiles.
+
+The current binary-classification experiment should use
+`--feature-policy elasticnet_logistic_v1` with CatBoost prediction. ElasticNet
+is a selector only:
+
+```text
+Train | Validation | Prediction
+-> compute selector mean/std on Train only
+-> fit sparse ElasticNet LogisticRegression selector on scaled Train
+-> freeze selected feature list for validation
+-> optionally train causal CNN embeddings on scaled Train rows only
+-> train CatBoost on selected scaled Train columns
+-> score scaled Validation columns for early stopping and threshold/cap selection
+-> freeze validation-selected feature mask
+-> refit selector scaler on Train+Validation for that frozen mask
+-> optionally refit causal CNN embeddings on scaled Train+Validation rows
+-> refit CatBoost on selected scaled Train+Validation columns
+-> score the held-out Prediction batch
+```
+
+The selector grid can tune `C`, `l1_ratio`, selected feature cap,
+`coef_eps`, and the train-only ElasticNet prefilter candidate cap. The
+prefilter ranks candidate columns by train-only standardized class separation
+before the sparse ElasticNet fit, which keeps the selector causal while making
+the walk-forward run practical. The scaler type is fixed to train-only
+standardization.
+
+For binary trading-decision experiments, use the Optuna wrapper:
+
+```bash
+python -m regression_feature_engineering.walkforward.classify_optuna
+```
+
+It is chronological-only and defaults to `--objective-metric
+stable_prediction_quality`. Validation builds the fold model; aggregate
+prediction-batch metrics score the trial. A later untouched confirmation
+window is still needed after tuning. Use `--holdout-steps` to reserve that
+confirmation slice inside the same command; trials are selected on tuning
+windows and the selected best config is replayed once on the holdout windows
+only when the selected tuning trial has `status=ok`. If every trial is rejected
+by stability gates, no holdout replay is written because there is no candidate
+worth confirming.
+
+The binary decision rule is selected on validation as
+`(threshold, decision_policy, max_signals_per_batch)`. Use
+`--decision-policy causal_signal_budget --max-signals-grid 0,5,10,20,40,80`
+to test uncapped thresholding plus small live-safe per-batch signal budgets.
+This directly targets the observed failure mode where a model fires across too
+much of one prediction batch. `threshold_only` is uncapped and must use
+`--max-signals-grid 0`.
+
+Use normal chronological windows. Do not combine this path with EMA-regime
+banks, learned gates, signal banks, or decision banks in the active search.
+
+The production-oriented target pipeline is documented in
+`rpf_binary_prediction_pipeline_contract.md`. The implemented path is currently
+the tabular branch:
+
+```text
+RPF features -> ElasticNet selector -> CatBoost -> threshold
+```
+
+For current binary runs, read this as:
+
+```text
+RPF features -> ElasticNet selector -> optional causal CNN embeddings -> CatBoost -> threshold + max_signals_per_batch
+```
+
+The CNN branch is disabled by default and enabled with:
+
+```bash
+--sequence-embedding-mode causal_cnn_v1
+--sequence-length 16
+--sequence-embedding-dim 8
+--sequence-conv-channels 16
+--sequence-kernel-size 3
+--sequence-epochs 3
+--sequence-max-train-rows 12000
+```
+
+Use a one-window smoke before wider runs because the CNN branch adds a
+per-fold PyTorch fit before CatBoost.
+
+The implemented CNN branch is:
+
+```text
+causal row sequence -> CNN encoder -> embedding columns -> CatBoost
+```
+
+All supervised operations use only labeled eligible rows. All causal continuous
+rows may be used only as sequence/context state.
+
+For new binary Optuna runs, keep the target-aware stability gates enabled.
+They penalize the two failure modes seen in the 2026-06-18 UP holdout:
+missing high-positive prediction batches and whole-batch firing in low/mixed
+target batches. The relevant controls are:
+
+```bash
+--prediction-high-target-positive-rate-threshold 0.70
+--min-prediction-high-target-window-recall 0.05
+--min-prediction-high-target-window-signal-rate 0.01
+--max-prediction-missed-high-target-window-rate 0.50
+--prediction-low-target-positive-rate-threshold 0.35
+--max-prediction-low-target-all-positive-window-rate 0.10
+```
 
 `geometry`, `baseline_probe`, and `core_model` use Optuna `GridSampler` for
 their finite categorical choices, so repeated identical parameter tuples are

@@ -19,6 +19,23 @@ The first clean target is:
 target_reg_direction_extreme_up_share_hvol_v2
 ```
 
+Binary classification experiments use the separate clean command surface:
+
+```text
+python -m regression_feature_engineering.walkforward.classify
+```
+
+The active binary targets are:
+
+```text
+target_cls_extreme_up_ge_2x_down_hvol_v2
+target_cls_extreme_down_ge_2x_up_hvol_v2
+```
+
+They are experimental decision-layer targets. They must be evaluated together
+and by regime; they are not a replacement for the six continuous hvol v2
+regression/share targets listed below.
+
 First real readiness passed on 2026-06-04 for `BTCUSDT 8h/B`: `2,530` RPF
 model features, `5,856` available feature/label batch intersections,
 `1,405,427` valid target rows, and `5` frozen windows were written under
@@ -103,6 +120,7 @@ regression_feature_engineering/walkforward/
   optimize.py   staged Optuna CLI
   reports.py    JSON, parquet, Markdown, and event outputs
   config.py     clean optimizer config parsing
+  classify.py   binary UP/DOWN RPF classifier and threshold/objective sweeps
 ```
 
 ## Stage Order

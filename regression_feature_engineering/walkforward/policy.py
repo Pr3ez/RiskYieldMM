@@ -16,6 +16,7 @@ from regression_feature_engineering.walkforward.metrics import _correlation, _ra
 ALL_MANIFEST_FEATURES = "all_manifest_features"
 TARGET_SPECIFIC_V2 = "target_specific_v2"
 FROZEN_PANEL = "frozen_panel"
+ELASTICNET_LOGISTIC_V1 = "elasticnet_logistic_v1"
 
 
 @dataclass(frozen=True)
@@ -29,6 +30,13 @@ class FeaturePolicyConfig:
     stability_segments: int = 5
     tail_quantile: float = 0.80
     frozen_panel_path: str | None = None
+    elasticnet_c: float = 0.1
+    elasticnet_l1_ratio: float = 0.5
+    elasticnet_max_iter: int = 1000
+    elasticnet_tol: float = 0.001
+    elasticnet_class_weight: str | None = "balanced"
+    elasticnet_coef_epsilon: float = 1e-8
+    elasticnet_prefilter_features: int = 0
 
 
 @dataclass(frozen=True)
@@ -56,7 +64,7 @@ def select_features(
         )
         return FeaturePolicyResult(selected_features=selected, clip_bounds={}, detail=detail)
     if config.policy == FROZEN_PANEL:
-        selected = _load_frozen_panel_features(config.frozen_panel_path, feature_columns)
+        selected = load_panel_features(config.frozen_panel_path, feature_columns)
         detail = pl.DataFrame(
             {
                 "feature": list(feature_columns),
@@ -71,6 +79,13 @@ def select_features(
             }
         )
         return FeaturePolicyResult(selected_features=selected, clip_bounds={}, detail=detail)
+    if config.policy == ELASTICNET_LOGISTIC_V1:
+        return select_elasticnet_logistic_features(
+            train,
+            target_col=target_col,
+            feature_columns=feature_columns,
+            config=config,
+        )
     if config.policy != TARGET_SPECIFIC_V2:
         raise ValueError(f"Unsupported clean RPF feature policy: {config.policy}")
     y = train[target_col].to_numpy().astype("float64")
@@ -114,7 +129,7 @@ def select_features(
                 "drop_reason": drop_reason,
             }
         )
-    detail = pl.DataFrame(rows)
+    detail = pl.DataFrame(rows, infer_schema_length=None)
     candidates = detail.filter(pl.col("drop_reason").is_null()).sort("score", descending=True)
     if candidates.height < int(config.min_selected_features):
         raise ValueError(
@@ -139,9 +154,156 @@ def select_features(
     return FeaturePolicyResult(selected_features=selected, clip_bounds=bounds, detail=detail)
 
 
-def _load_frozen_panel_features(path_value: str | None, feature_columns: tuple[str, ...]) -> tuple[str, ...]:
+def select_elasticnet_logistic_features(
+    train: pl.DataFrame,
+    *,
+    target_col: str,
+    feature_columns: tuple[str, ...],
+    config: FeaturePolicyConfig,
+) -> FeaturePolicyResult:
+    try:
+        from sklearn.linear_model import LogisticRegression
+    except Exception as exc:  # pragma: no cover
+        raise RuntimeError("scikit-learn is required for elasticnet_logistic_v1 feature selection") from exc
+
+    y = train[target_col].to_numpy().astype("int64")
+    if len(np.unique(y)) < 2:
+        raise ValueError("elasticnet_logistic_v1 requires two train classes")
+    X = train.select(feature_columns).to_numpy().astype("float64", copy=False)
+    finite_columns = np.isfinite(X).all(axis=0)
+    means = np.nanmean(X, axis=0)
+    stds = np.nanstd(X, axis=0)
+    usable_columns = finite_columns & np.isfinite(means) & np.isfinite(stds) & (stds > 1e-12)
+    usable_idx = np.flatnonzero(usable_columns)
+    if usable_idx.size < int(config.min_selected_features):
+        raise ValueError(
+            f"Only {usable_idx.size} usable finite/nonconstant features for elasticnet_logistic_v1; "
+            f"min_selected_features={config.min_selected_features}"
+        )
+    prefilter_rank_by_global_idx, prefilter_score_by_global_idx = elasticnet_prefilter_scores(
+        X,
+        y,
+        usable_idx,
+        means,
+        stds,
+    )
+    elasticnet_idx = elasticnet_candidate_indexes(
+        usable_idx,
+        prefilter_rank_by_global_idx,
+        max_candidates=int(config.elasticnet_prefilter_features),
+        min_selected_features=int(config.min_selected_features),
+    )
+    X_use = X[:, elasticnet_idx]
+    means_use = means[elasticnet_idx]
+    stds_use = stds[elasticnet_idx]
+    X_scaled = (X_use - means_use) / stds_use
+    X_scaled = np.nan_to_num(X_scaled, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    class_weight = None if config.elasticnet_class_weight in {None, "", "none", "None"} else str(config.elasticnet_class_weight)
+    model = LogisticRegression(
+        solver="saga",
+        C=float(config.elasticnet_c),
+        l1_ratio=float(config.elasticnet_l1_ratio),
+        class_weight=class_weight,
+        max_iter=int(config.elasticnet_max_iter),
+        tol=float(config.elasticnet_tol),
+        random_state=42,
+    )
+    model.fit(X_scaled, y)
+    coef = np.asarray(model.coef_[0], dtype=float)
+    abs_coef = np.abs(coef)
+    selected_mask = abs_coef > float(config.elasticnet_coef_epsilon)
+    selected_idx = np.flatnonzero(selected_mask)
+    if selected_idx.size < int(config.min_selected_features):
+        raise ValueError(
+            f"Only {selected_idx.size} nonzero elasticnet_logistic_v1 features; "
+            f"min_selected_features={config.min_selected_features}"
+        )
+    order = selected_idx[np.argsort(abs_coef[selected_idx])[::-1]]
+    selected_usable_idx = order[: int(config.max_features)] if int(config.max_features) > 0 else order
+    selected_global_idx = elasticnet_idx[selected_usable_idx]
+    selected = tuple(str(feature_columns[idx]) for idx in selected_global_idx)
+    if len(selected) < int(config.min_selected_features):
+        raise ValueError(
+            f"Only {len(selected)} elasticnet_logistic_v1 features after max_features cap; "
+            f"min_selected_features={config.min_selected_features}"
+        )
+
+    usable_rank_by_global_idx = {
+        int(elasticnet_idx[idx]): rank
+        for rank, idx in enumerate(np.argsort(abs_coef)[::-1], start=1)
+    }
+    coef_by_global_idx = {int(elasticnet_idx[idx]): float(coef[idx]) for idx in range(len(elasticnet_idx))}
+    elasticnet_candidate_set = {int(idx) for idx in elasticnet_idx}
+    rows: list[dict[str, Any]] = []
+    selected_set = set(selected)
+    for idx, feature in enumerate(feature_columns):
+        if not bool(finite_columns[idx]):
+            drop_reason = "nonfinite"
+        elif not np.isfinite(means[idx]) or not np.isfinite(stds[idx]) or float(stds[idx]) <= 1e-12:
+            drop_reason = "constant_or_invalid_scale"
+        elif str(feature) in selected_set:
+            drop_reason = None
+        elif int(idx) not in elasticnet_candidate_set:
+            drop_reason = "below_elasticnet_prefilter"
+        else:
+            coef_value = coef_by_global_idx.get(idx, 0.0)
+            drop_reason = "zero_coefficient" if abs(coef_value) <= float(config.elasticnet_coef_epsilon) else "below_top_max_features"
+        coef_value = coef_by_global_idx.get(idx)
+        rows.append(
+            {
+                "feature": str(feature),
+                "coefficient": coef_value,
+                "abs_coefficient": None if coef_value is None else abs(float(coef_value)),
+                "elasticnet_rank": usable_rank_by_global_idx.get(idx),
+                "elasticnet_prefilter_rank": prefilter_rank_by_global_idx.get(idx),
+                "elasticnet_prefilter_score": prefilter_score_by_global_idx.get(idx),
+                "feature_mean_train": float(means[idx]) if np.isfinite(means[idx]) else None,
+                "feature_std_train": float(stds[idx]) if np.isfinite(stds[idx]) else None,
+                "final_status": "selected" if str(feature) in selected_set else drop_reason,
+                "drop_reason": drop_reason,
+            }
+        )
+    return FeaturePolicyResult(selected_features=selected, clip_bounds={}, detail=pl.DataFrame(rows, infer_schema_length=None))
+
+
+def elasticnet_prefilter_scores(
+    X: np.ndarray,
+    y: np.ndarray,
+    usable_idx: np.ndarray,
+    means: np.ndarray,
+    stds: np.ndarray,
+) -> tuple[dict[int, int], dict[int, float]]:
+    pos = y == 1
+    neg = y == 0
+    if int(pos.sum()) == 0 or int(neg.sum()) == 0:
+        return {int(idx): rank for rank, idx in enumerate(usable_idx, start=1)}, {int(idx): 0.0 for idx in usable_idx}
+    X_use = X[:, usable_idx]
+    X_scaled = (X_use - means[usable_idx]) / stds[usable_idx]
+    X_scaled = np.nan_to_num(X_scaled, copy=False, nan=0.0, posinf=0.0, neginf=0.0)
+    scores = np.abs(np.mean(X_scaled[pos], axis=0) - np.mean(X_scaled[neg], axis=0))
+    order = np.argsort(scores)[::-1]
+    rank_by_idx = {int(usable_idx[idx]): rank for rank, idx in enumerate(order, start=1)}
+    score_by_idx = {int(usable_idx[idx]): float(scores[idx]) for idx in range(len(usable_idx))}
+    return rank_by_idx, score_by_idx
+
+
+def elasticnet_candidate_indexes(
+    usable_idx: np.ndarray,
+    prefilter_rank_by_global_idx: dict[int, int],
+    *,
+    max_candidates: int,
+    min_selected_features: int,
+) -> np.ndarray:
+    if int(max_candidates) <= 0 or int(max_candidates) >= int(usable_idx.size):
+        return usable_idx
+    candidate_count = max(int(max_candidates), int(min_selected_features))
+    ordered = sorted((int(idx) for idx in usable_idx), key=lambda idx: prefilter_rank_by_global_idx.get(idx, 10**12))
+    return np.asarray(ordered[:candidate_count], dtype=int)
+
+
+def load_panel_features(path_value: str | Path | None, feature_columns: tuple[str, ...]) -> tuple[str, ...]:
     if not path_value:
-        raise ValueError("feature_policy=frozen_panel requires policy.frozen_panel_path")
+        raise ValueError("RPF panel path is required")
     path = Path(path_value)
     if not path.exists():
         raise FileNotFoundError(f"Frozen RPF panel not found: {path}")

@@ -21,6 +21,19 @@ python -m regression_feature_engineering.walkforward.optimize
 It loads RPF features directly and does not tune old HTF/helper features. The
 first clean target is `target_reg_direction_extreme_up_share_hvol_v2`.
 
+The active decision-layer experiment is now binary UP/DOWN classification with
+regime-conditioned evaluation:
+
+```text
+target_cls_extreme_up_ge_2x_down_hvol_v2
+target_cls_extreme_down_ge_2x_up_hvol_v2
+```
+
+These targets are not replacements for the distance/share regression targets.
+They are an experimental trading-decision layer. Current evidence requires
+keeping both sides and evaluating performance by regime rather than choosing a
+single global winner.
+
 The first corrected validation-led smoke did not support promotion of the
 current `rpf_*` set:
 
@@ -53,7 +66,8 @@ Applies to `regression_path_features_v1` and `distance_horizon_vol_v2`.
 
 ## What This Does Not Decide
 
-This document does not choose final CatBoost hyperparameters.
+This document does not choose final CatBoost hyperparameters, binary decision
+thresholds, or live regime gates.
 
 ## Clean RPF Optimization Rule
 
@@ -64,15 +78,36 @@ Clean RPF rules:
 
 - feature source is `regression_only`;
 - feature policy is fixed at the config value during the current pass;
-- Optuna tunes only walk-forward window geometry and CatBoost parameters;
-- the current fixed feature policy is `all_manifest_features`, so every
+- Optuna tunes only walk-forward window geometry, CatBoost parameters, and
+  explicit selector settings when `elasticnet_logistic_v1` is selected;
+- the baseline feature policy is `all_manifest_features`, so every
   model-facing RPF manifest column is used;
+- the active dynamic-selection experiment is `elasticnet_logistic_v1`: per
+  walk-forward step it computes train-only feature mean/std, fits a sparse
+  logistic ElasticNet selector on scaled train rows, then CatBoost trains on
+  the selected scaled train panel and scores validation;
+- `elasticnet_logistic_v1` may use a train-only prefilter candidate cap before
+  the sparse ElasticNet fit. This is a runtime control, not a look-ahead
+  shortcut: candidates are ranked using train rows only, and validation or
+  prediction rows never affect the candidate list;
+- after validation chooses early stopping and threshold behavior, the
+  validation-selected feature mask is frozen by default; the selector scaler
+  and CatBoost model are refit on train+validation rows for that same mask
+  before scoring the held-out prediction batch;
+- `--selector-refit-mode train_val_reselect` is available only as an explicit
+  diagnostic mode because it reruns ElasticNet after threshold calibration and
+  can change the prediction model boundary;
+- selector tuning is limited to `C`, `l1_ratio`, `max_selected_features`,
+  `coef_eps`, and `elasticnet_prefilter_features`; scaler type is fixed to
+  train-only standardization until the selector baseline is understood;
 - `frozen_panel` is available for explicit panel-confirmation runs after a
   panel is written by `python -m regression_feature_engineering.walkforward.panel_select`;
 - `feature_ablation=all` is the default; family-level ablation is fixed before
   a run and does not select individual features;
-- feature-selection thresholds and selected-feature counts are not used or
-  optimized yet;
+- do not optimize feature policy and gates together. Compare CatBoost with
+  `all_manifest_features` versus CatBoost with `elasticnet_logistic_v1` on
+  chronological recent windows only; EMA, gate, signal-bank, and decision-bank
+  paths are historical/deferred diagnostics for now;
 - model features come only from the RPF manifest `feature_columns`;
 - diagnostic `rpf_align_*` columns are excluded;
 - labels are exact-joined by `timestamp,batch_id`;
@@ -81,8 +116,12 @@ Clean RPF rules:
   `label_window_batch_id`, and `target_reg_distance_horizon_minutes_v2` to
   reject overlapping train/validation/prediction label windows;
 - sparse windows count available RPF/label batch intersections;
-- Optuna chooses configs by minimizing validation RMSE only;
-- prediction metrics are confirmation evidence only;
+- clean regression/share optimization chooses configs by minimizing validation
+  RMSE only;
+- binary trading-decision experiments use validation inside each fold and score
+  grid/Optuna trials with aggregate prediction-batch metrics by default;
+- binary trading-decision experiments must reserve untouched confirmation
+  windows with `--holdout-steps` once a run is larger than a smoke test;
 - every trial compares model RMSE with constant `0.5`, train-target-mean,
   validation-target-mean, and previous-prediction-batch-mean baselines;
 - non-confirmation stages reject severe per-window prediction collapse and
@@ -171,6 +210,19 @@ Features are useful when they improve:
 - MAE/RMSE without materially worsening tail ranking;
 - chronological stability across walk-forward steps.
 
+For binary decision-layer experiments, also evaluate:
+
+- false-positive rate;
+- precision;
+- recall;
+- predicted-positive rate;
+- validation-selected threshold stability;
+- decision cost with an explicit false-positive penalty;
+- performance by trend, volatility/range, and structural-location buckets.
+
+Global binary metrics are insufficient. A target can be useful only in a
+specific live-safe regime.
+
 ## Rejection Rules
 
 Reject or quarantine features that are:
@@ -219,7 +271,8 @@ RPF feature policy, or RPF CatBoost parameters.
 - every grid row writes an isolated walk-forward run suffix so outputs are not
   overwritten;
 - historical Stage-1 searches used `target_specific_v2`; do not copy that
-  feature-selection policy into the clean RPF all-manifest pass;
+  feature-selection policy into the clean RPF binary pass. Use
+  `elasticnet_logistic_v1` when testing dynamic binary feature selection;
 - grid summaries choose candidates from validation metrics. Prediction-batch
   metrics are confirmation evidence only;
 - use `--max-configs-per-target` for bounded per-target searches and
@@ -352,6 +405,31 @@ feature optimization should be matrix-aware:
 
 This keeps the workflow simple enough to maintain while still letting each
 regression target use the features that fit its path-shape objective.
+
+## Regime-Gated Binary Direction Rule
+
+Binary UP/DOWN classification experiments must preserve both target sides:
+
+```text
+target_cls_extreme_up_ge_2x_down_hvol_v2
+target_cls_extreme_down_ge_2x_up_hvol_v2
+```
+
+The purpose is not to drop the weaker global side. The purpose is to identify
+where each side has usable conditional precision/recall.
+
+Diagnostic labels may define research buckets such as:
+
+```text
+future_up_dominant
+future_down_dominant
+future_two_sided
+future_low_edge
+```
+
+but those labels must not enter live feature matrices. Live gates must use
+current/prior RPF features only. The active gate plan is
+`rpf_regime_gated_prediction_plan.md`.
 
 ## Coverage-Gate Rule
 

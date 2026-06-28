@@ -10,6 +10,7 @@ from typing import Any
 from regression_feature_engineering.walkforward.model import CatBoostConfig
 from regression_feature_engineering.walkforward.policy import (
     ALL_MANIFEST_FEATURES,
+    ELASTICNET_LOGISTIC_V1,
     FROZEN_PANEL,
     TARGET_SPECIFIC_V2,
     FeaturePolicyConfig,
@@ -73,10 +74,11 @@ def load_clean_config(path: Path | None = None) -> CleanWalkForwardConfig:
     )
     if base.feature_source != "regression_only":
         raise ValueError("Clean RPF walk-forward only supports feature_source=regression_only")
-    if base.feature_policy not in {ALL_MANIFEST_FEATURES, TARGET_SPECIFIC_V2, FROZEN_PANEL}:
+    if base.feature_policy not in {ALL_MANIFEST_FEATURES, TARGET_SPECIFIC_V2, FROZEN_PANEL, ELASTICNET_LOGISTIC_V1}:
         raise ValueError(
             "Clean RPF walk-forward supports feature_policy=all_manifest_features "
-            "or feature_policy=target_specific_v2 or feature_policy=frozen_panel"
+            "or feature_policy=target_specific_v2 or feature_policy=frozen_panel "
+            "or feature_policy=elasticnet_logistic_v1"
         )
     return base
 
