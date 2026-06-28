@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-16T05:31:03.684318+00:00", "stage": "ema_gate", "asset": "BTCUSDT", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate"}
+{"event": "stage_done", "ts": "2026-06-16T05:31:03.838018+00:00", "stage": "ema_gate", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate", "summary_rows": 32}

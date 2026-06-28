@@ -1,0 +1,141 @@
+{
+  "asset": "BTCUSDT",
+  "root": "8h/B",
+  "candidate_set": "pruned_reliability_v1",
+  "candidate_name_allowlist": [
+    "down_rocket_16_diag_v1"
+  ],
+  "selection_mode": "prequential_reliability_v1",
+  "specialist_entry_mode": "off",
+  "context_rule_path": null,
+  "context_rules": [],
+  "outer_window_count": 960,
+  "window_end_offset_steps": 960,
+  "evaluation_block_size": 60,
+  "gates": {
+    "min_validation_signal_count": 3,
+    "min_validation_precision_lift": 1.1,
+    "max_validation_false_discovery_rate": 0.6,
+    "min_validation_active_window_rate": 0.1,
+    "max_validation_zero_signal_window_rate": 0.9,
+    "min_validation_active_batch_count": 0,
+    "min_validation_lift_positive_batch_rate": 0.0,
+    "min_validation_median_active_precision_lift": 0.0,
+    "max_validation_median_active_false_discovery_rate": 1.0
+  },
+  "reliability": {
+    "lookback_windows": 60,
+    "min_history_windows": 20,
+    "min_signals": 20,
+    "min_active_windows": 5,
+    "min_precision_lift_lcb": 1.05,
+    "min_window_selection_lift": 1.0,
+    "min_selected_window_row_lift_lcb": 1.05,
+    "max_false_discovery_rate": 0.6,
+    "lcb_z": 1.0,
+    "warmup_policy": "no_signal",
+    "up_min_precision_lift_lcb": null,
+    "down_min_precision_lift_lcb": null,
+    "up_min_selected_window_row_lift_lcb": null,
+    "down_min_selected_window_row_lift_lcb": null
+  },
+  "row_rule_gate": {
+    "mode": "prequential_reliability_v1",
+    "output_mode": "active_candidate",
+    "side": "down",
+    "candidate_name": "down_rocket_16_diag_v1",
+    "block_size": 60,
+    "rpf_max_features_per_family": 24,
+    "key": "feature_direction",
+    "rule_quantiles": "0.2,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.85,0.9",
+    "rule_selection_score": "directional_lcb_v1",
+    "allowed_directions": [
+      "higher_good"
+    ],
+    "allowed_families": [],
+    "blocked_families": [
+      "rejection_chop"
+    ],
+    "max_rules_per_candidate": 1,
+    "min_train_tp_rows": 2,
+    "min_train_fp_rows": 2,
+    "eligibility": {
+      "min_train_signals": 8,
+      "min_train_precision": 0.65,
+      "min_train_precision_lcb": 0.45,
+      "min_train_lift": 1.25,
+      "max_train_false_discovery_rate": 0.35,
+      "max_train_accepted_rate": 0.35
+    },
+    "reliability": {
+      "min_history_folds": 1,
+      "min_signals": 5,
+      "min_precision_lcb": 0.4,
+      "max_false_discovery_rate": 0.5,
+      "lookback_folds": 3
+    }
+  },
+  "candidates": [
+    {
+      "name": "down_rocket_16_diag_v1",
+      "side": "down",
+      "diagnostic": true,
+      "config": {
+        "train_batches": 80,
+        "val_batches": 10,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 16,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 3,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        },
+        "batch_state_gate": {
+          "mode": "off",
+          "prefix_rows": 60,
+          "min_positive_rate": 0.2,
+          "probability_threshold": 0.55,
+          "c": 0.5,
+          "max_iter": 1000,
+          "min_train_batches": 20,
+          "min_positive_batches": 3,
+          "min_negative_batches": 3
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-23T21:02:41.603511+00:00", "command": "rank_signal_meta_router_simulator", "diagnostic_run": "test_output/rpf_ranked_signal_transfer_diagnostic/20260623_183857_rank_signal_transfer_diagnostic"}
+{"event": "stage_done", "ts": "2026-06-23T21:02:42.909085+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal_meta_router_simulator/20260623_210241_rank_signal_meta_router_simulator"}

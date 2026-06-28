@@ -1,0 +1,13 @@
+{
+  "stage": "rank_signal_rule_bank",
+  "status": "complete",
+  "written_at": "2026-06-23T22:18:59.039623+00:00",
+  "summary": {
+    "input_blocks": 4,
+    "folds": 3,
+    "transfer_rows": 1200,
+    "feature_count": 69,
+    "rules": 8,
+    "side_window_rows": 720
+  }
+}

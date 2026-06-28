@@ -2267,3 +2267,65 @@ Decision boundary:
 - not promotable alone as a complete adaptive router;
 - next ranked-signal work should focus on finding additional safe specialist
   contexts for old/quiet regimes, not loosening `rejection_chop` again.
+
+## Regime / Change-Risk Diagnostic Layer
+
+The active next diagnostic is:
+
+```bash
+python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic
+```
+
+Reason:
+
+```text
+ranker candidates emit signals, but quality changes by chronological block.
+The next missing component is not another threshold sweep; it is an explicit
+prediction-safe regime and change-risk explanation layer.
+```
+
+The command consumes completed `rank_signal_router` runs and writes:
+
+```text
+regime_context.parquet
+change_point_events.parquet
+regime_signal_quality.parquet
+hmm_state_metrics.parquet
+regime_transfer_report.md
+```
+
+Contract:
+
+- `regime_context.parquet` excludes current prediction outcomes;
+- latent regimes are assigned using prior windows only;
+- `hmmlearn.GaussianHMM` is used when available;
+- otherwise the command uses a Gaussian-mixture Markov proxy;
+- CUSUM/Page-Hinkley style alarms are diagnostic change-risk signals;
+- router behavior remains unchanged until regime states prove useful
+  out-of-sample.
+
+Feature planes are intentionally separated:
+
+```text
+ranker prediction features:
+  side-specific panel -> ElasticNet relevance selector -> optional sequence
+  encoder -> CatBoostRanker
+
+market-regime features:
+  fixed stable RPF family aggregates from prior available batches
+
+change-risk features:
+  small router/market shift series for CUSUM/Page-Hinkley alarms
+```
+
+ElasticNet-selected ranker features are not reused as the HMM/change-point
+feature set. They are target-specific and fold-specific, so using them as the
+global regime representation would make regime states unstable and hard to
+compare across windows.
+
+Promotion requirement for a future `regime_aware_router_v1`:
+
+```text
+states or change alarms must separate precision/lift/FDR materially for both
+UP and DOWN, not only explain one cherry-picked block.
+```

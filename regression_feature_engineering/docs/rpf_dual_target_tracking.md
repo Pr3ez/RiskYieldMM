@@ -373,3 +373,42 @@ Does either side beat local base rate on both latest and older spans?
 
 If both sides remain too sparse, the next implementation must optimize for a
 minimum coverage contract instead of adding stricter filters.
+
+## Regime / Change-Risk Follow-Up
+
+After the latest and older 960-window UP/DOWN replays complete, run the regime
+diagnostic across both sides.
+
+Purpose:
+
+```text
+test whether latent safe-context states and change alarms explain when UP or
+DOWN specialists transfer versus fail
+```
+
+Command template:
+
+```bash
+"$PY" -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic \
+  --router-run "$LATEST_UP_RUN" \
+  --router-run "$LATEST_DOWN_RUN" \
+  --router-run "$OLDER_UP_RUN" \
+  --router-run "$OLDER_DOWN_RUN" \
+  --side both \
+  --candidate-names up_rocket_64_v1,down_rocket_16_diag_v1 \
+  --state-count 3 \
+  --pca-components 5 \
+  --regime-min-history-windows 80 \
+  --regime-lookback-windows 240 \
+  --change-lookback-windows 60 \
+  --cusum-z 3.0 \
+  --page-hinkley-delta 0.01 \
+  --page-hinkley-threshold 3.0
+```
+
+Interpretation:
+
+```text
+If regime states separate precision/lift/FDR, implement regime-aware routing.
+If they do not, do not add an HMM/CUSUM gate just because it is available.
+```

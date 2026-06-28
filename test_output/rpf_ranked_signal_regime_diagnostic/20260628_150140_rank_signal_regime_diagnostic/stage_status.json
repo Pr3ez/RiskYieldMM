@@ -1,0 +1,23 @@
+{
+  "stage": "rank_signal_regime_diagnostic",
+  "status": "complete",
+  "written_at": "2026-06-28T15:11:41.248436+00:00",
+  "summary": {
+    "context_rows": 3840,
+    "change_events": 12479,
+    "state_metric_rows": 6,
+    "sides": [
+      "down",
+      "up"
+    ],
+    "candidates": [
+      "down_rocket_16_diag_v1",
+      "up_rocket_64_v1"
+    ],
+    "regime_context_mode": "combined",
+    "market_context_rows": 3840,
+    "suppression_candidates": 27,
+    "favorable_regime_matches": 0,
+    "avoid_regime_matches": 3
+  }
+}

@@ -1,0 +1,23 @@
+# RPF Ranked Signal Router Report
+
+## Scope
+
+- `asset`: `BTCUSDT`
+- `root`: `8h/B`
+- `candidate_set`: `pruned_reliability_v1`
+- `selection_mode`: `prequential_reliability_v1`
+- `outer_window_count`: `60`
+
+## Side Summary
+
+- `up`: `{'rows': 14400, 'positive_count': 5801, 'negative_count': 8599, 'predicted_positive_count': 0, 'true_positive_count': 0, 'false_positive_count': 0, 'false_negative_count': 5801, 'true_negative_count': 8599, 'precision': None, 'recall': 0.0, 'false_positive_rate': 0.0, 'false_discovery_rate': None, 'predicted_positive_rate': 0.0, 'base_positive_rate': 0.40284722222222225, 'precision_lift': None, 'decision_cost': 5801.0, 'decision_cost_per_row': 0.40284722222222225, 'decision_cost_per_signal': None, 'active_window_rate': 0.0, 'zero_signal_window_rate': 1.0, 'high_target_window_count': 35, 'high_target_window_capture_rate': 0.0, 'missed_high_target_window_rate': 1.0, 'high_false_positive_window_rate': 0.0, 'selected_feature_count_mean': 20.433333333333334, 'ranked_signal_quality': -3.531927083333333}`
+- `down`: `{'rows': 14400, 'positive_count': 4699, 'negative_count': 9701, 'predicted_positive_count': 12, 'true_positive_count': 3, 'false_positive_count': 9, 'false_negative_count': 4696, 'true_negative_count': 9692, 'precision': 0.25, 'recall': 0.000638433709299851, 'false_positive_rate': 0.0009277394083084218, 'false_discovery_rate': 0.75, 'predicted_positive_rate': 0.0008333333333333334, 'base_positive_rate': 0.32631944444444444, 'precision_lift': 0.7661204511598213, 'decision_cost': 4741.0, 'decision_cost_per_row': 0.3292361111111111, 'decision_cost_per_signal': 395.0833333333333, 'active_window_rate': 0.06666666666666667, 'zero_signal_window_rate': 0.9333333333333333, 'high_target_window_count': 30, 'high_target_window_capture_rate': 0.03333333333333333, 'missed_high_target_window_rate': 0.9666666666666667, 'high_false_positive_window_rate': 0.0, 'selected_feature_count_mean': 39.43333333333333, 'ranked_signal_quality': -2.776614583333333}`
+
+## Decision Contract
+
+- Validation-only mode selects candidates from validation metrics only.
+- Prequential reliability mode selects candidates from prior matured prediction-window reliability after current validation sanity checks.
+- Context-rule mode selects candidates by prediction-safe candidate-specific rules loaded from a simulator artifact.
+- Prediction metrics are outer evaluation and never choose a candidate.
+- If no candidate passes the active selection contract, the side emits no signals for that prediction batch.
+- Diagnostic artifacts include validation row scores, validation batch metrics, selected features, and sequence diagnostics.

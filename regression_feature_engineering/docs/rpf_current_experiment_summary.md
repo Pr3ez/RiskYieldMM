@@ -2089,3 +2089,27 @@ steady trading. The latest UP replay was incomplete because up_rocket_64_v1 was
 excluded. The next step is a side-symmetric active-candidate replay, not another
 DOWN-only filter.
 ```
+
+## Active Regime/Change Diagnostic
+
+New active diagnostic command:
+
+```bash
+python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic
+```
+
+Purpose:
+
+```text
+test whether prediction-safe latent regimes and CUSUM/Page-Hinkley change-risk
+alarms explain why ranker specialists transfer in some chronological blocks and
+fail in others
+```
+
+Current boundary:
+
+- this is a diagnostic layer only;
+- `regime_context.parquet` excludes current prediction outcomes;
+- `regime_signal_quality.parquet` joins matured outcomes for analysis only;
+- router decisions must not be changed until regimes or change alarms separate
+  precision/lift/FDR on both UP and DOWN replay blocks.

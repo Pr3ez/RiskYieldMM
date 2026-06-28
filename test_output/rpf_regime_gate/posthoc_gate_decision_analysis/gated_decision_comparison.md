@@ -1,0 +1,258 @@
+# Posthoc Gate Decision Comparison
+
+- UP classifier run: `test_output/rpf_clean_classification/20260615_164900_classification_cls_extreme_up_ge_2x_down_hvol_v2`
+- DOWN classifier run: `test_output/rpf_clean_classification/20260615_181239_classification_cls_extreme_down_ge_2x_up_hvol_v2`
+- Rows: `11` gate comparisons
+
+## future_down_dominant / only_regime_calendar_state
+- `gate_target`: `future_down_dominant`
+- `feature_ablation`: `only_regime_calendar_state`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.016666666666666666`
+- `ungated_false_positive_rate`: `0.11566018423746162`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.435`
+- `gated_precision`: `1.0`
+- `precision_improvement`: `0.565`
+- `ungated_recall`: `0.3901345291479821`
+- `gated_recall`: `0.08968609865470852`
+- `recall_retained`: `0.22988505747126434`
+- `ungated_predicted_positive_rate`: `0.16666666666666666`
+- `gated_predicted_positive_rate`: `0.016666666666666666`
+- `both_suppressed_rate`: `0.15`
+- `ungated_fp`: `339`
+- `gated_fp`: `0`
+- `ungated_tp`: `261`
+- `gated_tp`: `60`
+- `rows`: `3600`
+
+## future_down_dominant / group_structural_room+liquidity_volume_pressure+interaction_confluence
+- `gate_target`: `future_down_dominant`
+- `feature_ablation`: `group_structural_room+liquidity_volume_pressure+interaction_confluence`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.11566018423746162`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.435`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.3901345291479821`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.16666666666666666`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.16666666666666666`
+- `ungated_fp`: `339`
+- `gated_fp`: `0`
+- `ungated_tp`: `261`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_down_dominant / all
+- `gate_target`: `future_down_dominant`
+- `feature_ablation`: `all`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.03138888888888889`
+- `ungated_false_positive_rate`: `0.11566018423746162`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.435`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.3901345291479821`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.16666666666666666`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.16666666666666666`
+- `ungated_fp`: `339`
+- `gated_fp`: `0`
+- `ungated_tp`: `261`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_down_dominant / group_structural_room+acceptance_persistence+spike_breakout+liquidity_volume_pressure
+- `gate_target`: `future_down_dominant`
+- `feature_ablation`: `group_structural_room+acceptance_persistence+spike_breakout+liquidity_volume_pressure`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.014444444444444444`
+- `ungated_false_positive_rate`: `0.11566018423746162`
+- `gated_false_positive_rate`: `0.004776526782668032`
+- `false_positive_reduction`: `0.9587020648967551`
+- `ungated_precision`: `0.435`
+- `gated_precision`: `0.4166666666666667`
+- `precision_improvement`: `-0.018333333333333313`
+- `ungated_recall`: `0.3901345291479821`
+- `gated_recall`: `0.014947683109118086`
+- `recall_retained`: `0.038314176245210725`
+- `ungated_predicted_positive_rate`: `0.16666666666666666`
+- `gated_predicted_positive_rate`: `0.006666666666666667`
+- `both_suppressed_rate`: `0.16`
+- `ungated_fp`: `339`
+- `gated_fp`: `14`
+- `ungated_tp`: `261`
+- `gated_tp`: `10`
+- `rows`: `3600`
+
+## future_down_dominant / group_volatility_state+temporal_memory_transforms+rejection_chop
+- `gate_target`: `future_down_dominant`
+- `feature_ablation`: `group_volatility_state+temporal_memory_transforms+rejection_chop`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.016666666666666666`
+- `ungated_false_positive_rate`: `0.11566018423746162`
+- `gated_false_positive_rate`: `0.011941316956670079`
+- `false_positive_reduction`: `0.8967551622418879`
+- `ungated_precision`: `0.435`
+- `gated_precision`: `0.2391304347826087`
+- `precision_improvement`: `-0.1958695652173913`
+- `ungated_recall`: `0.3901345291479821`
+- `gated_recall`: `0.016442451420029897`
+- `recall_retained`: `0.0421455938697318`
+- `ungated_predicted_positive_rate`: `0.16666666666666666`
+- `gated_predicted_positive_rate`: `0.012777777777777779`
+- `both_suppressed_rate`: `0.15388888888888888`
+- `ungated_fp`: `339`
+- `gated_fp`: `35`
+- `ungated_tp`: `261`
+- `gated_tp`: `11`
+- `rows`: `3600`
+
+## future_up_dominant / only_regime_calendar_state
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `only_regime_calendar_state`
+- `gate_status`: `rejected:low_prediction_unique`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.28416779431664413`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.125`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.0650759219088937`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.2`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.2`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `30`
+- `gated_tp`: `0`
+- `rows`: `1200`
+
+## future_up_dominant / only_regime_calendar_state
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `only_regime_calendar_state`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.12216404886561955`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.4166666666666667`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.07974481658692185`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.1`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.1`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `150`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_up_dominant / group_volatility_state+temporal_memory_transforms+rejection_chop
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `group_volatility_state+temporal_memory_transforms+rejection_chop`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.12216404886561955`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.4166666666666667`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.07974481658692185`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.1`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.1`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `150`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_up_dominant / group_structural_room+acceptance_persistence+spike_breakout+liquidity_volume_pressure
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `group_structural_room+acceptance_persistence+spike_breakout+liquidity_volume_pressure`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.12216404886561955`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.4166666666666667`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.07974481658692185`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.1`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.1`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `150`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_up_dominant / group_structural_room+liquidity_volume_pressure+interaction_confluence
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `group_structural_room+liquidity_volume_pressure+interaction_confluence`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.12216404886561955`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.4166666666666667`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.07974481658692185`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.1`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.1`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `150`
+- `gated_tp`: `0`
+- `rows`: `3600`
+
+## future_up_dominant / all
+- `gate_target`: `future_up_dominant`
+- `feature_ablation`: `all`
+- `gate_status`: `ok`
+- `gate_active_rate`: `0.0`
+- `ungated_false_positive_rate`: `0.12216404886561955`
+- `gated_false_positive_rate`: `0.0`
+- `false_positive_reduction`: `1.0`
+- `ungated_precision`: `0.4166666666666667`
+- `gated_precision`: `None`
+- `precision_improvement`: `None`
+- `ungated_recall`: `0.07974481658692185`
+- `gated_recall`: `0.0`
+- `recall_retained`: `0.0`
+- `ungated_predicted_positive_rate`: `0.1`
+- `gated_predicted_positive_rate`: `0.0`
+- `both_suppressed_rate`: `0.1`
+- `ungated_fp`: `210`
+- `gated_fp`: `0`
+- `ungated_tp`: `150`
+- `gated_tp`: `0`
+- `rows`: `3600`

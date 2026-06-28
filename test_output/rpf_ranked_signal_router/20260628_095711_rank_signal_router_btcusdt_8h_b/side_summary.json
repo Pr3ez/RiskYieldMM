@@ -1,0 +1,33 @@
+{
+  "up": {
+    "rows": 28800,
+    "positive_count": 12381,
+    "negative_count": 16419,
+    "predicted_positive_count": 0,
+    "true_positive_count": 0,
+    "false_positive_count": 0,
+    "false_negative_count": 12381,
+    "true_negative_count": 16419,
+    "precision": null,
+    "recall": 0.0,
+    "false_positive_rate": 0.0,
+    "false_discovery_rate": null,
+    "predicted_positive_rate": 0.0,
+    "base_positive_rate": 0.4298958333333333,
+    "precision_lift": null,
+    "decision_cost": 12381.0,
+    "decision_cost_per_row": 0.4298958333333333,
+    "decision_cost_per_signal": null,
+    "active_window_rate": 0.0,
+    "zero_signal_window_rate": 1.0,
+    "high_target_window_count": 73,
+    "high_target_window_capture_rate": 0.0,
+    "missed_high_target_window_rate": 1.0,
+    "high_false_positive_window_rate": 0.0,
+    "selected_feature_count_mean": 20.0,
+    "ranked_signal_quality": -3.53125
+  },
+  "down": {
+    "status": "empty"
+  }
+}

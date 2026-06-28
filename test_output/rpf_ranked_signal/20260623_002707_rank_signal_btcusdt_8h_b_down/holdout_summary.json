@@ -1,0 +1,32 @@
+{
+  "status": "ok",
+  "objective_value": 2.0879745029455092,
+  "prediction_metrics": {
+    "rows": 4800,
+    "positive_count": 970,
+    "negative_count": 3830,
+    "predicted_positive_count": 37,
+    "true_positive_count": 17,
+    "false_positive_count": 20,
+    "false_negative_count": 953,
+    "true_negative_count": 3810,
+    "precision": 0.4594594594594595,
+    "recall": 0.01752577319587629,
+    "false_positive_rate": 0.005221932114882507,
+    "false_discovery_rate": 0.5405405405405406,
+    "predicted_positive_rate": 0.0077083333333333335,
+    "base_positive_rate": 0.20208333333333334,
+    "precision_lift": 2.273613820005573,
+    "decision_cost": 1053.0,
+    "decision_cost_per_row": 0.219375,
+    "decision_cost_per_signal": 28.45945945945946,
+    "active_window_rate": 0.65,
+    "zero_signal_window_rate": 0.35,
+    "high_target_window_count": 7,
+    "high_target_window_capture_rate": 0.5714285714285714,
+    "missed_high_target_window_rate": 0.42857142857142855,
+    "high_false_positive_window_rate": 0.0,
+    "selected_feature_count_mean": 39.8,
+    "ranked_signal_quality": 2.0879745029455092
+  }
+}

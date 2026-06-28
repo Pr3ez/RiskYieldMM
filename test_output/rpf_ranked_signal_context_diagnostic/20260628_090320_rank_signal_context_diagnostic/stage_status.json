@@ -1,0 +1,17 @@
+{
+  "stage": "rank_signal_context_diagnostic",
+  "status": "complete",
+  "written_at": "2026-06-28T09:03:21.152398+00:00",
+  "summary": {
+    "rows": 4,
+    "signals": 44,
+    "true_positives": 30,
+    "false_positives": 14,
+    "precision": 0.6818181818181818,
+    "base_rate": 0.37657986111111114,
+    "precision_lift": 1.8105540211482767,
+    "good_blocks": 3,
+    "bad_blocks": 0,
+    "active_blocks": 4
+  }
+}

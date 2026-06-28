@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-24T23:39:18.700208+00:00", "command": "rank_signal_row_diagnostic"}
+{"event": "stage_done", "ts": "2026-06-24T23:39:27.451642+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal_row_diagnostic/20260624_233918_rank_signal_row_diagnostic"}

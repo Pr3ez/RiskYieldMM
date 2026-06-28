@@ -1,0 +1,72 @@
+{
+  "best_trial": {
+    "trial_number": 4,
+    "status": "ok",
+    "objective_value": 0.11698529411764702,
+    "train_batches": 40,
+    "val_batches": 5,
+    "sequence_mode": "causal_rocket_v1",
+    "rank_loss": "YetiRank",
+    "selected_feature_count_mean": 20.0,
+    "prediction_precision": 0.43529411764705883,
+    "prediction_precision_lift": 0.9315255304083292,
+    "prediction_recall": 0.01649576460098083,
+    "prediction_false_positive_rate": 0.018771998435666796,
+    "prediction_false_discovery_rate": 0.5647058823529412,
+    "prediction_active_window_rate": 0.85,
+    "prediction_zero_signal_window_rate": 0.15000000000000002,
+    "prediction_high_target_window_capture_rate": 0.75,
+    "prediction_missed_high_target_window_rate": 0.25,
+    "prediction_decision_cost_per_row": 0.5095833333333334,
+    "trial_config_json": "{\"decision\": {\"fn_cost\": 1.0, \"fp_cost\": 5.0, \"high_false_positive_rate_threshold\": 0.3, \"high_target_positive_rate_threshold\": 0.2, \"max_signals_per_batch\": 5, \"threshold_quantile\": 0.9}, \"elasticnet\": {\"alpha\": 0.01, \"coef_eps\": 1e-08, \"l1_ratio\": 0.5, \"max_features\": 20, \"max_iter\": 2000, \"min_features\": 5, \"prefilter_features\": 160, \"tol\": 0.001}, \"model\": {\"depth\": 2, \"early_stopping_rounds\": 100, \"iterations\": 50, \"l2_leaf_reg\": 100.0, \"learning_rate\": 0.01, \"od_wait\": 100, \"random_strength\": 1.0, \"rank_loss\": \"YetiRank\"}, \"sequence\": {\"cnn_batch_size\": 512, \"cnn_conv_channels\": 16, \"cnn_device\": \"cpu\", \"cnn_embedding_dim\": 8, \"cnn_epochs\": 1, \"cnn_kernel_size\": 3, \"cnn_max_train_rows\": 8000, \"mode\": \"causal_rocket_v1\", \"n_kernels\": 128, \"seed\": 42, \"sequence_length\": 16}, \"train_batches\": 40, \"val_batches\": 5}",
+    "error_type": null,
+    "error_message": null,
+    "error_traceback": null,
+    "optuna_params_json": "{\"depth\": 2, \"elasticnet_alpha\": 0.01, \"elasticnet_coef_eps\": 1e-08, \"elasticnet_l1_ratio\": 0.5, \"elasticnet_max_features\": 20, \"elasticnet_prefilter_features\": 160, \"iterations\": 50, \"l2_leaf_reg\": 100.0, \"learning_rate\": 0.01, \"max_signals_per_batch\": 5, \"random_strength\": 1.0, \"rank_loss\": \"YetiRank\", \"rocket_kernels\": 128, \"sequence_length\": 16, \"threshold_quantile\": 0.9, \"train_batches\": 40, \"val_batches\": 5}"
+  },
+  "best_config": {
+    "decision": {
+      "fn_cost": 1.0,
+      "fp_cost": 5.0,
+      "high_false_positive_rate_threshold": 0.3,
+      "high_target_positive_rate_threshold": 0.2,
+      "max_signals_per_batch": 5,
+      "threshold_quantile": 0.9
+    },
+    "elasticnet": {
+      "alpha": 0.01,
+      "coef_eps": 1e-08,
+      "l1_ratio": 0.5,
+      "max_features": 20,
+      "max_iter": 2000,
+      "min_features": 5,
+      "prefilter_features": 160,
+      "tol": 0.001
+    },
+    "model": {
+      "depth": 2,
+      "early_stopping_rounds": 100,
+      "iterations": 50,
+      "l2_leaf_reg": 100.0,
+      "learning_rate": 0.01,
+      "od_wait": 100,
+      "random_strength": 1.0,
+      "rank_loss": "YetiRank"
+    },
+    "sequence": {
+      "cnn_batch_size": 512,
+      "cnn_conv_channels": 16,
+      "cnn_device": "cpu",
+      "cnn_embedding_dim": 8,
+      "cnn_epochs": 1,
+      "cnn_kernel_size": 3,
+      "cnn_max_train_rows": 8000,
+      "mode": "causal_rocket_v1",
+      "n_kernels": 128,
+      "seed": 42,
+      "sequence_length": 16
+    },
+    "train_batches": 40,
+    "val_batches": 5
+  }
+}

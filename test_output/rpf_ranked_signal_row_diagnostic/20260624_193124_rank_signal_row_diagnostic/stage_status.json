@@ -1,0 +1,13 @@
+{
+  "stage": "rank_signal_row_diagnostic",
+  "status": "complete",
+  "written_at": "2026-06-24T19:31:28.757839+00:00",
+  "summary": {
+    "signal_rows": 369,
+    "tp_rows": 170,
+    "fp_rows": 199,
+    "safe_context_columns": 90,
+    "tested_features": 71,
+    "separator_rows": 159
+  }
+}

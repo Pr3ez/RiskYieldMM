@@ -4767,3 +4767,446 @@ Run order:
 2. `960`-window latest and older non-overlapping replays for UP and DOWN.
 3. Compare signal frequency, active days, precision, lift, and FDR for both
    sides before adding stricter filters.
+
+2026-06-28 regime/change diagnostic implementation:
+
+```text
+new command:
+  python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic
+
+new plan doc:
+  regression_feature_engineering/docs/rpf_regime_change_detection_plan.md
+```
+
+Purpose:
+
+```text
+diagnose whether ranked-signal quality is conditional on prediction-safe
+latent regimes and change-risk alarms before changing router behavior
+```
+
+Implementation contract:
+
+- consumes completed `rank_signal_router` runs;
+- builds `regime_context.parquet` from safe context only;
+- excludes current prediction outcomes from regime context;
+- assigns regimes using prior windows only;
+- uses `hmmlearn.GaussianHMM` if available;
+- falls back to a chronological Gaussian-mixture Markov proxy when `hmmlearn`
+  is unavailable;
+- writes CUSUM/Page-Hinkley style change alarms from safe context features;
+- writes current prediction outcomes only to analysis artifacts.
+
+Artifacts:
+
+```text
+events.jsonl
+stage_status.json
+regime_diagnostic_config.json
+regime_context.parquet
+change_point_events.parquet
+regime_signal_quality.parquet
+hmm_state_metrics.parquet
+regime_transfer_report.md
+```
+
+Local smoke completed:
+
+```text
+run:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_140527_rank_signal_regime_diagnostic/
+
+input:
+  test_output/rpf_ranked_signal_router/20260628_102938_rank_signal_router_btcusdt_8h_b/
+
+side/candidate:
+  up / up_rocket_64_v1
+
+result:
+  context rows:       960
+  change events:      1644
+  state metric rows:  2
+```
+
+Smoke state split:
+
+```text
+state 0:
+  431 windows
+  580 signals
+  precision 0.426
+  lift 1.114
+  FDR 0.574
+
+state 1:
+  509 windows
+  697 signals
+  precision 0.387
+  lift 1.052
+  FDR 0.613
+```
+
+Interpretation:
+
+- the command works on real router artifacts;
+- the first UP smoke shows only modest state separation;
+- this is not yet a promotion signal;
+- next run should use the full UP/DOWN latest and older router blocks listed in
+  `rpf_regime_change_detection_plan.md`;
+- if states or change alarms do not materially separate precision/lift/FDR,
+  the regime layer should not be promoted into the router.
+
+Follow-up implementation correction:
+
+```text
+rank_signal_regime_diagnostic now sorts router input runs chronologically by
+window_end_offset_steps before fitting past-only regime history.
+```
+
+Reason:
+
+```text
+offset 0 is the latest block and larger offsets are older blocks. Regime
+history must use older blocks before latest blocks even if the CLI arguments
+are pasted in a different order.
+```
+
+Corrected full UP/DOWN regime diagnostic:
+
+```text
+run:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_142013_rank_signal_regime_diagnostic/
+
+model mode:
+  gmm_markov
+
+inputs:
+  latest UP/DOWN 960-window router runs
+  older UP/DOWN 960-window router runs
+
+source order:
+  offset 960 first
+  offset 0 second
+```
+
+State quality summary:
+
+```text
+DOWN down_rocket_16_diag_v1:
+  state 0: precision 0.365, lift 0.955, FDR 0.635
+  state 1: precision 0.397, lift 1.035, FDR 0.603
+  state 2: precision 0.399, lift 1.045, FDR 0.601
+
+UP up_rocket_64_v1:
+  state 0: precision 0.399, lift 1.122, FDR 0.601
+  state 1: precision 0.434, lift 1.083, FDR 0.566
+  state 2: precision 0.402, lift 0.988, FDR 0.598
+```
+
+Change-risk summary after Page-Hinkley reset-on-alarm fix:
+
+```text
+total change events:
+  327
+
+DOWN CUSUM windows:
+  no CUSUM:  precision 0.396, lift 1.030, FDR 0.604
+  CUSUM:     precision 0.351, lift 0.944, FDR 0.649
+
+UP CUSUM windows:
+  no CUSUM:  precision 0.414, lift 1.069, FDR 0.586
+  CUSUM:     precision 0.441, lift 1.113, FDR 0.559
+
+UP Page-Hinkley windows:
+  no PH:     precision 0.418, lift 1.076, FDR 0.582
+  PH:        precision 0.313, lift 0.885, FDR 0.688
+```
+
+Interpretation:
+
+- latent state alone is not strong enough for router promotion;
+- DOWN state `0` and DOWN CUSUM windows are risk contexts;
+- UP state `2` and UP Page-Hinkley windows are risk contexts;
+- CUSUM is side-specific: bad for DOWN, not bad for UP in this run;
+- next work should create explicit `state+change` summary artifacts and then
+  test a small regime-aware suppression rule, not a broad new model sweep.
+
+2026-06-28 regime-target matching extension:
+
+```text
+updated command:
+  python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic
+
+new artifacts:
+  regime_target_match.parquet
+  regime_change_target_match.parquet
+  change_risk_target_match.parquet
+  regime_suppression_candidates.parquet
+
+latest run:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_142856_rank_signal_regime_diagnostic/
+```
+
+Purpose:
+
+```text
+explicitly answer which regimes are favorable or dangerous for each target,
+then use change-point context to avoid false positives
+```
+
+Result:
+
+```text
+favorable regime states:
+  none under current thresholds
+
+avoid regime states:
+  DOWN state 0, state 1, state 2
+  UP state 0, state 2
+
+neutral regime states:
+  UP state 1
+```
+
+Important nuance:
+
+- `UP state 0` has lift `1.122`, but FDR is `0.601`, so it is not accepted as
+  favorable under the current false-positive-focused rule.
+- DOWN has no clean favorable state; all DOWN states remain too high-FDR or too
+  close to base rate.
+- UP CUSUM windows were labeled favorable:
+
+```text
+UP + has_cusum=true:
+  143 signals
+  precision 0.441
+  lift 1.113
+  FDR 0.559
+```
+
+Top suppression contexts:
+
+```text
+DOWN has_cusum=true:
+  202 signals
+  lift 0.944
+  FDR 0.649
+
+DOWN state 0:
+  901 signals
+  lift 0.955
+  FDR 0.635
+
+UP state 2:
+  859 signals
+  lift 0.988
+  FDR 0.598
+```
+
+Decision:
+
+- regime matching is useful mainly for false-positive suppression so far;
+- it does not yet identify broad high-quality target regimes;
+- the next router experiment should be a shadow suppression replay:
+  suppress DOWN in state `0` or CUSUM windows, and suppress UP in state `2`
+  and Page-Hinkley-risk windows;
+- do not promote this into active routing until the shadow replay proves higher
+  precision without collapsing signal frequency.
+
+2026-06-28 regime suppression simulator:
+
+```text
+new command:
+  python -m regression_feature_engineering.walkforward.rank_signal_regime_suppression_simulator
+
+run:
+  test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_143451_rank_signal_regime_suppression_simulator/
+```
+
+Rule replayed:
+
+```text
+UP:
+  suppress regime_state=2
+  suppress has_page_hinkley=true
+
+DOWN:
+  suppress regime_state=0
+  suppress has_cusum=true
+```
+
+Overall result:
+
+```text
+DOWN:
+  signals:   3015 -> 1977
+  precision: 0.393 -> 0.408
+  lift:      1.024 -> 1.064
+  FDR:       0.607 -> 0.592
+  FP reduction: 36.1%
+
+UP:
+  signals:   2678 -> 1777
+  precision: 0.416 -> 0.427
+  lift:      1.072 -> 1.100
+  FDR:       0.584 -> 0.573
+  FP reduction: 34.9%
+```
+
+Interpretation:
+
+- suppression improves both sides, so regime/change-risk context is useful;
+- improvement is modest, not a breakthrough;
+- signal retention is about two thirds, so this is still a risk filter rather
+  than a complete strategy;
+- next work should compare stricter/looser suppression sets before adding this
+  to `rank_signal_router`.
+
+2026-06-28 market-regime context separation:
+
+```text
+updated command:
+  python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic
+
+new mode:
+  --regime-context-mode combined
+```
+
+Feature separation is now explicit:
+
+```text
+prediction/ranker:
+  side-specific RPF panel
+  -> train-only ElasticNet relevance selection
+  -> optional causal sequence embeddings
+  -> CatBoostRanker
+
+regime detection:
+  router/model context
+  + prior-batch market-state aggregates from stable RPF families
+  -> train-history-only scaler/PCA/HMM or GMM proxy
+
+change-risk detection:
+  small router context series
+  + market aggregate shift/z-score series
+  -> CUSUM/Page-Hinkley diagnostics
+```
+
+Default market-regime families:
+
+```text
+volatility_state
+temporal_memory_transforms
+regime_calendar_state
+rejection_chop
+liquidity_volume_pressure
+structural_room
+```
+
+Important rule:
+
+```text
+Market-regime context excludes the current prediction batch by default.
+It uses prior available batches only, so it can be replayed like a live
+batch-start risk context instead of leaking full future-batch state.
+```
+
+2026-06-28 combined market-regime diagnostic:
+
+```text
+run:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_150140_rank_signal_regime_diagnostic/
+
+context rows:        3,840
+market rows:         3,840
+change events:       12,479
+state metric rows:   6
+candidate sides:     UP and DOWN
+favorable states:    0
+avoid states:        3
+```
+
+Overall candidate quality before suppression:
+
+```text
+DOWN down_rocket_16_diag_v1:
+  signals:   3,015
+  precision: 0.393
+  lift:      1.024
+  FDR:       0.607
+
+UP up_rocket_64_v1:
+  signals:   2,678
+  precision: 0.416
+  lift:      1.072
+  FDR:       0.584
+```
+
+State quality:
+
+```text
+DOWN:
+  state 0: lift 1.023, FDR 0.606, weak avoid
+  state 1: lift 0.971, FDR 0.637, strongest avoid
+  state 2: lift 1.041, FDR 0.596, neutral
+
+UP:
+  state 0: lift 1.086, FDR 0.567, neutral
+  state 1: lift 1.055, FDR 0.580, neutral
+  state 2: lift 1.043, FDR 0.611, avoid
+```
+
+Important positive clue:
+
+```text
+UP has_any_change=false:
+  signals:   352
+  precision: 0.426
+  lift:      1.137
+  FDR:       0.574
+```
+
+This is the first useful UP-specific change-risk clue: UP quality is better in
+quiet/no-change windows.
+
+State-only suppression replay from the combined diagnostic:
+
+```text
+rule A:
+  suppress UP state 2
+  suppress DOWN state 1
+
+DOWN:
+  signals:   3,015 -> 2,073
+  precision: 0.393 -> 0.406
+  lift:      1.024 -> 1.059
+  FDR:       0.607 -> 0.594
+  retention: 68.8%
+
+UP:
+  signals:   2,678 -> 1,762
+  precision: 0.416 -> 0.430
+  lift:      1.072 -> 1.108
+  FDR:       0.584 -> 0.570
+  retention: 65.8%
+
+rule B:
+  suppress UP state 2
+  suppress DOWN states 0,1
+
+DOWN:
+  signals:   3,015 -> 1,279
+  precision: 0.393 -> 0.414
+  lift:      1.024 -> 1.079
+  FDR:       0.607 -> 0.586
+  retention: 42.4%
+```
+
+Interpretation:
+
+- combined market context improves suppression slightly versus router-only
+  context, but still not enough for promotion;
+- DOWN `state 1` is the cleaner avoid rule;
+- DOWN `state 0` adds precision but removes too much coverage;
+- UP `state 2` suppression is useful, and `has_any_change=false` should be
+  tested as a positive allow-context rather than only suppression.

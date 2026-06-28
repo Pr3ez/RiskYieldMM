@@ -1,0 +1,22 @@
+{
+  "stage": "decision_bank_plan",
+  "status": "ok",
+  "written_at": "2026-06-16T05:17:41.905387+00:00",
+  "asset": "BTCUSDT",
+  "root": "8h/B",
+  "side": "up",
+  "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_decision_banks/20260616_051740_decision_banks_up",
+  "windows": 50,
+  "summary": {
+    "windows": 50,
+    "target_bank_usable_window_rate": 1.0,
+    "gate_bank_usable_window_rate": 0.0,
+    "target_train_batch_count_min": 240,
+    "target_val_batch_count_min": 60,
+    "gate_train_batch_count_min": 0,
+    "gate_val_batch_count_min": 0,
+    "gate_train_precision_weighted_mean": null,
+    "gate_train_fp_rate_weighted_mean": null,
+    "any_maturity_violations": false
+  }
+}
