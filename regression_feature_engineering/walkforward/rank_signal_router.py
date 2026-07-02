@@ -362,6 +362,7 @@ def main() -> int:
                     candidate_results,
                     selected=selected,
                     reliability_by_candidate=reliability_by_candidate,
+                    reliability_config=reliability_config,
                     selection_mode=selection_mode,
                     outer_window=outer_window,
                     context_rules=context_rules,
@@ -450,13 +451,45 @@ def main() -> int:
     write_rows_parquet(run_root / "row_rule_active_window_metrics.parquet", row_rule_active_outputs.get("window_rows", []))
     write_rows_parquet(run_root / "row_rule_active_block_summary.parquet", row_rule_active_outputs.get("block_rows", []))
     write_json(run_root / "row_rule_active_side_summary.json", row_rule_active_outputs.get("side_summary", {}))
+    effective_outputs = resolve_effective_router_outputs(
+        score_rows=score_rows,
+        decision_rows=decision_rows,
+        window_rows=window_rows,
+        block_rows=block_rows,
+        side_summary=side_summary,
+        row_rule_active_outputs=row_rule_active_outputs,
+        args=args,
+    )
+    write_rows_parquet(run_root / "effective_prediction_scores.parquet", effective_outputs["score_rows"])
+    write_rows_parquet(run_root / "effective_decisions.parquet", effective_outputs["decision_rows"])
+    write_rows_parquet(run_root / "effective_window_metrics.parquet", effective_outputs["window_rows"])
+    write_rows_parquet(run_root / "effective_block_summary.parquet", effective_outputs["block_rows"])
+    write_json(run_root / "effective_side_summary.json", effective_outputs["side_summary"])
+    write_json(
+        run_root / "effective_artifact_source.json",
+        {
+            "prediction_source": effective_outputs["prediction_source"],
+            "requested_output_mode": str(args.row_rule_gate_output_mode),
+            "row_rule_gate_mode": str(args.row_rule_gate_mode),
+            "row_rule_active_score_rows": len(row_rule_active_outputs.get("score_rows", [])),
+            "row_rule_active_decision_rows": len(row_rule_active_outputs.get("decision_rows", [])),
+        },
+    )
+    effective_conflicts = conflict_diagnostics(effective_outputs["score_rows"])
     write_rows_parquet(
         run_root / "reliability_block_summary.parquet",
         reliability_block_summary(candidate_prediction_window_rows, block_size=int(args.evaluation_block_size)),
     )
     write_rows_parquet(run_root / "conflict_diagnostics.parquet", conflicts)
+    write_rows_parquet(run_root / "effective_conflict_diagnostics.parquet", effective_conflicts)
     write_json(run_root / "side_summary.json", side_summary)
-    write_router_report(run_root, router_config=router_config, side_summary=side_summary)
+    write_router_report(
+        run_root,
+        router_config=router_config,
+        side_summary=side_summary,
+        effective_side_summary=effective_outputs["side_summary"],
+        effective_prediction_source=str(effective_outputs["prediction_source"]),
+    )
     write_stage_status(
         run_root / "stage_status.json",
         stage="rank_signal_router",
@@ -475,11 +508,15 @@ def main() -> int:
             "batch_regime_diagnostic_rows": len(batch_regime_rows),
             "decision_rows": len(decision_rows),
             "conflict_rows": len(conflicts),
+            "effective_conflict_rows": len(effective_conflicts),
             "row_rule_gate_mode": str(args.row_rule_gate_mode),
             "row_rule_gate_signal_rows": len(row_rule_gate_outputs.get("signal_rows", [])),
             "row_rule_gate_decision_rows": len(row_rule_gate_outputs.get("decision_rows", [])),
             "row_rule_gate_output_mode": str(args.row_rule_gate_output_mode),
             "row_rule_active_decision_rows": len(row_rule_active_outputs.get("decision_rows", [])),
+            "effective_prediction_source": effective_outputs["prediction_source"],
+            "effective_score_rows": len(effective_outputs["score_rows"]),
+            "effective_decision_rows": len(effective_outputs["decision_rows"]),
         },
     )
     append_event(events_path, "stage_done", run=str(run_root))
@@ -1617,6 +1654,7 @@ def candidate_selection_audit_rows(
     *,
     selected: dict[str, Any],
     reliability_by_candidate: dict[str, dict[str, Any]],
+    reliability_config: ReliabilityConfig,
     selection_mode: str,
     outer_window: RPFWindow,
     context_rules: dict[tuple[str, str], ContextRule] | None = None,
@@ -1629,6 +1667,22 @@ def candidate_selection_audit_rows(
         reliability = reliability_by_candidate.get(candidate.name, empty_reliability_state())
         rule_eval = context_rule_evaluation(result, reliability, context_rules or {})
         final_selected = bool(selected.get("final_selection_passed", selected.get("passed"))) and candidate.name == selected_name
+        validation_passed = bool(result.get("passed"))
+        reliability_passed = bool(reliability.get("reliability_passed"))
+        if final_selected:
+            rejected_reason = None
+        elif selection_mode == SELECTION_CONTEXT_RULE_V1:
+            rejected_reason = (
+                "validation_failed"
+                if not validation_passed
+                else str(rule_eval.get("rejected_reason") or "context_rule_failed")
+            )
+        elif selection_mode == SELECTION_PREQUENTIAL_RELIABILITY_V1:
+            rejected_reason = prequential_rejection_reason(
+                result, reliability, reliability_config
+            )
+        else:
+            rejected_reason = None if validation_passed else "validation_failed"
         rows.append(
             {
                 "side": candidate.side,
@@ -1638,11 +1692,15 @@ def candidate_selection_audit_rows(
                 "router_step_idx": int(outer_window.step_idx),
                 "router_pred_batch_id": int(outer_window.pred_batch_id),
                 "candidate_status": result.get("status"),
-                "candidate_passed_validation": bool(result.get("passed")),
+                "candidate_passed_validation": validation_passed,
+                "candidate_passed_reliability": reliability_passed,
+                "candidate_passed_selection": final_selected,
                 "candidate_fail_reasons": ",".join(result.get("fail_reasons") or []),
+                "selected_candidate_name": selected_name if final_selected else None,
                 "selected_candidate": final_selected,
                 "diagnostic_candidate": bool(selected.get("selected_no_pass")) and candidate.name == selected_name,
-                "selection_rejected_reason": selected.get("selection_rejected_reason") if candidate.name == selected_name else None,
+                "candidate_rejected_reason": rejected_reason,
+                "selection_rejected_reason": rejected_reason,
                 "specialist_entry_mode": selected.get("specialist_entry_mode"),
                 "specialist_entry_candidate": bool(selected.get("specialist_entry_passed")) and candidate.name == selected_name,
                 "specialist_entry_reason": selected.get("specialist_entry_reason") if candidate.name == selected_name else None,
@@ -1758,6 +1816,7 @@ def selected_candidate_row(selected: dict[str, Any], outer_window: RPFWindow, si
         "specialist_entry_mode": selected.get("specialist_entry_mode"),
         "specialist_entry_passed": bool(selected.get("specialist_entry_passed")),
         "specialist_entry_reason": selected.get("specialist_entry_reason"),
+        "candidate_rejected_reason": selected.get("selection_rejected_reason"),
         "selection_rejected_reason": selected.get("selection_rejected_reason"),
         **selected_context_rule_metric_fields(selected),
         **selected_reliability_metric_fields(selected),
@@ -2182,6 +2241,66 @@ def empty_row_rule_active_outputs() -> dict[str, Any]:
     }
 
 
+def resolve_effective_router_outputs(
+    *,
+    score_rows: list[dict[str, Any]],
+    decision_rows: list[dict[str, Any]],
+    window_rows: list[dict[str, Any]],
+    block_rows: list[dict[str, Any]],
+    side_summary: dict[str, Any],
+    row_rule_active_outputs: dict[str, Any],
+    args: argparse.Namespace,
+) -> dict[str, Any]:
+    output_mode = str(getattr(args, "row_rule_gate_output_mode", ROW_RULE_GATE_OUTPUT_SHADOW))
+    row_rule_score_rows = list(row_rule_active_outputs.get("score_rows", []))
+    row_rule_window_rows = list(row_rule_active_outputs.get("window_rows", []))
+    use_row_rule_active = (
+        output_mode in {ROW_RULE_GATE_OUTPUT_ACTIVE_CANDIDATE, ROW_RULE_GATE_OUTPUT_ACTIVE_DOWN_CANDIDATE}
+        and (bool(row_rule_score_rows) or bool(row_rule_window_rows))
+    )
+    if use_row_rule_active:
+        source = "row_rule_active"
+        return {
+            "prediction_source": source,
+            "score_rows": rows_with_prediction_source(row_rule_score_rows, source),
+            "decision_rows": rows_with_prediction_source(list(row_rule_active_outputs.get("decision_rows", [])), source),
+            "window_rows": rows_with_prediction_source(row_rule_window_rows, source),
+            "block_rows": rows_with_prediction_source(list(row_rule_active_outputs.get("block_rows", [])), source),
+            "side_summary": side_summary_with_prediction_source(dict(row_rule_active_outputs.get("side_summary", {})), source),
+        }
+    source = "router_selected"
+    return {
+        "prediction_source": source,
+        "score_rows": rows_with_prediction_source(list(score_rows), source),
+        "decision_rows": rows_with_prediction_source(list(decision_rows), source),
+        "window_rows": rows_with_prediction_source(list(window_rows), source),
+        "block_rows": rows_with_prediction_source(list(block_rows), source),
+        "side_summary": side_summary_with_prediction_source(dict(side_summary), source),
+    }
+
+
+def rows_with_prediction_source(rows: list[dict[str, Any]], source: str) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        item = {**row, "prediction_source": source}
+        if "candidate_name" not in item and item.get("selected_candidate") is not None:
+            item["candidate_name"] = item.get("selected_candidate")
+        out.append(item)
+    return out
+
+
+def side_summary_with_prediction_source(summary: dict[str, Any], source: str) -> dict[str, Any]:
+    out: dict[str, Any] = {}
+    for key, value in summary.items():
+        if isinstance(value, dict):
+            out[key] = {**value, "prediction_source": source}
+        else:
+            out[key] = value
+    if "prediction_source" not in out:
+        out["prediction_source"] = source
+    return out
+
+
 def build_row_rule_active_outputs(
     candidate_score_rows: list[dict[str, Any]],
     *,
@@ -2440,7 +2559,14 @@ def candidate_config_row(candidate: CandidateSpec) -> dict[str, Any]:
     }
 
 
-def write_router_report(run_root: Path, *, router_config: dict[str, Any], side_summary: dict[str, Any]) -> None:
+def write_router_report(
+    run_root: Path,
+    *,
+    router_config: dict[str, Any],
+    side_summary: dict[str, Any],
+    effective_side_summary: dict[str, Any],
+    effective_prediction_source: str,
+) -> None:
     write_markdown(
         run_root / "report.md",
         title="RPF Ranked Signal Router Report",
@@ -2452,8 +2578,15 @@ def write_router_report(run_root: Path, *, router_config: dict[str, Any], side_s
                 "selection_mode": router_config["selection_mode"],
                 "outer_window_count": router_config["outer_window_count"],
             },
-            "Side Summary": side_summary,
+            "Effective Selected Summary": {
+                "prediction_source": effective_prediction_source,
+                "summary": effective_side_summary,
+            },
+            "Base Router Summary": side_summary,
             "Decision Contract": [
+                "`effective_*` artifacts are the canonical selected output for this run.",
+                "`router_*` artifacts are the base router stream.",
+                "`row_rule_active_*` artifacts are the active row-rule stream when row-rule active output mode is enabled.",
                 "Validation-only mode selects candidates from validation metrics only.",
                 "Prequential reliability mode selects candidates from prior matured prediction-window reliability after current validation sanity checks.",
                 "Context-rule mode selects candidates by prediction-safe candidate-specific rules loaded from a simulator artifact.",

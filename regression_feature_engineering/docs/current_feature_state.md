@@ -4974,10 +4974,10 @@ Important nuance:
   favorable under the current false-positive-focused rule.
 - DOWN has no clean favorable state; all DOWN states remain too high-FDR or too
   close to base rate.
-- UP CUSUM windows were labeled favorable:
+- UP legacy CUSUM-alias windows were labeled favorable in this historical run:
 
 ```text
-UP + has_cusum=true:
+UP + legacy has_cusum=true:
   143 signals
   precision 0.441
   lift 1.113
@@ -4987,7 +4987,7 @@ UP + has_cusum=true:
 Top suppression contexts:
 
 ```text
-DOWN has_cusum=true:
+DOWN legacy has_cusum=true:
   202 signals
   lift 0.944
   FDR 0.649
@@ -5008,10 +5008,19 @@ Decision:
 - regime matching is useful mainly for false-positive suppression so far;
 - it does not yet identify broad high-quality target regimes;
 - the next router experiment should be a shadow suppression replay:
-  suppress DOWN in state `0` or CUSUM windows, and suppress UP in state `2`
-  and Page-Hinkley-risk windows;
+  suppress DOWN in state `0` or explicit CUSUM detector windows, and suppress
+  UP in state `2` and Page-Hinkley-risk windows;
 - do not promote this into active routing until the shadow replay proves higher
   precision without collapsing signal frequency.
+
+Important correction:
+
+```text
+has_cusum was a stale generic alias in the historical 2026-06-28 artifacts.
+Clean HMM/CUSUM work must use explicit flags only:
+has_market_context_zshift_v1, has_market_context_recursive_cusum_v1,
+has_hmm_transition_cusum_v1, has_hmm_state_change_marker.
+```
 
 2026-06-28 regime suppression simulator:
 
@@ -5032,7 +5041,7 @@ UP:
 
 DOWN:
   suppress regime_state=0
-  suppress has_cusum=true
+  suppress legacy has_cusum=true
 ```
 
 Overall result:
@@ -5210,3 +5219,541 @@ Interpretation:
 - DOWN `state 0` adds precision but removes too much coverage;
 - UP `state 2` suppression is useful, and `has_any_change=false` should be
   tested as a positive allow-context rather than only suppression.
+
+## Live-Style Regime Replay Fix
+
+Status as of 2026-06-28:
+
+```text
+fixed:
+  live_combined regime mode now builds and joins prior-market context
+  live-safe regime context excludes current prediction-batch score summaries
+  suppression simulator now supports prequential replay
+  regime diagnostic supports regime model refit intervals for practical backtests
+
+new tests:
+  tests/test_rpf_rank_signal_regime_diagnostic.py
+  tests/test_rpf_rank_signal_regime_suppression_simulator.py
+```
+
+Why this mattered:
+
+```text
+The previous static suppression replay was post-hoc. It could choose suppress
+contexts from the same full span it evaluated. That is useful for diagnostics,
+but it is not a live-style test.
+
+The corrected prequential replay learns avoid contexts only from prior matured
+windows, applies them to the current window, then matures the current outcome
+afterward.
+```
+
+Corrected live-context diagnostic:
+
+```text
+run:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_175452_rank_signal_regime_diagnostic/
+
+mode:
+  regime_context_mode=live_combined
+  live_safe_context=true
+  market_context_rows=3,840
+  model_mode=gmm_markov
+  regime_refit_interval_windows=20
+  market_regime_max_features_per_family=16
+```
+
+Corrected prequential suppression replay:
+
+```text
+run:
+  test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_175635_rank_signal_regime_suppression_simulator/
+
+DOWN down_rocket_16_diag_v1:
+  signals:   3,015 -> 641
+  precision: 0.393 -> 0.441
+  lift:      1.024 -> 1.151
+  FDR:       0.607 -> 0.559
+  retention: 21.3%
+
+UP up_rocket_64_v1:
+  signals:   2,678 -> 890
+  precision: 0.416 -> 0.438
+  lift:      1.072 -> 1.130
+  FDR:       0.584 -> 0.562
+  retention: 33.2%
+```
+
+Important interpretation:
+
+- The corrected live-style replay does improve aggregate precision/lift and
+  reduces false positives, so regime/change context is not useless.
+- The cost is large signal loss; this is a risk filter, not yet a complete
+  trading decision layer.
+- UP remains mixed by chronological block: one block worsened after
+  suppression, one block improved. UP needs side-specific allow contexts, not
+  only avoid suppression.
+- `live_combined` with `model_mode=auto` is too slow if it refits HMM every
+  window. Use `--regime-refit-interval-windows` for backtests or
+  `--model-mode gmm_markov` for fast iteration.
+
+## Regime Replay Source Correction
+
+Status as of 2026-06-28:
+
+The previous regime suppression replay used `candidate_prediction_window_metrics`
+by default. That artifact is a **shadow candidate** stream: it scores what a
+candidate branch would have done independently. It is useful for diagnostics,
+but it is not the actual live router-selected decision stream.
+
+Implemented correction:
+
+```text
+rank_signal_regime_diagnostic:
+  added --prediction-source candidate_shadow|router_selected|row_rule_active|effective_selected
+  default is effective_selected
+  new router runs write effective_window_metrics.parquet directly
+  historical effective_selected uses row_rule_active when active row-rule output
+  exists, otherwise router_selected
+  candidate_shadow must be requested explicitly for branch diagnostics
+  router_selected loads router_window_metrics.parquet
+  row_rule_active loads row_rule_active_window_metrics.parquet
+  router_selected preserves no-signal selected windows for the matching side
+```
+
+`rank_signal_router` now also writes:
+
+```text
+effective_prediction_scores.parquet
+effective_decisions.parquet
+effective_window_metrics.parquet
+effective_block_summary.parquet
+effective_side_summary.json
+effective_artifact_source.json
+```
+
+These artifacts are the canonical selected stream for new runs.
+
+Additional implementation corrections from the same audit:
+
+```text
+rank_signal_router:
+  report.md now shows Effective Selected Summary before Base Router Summary
+  writes effective_conflict_diagnostics.parquet
+
+rank_signal_regime_diagnostic:
+  regime_signal_quality.parquet preserves requested_prediction_source and
+  resolved prediction_source
+  GMM/HMM regime state IDs are canonicalized after each fit by train-cluster
+  centroid order to reduce state-label permutation across refits
+
+rank_signal_regime_suppression_simulator:
+  prequential change-risk suppression ignores change_flag=False contexts
+  regime suppression candidates exclude false change-flag contexts
+```
+
+Impact:
+
+```text
+old regime/suppression runs before these fixes are diagnostic history only;
+rerun regime diagnostics before drawing new conclusions from regime/change
+suppression.
+```
+
+Base router-selected live-stream diagnostic:
+
+```text
+diagnostic:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_192232_rank_signal_regime_diagnostic/
+
+suppression:
+  test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_192425_rank_signal_regime_suppression_simulator/
+
+prediction_source:
+  router_selected
+```
+
+Base router-selected results:
+
+```text
+DOWN down_rocket_16_diag_v1:
+  windows:   1,920
+  signals:   29 -> 29
+  precision: 0.207 -> 0.207
+  lift:      0.540 -> 0.540
+  FDR:       0.793 -> 0.793
+
+UP up_rocket_64_v1:
+  windows:   1,920
+  signals:   21 -> 21
+  precision: 0.333 -> 0.333
+  lift:      0.860 -> 0.860
+  FDR:       0.667 -> 0.667
+```
+
+Block-level base router-selected results:
+
+```text
+UP blocks:
+  7 signals,  2 TP / 5 FP, precision 0.286, lift 0.761
+  14 signals, 5 TP / 9 FP, precision 0.357, lift 0.892
+
+DOWN blocks:
+  24 signals, 6 TP / 18 FP, precision 0.250, lift 0.642
+  5 signals,  0 TP / 5 FP,  precision 0.000, lift 0.000
+```
+
+Correct interpretation:
+
+- the `3,015 -> 641` DOWN and `2,678 -> 890` UP replay was shadow-candidate
+  evidence, not live router-selected evidence;
+- base router-selected signals are extremely sparse and below the local base
+  rate on both sides;
+- however, the latest router runs also used `row_rule_gate_output_mode=active_candidate`.
+  In those runs the effective active stream is `row_rule_active_*`, not
+  `router_*`.
+
+Effective active stream across the same four 960-window runs:
+
+```text
+UP row_rule_active:
+  windows:   1,920
+  signals:   206
+  TP / FP:   87 / 119
+  precision: 0.422
+  base rate: 0.388
+  lift:      1.089
+  FDR:       0.578
+  active-window rate: 0.061
+
+DOWN row_rule_active:
+  windows:   1,920
+  signals:   204
+  TP / FP:   95 / 109
+  precision: 0.466
+  base rate: 0.383
+  lift:      1.214
+  FDR:       0.534
+  active-window rate: 0.043
+```
+
+Corrected conclusion:
+
+- the base router/admission stream is broken;
+- the row-rule active stream is the only current effective output that beats
+  base rate, but precision and signal frequency are still too weak for
+  promotion;
+- future diagnostics must use `effective_selected` unless they intentionally
+  compare a specific internal stream.
+
+## RPF Clean Implementation Notebook
+
+Added:
+
+```text
+notebooks/rpf_walkforward_control.ipynb
+```
+
+Purpose:
+
+- keep one clean operational path from readiness to router evaluation;
+- reject old router runs that do not write explicit `effective_*` artifacts;
+- inspect only effective selected output as current selected performance;
+- include executable readiness/router/HMM-regime/CUSUM-change diagnostic stages
+  inside the notebook;
+- launch heavy stages only when explicit run flags are enabled;
+- keep historical classifier/gate/bank/suppression branches out of the active
+  notebook.
+
+Clean regime/change contract inside the notebook:
+
+```text
+router effective selected output for strategy-performance inspection
+candidate-shadow output for regime/candidate research
+-> HMM market-regime diagnostic
+-> CUSUM-only change-point diagnostic
+-> manual validation checklist
+```
+
+The notebook requires fresh regime artifacts created with:
+
+```text
+--prediction-source candidate_shadow
+--model-mode hmm
+--regime-context-mode market_context
+--change-feature-set market_context
+--change-detectors cusum
+```
+
+This keeps responsibilities separate:
+
+```text
+effective selected output = current strategy-performance table
+candidate shadow output   = regime/candidate diagnostic table
+market_context            = HMM/CUSUM input features
+prediction outcomes       = matured analysis labels only
+```
+
+HMM context is built from prediction-time-safe prior RPF market aggregates.
+The market HMM is assigned once per chronological prediction window and then
+joined back to UP/DOWN candidate rows for outcome analysis. CUSUM is also run
+once on market-context windows, then copied to candidate rows. Prediction
+labels and current prediction outcomes remain output diagnostics, not HMM or
+CUSUM inputs.
+
+The notebook router stage now uses `--outer-window-count 240` so
+`--regime-min-history-windows 80` can produce real HMM states. Short 40-window
+diagnostics are plumbing smoke tests only.
+
+The HMM implementation uses `hmmlearn` from the configured `$PY` environment.
+The notebook checks that dependency before printing the Stage 3 command.
+
+Heavy notebook execution is controlled by:
+
+```text
+RUN_FULL_WORKFLOW
+RUN_READINESS
+RUN_ROUTER
+RUN_REGIME_DIAGNOSTIC
+RUN_VALIDATION
+RUN_WORKTREE_CHECK
+```
+
+When a heavy stage runs, the notebook streams the output in the cell and writes
+a log under:
+
+```text
+test_output/rpf_walkforward_notebook_logs/
+```
+
+The notebook also includes HMM/CUSUM optimization checks after Stage 3:
+
+```text
+HMM coverage and state stability
+HMM state market-feature profiles
+CUSUM event frequency and feature triggers
+CUSUM candidate-separation table
+regime/CUSUM actionability summary
+```
+
+These checks answer whether the regime layer is capturing usable
+prediction-time-safe market context. They do not promote a strategy by
+themselves. Current strategy performance still comes only from the effective
+selected router output.
+
+The notebook is for fresh implementation work. Markdown docs remain the source
+of truth for decisions and interpretation.
+
+## 2026-07-01 HMM/CUSUM Research Lock
+
+Research notes are now captured in:
+
+```text
+regression_feature_engineering/docs/rpf_hmm_cusum_ranker_research.md
+```
+
+Current decision:
+
+```text
+HMM = persistent market-context state detector.
+CUSUM = sequential change-risk detector.
+CatBoostRanker = row scorer.
+Regime/change layer = selective router/gate, not a replacement predictor.
+```
+
+The current clean notebook HMM is directionally correct as a diagnostic:
+train-only scaler/PCA/HMM, prior market-context inputs, one state per
+chronological prediction window, no current prediction labels in inputs.
+
+The current clean notebook change layer now separates three detector families:
+
+```text
+market_context_zshift_v1
+market_context_recursive_cusum_v1
+hmm_transition_cusum_v1
+```
+
+Detector artifacts must keep explicit detector names. Rows where both market
+z-shift and recursive CUSUM fire are written as separate detector rows, not a
+comma-joined detector. The notebook fails fast if stale mixed detector names are
+loaded.
+
+Latest corrected diagnostic run:
+
+```text
+test_output/rpf_ranked_signal_regime_diagnostic/20260701_012737_rank_signal_regime_diagnostic/
+```
+
+Validation result:
+
+```text
+change_point_events.parquet:
+  market_context_zshift_v1             windows=90
+  market_context_recursive_cusum_v1    windows=205
+
+hmm_transition_events.parquet:
+  hmm_transition_cusum_v1              windows=34
+
+HMM state changes:
+  total state-change windows                    26
+  with market change alarm                      23
+  with HMM-transition recursive CUSUM alarm      8
+  with direct HMM state-change marker           26
+```
+
+The direct HMM state-change marker is an interpretation aid, not the same thing
+as HMM-transition CUSUM. The notebook now reports them separately.
+
+The next implementation should test whether these detectors reliably identify:
+
+```text
+market feature shocks before false positives
+HMM posterior/entropy/transition instability before regime changes
+```
+
+Only after that should `regime_aware_router_v1` use the regime/change layer to
+allow, suppress, or reduce signal budget for UP and DOWN candidates.
+
+## 2026-07-01 HMM/CUSUM Correction Implementation
+
+Implemented the research-backed correction in the active RPF notebook/module
+path:
+
+```text
+notebooks/rpf_walkforward_control.ipynb
+regression_feature_engineering/walkforward/rank_signal_regime_diagnostic.py
+tests/test_rpf_rank_signal_regime_diagnostic.py
+```
+
+Clean regime runs now require:
+
+```text
+--prediction-source candidate_shadow
+--regime-context-mode market_context
+--model-mode hmm
+--hmm-selection-mode bic_v1
+--hmm-state-count-choices 2,3,4
+--hmm-filter-mode causal_forward_v1
+--change-feature-set market_context
+--change-detectors market_context_zshift_v1,market_context_recursive_cusum_v1,hmm_transition_cusum_v1
+--cusum-standardization rolling_robust_z_v1
+--cusum-target-event-rate-min 0.05
+--cusum-target-event-rate-max 0.25
+```
+
+Correction details:
+
+- HMM filtering now uses the full prior train-window sequence plus the current
+  market vector, then takes the final filtered posterior.
+- HMM state count can be selected by BIC over `2,3,4`, with model-selection
+  rows written for audit.
+- HMM artifacts now include selected state count, likelihood/AIC/BIC, posterior
+  entropy, transition matrix, expected state duration, and current observation
+  likelihood.
+- Recursive market CUSUM uses rolling prior-only robust z-score
+  standardization by default.
+- Recursive CUSUM calibration writes target event-rate metadata; current labels
+  are not used for thresholding.
+- Direct HMM state-change markers are written as `hmm_state_change_marker`;
+  `hmm_transition_cusum_v1` is reserved for recursive CUSUM alarms over HMM
+  posterior/transition-risk features.
+- The notebook fails stale regime runs that miss new HMM/CUSUM artifacts or
+  were generated with the old fixed-state/old-standardization contract.
+
+New artifacts required by the notebook:
+
+```text
+hmm_filter_diagnostics.parquet
+hmm_model_selection.parquet
+hmm_transition_matrix.parquet
+cusum_calibration.parquet
+regime_input_features.parquet
+regime_gate_context_metrics.parquet
+regime_gate_decisions.parquet
+```
+
+2026-07-01 cleanup/fix lock:
+
+```text
+regime_input_features.parquet is now required and audits every candidate
+market-context column as included or excluded.
+```
+
+Active HMM/CUSUM model inputs are restricted to prediction-safe market-context
+features from approved market families. Meta/control/instrumentation columns
+such as `market_context_last_batch_id`, lookback settings, row/feature counts,
+finite-rate counters, labels, candidate outcomes, and router outcomes are
+excluded before scaler/PCA/HMM/CUSUM fitting.
+
+HMM state identity is now keyed by selected state count:
+
+```text
+regime_state_key = k{regime_selected_state_count}_s{regime_state}
+```
+
+State-level artifacts must group by `regime_state_key`, not raw
+`regime_state`, because BIC-selected K=2/K=3/K=4 states are different latent
+state spaces. HMM health fields now include self-transition probability,
+expected duration, posterior confidence/entropy, and a degenerate-state flag.
+
+Actionable CUSUM/change flags are explicit only:
+
+```text
+has_market_context_recursive_cusum_v1
+has_hmm_transition_cusum_v1
+```
+
+Diagnostic/interpretable flags remain separate:
+
+```text
+has_market_context_zshift_v1
+has_hmm_state_change_marker
+```
+
+The stale generic `has_cusum` alias must not appear in actionable target-match
+or suppression artifacts. If it appears, the notebook treats the run as stale.
+
+Regime gate simulation is now a prior-only replay. For each side/candidate and
+window it learns context allow/suppress decisions only from prior matured
+windows, then writes the current outcome after the decision. Tested context
+keys include `regime_state_key`, recursive CUSUM, HMM-transition CUSUM, and
+state+CUSUM combinations. The gate can only allow or suppress in this fix pass.
+
+Router audit rows now carry per-candidate rejection fields:
+
+```text
+candidate_passed_validation
+candidate_passed_reliability
+candidate_passed_selection
+candidate_rejected_reason
+selected_candidate_name
+selection_mode
+```
+
+If no branch is selected, no candidate row may claim
+`candidate_passed_selection=True`. This is required to diagnose no-signal
+windows without guessing whether validation, reliability, warmup, or history
+blocked the candidate.
+
+Notebook/state artifacts remain diagnostic until they show:
+
+```text
+no disallowed regime inputs
+no mixed HMM state ids
+recursive CUSUM event rate inside 5%..25%
+gate replay improves lift for at least one UP and one DOWN branch
+signal frequency remains practical
+```
+
+Validation passed for the code contract:
+
+```text
+python -m pytest tests/test_rpf_rank_signal_regime_diagnostic.py tests/test_rpf_rank_signal_router.py -q
+python -m py_compile $(find regression_feature_engineering -name '*.py' -print)
+python -m ruff check regression_feature_engineering/walkforward/rank_signal_regime_diagnostic.py tests/test_rpf_rank_signal_regime_diagnostic.py
+git diff --check
+```
+
+Older regime diagnostic runs before this correction remain historical evidence
+only. Rerun the notebook regime stage before drawing any new conclusion about
+HMM/CUSUM gating quality.

@@ -8,12 +8,25 @@ a simpler RPF binary walk-forward.
 
 ## Current Status
 
-Status: `classifier_refactor_implemented_initial`.
+Status: `historical_cleanup_notes_superseded_for_active_status`.
 
 The package works technically, but it has accumulated too many command
-surfaces from research iterations. The active direction is now binary UP/DOWN
-classification with regime-conditioned evaluation and false-positive-aware
-decision metrics.
+surfaces from research iterations. This document records the earlier classifier
+cleanup pass. It is no longer the active source of truth for command status.
+
+Use the current workflow contract instead:
+
+```text
+regression_feature_engineering/docs/rpf_workflow_integrity_audit.md
+```
+
+Reason:
+
+```text
+The active path moved from probability-threshold binary classification to
+ranked-signal candidates, router-selected decisions, and explicit
+shadow-versus-live artifact separation.
+```
 
 ## Scope
 

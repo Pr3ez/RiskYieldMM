@@ -21,12 +21,14 @@ from regression_feature_engineering.walkforward.rank_signal_router import (
     RouterGateConfig,
     build_candidate_set,
     build_row_rule_active_outputs,
+    candidate_selection_audit_rows,
     conflict_diagnostics,
     filter_row_rules_by_family,
     filter_candidates_by_name_allowlist,
     load_context_rules,
     parse_candidate_name_allowlist,
     reliability_state_for_candidate,
+    resolve_effective_router_outputs,
     row_rule_gate_signal_frame,
     row_rule_gate_source_block_map,
     select_candidate,
@@ -35,6 +37,7 @@ from regression_feature_engineering.walkforward.rank_signal_router import (
     validation_gate_result,
     validation_metrics_with_batch_consistency,
     wilson_lower_bound,
+    write_router_report,
 )
 from regression_feature_engineering.walkforward.rank_signal import RankTrialConfig
 from regression_feature_engineering.walkforward.rank_signal_row_rule_bank import RowRule
@@ -421,6 +424,77 @@ def test_row_rule_active_outputs_support_generic_up_candidate() -> None:
     assert out["side_summary"]["up"]["precision"] == pytest.approx(1.0)
 
 
+def test_effective_router_outputs_prefer_row_rule_active_when_enabled() -> None:
+    args = SimpleNamespace(row_rule_gate_output_mode=ROW_RULE_GATE_OUTPUT_ACTIVE_CANDIDATE)
+    out = resolve_effective_router_outputs(
+        score_rows=[{"side": "up", "decision": 1, "target_binary": 0}],
+        decision_rows=[{"side": "up", "decision": 1, "target_binary": 0}],
+        window_rows=[{"side": "up", "predicted_positive_count": 1, "true_positive_count": 0}],
+        block_rows=[{"side": "up", "block_idx": 0}],
+        side_summary={"up": {"predicted_positive_count": 1, "precision": 0.0}},
+        row_rule_active_outputs={
+            "score_rows": [{"side": "up", "decision": 1, "target_binary": 1}],
+            "decision_rows": [{"side": "up", "decision": 1, "target_binary": 1}],
+            "window_rows": [{"side": "up", "predicted_positive_count": 1, "true_positive_count": 1}],
+            "block_rows": [{"side": "up", "block_idx": 0}],
+            "side_summary": {"up": {"predicted_positive_count": 1, "precision": 1.0}},
+        },
+        args=args,
+    )
+
+    assert out["prediction_source"] == "row_rule_active"
+    assert out["score_rows"][0]["target_binary"] == 1
+    assert out["score_rows"][0]["prediction_source"] == "row_rule_active"
+    assert out["window_rows"][0]["prediction_source"] == "row_rule_active"
+    assert out["side_summary"]["up"]["precision"] == pytest.approx(1.0)
+    assert out["side_summary"]["up"]["prediction_source"] == "row_rule_active"
+
+
+def test_effective_router_outputs_fall_back_to_router_selected_without_active_rows() -> None:
+    args = SimpleNamespace(row_rule_gate_output_mode=ROW_RULE_GATE_OUTPUT_ACTIVE_CANDIDATE)
+    out = resolve_effective_router_outputs(
+        score_rows=[{"side": "down", "decision": 1, "target_binary": 1}],
+        decision_rows=[{"side": "down", "decision": 1, "target_binary": 1}],
+        window_rows=[{"side": "down", "predicted_positive_count": 1, "true_positive_count": 1}],
+        block_rows=[{"side": "down", "block_idx": 0}],
+        side_summary={"down": {"predicted_positive_count": 1, "precision": 1.0}},
+        row_rule_active_outputs={
+            "score_rows": [],
+            "decision_rows": [],
+            "window_rows": [],
+            "block_rows": [],
+            "side_summary": {},
+        },
+        args=args,
+    )
+
+    assert out["prediction_source"] == "router_selected"
+    assert out["score_rows"][0]["prediction_source"] == "router_selected"
+    assert out["side_summary"]["down"]["prediction_source"] == "router_selected"
+
+
+def test_router_report_names_effective_summary(tmp_path: Path) -> None:
+    write_router_report(
+        tmp_path,
+        router_config={
+            "asset": "BTCUSDT",
+            "root": "8h/B",
+            "candidate_set": "pruned_reliability_v1",
+            "selection_mode": "prequential_reliability_v1",
+            "outer_window_count": 10,
+        },
+        side_summary={"up": {"precision": 0.1}},
+        effective_side_summary={"up": {"precision": 0.9, "prediction_source": "row_rule_active"}},
+        effective_prediction_source="row_rule_active",
+    )
+
+    text = (tmp_path / "report.md").read_text()
+    assert "Effective Selected Summary" in text
+    assert "Base Router Summary" in text
+    assert "row_rule_active" in text
+    assert "`effective_*` artifacts are the canonical selected output" in text
+
+
 def test_load_context_rules_accepts_simulator_rule_directory(tmp_path: Path) -> None:
     run = tmp_path / "sim"
     run.mkdir()
@@ -523,6 +597,73 @@ def test_context_rule_selection_emits_no_signal_when_rule_fails() -> None:
     assert selected["final_selection_passed"] is False
     assert selected["selection_rejected_reason"] == "context_rule_failed"
     assert selected["context_rule_passed"] is False
+
+
+def test_candidate_selection_audit_rows_include_per_candidate_rejection_reason() -> None:
+    weak_candidate = CandidateSpec("up_none_v1", "up", RankTrialConfig())
+    strong_candidate = CandidateSpec("up_rocket_64_v1", "up", RankTrialConfig())
+    weak = {
+        "status": "ok",
+        "candidate": weak_candidate,
+        "passed": False,
+        "fail_reasons": ["low_validation_precision_lift"],
+        "validation_metrics": {
+            "ranked_signal_quality": -1.0,
+            "precision_lift": 0.8,
+            "false_discovery_rate": 0.7,
+        },
+        "sequence_feature_count": 0,
+    }
+    strong = {
+        "status": "ok",
+        "candidate": strong_candidate,
+        "passed": True,
+        "fail_reasons": [],
+        "validation_metrics": {
+            "ranked_signal_quality": 1.0,
+            "precision_lift": 1.5,
+            "false_discovery_rate": 0.2,
+        },
+        "sequence_feature_count": 64,
+    }
+    reliability = {
+        "up_none_v1": {
+            "reliability_passed": False,
+            "reliability_fail_reasons": "insufficient_reliability_history",
+        },
+        "up_rocket_64_v1": {
+            "reliability_passed": True,
+            "reliability_fail_reasons": "",
+        },
+    }
+    selected = {
+        **strong,
+        "final_selection_passed": True,
+        "selection_mode": SELECTION_PREQUENTIAL_RELIABILITY_V1,
+        "selection_rejected_reason": None,
+    }
+
+    rows = candidate_selection_audit_rows(
+        [weak, strong],
+        selected=selected,
+        reliability_by_candidate=reliability,
+        reliability_config=ReliabilityConfig(),
+        selection_mode=SELECTION_PREQUENTIAL_RELIABILITY_V1,
+        outer_window=RPFWindow(
+            step_idx=1,
+            pred_pos=101,
+            pred_batch_id=101,
+            train_batch_ids=(),
+            val_batch_ids=(),
+        ),
+    )
+    by_name = {row["candidate_name"]: row for row in rows}
+
+    assert by_name["up_none_v1"]["candidate_passed_selection"] is False
+    assert by_name["up_none_v1"]["candidate_rejected_reason"] == "validation_failed"
+    assert by_name["up_rocket_64_v1"]["candidate_passed_selection"] is True
+    assert by_name["up_rocket_64_v1"]["candidate_rejected_reason"] is None
+    assert by_name["up_rocket_64_v1"]["selected_candidate_name"] == "up_rocket_64_v1"
 
 
 def test_wilson_lower_bound_matches_reference_value() -> None:

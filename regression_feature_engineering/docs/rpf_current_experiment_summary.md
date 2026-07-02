@@ -2113,3 +2113,142 @@ Current boundary:
 - `regime_signal_quality.parquet` joins matured outcomes for analysis only;
 - router decisions must not be changed until regimes or change alarms separate
   precision/lift/FDR on both UP and DOWN replay blocks.
+
+2026-06-28 correction:
+
+```text
+The safe replay path is now live_combined + prequential suppression.
+
+Do not interpret static suppression replays as live evidence.
+Do not use combined/router context that includes current prediction-batch score
+summaries for first-row live decisions.
+```
+
+Corrected live-style evidence:
+
+```text
+diagnostic:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_175452_rank_signal_regime_diagnostic/
+
+prequential suppression:
+  test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_175635_rank_signal_regime_suppression_simulator/
+
+DOWN:
+  precision 0.393 -> 0.441
+  lift      1.024 -> 1.151
+  FDR       0.607 -> 0.559
+  signals   3015 -> 641
+
+UP:
+  precision 0.416 -> 0.438
+  lift      1.072 -> 1.130
+  FDR       0.584 -> 0.562
+  signals   2678 -> 890
+```
+
+Interpretation:
+
+```text
+Regime/change context is useful as a false-positive risk filter, but it cuts
+too much signal volume. The next branch should test side-specific allow
+contexts and minimum signal-frequency requirements before integrating this into
+the live router.
+```
+
+2026-06-28 source correction:
+
+```text
+The prequential suppression replay above used candidate shadow output.
+It does not represent the actual router-selected live decision stream.
+```
+
+New diagnostic mode:
+
+```text
+python -m regression_feature_engineering.walkforward.rank_signal_regime_diagnostic \
+  --prediction-source effective_selected
+```
+
+Base router-selected replay:
+
+```text
+diagnostic:
+  test_output/rpf_ranked_signal_regime_diagnostic/20260628_192232_rank_signal_regime_diagnostic/
+
+suppression:
+  test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_192425_rank_signal_regime_suppression_simulator/
+
+DOWN:
+  precision 0.207 -> 0.207
+  lift      0.540 -> 0.540
+  FDR       0.793 -> 0.793
+  signals   29 -> 29
+
+UP:
+  precision 0.333 -> 0.333
+  lift      0.860 -> 0.860
+  FDR       0.667 -> 0.667
+  signals   21 -> 21
+```
+
+Correct conclusion:
+
+```text
+The base router-selected stream is sparse and below base rate on both sides.
+The stronger 3,015/2,678-signal evidence belongs to shadow candidates, not live
+router decisions.
+```
+
+Second correction:
+
+```text
+The latest router runs also write row_rule_active_* artifacts because
+row_rule_gate_output_mode=active_candidate was enabled. For those runs,
+effective_selected = row_rule_active, not base router_selected.
+```
+
+Source-level fix:
+
+```text
+rank_signal_router now writes effective_* artifacts directly:
+effective_window_metrics.parquet
+effective_prediction_scores.parquet
+effective_decisions.parquet
+effective_block_summary.parquet
+effective_side_summary.json
+effective_artifact_source.json
+```
+
+For new runs these are the canonical selected-output files. For old runs,
+diagnostics still resolve `effective_selected` from existing router/row-rule
+artifacts.
+
+Effective selected stream across the four latest 960-window runs:
+
+| Side | Source | Signals | TP/FP | Precision | Base Rate | Lift | FDR | Active Window Rate |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| UP | `row_rule_active` | `206` | `87/119` | `0.422` | `0.388` | `1.089` | `0.578` | `0.061` |
+| DOWN | `row_rule_active` | `204` | `95/109` | `0.466` | `0.383` | `1.214` | `0.534` | `0.043` |
+
+Current corrected conclusion:
+
+```text
+The row-rule active stream is better than the base router stream and beats base
+rate, but it is still not strong enough for promotion. The implementation
+problem was stream selection/reporting: base router, row-rule active, and
+shadow candidate outputs must be evaluated separately.
+```
+
+Follow-up integrity fixes:
+
+```text
+- router report now separates Effective Selected Summary from Base Router Summary;
+- router writes effective_conflict_diagnostics.parquet;
+- regime_signal_quality preserves requested/resolved prediction source;
+- prequential suppression ignores false change-flag contexts;
+- regime suppression candidates exclude false change-flag contexts;
+- latent regime state IDs are canonicalized after each model fit.
+```
+
+Any regime/change suppression result produced before these fixes should be
+treated as stale diagnostic history and rerun before interpretation.

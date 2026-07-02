@@ -26,36 +26,68 @@ from scripts.project_paths import ensure_project_root_on_path
 
 PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 OUTPUT_ROOT = PROJECT_ROOT / "test_output" / "rpf_ranked_signal_regime_suppression_simulator"
+SIMULATION_MODES = ("static", "prequential")
+CONTEXT_TYPES = ("regime_state", "change_flag", "regime_state_change_flag")
 
 
 def main() -> int:
     args = parse_args()
     regime_run = Path(args.regime_run)
+    prediction_source = diagnostic_prediction_source(regime_run)
     run_root = run_root_for_args()
     run_root.mkdir(parents=True, exist_ok=True)
     events_path = run_root / "events.jsonl"
     append_event(events_path, "stage_start", command="rank_signal_regime_suppression_simulator")
 
-    windows = build_suppression_windows(
-        regime_run,
-        up_states=parse_int_set(args.suppress_up_states),
-        down_states=parse_int_set(args.suppress_down_states),
-        up_change_flags=parse_name_set(args.suppress_up_change_flags),
-        down_change_flags=parse_name_set(args.suppress_down_change_flags),
-    )
+    if str(args.simulation_mode) == "prequential":
+        windows, rule_audit = build_prequential_suppression_windows(
+            regime_run,
+            context_types=parse_name_set(args.prequential_context_types),
+            min_history_windows=int(args.prequential_min_history_windows),
+            lookback_windows=int(args.prequential_lookback_windows),
+            min_signals=int(args.prequential_min_signals),
+            avoid_max_lift=float(args.prequential_avoid_max_lift),
+            avoid_min_fdr=float(args.prequential_avoid_min_fdr),
+        )
+    else:
+        windows = build_suppression_windows(
+            regime_run,
+            up_states=parse_int_set(args.suppress_up_states),
+            down_states=parse_int_set(args.suppress_down_states),
+            up_change_flags=parse_name_set(args.suppress_up_change_flags),
+            down_change_flags=parse_name_set(args.suppress_down_change_flags),
+        )
+        rule_audit = pl.DataFrame()
     summary = suppression_summary(windows)
 
     write_rows_parquet(run_root / "suppression_window_metrics.parquet", windows.to_dicts())
+    write_rows_parquet(run_root / "suppression_rule_audit.parquet", rule_audit.to_dicts())
     write_rows_parquet(run_root / "suppression_summary.parquet", summary.to_dicts())
-    write_suppression_report(run_root / "suppression_report.md", regime_run=regime_run, summary=summary)
+    write_suppression_report(
+        run_root / "suppression_report.md",
+        regime_run=regime_run,
+        summary=summary,
+        simulation_mode=str(args.simulation_mode),
+        prediction_source=prediction_source,
+    )
     write_json(
         run_root / "suppression_simulator_config.json",
         {
+            "simulation_mode": str(args.simulation_mode),
             "regime_run": str(regime_run),
+            "prediction_source": prediction_source,
             "suppress_up_states": sorted(parse_int_set(args.suppress_up_states)),
             "suppress_down_states": sorted(parse_int_set(args.suppress_down_states)),
             "suppress_up_change_flags": sorted(parse_name_set(args.suppress_up_change_flags)),
             "suppress_down_change_flags": sorted(parse_name_set(args.suppress_down_change_flags)),
+            "prequential": {
+                "context_types": sorted(parse_name_set(args.prequential_context_types)),
+                "min_history_windows": int(args.prequential_min_history_windows),
+                "lookback_windows": int(args.prequential_lookback_windows),
+                "min_signals": int(args.prequential_min_signals),
+                "avoid_max_lift": float(args.prequential_avoid_max_lift),
+                "avoid_min_fdr": float(args.prequential_avoid_min_fdr),
+            },
         },
     )
     write_stage_status(
@@ -65,7 +97,9 @@ def main() -> int:
         summary={
             "window_rows": windows.height,
             "summary_rows": summary.height,
+            "rule_audit_rows": rule_audit.height,
             "suppressed_windows": int(windows["suppressed"].sum()) if "suppressed" in windows.columns else 0,
+            "prediction_source": prediction_source,
         },
     )
     append_event(events_path, "stage_done", run=str(run_root))
@@ -76,11 +110,40 @@ def main() -> int:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Replay regime/change-risk suppression rules offline.")
     parser.add_argument("--regime-run", required=True)
+    parser.add_argument("--simulation-mode", choices=SIMULATION_MODES, default="static")
     parser.add_argument("--suppress-up-states", default="2")
     parser.add_argument("--suppress-down-states", default="0")
     parser.add_argument("--suppress-up-change-flags", default="has_page_hinkley")
     parser.add_argument("--suppress-down-change-flags", default="has_cusum")
+    parser.add_argument("--prequential-context-types", default=",".join(CONTEXT_TYPES))
+    parser.add_argument("--prequential-min-history-windows", type=int, default=80)
+    parser.add_argument("--prequential-lookback-windows", type=int, default=240)
+    parser.add_argument("--prequential-min-signals", type=int, default=80)
+    parser.add_argument("--prequential-avoid-max-lift", type=float, default=1.0)
+    parser.add_argument("--prequential-avoid-min-fdr", type=float, default=0.60)
     return parser.parse_args()
+
+
+def diagnostic_prediction_source(regime_run: Path) -> str:
+    quality_path = regime_run / "regime_signal_quality.parquet"
+    if quality_path.exists():
+        try:
+            quality = pl.read_parquet(quality_path, columns=["prediction_source"])
+            values = sorted({str(value) for value in quality["prediction_source"].drop_nulls().unique().to_list()})
+            if len(values) == 1:
+                return values[0]
+            if values:
+                return "mixed:" + ",".join(values)
+        except Exception:
+            pass
+    config_path = regime_run / "regime_diagnostic_config.json"
+    if not config_path.exists():
+        return "unknown"
+    try:
+        payload = json.loads(config_path.read_text())
+    except json.JSONDecodeError:
+        return "unknown"
+    return str(payload.get("prediction_source", "unknown"))
 
 
 def parse_int_set(value: str | None) -> set[int]:
@@ -123,6 +186,84 @@ def build_suppression_windows(
         for row in joined.to_dicts()
     ]
     return pl.DataFrame(rows, infer_schema_length=None) if rows else pl.DataFrame()
+
+
+def build_prequential_suppression_windows(
+    regime_run: Path,
+    *,
+    context_types: set[str],
+    min_history_windows: int,
+    lookback_windows: int,
+    min_signals: int,
+    avoid_max_lift: float,
+    avoid_min_fdr: float,
+) -> tuple[pl.DataFrame, pl.DataFrame]:
+    quality_path = regime_run / "regime_signal_quality.parquet"
+    changes_path = regime_run / "change_point_events.parquet"
+    if not quality_path.exists():
+        raise FileNotFoundError(f"Missing regime quality artifact: {quality_path}")
+    unknown_context_types = context_types - set(CONTEXT_TYPES)
+    if unknown_context_types:
+        raise ValueError(f"Unsupported prequential context types: {sorted(unknown_context_types)}")
+    quality = pl.read_parquet(quality_path)
+    changes = pl.read_parquet(changes_path) if changes_path.exists() else pl.DataFrame()
+    joined = join_change_flags(quality, change_flags_by_window(changes))
+    if joined.is_empty():
+        return pl.DataFrame(), pl.DataFrame()
+
+    window_rows: list[dict[str, Any]] = []
+    audit_rows: list[dict[str, Any]] = []
+    sort_cols = [col for col in ["pred_batch_id", "step_idx", "source_run"] if col in joined.columns]
+    for _, group in joined.group_by(["side", "candidate_name"], maintain_order=True):
+        history: list[dict[str, Any]] = []
+        for row in group.sort(sort_cols).to_dicts():
+            prior = history[-lookback_windows:] if lookback_windows > 0 else history
+            if len(prior) >= int(min_history_windows):
+                avoid_contexts = learned_avoid_contexts(
+                    prior,
+                    context_types=context_types,
+                    min_signals=min_signals,
+                    avoid_max_lift=avoid_max_lift,
+                    avoid_min_fdr=avoid_min_fdr,
+                )
+                current_contexts = context_keys(row, context_types=context_types)
+                matches = [context for context in current_contexts if context in avoid_contexts]
+                reason = ",".join(format_context(context) for context in matches)
+                suppressed = bool(matches)
+                for context, stats in avoid_contexts.items():
+                    audit_rows.append(
+                        {
+                            "source_run": row.get("source_run"),
+                            "side": row.get("side"),
+                            "candidate_name": row.get("candidate_name"),
+                            "step_idx": row.get("step_idx"),
+                            "pred_batch_id": row.get("pred_batch_id"),
+                            "history_windows": int(len(prior)),
+                            "matched_current_window": context in matches,
+                            **context_to_row(context),
+                            **{f"history_{key}": value for key, value in stats.items()},
+                        }
+                    )
+            else:
+                avoid_contexts = {}
+                matches = []
+                reason = "insufficient_history"
+                suppressed = False
+            window_rows.append(
+                suppression_window_row_from_decision(
+                    row,
+                    suppressed=suppressed,
+                    reason=reason if suppressed else "",
+                    mode="prequential",
+                    history_windows=len(prior),
+                    learned_rule_count=len(avoid_contexts),
+                    matched_rule_count=len(matches),
+                )
+            )
+            history.append(row)
+    windows = pl.DataFrame(window_rows, infer_schema_length=None) if window_rows else pl.DataFrame()
+    audit = pl.DataFrame(audit_rows, infer_schema_length=None) if audit_rows else pl.DataFrame()
+    return windows, audit
 
 
 def join_change_flags(quality: pl.DataFrame, flags: pl.DataFrame) -> pl.DataFrame:
@@ -173,8 +314,27 @@ def suppression_window_row(
     for flag in sorted(change_rules):
         if bool(row.get(flag)):
             reasons.append(f"{flag}=true")
-    suppressed = bool(reasons)
+    return suppression_window_row_from_decision(
+        row,
+        suppressed=bool(reasons),
+        reason=",".join(reasons),
+        mode="static",
+        history_windows=None,
+        learned_rule_count=None,
+        matched_rule_count=len(reasons),
+    )
 
+
+def suppression_window_row_from_decision(
+    row: dict[str, Any],
+    *,
+    suppressed: bool,
+    reason: str,
+    mode: str,
+    history_windows: int | None,
+    learned_rule_count: int | None,
+    matched_rule_count: int | None,
+) -> dict[str, Any]:
     signals_before = int(row.get("predicted_positive_count") or 0)
     tp_before = int(row.get("true_positive_count") or 0)
     fp_before = int(row.get("false_positive_count") or 0)
@@ -185,7 +345,11 @@ def suppression_window_row(
     out.update(
         {
             "suppressed": suppressed,
-            "suppression_reason": ",".join(reasons),
+            "suppression_mode": mode,
+            "suppression_reason": reason,
+            "suppression_history_windows": history_windows,
+            "suppression_learned_rule_count": learned_rule_count,
+            "suppression_matched_rule_count": matched_rule_count,
             "predicted_positive_count_before": signals_before,
             "true_positive_count_before": tp_before,
             "false_positive_count_before": fp_before,
@@ -199,6 +363,96 @@ def suppression_window_row(
         }
     )
     return out
+
+
+def context_keys(row: dict[str, Any], *, context_types: set[str]) -> list[tuple[str, int | None, str | None, bool | None]]:
+    keys: list[tuple[str, int | None, str | None, bool | None]] = []
+    state_value = row.get("regime_state")
+    state = int(state_value) if state_value is not None else None
+    if "regime_state" in context_types and state is not None:
+        keys.append(("regime_state", state, None, None))
+    for flag in ("has_any_change", "has_cusum", "has_page_hinkley"):
+        if flag not in row:
+            continue
+        value = bool(row.get(flag))
+        if not value:
+            continue
+        if "change_flag" in context_types:
+            keys.append(("change_flag", None, flag, value))
+        if "regime_state_change_flag" in context_types and state is not None:
+            keys.append(("regime_state_change_flag", state, flag, value))
+    return keys
+
+
+def learned_avoid_contexts(
+    history: list[dict[str, Any]],
+    *,
+    context_types: set[str],
+    min_signals: int,
+    avoid_max_lift: float,
+    avoid_min_fdr: float,
+) -> dict[tuple[str, int | None, str | None, bool | None], dict[str, Any]]:
+    buckets: dict[tuple[str, int | None, str | None, bool | None], list[dict[str, Any]]] = {}
+    for row in history:
+        for key in context_keys(row, context_types=context_types):
+            buckets.setdefault(key, []).append(row)
+    out: dict[tuple[str, int | None, str | None, bool | None], dict[str, Any]] = {}
+    for key, rows in buckets.items():
+        stats = aggregate_rows(rows)
+        if int(stats["signals"]) < int(min_signals):
+            continue
+        lift = stats.get("precision_lift")
+        fdr = stats.get("false_discovery_rate")
+        if (lift is not None and float(lift) < float(avoid_max_lift)) or (
+            fdr is not None and float(fdr) >= float(avoid_min_fdr)
+        ):
+            out[key] = stats
+    return out
+
+
+def aggregate_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    windows = len(rows)
+    total_rows = sum(int(row.get("rows") or 0) for row in rows)
+    positives = sum(int(row.get("positive_count") or 0) for row in rows)
+    signals = sum(int(row.get("predicted_positive_count") or 0) for row in rows)
+    tp = sum(int(row.get("true_positive_count") or 0) for row in rows)
+    fp = sum(int(row.get("false_positive_count") or 0) for row in rows)
+    precision = (tp / signals) if signals else None
+    fdr = (fp / signals) if signals else None
+    base_rate = (positives / total_rows) if total_rows else None
+    lift = (precision / base_rate) if precision is not None and base_rate and base_rate > 0 else None
+    return {
+        "windows": int(windows),
+        "rows": int(total_rows),
+        "positives": int(positives),
+        "signals": int(signals),
+        "true_positives": int(tp),
+        "false_positives": int(fp),
+        "precision": precision,
+        "false_discovery_rate": fdr,
+        "base_rate": base_rate,
+        "precision_lift": lift,
+    }
+
+
+def context_to_row(context: tuple[str, int | None, str | None, bool | None]) -> dict[str, Any]:
+    context_type, regime_state, change_flag, change_flag_value = context
+    return {
+        "context_type": context_type,
+        "context_regime_state": regime_state,
+        "context_change_flag": change_flag,
+        "context_change_flag_value": change_flag_value,
+        "context_key": format_context(context),
+    }
+
+
+def format_context(context: tuple[str, int | None, str | None, bool | None]) -> str:
+    context_type, regime_state, change_flag, change_flag_value = context
+    if context_type == "regime_state":
+        return f"regime_state={regime_state}"
+    if context_type == "change_flag":
+        return f"{change_flag}={str(change_flag_value).lower()}"
+    return f"regime_state={regime_state}:{change_flag}={str(change_flag_value).lower()}"
 
 
 def suppression_summary(windows: pl.DataFrame) -> pl.DataFrame:
@@ -252,7 +506,14 @@ def aggregate(windows: pl.DataFrame, *, group_cols: list[str]) -> pl.DataFrame:
     return grouped
 
 
-def write_suppression_report(path: Path, *, regime_run: Path, summary: pl.DataFrame) -> None:
+def write_suppression_report(
+    path: Path,
+    *,
+    regime_run: Path,
+    summary: pl.DataFrame,
+    simulation_mode: str,
+    prediction_source: str,
+) -> None:
     lines = [
         "# RPF Regime Suppression Simulator",
         "",
@@ -261,6 +522,8 @@ def write_suppression_report(path: Path, *, regime_run: Path, summary: pl.DataFr
         "Offline replay of regime/change-risk suppression rules. This does not change router decisions.",
         "",
         f"- regime diagnostic run: `{regime_run}`",
+        f"- simulation mode: `{simulation_mode}`",
+        f"- prediction source: `{prediction_source}`",
         "",
         "## Summary",
         "",

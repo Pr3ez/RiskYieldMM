@@ -65,6 +65,9 @@ test_output/regression_feature_engineering*/
 test_output/rpf_clean_classification*/
 test_output/rpf_clean_walkforward/
 test_output/rpf_feature_panels/
+test_output/rpf_ranked_signal_regime_diagnostic/
+test_output/rpf_ranked_signal_regime_suppression_simulator/
+test_output/rpf_ranked_signal_router/
 test_output/quarantine/
 test_output/ta_signal_diagnostics/
 test_output/tmp_stage1_*/
