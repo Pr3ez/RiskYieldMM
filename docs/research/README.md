@@ -24,3 +24,24 @@ the current multi-asset implementation status.
 | [`reg-distance-target-walkforward-smoke-2026-05-28.md`](reg-distance-target-walkforward-smoke-2026-05-28.md) | Sparse-aware `CatBoostRegressor` smoke history for BTCUSDT `8h/B` distance targets, including the corrected v2 wiring checks |
 | [`market-trend-regime-detection-report.md`](market-trend-regime-detection-report.md) | Market trend and regime detection report |
 | [`engineering-macroeconomic-features-8h-models.pdf`](engineering-macroeconomic-features-8h-models.pdf) | Macroeconomic feature-engineering reference PDF |
+
+## Analyst and trading-system redesign, July 2026
+
+These documents cover the local Analyst application, causal replay and paper
+trading, indicator research, and the current prediction-system redesign. The
+numbered deep-research reports are preserved as supplied research inputs; the
+diagnosis report records where their recommendations were accepted, narrowed,
+or rejected against repository evidence.
+
+| Document | Purpose |
+|---|---|
+| [`meta_model_analyst_indicator_research_2026-07-10.md`](meta_model_analyst_indicator_research_2026-07-10.md) | Initial CUSUM, EWMA, regime, and visualization research for the Analyst |
+| [`background_live_data_and_forward_paper_2026-07-11.md`](background_live_data_and_forward_paper_2026-07-11.md) | Live-data ingestion and forward-paper architecture research |
+| [`candle_construction_and_live_minute_replay_2026-07-11.md`](candle_construction_and_live_minute_replay_2026-07-11.md) | Completed-candle construction and causal one-minute replay rules |
+| [`meta_model_analyst_next_feature_research_2026-07-12.md`](meta_model_analyst_next_feature_research_2026-07-12.md) | Market-context feature-family research and selection |
+| [`professional_paper_replay_execution_contract_2026-07-12.md`](professional_paper_replay_execution_contract_2026-07-12.md) | Professional replay and paper-execution contract |
+| [`indicator_driven_trade_policy_research_2026-07-12.md`](indicator_driven_trade_policy_research_2026-07-12.md) | Entry, stop, target, exit, and risk-policy research |
+| [`cusum_meta_label_trade_filter_research_2026-07-13.md`](cusum_meta_label_trade_filter_research_2026-07-13.md) | CUSUM meta-label target, evaluation, and deployment boundaries |
+| [`deep-research-report (8).md`](deep-research-report%20%288%29.md) | User-supplied starting research report 8; not an implementation specification |
+| [`deep-research-report (9).md`](deep-research-report%20%289%29.md) | User-supplied starting research report 9; not an implementation specification |
+| [`trading_prediction_system_diagnosis_and_redesign_2026-07-14.md`](trading_prediction_system_diagnosis_and_redesign_2026-07-14.md) | Evidence-backed end-to-end diagnosis, target architecture, experiment plan, and implementation roadmap |
