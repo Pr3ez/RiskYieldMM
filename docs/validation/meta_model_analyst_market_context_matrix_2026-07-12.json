@@ -1,0 +1,161 @@
+{
+  "schema_version": "analyst_market_context_matrix_validation_v1",
+  "market_context_version": "market_context_v1",
+  "generated_at": "2026-07-12T20:57:47.469101Z",
+  "source": "canonical",
+  "visible_bars_per_selection": 256,
+  "selection_count": 56,
+  "expected_selection_count": 56,
+  "passed": true,
+  "failure_count": 0,
+  "failures": [],
+  "point_totals": {
+    "participation_rvol_score": 14312,
+    "prior_structure_48_upper": 14336,
+    "volatility_fast_slow_score": 14392,
+    "volatility_percentile": 14392,
+    "volatility_range_shock_score": 14373
+  },
+  "status_counts": {
+    "data_quality / data_quality / data_quality": 19,
+    "data_quality / ok / ok": 17,
+    "ok / ok / ok": 20
+  },
+  "elapsed_seconds": 16.125558862997423,
+  "slowest_selections": [
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "1m",
+      "seconds": 1.245406495003408,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "1m",
+      "seconds": 1.0699304379995738,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "data_quality",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "ES",
+      "timeframe": "1m",
+      "seconds": 1.0281249359977664,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "CL",
+      "timeframe": "1m",
+      "seconds": 1.0111949509991973,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "data_quality",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "1m",
+      "seconds": 1.0038501659983012,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "GC",
+      "timeframe": "1m",
+      "seconds": 0.9891506120002305,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "1m",
+      "seconds": 0.9810360859992215,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "1m",
+      "seconds": 0.9788345429988112,
+      "hidden_requested": 31872,
+      "hidden_loaded": 31872,
+      "statuses": [
+        "data_quality",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "8h",
+      "seconds": 0.11808703800124931,
+      "hidden_requested": 1922,
+      "hidden_loaded": 1922,
+      "statuses": [
+        "data_quality",
+        "ok",
+        "ok"
+      ]
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "15m",
+      "seconds": 0.11203292699792655,
+      "hidden_requested": 2304,
+      "hidden_loaded": 2304,
+      "statuses": [
+        "ok",
+        "ok",
+        "ok"
+      ]
+    }
+  ],
+  "contracts": {
+    "structure_channels": "strictly_prior_source_stamped",
+    "post_close_series": "next_action_timestamp",
+    "volatility_percentile_range": [
+      0.0,
+      1.0
+    ],
+    "signed_score_range": [
+      -1.0,
+      1.0
+    ],
+    "diagnostic_only": true,
+    "changes_execution_decisions": false
+  }
+}

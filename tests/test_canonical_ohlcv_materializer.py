@@ -1,9 +1,8 @@
 from __future__ import annotations
 
+import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-
-import json
 
 import polars as pl
 
@@ -15,6 +14,7 @@ from scripts.feature_engineering.materialize_canonical_ohlcv import (
     canonical_ohlcv_path,
     materialize_one,
     normalize_timeframes,
+    refresh_1m_from_raw,
     status_one,
 )
 
@@ -33,7 +33,9 @@ def _raw_minutes(start: datetime, n: int) -> pl.DataFrame:
     )
 
 
-def _write_source_1m(project_root: Path, asset_id: str = "BTCUSDT", rows: int = 75) -> Path:
+def _write_source_1m(
+    project_root: Path, asset_id: str = "BTCUSDT", rows: int = 75
+) -> Path:
     raw = _raw_minutes(datetime(2021, 1, 1, tzinfo=timezone.utc), rows)
     canonical, _ = canonicalize_ohlcv(
         raw,
@@ -47,8 +49,50 @@ def _write_source_1m(project_root: Path, asset_id: str = "BTCUSDT", rows: int = 
     return source_path
 
 
+def _write_raw_provider_1m(
+    project_root: Path,
+    asset_id: str = "BTCUSDT",
+    rows: int = 5,
+) -> Path:
+    raw = _raw_minutes(datetime(2021, 1, 1, tzinfo=timezone.utc), rows).with_columns(
+        pl.lit("1m").alias("interval")
+    )
+    slug = asset_id.lower()
+    raw_dir = project_root / "fetchingByBit" / "sorted-1m-bybit-linear"
+    raw_dir.mkdir(parents=True, exist_ok=True)
+    raw_path = raw_dir / f"{slug}_linear_sorted_batch_000001.parquet"
+    raw.write_parquet(raw_path)
+    return raw_path
+
+
 def test_normalize_timeframes_accepts_24h_alias_and_deduplicates() -> None:
     assert normalize_timeframes("15m,24h,1d,4h") == ("15m", "1d", "4h")
+
+
+def test_refresh_1m_from_raw_writes_source_canonical_and_metadata(
+    tmp_path: Path,
+) -> None:
+    _write_raw_provider_1m(tmp_path, rows=5)
+
+    result = refresh_1m_from_raw(
+        project_root=tmp_path,
+        asset_id="BTCUSDT",
+        start_date=datetime(2021, 1, 1, tzinfo=timezone.utc),
+        end_date=None,
+    )
+
+    assert result.status == "written"
+    assert result.rows == 5
+    assert result.output_path.exists()
+    assert result.meta_path.exists()
+    out = pl.read_parquet(result.output_path)
+    assert out["timestamp"].min() == datetime(2021, 1, 1, tzinfo=timezone.utc)
+    assert out["timestamp"].max() == datetime(2021, 1, 1, 0, 4, tzinfo=timezone.utc)
+    meta = json.loads(result.meta_path.read_text())
+    assert meta["source_timeframe"] == "raw_1m"
+    assert meta["raw_rows_after_dedup"] == 5
+    assert meta["source_groups"][0]["provider"] == "bybit"
+    assert meta["source_groups"][0]["files"] == 1
 
 
 def test_materializer_dry_run_detects_source_without_writing(tmp_path: Path) -> None:

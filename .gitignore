@@ -47,6 +47,10 @@ fetchingMultiAsset/sorted-*
 fetchingMultiAsset/**/*.parquet
 fetchingbinance/**/sorted-*
 
+# Keep the Analyst runtime data directory in clean checkouts; payloads remain ignored.
+!Risk_Yield_Meta_Model_Analyst_0_0_1/web/data/
+!Risk_Yield_Meta_Model_Analyst_0_0_1/web/data/.gitkeep
+
 # Logs and temp files
 *.log
 logs/
@@ -72,6 +76,8 @@ test_output/quarantine/
 test_output/ta_signal_diagnostics/
 test_output/tmp_stage1_*/
 test_output/python_documentation_audit.md
+# Legacy Analyst runtime output; new writes use XDG/RISKYIELDMM state storage.
+test_output/analyst_indicator_optimizer_trials.jsonl
 tmp/
 *.tmp
 *.bak

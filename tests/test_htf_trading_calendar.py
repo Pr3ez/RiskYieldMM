@@ -7,8 +7,9 @@ import polars as pl
 from scripts.feature_engineering.htf_trading_calendar import (
     CALENDAR_CRYPTO_24_7,
     CALENDAR_FUTURES_SESSION_OBSERVED,
-    aggregate_canonical_ohlcv,
+    _historical_session_close_minutes,
     aggregate_canonical_15m,
+    aggregate_canonical_ohlcv,
     canonicalize_ohlcv,
 )
 
@@ -85,11 +86,7 @@ def test_session_calendar_does_not_fill_maintenance_break_or_weekend() -> None:
 def test_canonical_15m_aggregation_preserves_fill_flags() -> None:
     start = datetime(2021, 1, 4, tzinfo=timezone.utc)
     raw = _bars(
-        [
-            start + timedelta(minutes=i)
-            for i in range(15)
-            if i != 7
-        ],
+        [start + timedelta(minutes=i) for i in range(15) if i != 7],
         base=300.0,
     )
     canonical_1m, _ = canonicalize_ohlcv(
@@ -160,3 +157,70 @@ def test_session_aggregation_keeps_calendar_complete_maintenance_bucket() -> Non
     assert meta["dropped_incomplete_buckets"] == 0
     assert four_hour["timestamp"].to_list() == [start]
     assert four_hour["volume"].to_list() == [1800.0]
+
+
+def test_historical_session_close_minutes_do_not_overflow_int8() -> None:
+    closes = pl.DataFrame(
+        {
+            "timestamp": [
+                datetime(2021, 1, 1, 20, 59, tzinfo=timezone.utc),
+                datetime(2021, 1, 2, 20, 59, tzinfo=timezone.utc),
+            ],
+            "is_session_close_bar": [True, True],
+        }
+    )
+
+    assert _historical_session_close_minutes(closes) == {20 * 60 + 59}
+
+
+def test_session_tail_does_not_match_overflow_alias_of_historical_close() -> None:
+    raw = _bars(
+        [
+            datetime(2021, 1, 1, 20, 59, tzinfo=timezone.utc),
+            datetime(2021, 1, 2, 20, 59, tzinfo=timezone.utc),
+            # 03:55 and 20:59 differ by 1,024 minutes, but both become -21
+            # when minute-of-day arithmetic is accidentally performed as Int8.
+            datetime(2021, 1, 3, 3, 55, tzinfo=timezone.utc),
+        ],
+        base=600.0,
+    )
+    canonical_1m, _ = canonicalize_ohlcv(
+        raw,
+        asset_id="ES",
+        calendar_id=CALENDAR_FUTURES_SESSION_OBSERVED,
+        timeframe="1m",
+    )
+
+    four_hour, meta = aggregate_canonical_ohlcv(
+        canonical_1m,
+        target_timeframe="4h",
+    )
+
+    assert meta["dropped_incomplete_buckets"] == 1
+    assert four_hour["timestamp"].to_list() == [
+        datetime(2021, 1, 1, 20, 0, tzinfo=timezone.utc),
+        datetime(2021, 1, 2, 20, 0, tzinfo=timezone.utc),
+    ]
+
+
+def test_session_tail_keeps_repeated_high_minute_close_after_widening() -> None:
+    raw = _bars(
+        [datetime(2021, 1, day, 20, 59, tzinfo=timezone.utc) for day in (1, 2, 3)],
+        base=700.0,
+    )
+    canonical_1m, _ = canonicalize_ohlcv(
+        raw,
+        asset_id="ES",
+        calendar_id=CALENDAR_FUTURES_SESSION_OBSERVED,
+        timeframe="1m",
+    )
+
+    four_hour, meta = aggregate_canonical_ohlcv(
+        canonical_1m,
+        target_timeframe="4h",
+    )
+
+    assert meta["dropped_incomplete_buckets"] == 0
+    assert four_hour["timestamp"].to_list()[-1] == datetime(
+        2021, 1, 3, 20, 0, tzinfo=timezone.utc
+    )

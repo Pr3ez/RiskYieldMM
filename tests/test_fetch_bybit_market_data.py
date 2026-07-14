@@ -14,6 +14,18 @@ def _ms(dt: datetime) -> int:
     return int(dt.timestamp() * 1000)
 
 
+def _kline_row(timestamp_ms: int, close: float) -> list[str]:
+    return [
+        str(timestamp_ms),
+        str(close - 0.25),
+        str(close + 0.5),
+        str(close - 0.5),
+        str(close),
+        "10",
+        "100",
+    ]
+
+
 def test_timestamp_normalizer_casts_to_millisecond_utc() -> None:
     df = pl.DataFrame(
         {"timestamp": [datetime(2021, 1, 1, tzinfo=timezone.utc)], "value": [1.0]}
@@ -40,6 +52,60 @@ def test_to_ms_accepts_iso_datetime_strings() -> None:
     assert fetcher._to_ms("2024-01-02") == _ms(
         datetime(2024, 1, 2, tzinfo=timezone.utc)
     )
+
+
+def test_latest_complete_kline_start_respects_close_safety_lag() -> None:
+    just_before_safe = datetime(
+        2024,
+        1,
+        2,
+        12,
+        1,
+        4,
+        999_000,
+        tzinfo=timezone.utc,
+    )
+    exactly_safe = datetime(2024, 1, 2, 12, 1, 5, tzinfo=timezone.utc)
+
+    assert fetcher.latest_complete_kline_start_ms("1", now=just_before_safe) == _ms(
+        datetime(2024, 1, 2, 11, 59, tzinfo=timezone.utc)
+    )
+    assert fetcher.latest_complete_kline_start_ms("1", now=exactly_safe) == _ms(
+        datetime(2024, 1, 2, 12, 0, tzinfo=timezone.utc)
+    )
+
+
+def test_prune_unclosed_kline_tail_trims_and_removes_latest_chunks(
+    tmp_path: Path,
+) -> None:
+    prefix = "btcusdt_linear_sorted_batch_"
+    timestamps = [
+        _ms(datetime(2024, 1, 2, 12, minute, tzinfo=timezone.utc))
+        for minute in range(5)
+    ]
+    fetcher._klines_to_df(
+        [_kline_row(timestamps[0], 10.0), _kline_row(timestamps[1], 11.0)],
+        "1m",
+    ).write_parquet(tmp_path / f"{prefix}000000.parquet")
+    fetcher._klines_to_df(
+        [_kline_row(timestamps[2], 12.0), _kline_row(timestamps[3], 13.0)],
+        "1m",
+    ).write_parquet(tmp_path / f"{prefix}000001.parquet")
+    fetcher._klines_to_df(
+        [_kline_row(timestamps[4], 14.0)],
+        "1m",
+    ).write_parquet(tmp_path / f"{prefix}000002.parquet")
+
+    removed = fetcher._prune_unclosed_kline_tail(
+        str(tmp_path),
+        prefix,
+        latest_closed_start_ms=timestamps[2],
+    )
+
+    assert removed == 2
+    assert not (tmp_path / f"{prefix}000002.parquet").exists()
+    trimmed = pl.read_parquet(tmp_path / f"{prefix}000001.parquet")
+    assert trimmed["timestamp"].dt.epoch(time_unit="ms").to_list() == [timestamps[2]]
 
 
 def test_configured_bybit_symbols_include_btc_and_eth() -> None:
@@ -93,6 +159,67 @@ class _FakeSession:
     def get(self, _url: str, params: dict, timeout: int) -> _FakeResponse:
         self.calls.append(dict(params))
         return _FakeResponse(self.payload)
+
+
+def test_fetch_and_save_refetches_and_replaces_latest_closed_overlap(
+    tmp_path: Path, monkeypatch
+) -> None:
+    timestamps = [
+        _ms(datetime(2024, 1, 2, 12, minute, tzinfo=timezone.utc))
+        for minute in range(5)
+    ]
+    output_dir = tmp_path / "sorted-1m-bybit-linear"
+    output_dir.mkdir()
+    prefix = "btcusdt_linear_sorted_batch_"
+    fetcher._klines_to_df(
+        [
+            _kline_row(timestamps[0], 10.0),
+            _kline_row(timestamps[1], 11.0),
+            _kline_row(timestamps[2], 12.0),
+        ],
+        "1m",
+    ).write_parquet(output_dir / f"{prefix}000000.parquet")
+
+    payload = {
+        "retCode": 0,
+        "result": {
+            "list": [
+                _kline_row(timestamps[4], 40.0),  # still forming; must be ignored
+                _kline_row(timestamps[3], 13.0),
+                _kline_row(timestamps[2], 22.0),  # revised closed overlap
+            ]
+        },
+    }
+    fake_session = _FakeSession(payload)
+    monkeypatch.setattr(fetcher, "BASE_DIR", str(tmp_path))
+    monkeypatch.setattr(
+        fetcher, "PROGRESS_FILE", str(tmp_path / ".fetch_progress.json")
+    )
+    monkeypatch.setattr(fetcher, "SESSION", fake_session)
+    monkeypatch.setattr(fetcher.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(
+        fetcher,
+        "latest_complete_kline_start_ms",
+        lambda _interval: timestamps[3],
+    )
+
+    fetcher.fetch_and_save(
+        "BTCUSDT",
+        "linear",
+        "1",
+        "1m",
+        datetime.fromtimestamp(timestamps[0] / 1000, tz=timezone.utc).isoformat(),
+        datetime.fromtimestamp(timestamps[4] / 1000, tz=timezone.utc).isoformat(),
+    )
+
+    assert len(fake_session.calls) == 1
+    assert fake_session.calls[0]["start"] == timestamps[2]
+    assert fake_session.calls[0]["end"] == timestamps[3]
+
+    files = sorted(output_dir.glob(f"{prefix}*.parquet"))
+    combined = pl.concat([pl.read_parquet(path) for path in files]).sort("timestamp")
+    assert combined["timestamp"].dt.epoch(time_unit="ms").to_list() == timestamps[:4]
+    assert combined["close"].to_list() == [10.0, 11.0, 22.0, 13.0]
 
 
 def test_long_short_ratio_resumes_from_latest_local_timestamp(

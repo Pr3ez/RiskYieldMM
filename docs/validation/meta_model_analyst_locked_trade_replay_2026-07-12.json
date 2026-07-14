@@ -1,0 +1,4121 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-07-12T21:30:45.376103Z",
+  "research_only": true,
+  "profitability_guaranteed": false,
+  "as_was_live": false,
+  "protocol": {
+    "protocol_version": "analyst_locked_matrix_v1",
+    "evaluation_start": "2026-01-11T21:00:00Z",
+    "replay_clock": "2026-07-10T21:00:00Z",
+    "assets": [
+      "BTCUSDT",
+      "ETHUSDT",
+      "CL",
+      "ES",
+      "EURUSD",
+      "GC",
+      "NQ",
+      "USDJPY"
+    ],
+    "timeframes": [
+      "1m",
+      "15m",
+      "1h",
+      "4h",
+      "8h",
+      "12h",
+      "1d"
+    ],
+    "strategy": {
+      "cusum_sensitivity": "Balanced (Swing)",
+      "horizons": [
+        12,
+        48,
+        192
+      ],
+      "trend_z_clip": 8.0,
+      "aligned_score": 0.2,
+      "aligned_quality": 0.25,
+      "developing_score": 0.08,
+      "change_risk_threshold": 0.55,
+      "max_fast_slow_ratio": 1.75,
+      "minimum_path_quality": 0.15,
+      "trade_developing_trends": true,
+      "require_cusum_agreement": true,
+      "enable_experimental_prototype_regime_gate": false,
+      "require_regime_direction": false,
+      "maximum_exposure": 1.0,
+      "minimum_volatility_scale": 0.25,
+      "position_step": 0.1
+    },
+    "strategy_digest": "b5713acf6b482ae3",
+    "costs": {
+      "fee_bps": 1.0,
+      "slippage_bps": 1.0,
+      "spread_bps": 0.0,
+      "execution_latency_minutes": 1,
+      "initial_equity": 1.0
+    },
+    "cost_digest": "7d607c892d81d7b4",
+    "historical_observation_lag_seconds": 5,
+    "fill_rule": "first_real_1m_open_at_or_after_eligibility",
+    "synthetic_policy": "excluded_from_signal_input_and_fill_eligibility",
+    "optimization": "none_locked_before_evaluation",
+    "gates": {
+      "minimum_fills": 20,
+      "maximum_drawdown_pct": 20.0,
+      "minimum_net_return_pct": 0.0,
+      "minimum_annualized_sharpe": 0.0,
+      "stressed_one_way_cost_bps": 4.0
+    },
+    "gate_role": "descriptive_not_parameter_selection",
+    "protocol_digest": "304c9f9e285006a555e17687ea55a852d338a4a75aae2b7fda640d50a49d3171"
+  },
+  "aggregate": {
+    "selection_count": 56,
+    "completed_count": 56,
+    "failure_count": 0,
+    "positive_net_return_count": 18,
+    "positive_net_return_rate": 0.32142857142857145,
+    "all_descriptive_gates_count": 9,
+    "all_descriptive_gates_rate": 0.16071428571428573,
+    "median_net_return_pct": -4.314560611345308,
+    "median_annualized_sharpe": -1.422967828859649,
+    "total_fills": 152597,
+    "total_round_trips": 67735,
+    "total_excluded_synthetic_minutes": 178338,
+    "total_suppressed_incomplete_target_bars": 0
+  },
+  "selections": [
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2026-01-11T17:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 259440
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.007151529288088707,
+        "total_return_pct": -99.28484707119112,
+        "gross_total_return_pct": -24.704329697812355,
+        "max_drawdown_pct": 99.28484707119112,
+        "annualized_sharpe": -42.321177147165955,
+        "fill_count": 27092,
+        "marker_count": 27092,
+        "round_trip_count": 12114,
+        "round_trip_win_rate_pct": 25.284794452699355,
+        "turnover_notional": 23281.199999999564,
+        "fee_paid_equity": 0.45404802290321244,
+        "slippage_paid_equity": 0.45404802290321244,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 90.80960458064249,
+        "breakeven_all_in_cost_bps": -0.10611278498450602,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 57859,
+        "exposure_time_pct": 22.322145061728396,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 259201,
+        "order_count": 27092,
+        "order_fill_count": 27092,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 27092,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 259440,
+        "processed_real_source_minutes": 259440,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 259440,
+        "target_complete_bars": 259440,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 259440
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 45.95258054199803
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2026-01-09T09:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 262800
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.6383426173202791,
+        "total_return_pct": -36.16573826797209,
+        "gross_total_return_pct": -9.896218114964695,
+        "max_drawdown_pct": 39.99726311828535,
+        "annualized_sharpe": -3.7068856459275183,
+        "fill_count": 2112,
+        "marker_count": 2112,
+        "round_trip_count": 908,
+        "round_trip_win_rate_pct": 26.762114537444933,
+        "turnover_notional": 1723.199999999994,
+        "fee_paid_equity": 0.14492779636645514,
+        "slippage_paid_equity": 0.14492779636645514,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 28.985559273291027,
+        "breakeven_all_in_cost_bps": -0.5742930660959105,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 56085,
+        "exposure_time_pct": 21.63773148148148,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 17281,
+        "order_count": 2112,
+        "order_fill_count": 2112,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 262800,
+        "processed_real_source_minutes": 262800,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 17520,
+        "target_complete_bars": 17520,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 17520
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 6.082376670001395
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2026-01-01T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 273600
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.8185859158558406,
+        "total_return_pct": -18.141408414415938,
+        "gross_total_return_pct": -10.649979270655741,
+        "max_drawdown_pct": 28.366785591702183,
+        "annualized_sharpe": -1.7007802855168508,
+        "fill_count": 526,
+        "marker_count": 526,
+        "round_trip_count": 229,
+        "round_trip_win_rate_pct": 31.441048034934497,
+        "turnover_notional": 437.8000000000002,
+        "fee_paid_equity": 0.0411648187480734,
+        "slippage_paid_equity": 0.0411648187480734,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 8.23296374961468,
+        "breakeven_all_in_cost_bps": -2.4326128987336078,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 57180,
+        "exposure_time_pct": 22.060185185185187,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 4321,
+        "order_count": 526,
+        "order_fill_count": 526,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 273600,
+        "processed_real_source_minutes": 273600,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 4560,
+        "target_complete_bars": 4560,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 4560
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.831337450999854
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2025-12-02T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 316860
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9841050188327364,
+        "total_return_pct": -1.5894981167263622,
+        "gross_total_return_pct": 0.8899070911956297,
+        "max_drawdown_pct": 20.904116063673182,
+        "annualized_sharpe": 0.010005684866945178,
+        "fill_count": 155,
+        "marker_count": 155,
+        "round_trip_count": 62,
+        "round_trip_win_rate_pct": 27.419354838709676,
+        "turnover_notional": 124.39999999999998,
+        "fee_paid_equity": 0.012673968204522951,
+        "slippage_paid_equity": 0.012673968204522951,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 2.5347936409045904,
+        "breakeven_all_in_cost_bps": 0.7153593980672267,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 73498,
+        "exposure_time_pct": 28.35570987654321,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 1080,
+        "order_count": 155,
+        "order_fill_count": 155,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 316860,
+        "processed_real_source_minutes": 316860,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1320,
+        "target_complete_bars": 1320,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 1320
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.73858084099993
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2025-10-23T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 374700
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0575729166533456,
+        "total_return_pct": 5.757291665334563,
+        "gross_total_return_pct": 7.149814556103107,
+        "max_drawdown_pct": 13.100502019555982,
+        "annualized_sharpe": 0.5628939083219767,
+        "fill_count": 81,
+        "marker_count": 81,
+        "round_trip_count": 34,
+        "round_trip_win_rate_pct": 41.1764705882353,
+        "turnover_notional": 65.39999999999998,
+        "fee_paid_equity": 0.006954286354120602,
+        "slippage_paid_equity": 0.006954286354120602,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.3908572708241205,
+        "breakeven_all_in_cost_bps": 10.932438159179068,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 75840,
+        "exposure_time_pct": 29.25925925925926,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 540,
+        "order_count": 81,
+        "order_fill_count": 81,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 374700,
+        "processed_real_source_minutes": 374700,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 780,
+        "target_complete_bars": 780,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 780
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.7655113090004306
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2025-09-13T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 432540
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.2049758871615426,
+        "total_return_pct": 20.497588716154258,
+        "gross_total_return_pct": 21.553024374725194,
+        "max_drawdown_pct": 11.322488072031767,
+        "annualized_sharpe": 1.6175930681134378,
+        "fill_count": 52,
+        "marker_count": 52,
+        "round_trip_count": 22,
+        "round_trip_win_rate_pct": 27.272727272727273,
+        "turnover_notional": 43.60000000000001,
+        "fee_paid_equity": 0.004995048088763939,
+        "slippage_paid_equity": 0.004995048088763939,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.9990096177527878,
+        "breakeven_all_in_cost_bps": 49.43354214386511,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 69120,
+        "exposure_time_pct": 26.666666666666668,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 360,
+        "order_count": 52,
+        "order_fill_count": 52,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 432540,
+        "processed_real_source_minutes": 432540,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 600,
+        "target_complete_bars": 600,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 600
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.244596046999504
+    },
+    {
+      "asset": "BTCUSDT",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1ab9b082be9011b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet",
+            "size": 64459548,
+            "mtime_ns": 1783769224516198630
+          }
+        ],
+        "loaded_start": "2025-05-16T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 606060
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.3326835250628086,
+        "total_return_pct": 33.26835250628086,
+        "gross_total_return_pct": 33.71692623024871,
+        "max_drawdown_pct": 7.339656805366401,
+        "annualized_sharpe": 2.881046838478499,
+        "fill_count": 25,
+        "marker_count": 25,
+        "round_trip_count": 9,
+        "round_trip_win_rate_pct": 55.55555555555556,
+        "turnover_notional": 16.8,
+        "fee_paid_equity": 0.0019727255282598714,
+        "slippage_paid_equity": 0.0019727255282598714,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.3945451056519743,
+        "breakeven_all_in_cost_bps": 200.69598946576613,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 48960,
+        "exposure_time_pct": 18.88888888888889,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 180,
+        "order_count": 25,
+        "order_fill_count": 25,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 606060,
+        "processed_real_source_minutes": 606060,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 420,
+        "target_complete_bars": 420,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 420
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.667776162998052
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2026-01-11T17:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 259440
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.007390025618849061,
+        "total_return_pct": -99.2609974381151,
+        "gross_total_return_pct": -30.06703030678559,
+        "max_drawdown_pct": 99.2617544784939,
+        "annualized_sharpe": -31.934962320934634,
+        "fill_count": 26516,
+        "marker_count": 26516,
+        "round_trip_count": 11839,
+        "round_trip_win_rate_pct": 27.299603007010727,
+        "turnover_notional": 22747.799999999723,
+        "fee_paid_equity": 0.44955467980990244,
+        "slippage_paid_equity": 0.44955467980990244,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 89.91093596198048,
+        "breakeven_all_in_cost_bps": -0.13217555239093873,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 56264,
+        "exposure_time_pct": 21.70679012345679,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 259201,
+        "order_count": 26516,
+        "order_fill_count": 26516,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 26516,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 259440,
+        "processed_real_source_minutes": 259440,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 259440,
+        "target_complete_bars": 259440,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 259440
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 44.02710616100012
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2026-01-09T09:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 262800
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.708459887791111,
+        "total_return_pct": -29.154011220888897,
+        "gross_total_return_pct": -1.9557856755390235,
+        "max_drawdown_pct": 34.47021948330706,
+        "annualized_sharpe": -2.0728947929664585,
+        "fill_count": 2007,
+        "marker_count": 2007,
+        "round_trip_count": 853,
+        "round_trip_win_rate_pct": 30.246189917936693,
+        "turnover_notional": 1624.399999999998,
+        "fee_paid_equity": 0.14250860416022137,
+        "slippage_paid_equity": 0.14250860416022137,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 28.501720832044274,
+        "breakeven_all_in_cost_bps": -0.12040049713980706,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 55305,
+        "exposure_time_pct": 21.336805555555557,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 17281,
+        "order_count": 2007,
+        "order_fill_count": 2007,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 262800,
+        "processed_real_source_minutes": 262800,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 17520,
+        "target_complete_bars": 17520,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 17520
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 6.063604323000618
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2026-01-01T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 273600
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.1162040795366375,
+        "total_return_pct": 11.620407953663747,
+        "gross_total_return_pct": 21.053361820436002,
+        "max_drawdown_pct": 24.253208254860493,
+        "annualized_sharpe": 0.87205441417565,
+        "fill_count": 505,
+        "marker_count": 505,
+        "round_trip_count": 211,
+        "round_trip_win_rate_pct": 34.12322274881517,
+        "turnover_notional": 405.6000000000006,
+        "fee_paid_equity": 0.04440509764193479,
+        "slippage_paid_equity": 0.04440509764193479,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 8.881019528386958,
+        "breakeven_all_in_cost_bps": 5.190671060265279,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 60240,
+        "exposure_time_pct": 23.24074074074074,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 4321,
+        "order_count": 505,
+        "order_fill_count": 505,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 273600,
+        "processed_real_source_minutes": 273600,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 4560,
+        "target_complete_bars": 4560,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 4560
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.2209170130008715
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2025-12-02T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 316860
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.923715961266881,
+        "total_return_pct": -7.628403873311895,
+        "gross_total_return_pct": -5.354172837504089,
+        "max_drawdown_pct": 33.350795452162,
+        "annualized_sharpe": -0.3053485013988096,
+        "fill_count": 156,
+        "marker_count": 156,
+        "round_trip_count": 63,
+        "round_trip_win_rate_pct": 28.571428571428573,
+        "turnover_notional": 121.59999999999994,
+        "fee_paid_equity": 0.011503457817499473,
+        "slippage_paid_equity": 0.011503457817499473,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 2.3006915634998943,
+        "breakeven_all_in_cost_bps": -4.403102662421128,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 70080,
+        "exposure_time_pct": 27.037037037037038,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 1080,
+        "order_count": 156,
+        "order_fill_count": 156,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 316860,
+        "processed_real_source_minutes": 316860,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1320,
+        "target_complete_bars": 1320,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 1320
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.56405096600065
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2025-10-23T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 374700
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.1245736856062407,
+        "total_return_pct": 12.457368560624072,
+        "gross_total_return_pct": 13.669515054897442,
+        "max_drawdown_pct": 22.021197441215644,
+        "annualized_sharpe": 0.8462600798102404,
+        "fill_count": 60,
+        "marker_count": 60,
+        "round_trip_count": 27,
+        "round_trip_win_rate_pct": 33.333333333333336,
+        "turnover_notional": 53.599999999999994,
+        "fee_paid_equity": 0.005788413499606777,
+        "slippage_paid_equity": 0.005788413499606777,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.1576826999213554,
+        "breakeven_all_in_cost_bps": 25.502826594957913,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 65760,
+        "exposure_time_pct": 25.37037037037037,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 540,
+        "order_count": 60,
+        "order_fill_count": 60,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 374700,
+        "processed_real_source_minutes": 374700,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 780,
+        "target_complete_bars": 780,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 780
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.965793921997829
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2025-09-13T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 432540
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.3103955251962982,
+        "total_return_pct": 31.039552519629822,
+        "gross_total_return_pct": 31.98653404244094,
+        "max_drawdown_pct": 15.512298917025424,
+        "annualized_sharpe": 1.688778329276807,
+        "fill_count": 41,
+        "marker_count": 41,
+        "round_trip_count": 18,
+        "round_trip_win_rate_pct": 22.22222222222222,
+        "turnover_notional": 36.0,
+        "fee_paid_equity": 0.004280684293992957,
+        "slippage_paid_equity": 0.004280684293992957,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.8561368587985914,
+        "breakeven_all_in_cost_bps": 88.85148345122484,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 72000,
+        "exposure_time_pct": 27.77777777777778,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 360,
+        "order_count": 41,
+        "order_fill_count": 41,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 432540,
+        "processed_real_source_minutes": 432540,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 600,
+        "target_complete_bars": 600,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 600
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.416863292000926
+    },
+    {
+      "asset": "ETHUSDT",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "8dee930438124390",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/1m/ethusdt_1m_canonical.parquet",
+            "size": 62368450,
+            "mtime_ns": 1783769226111395742
+          }
+        ],
+        "loaded_start": "2025-05-16T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 606060
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.4210478289291484,
+        "total_return_pct": 42.10478289291484,
+        "gross_total_return_pct": 42.48046919123036,
+        "max_drawdown_pct": 12.758371818786852,
+        "annualized_sharpe": 2.209657833403417,
+        "fill_count": 19,
+        "marker_count": 19,
+        "round_trip_count": 7,
+        "round_trip_win_rate_pct": 71.42857142857143,
+        "turnover_notional": 13.2,
+        "fee_paid_equity": 0.0015205775991942807,
+        "slippage_paid_equity": 0.0015205775991942807,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.30411551983885615,
+        "breakeven_all_in_cost_bps": 321.8217362971998,
+        "evaluated_real_minutes": 259200,
+        "exposure_minutes": 60480,
+        "exposure_time_pct": 23.333333333333332,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 180,
+        "order_count": 19,
+        "order_fill_count": 19,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 606060,
+        "processed_real_source_minutes": 606060,
+        "excluded_synthetic_minutes": 0,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 420,
+        "target_complete_bars": 420,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "continuous_exact": 420
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 6.642781181999453
+    },
+    {
+      "asset": "CL",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 177021
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.14378747987991544,
+        "total_return_pct": -85.62125201200845,
+        "gross_total_return_pct": 43.42378610168356,
+        "max_drawdown_pct": 85.62477033053908,
+        "annualized_sharpe": -11.686840680656616,
+        "fill_count": 14108,
+        "marker_count": 14108,
+        "round_trip_count": 6133,
+        "round_trip_win_rate_pct": 33.29528778737975,
+        "turnover_notional": 11499.200000000179,
+        "fee_paid_equity": 0.553720656282271,
+        "slippage_paid_equity": 0.553720656282271,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 110.7441312564542,
+        "breakeven_all_in_cost_bps": 0.37762440953877563,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 31569,
+        "exposure_time_pct": 17.97625487572246,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 175615,
+        "order_count": 14108,
+        "order_fill_count": 14108,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 14064,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 177021,
+        "processed_real_source_minutes": 175615,
+        "excluded_synthetic_minutes": 1406,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 175615,
+        "target_complete_bars": 175615,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 175615
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 28.872058468998148
+    },
+    {
+      "asset": "CL",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 181221
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.6088998228520732,
+        "total_return_pct": -39.110017714792676,
+        "gross_total_return_pct": -24.179444200976143,
+        "max_drawdown_pct": 43.91597633094403,
+        "annualized_sharpe": -2.706126250743076,
+        "fill_count": 1302,
+        "marker_count": 1302,
+        "round_trip_count": 567,
+        "round_trip_win_rate_pct": 33.86243386243386,
+        "turnover_notional": 1096.4,
+        "fee_paid_equity": 0.08955811045141453,
+        "slippage_paid_equity": 0.08955811045141453,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 17.911622090282904,
+        "breakeven_all_in_cost_bps": -2.2053487961488636,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 41807,
+        "exposure_time_pct": 23.80605301369473,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11803,
+        "order_count": 1302,
+        "order_fill_count": 1302,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 181221,
+        "processed_real_source_minutes": 179791,
+        "excluded_synthetic_minutes": 1430,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12083,
+        "target_complete_bars": 12083,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 11392,
+          "session_sparse_boundary_allowed": 68,
+          "session_sparse_scheduled_gap_allowed": 28,
+          "session_sparse_unverified_allowed": 595
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.00645745699876
+    },
+    {
+      "asset": "CL",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 193446
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0263341546731877,
+        "total_return_pct": 2.633415467318767,
+        "gross_total_return_pct": 8.741004446670896,
+        "max_drawdown_pct": 20.190657049283512,
+        "annualized_sharpe": 0.3249148117477517,
+        "fill_count": 347,
+        "marker_count": 347,
+        "round_trip_count": 155,
+        "round_trip_win_rate_pct": 36.12903225806452,
+        "turnover_notional": 288.9999999999999,
+        "fee_paid_equity": 0.02869321786189731,
+        "slippage_paid_equity": 0.02869321786189731,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 5.738643572379462,
+        "breakeven_all_in_cost_bps": 3.024569012688893,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 42442,
+        "exposure_time_pct": 24.167639438544544,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 2953,
+        "order_count": 347,
+        "order_fill_count": 347,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 193446,
+        "processed_real_source_minutes": 191801,
+        "excluded_synthetic_minutes": 1645,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3227,
+        "target_complete_bars": 3227,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 2806,
+          "session_sparse_scheduled_gap_allowed": 79,
+          "session_sparse_unverified_allowed": 333,
+          "session_sparse_boundary_allowed": 9
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.7596968190009648
+    },
+    {
+      "asset": "CL",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 250479
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7960926308102141,
+        "total_return_pct": -20.39073691897859,
+        "gross_total_return_pct": -19.274724019995016,
+        "max_drawdown_pct": 34.28330254124808,
+        "annualized_sharpe": -1.1553750478078473,
+        "fill_count": 88,
+        "marker_count": 88,
+        "round_trip_count": 37,
+        "round_trip_win_rate_pct": 32.432432432432435,
+        "turnover_notional": 69.60000000000001,
+        "fee_paid_equity": 0.0059402341874631275,
+        "slippage_paid_equity": 0.0059402341874631275,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.1880468374926254,
+        "breakeven_all_in_cost_bps": -27.69356899424571,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 45785,
+        "exposure_time_pct": 26.071235372832618,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 797,
+        "order_count": 88,
+        "order_fill_count": 88,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 250479,
+        "processed_real_source_minutes": 247598,
+        "excluded_synthetic_minutes": 2881,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1131,
+        "target_complete_bars": 1131,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 184,
+          "session_sparse_unverified_allowed": 252,
+          "session_exact": 660,
+          "session_sparse_boundary_allowed": 35
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.755481055999553
+    },
+    {
+      "asset": "CL",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 330609
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.829259967356054,
+        "total_return_pct": -17.074003264394598,
+        "gross_total_return_pct": -16.364392087293833,
+        "max_drawdown_pct": 27.06495388385345,
+        "annualized_sharpe": -1.424970759504072,
+        "fill_count": 54,
+        "marker_count": 54,
+        "round_trip_count": 24,
+        "round_trip_win_rate_pct": 41.666666666666664,
+        "turnover_notional": 42.599999999999994,
+        "fee_paid_equity": 0.0037933422971548267,
+        "slippage_paid_equity": 0.0037933422971548267,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.7586684594309654,
+        "breakeven_all_in_cost_bps": -38.41406593261464,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 35927,
+        "exposure_time_pct": 20.457819662329527,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 412,
+        "order_count": 54,
+        "order_fill_count": 54,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 330609,
+        "processed_real_source_minutes": 325208,
+        "excluded_synthetic_minutes": 5401,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 773,
+        "target_complete_bars": 773,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 242,
+          "session_sparse_unverified_allowed": 211,
+          "session_exact": 286,
+          "session_sparse_boundary_allowed": 34
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.049381025000912
+    },
+    {
+      "asset": "CL",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 407587
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9528287453727176,
+        "total_return_pct": -4.717125462728244,
+        "gross_total_return_pct": -4.1820001107127585,
+        "max_drawdown_pct": 14.57652299818617,
+        "annualized_sharpe": -0.30389755989508527,
+        "fill_count": 39,
+        "marker_count": 39,
+        "round_trip_count": 17,
+        "round_trip_win_rate_pct": 47.05882352941177,
+        "turnover_notional": 27.999999999999996,
+        "fee_paid_equity": 0.0026574638037214385,
+        "slippage_paid_equity": 0.0026574638037214385,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.5314927607442876,
+        "breakeven_all_in_cost_bps": -14.935714681116995,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 33596,
+        "exposure_time_pct": 19.130484298038322,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 283,
+        "order_count": 39,
+        "order_fill_count": 39,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 407587,
+        "processed_real_source_minutes": 400802,
+        "excluded_synthetic_minutes": 6785,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 656,
+        "target_complete_bars": 656,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 253,
+          "session_sparse_scheduled_gap_allowed": 298,
+          "session_exact": 63,
+          "session_sparse_boundary_allowed": 42
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.680145619000541
+    },
+    {
+      "asset": "CL",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "d1a831bc129bfe4f",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/cl/htf_canonical_ohlcv/1m/cl_1m_canonical.parquet",
+            "size": 20749521,
+            "mtime_ns": 1783769232480755313
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 640687
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.1572519060036621,
+        "total_return_pct": 15.725190600366211,
+        "gross_total_return_pct": 16.003288048594676,
+        "max_drawdown_pct": 8.896966369231018,
+        "annualized_sharpe": 1.43013981518306,
+        "fill_count": 17,
+        "marker_count": 17,
+        "round_trip_count": 7,
+        "round_trip_win_rate_pct": 42.857142857142854,
+        "turnover_notional": 12.0,
+        "fee_paid_equity": 0.001289945685300878,
+        "slippage_paid_equity": 0.001289945685300878,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.25798913706017557,
+        "breakeven_all_in_cost_bps": 133.36073373828899,
+        "evaluated_real_minutes": 175615,
+        "exposure_minutes": 32534,
+        "exposure_time_pct": 18.525752356006034,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 154,
+        "order_count": 17,
+        "order_fill_count": 17,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 640687,
+        "processed_real_source_minutes": 630193,
+        "excluded_synthetic_minutes": 10494,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 564,
+        "target_complete_bars": 564,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 466,
+          "session_sparse_unverified_allowed": 82,
+          "session_sparse_boundary_allowed": 16
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.57894216600107
+    },
+    {
+      "asset": "ES",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 177735
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.03991124221999227,
+        "total_return_pct": -96.00887577800077,
+        "gross_total_return_pct": -6.323030306778065,
+        "max_drawdown_pct": 96.00900661737339,
+        "annualized_sharpe": -86.39598578399912,
+        "fill_count": 18293,
+        "marker_count": 18293,
+        "round_trip_count": 8227,
+        "round_trip_win_rate_pct": 11.365017624893643,
+        "turnover_notional": 15777.400000000225,
+        "fee_paid_equity": 0.47005295486663595,
+        "slippage_paid_equity": 0.47005295486663595,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 94.0105909733272,
+        "breakeven_all_in_cost_bps": -0.040076503776148006,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 43703,
+        "exposure_time_pct": 24.590929552104434,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 177720,
+        "order_count": 18294,
+        "order_fill_count": 18293,
+        "order_pending_count": 1,
+        "order_suppressed_pending_count": 18275,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 177735,
+        "processed_real_source_minutes": 177720,
+        "excluded_synthetic_minutes": 15,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 177720,
+        "target_complete_bars": 177720,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 177720
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 31.056900454997958
+    },
+    {
+      "asset": "ES",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 181935
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7206030648939609,
+        "total_return_pct": -27.939693510603913,
+        "gross_total_return_pct": -9.212203925448193,
+        "max_drawdown_pct": 28.20901751233118,
+        "annualized_sharpe": -9.253251582370401,
+        "fill_count": 1407,
+        "marker_count": 1407,
+        "round_trip_count": 613,
+        "round_trip_win_rate_pct": 23.817292006525285,
+        "turnover_notional": 1155.0000000000011,
+        "fee_paid_equity": 0.09969531174732457,
+        "slippage_paid_equity": 0.09969531174732457,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 19.939062349464916,
+        "breakeven_all_in_cost_bps": -0.7975934134587171,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 43547,
+        "exposure_time_pct": 24.503151024082825,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11849,
+        "order_count": 1407,
+        "order_fill_count": 1407,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 181935,
+        "processed_real_source_minutes": 181920,
+        "excluded_synthetic_minutes": 15,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12129,
+        "target_complete_bars": 12129,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 12122,
+          "session_sparse_unverified_allowed": 5,
+          "session_sparse_boundary_allowed": 2
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.246907202999864
+    },
+    {
+      "asset": "ES",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 194130
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.8688228528803262,
+        "total_return_pct": -13.117714711967377,
+        "gross_total_return_pct": -7.267390489333714,
+        "max_drawdown_pct": 13.421167164059023,
+        "annualized_sharpe": -3.5139716737664686,
+        "fill_count": 404,
+        "marker_count": 404,
+        "round_trip_count": 175,
+        "round_trip_win_rate_pct": 27.428571428571427,
+        "turnover_notional": 325.8000000000002,
+        "fee_paid_equity": 0.03033651583550169,
+        "slippage_paid_equity": 0.03033651583550169,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 6.067303167100338,
+        "breakeven_all_in_cost_bps": -2.23062937057511,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 49199,
+        "exposure_time_pct": 27.68343461625028,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 2963,
+        "order_count": 404,
+        "order_fill_count": 404,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 194130,
+        "processed_real_source_minutes": 194112,
+        "excluded_synthetic_minutes": 18,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3237,
+        "target_complete_bars": 3237,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 3226,
+          "session_sparse_unverified_allowed": 6,
+          "session_sparse_boundary_allowed": 4,
+          "session_sparse_scheduled_gap_allowed": 1
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.510394381999504
+    },
+    {
+      "asset": "ES",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 250980
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9549618895888602,
+        "total_return_pct": -4.5038110411139805,
+        "gross_total_return_pct": -3.0371722615289642,
+        "max_drawdown_pct": 6.1274442733544205,
+        "annualized_sharpe": -1.2325873032010264,
+        "fill_count": 101,
+        "marker_count": 101,
+        "round_trip_count": 42,
+        "round_trip_win_rate_pct": 28.571428571428573,
+        "turnover_notional": 76.20000000000002,
+        "fee_paid_equity": 0.00745318384501047,
+        "slippage_paid_equity": 0.00745318384501047,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.490636769002094,
+        "breakeven_all_in_cost_bps": -3.9857903694605823,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 46735,
+        "exposure_time_pct": 26.296984019806438,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 801,
+        "order_count": 101,
+        "order_fill_count": 101,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 250980,
+        "processed_real_source_minutes": 250961,
+        "excluded_synthetic_minutes": 19,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1135,
+        "target_complete_bars": 1135,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 185,
+          "session_exact": 901,
+          "session_sparse_boundary_allowed": 45,
+          "session_sparse_unverified_allowed": 4
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.5937871349997295
+    },
+    {
+      "asset": "ES",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 331020
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9514184710342741,
+        "total_return_pct": -4.858152896572587,
+        "gross_total_return_pct": -3.8672710386926545,
+        "max_drawdown_pct": 7.779984217888147,
+        "annualized_sharpe": -1.4237895037510107,
+        "fill_count": 66,
+        "marker_count": 66,
+        "round_trip_count": 29,
+        "round_trip_win_rate_pct": 34.48275862068966,
+        "turnover_notional": 51.800000000000004,
+        "fee_paid_equity": 0.0049797143395366094,
+        "slippage_paid_equity": 0.0049797143395366094,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.9959428679073219,
+        "breakeven_all_in_cost_bps": -7.4657742059703756,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 58734,
+        "exposure_time_pct": 33.048615800135046,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 414,
+        "order_count": 66,
+        "order_fill_count": 66,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 331020,
+        "processed_real_source_minutes": 330967,
+        "excluded_synthetic_minutes": 53,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 775,
+        "target_complete_bars": 775,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 243,
+          "session_exact": 463,
+          "session_sparse_boundary_allowed": 51,
+          "session_sparse_unverified_allowed": 18
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.3255733430014516
+    },
+    {
+      "asset": "ES",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 407595
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9710221417527819,
+        "total_return_pct": -2.8977858247218102,
+        "gross_total_return_pct": -2.282104812387531,
+        "max_drawdown_pct": 6.156813872590428,
+        "annualized_sharpe": -0.8950788551496738,
+        "fill_count": 42,
+        "marker_count": 42,
+        "round_trip_count": 19,
+        "round_trip_win_rate_pct": 21.05263157894737,
+        "turnover_notional": 31.599999999999994,
+        "fee_paid_equity": 0.003070814743020144,
+        "slippage_paid_equity": 0.003070814743020144,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.6141629486040288,
+        "breakeven_all_in_cost_bps": -7.221850672112441,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 58562,
+        "exposure_time_pct": 32.9518343461625,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 285,
+        "order_count": 42,
+        "order_fill_count": 42,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 407595,
+        "processed_real_source_minutes": 407536,
+        "excluded_synthetic_minutes": 59,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 658,
+        "target_complete_bars": 658,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_boundary_allowed": 62,
+          "session_sparse_scheduled_gap_allowed": 299,
+          "session_exact": 275,
+          "session_sparse_unverified_allowed": 22
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.058172945002298
+    },
+    {
+      "asset": "ES",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "58e19d5780d5201b",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/es/htf_canonical_ohlcv/1m/es_1m_canonical.parquet",
+            "size": 21624970,
+            "mtime_ns": 1783769234087325590
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 639915
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0031087170434696,
+        "total_return_pct": 0.31087170434696,
+        "gross_total_return_pct": 0.5760677459778485,
+        "max_drawdown_pct": 6.119731723605726,
+        "annualized_sharpe": 0.13236402053233334,
+        "fill_count": 17,
+        "marker_count": 17,
+        "round_trip_count": 6,
+        "round_trip_win_rate_pct": 33.333333333333336,
+        "turnover_notional": 13.2,
+        "fee_paid_equity": 0.0013022421936814395,
+        "slippage_paid_equity": 0.0013022421936814395,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.2604484387362879,
+        "breakeven_all_in_cost_bps": 4.364149590741277,
+        "evaluated_real_minutes": 177720,
+        "exposure_minutes": 37369,
+        "exposure_time_pct": 21.026896241278415,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 155,
+        "order_count": 17,
+        "order_fill_count": 17,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 639915,
+        "processed_real_source_minutes": 639807,
+        "excluded_synthetic_minutes": 108,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 565,
+        "target_complete_bars": 565,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 468,
+          "session_sparse_boundary_allowed": 92,
+          "session_sparse_unverified_allowed": 5
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.226196535000781
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 178574
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.19100196552640628,
+        "total_return_pct": -80.89980344735937,
+        "gross_total_return_pct": -4.97252792923214,
+        "max_drawdown_pct": 80.89980344735937,
+        "annualized_sharpe": -94.75491014288593,
+        "fill_count": 9991,
+        "marker_count": 9991,
+        "round_trip_count": 4284,
+        "round_trip_win_rate_pct": 3.9449112978524745,
+        "turnover_notional": 8021.600000000078,
+        "fee_paid_equity": 0.3912701503480399,
+        "slippage_paid_equity": 0.3912701503480399,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 78.25403006960798,
+        "breakeven_all_in_cost_bps": -0.06198922819926314,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 22039,
+        "exposure_time_pct": 12.627556136159193,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 174531,
+        "order_count": 9991,
+        "order_fill_count": 9991,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 9945,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 178574,
+        "processed_real_source_minutes": 174531,
+        "excluded_synthetic_minutes": 4043,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 174531,
+        "target_complete_bars": 174531,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 174531
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 24.598357503000443
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 182774
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7874648068925814,
+        "total_return_pct": -21.253519310741865,
+        "gross_total_return_pct": -1.3582223203838173,
+        "max_drawdown_pct": 21.387504170117776,
+        "annualized_sharpe": -12.979633495270724,
+        "fill_count": 1317,
+        "marker_count": 1317,
+        "round_trip_count": 589,
+        "round_trip_win_rate_pct": 15.449915110356537,
+        "turnover_notional": 1126.2000000000012,
+        "fee_paid_equity": 0.10118178513911393,
+        "slippage_paid_equity": 0.10118178513911393,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 20.236357027822784,
+        "breakeven_all_in_cost_bps": -0.1206022305437592,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 38882,
+        "exposure_time_pct": 22.277990729440614,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11904,
+        "order_count": 1317,
+        "order_fill_count": 1317,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 182774,
+        "processed_real_source_minutes": 178613,
+        "excluded_synthetic_minutes": 4161,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12184,
+        "target_complete_bars": 12184,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 1718,
+          "session_exact": 10274,
+          "session_sparse_boundary_allowed": 133,
+          "session_sparse_scheduled_gap_allowed": 59
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.9796486830018694
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 194999
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9112807393612172,
+        "total_return_pct": -8.871926063878277,
+        "gross_total_return_pct": -2.2050916932671583,
+        "max_drawdown_pct": 9.884613835334722,
+        "annualized_sharpe": -5.4653490857756655,
+        "fill_count": 413,
+        "marker_count": 413,
+        "round_trip_count": 190,
+        "round_trip_win_rate_pct": 17.894736842105264,
+        "turnover_notional": 353.00000000000006,
+        "fee_paid_equity": 0.033947542294476336,
+        "slippage_paid_equity": 0.033947542294476336,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 6.789508458895267,
+        "breakeven_all_in_cost_bps": -0.6246718677810645,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 43308,
+        "exposure_time_pct": 24.813929903570138,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 2977,
+        "order_count": 413,
+        "order_fill_count": 413,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 194999,
+        "processed_real_source_minutes": 190508,
+        "excluded_synthetic_minutes": 4491,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3251,
+        "target_complete_bars": 3251,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 858,
+          "session_sparse_scheduled_gap_allowed": 106,
+          "session_exact": 2283,
+          "session_sparse_boundary_allowed": 4
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.543469512002048
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 252183
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9596712820859061,
+        "total_return_pct": -4.032871791409387,
+        "gross_total_return_pct": -2.5356081300314526,
+        "max_drawdown_pct": 5.2086102186836065,
+        "annualized_sharpe": -3.1572419578699913,
+        "fill_count": 101,
+        "marker_count": 101,
+        "round_trip_count": 43,
+        "round_trip_win_rate_pct": 23.25581395348837,
+        "turnover_notional": 77.39999999999998,
+        "fee_paid_equity": 0.007619017979289329,
+        "slippage_paid_equity": 0.007619017979289329,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.5238035958578657,
+        "breakeven_all_in_cost_bps": -3.2759794961646684,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 36289,
+        "exposure_time_pct": 20.792294778578018,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 801,
+        "order_count": 101,
+        "order_fill_count": 101,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 252183,
+        "processed_real_source_minutes": 245705,
+        "excluded_synthetic_minutes": 6478,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1135,
+        "target_complete_bars": 1135,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 185,
+          "session_sparse_unverified_allowed": 455,
+          "session_exact": 481,
+          "session_sparse_boundary_allowed": 14
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.456178545999137
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 332463
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9851131173215124,
+        "total_return_pct": -1.488688267848759,
+        "gross_total_return_pct": -0.48659861067915644,
+        "max_drawdown_pct": 3.8172340708045205,
+        "annualized_sharpe": -0.7945774321935433,
+        "fill_count": 66,
+        "marker_count": 66,
+        "round_trip_count": 26,
+        "round_trip_win_rate_pct": 15.384615384615385,
+        "turnover_notional": 50.6,
+        "fee_paid_equity": 0.005023856325871505,
+        "slippage_paid_equity": 0.005023856325871505,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.004771265174301,
+        "breakeven_all_in_cost_bps": -0.9616573333580166,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 44328,
+        "exposure_time_pct": 25.39835330113275,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 414,
+        "order_count": 66,
+        "order_fill_count": 66,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 332463,
+        "processed_real_source_minutes": 323784,
+        "excluded_synthetic_minutes": 8679,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 775,
+        "target_complete_bars": 775,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 243,
+          "session_sparse_unverified_allowed": 311,
+          "session_exact": 209,
+          "session_sparse_boundary_allowed": 12
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.4094648879981833
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 409743
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9992075564076272,
+        "total_return_pct": -0.0792443592372849,
+        "gross_total_return_pct": 0.40157029232938957,
+        "max_drawdown_pct": 1.8207898287359137,
+        "annualized_sharpe": -0.031384503866774466,
+        "fill_count": 33,
+        "marker_count": 33,
+        "round_trip_count": 13,
+        "round_trip_win_rate_pct": 38.46153846153846,
+        "turnover_notional": 24.000000000000004,
+        "fee_paid_equity": 0.0023979235100068347,
+        "slippage_paid_equity": 0.0023979235100068347,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.47958470200136694,
+        "breakeven_all_in_cost_bps": 1.673209551372456,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 39257,
+        "exposure_time_pct": 22.492852272662162,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 285,
+        "order_count": 33,
+        "order_fill_count": 33,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 409743,
+        "processed_real_source_minutes": 399899,
+        "excluded_synthetic_minutes": 9844,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 658,
+        "target_complete_bars": 658,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 328,
+          "session_sparse_scheduled_gap_allowed": 299,
+          "session_exact": 17,
+          "session_sparse_boundary_allowed": 14
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.6780903120015864
+    },
+    {
+      "asset": "EURUSD",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "4ca62bea11001afc",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/eurusd/htf_canonical_ohlcv/1m/eurusd_1m_canonical.parquet",
+            "size": 19323629,
+            "mtime_ns": 1783769227598513387
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 643285
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9693557617557805,
+        "total_return_pct": -3.064423824421947,
+        "gross_total_return_pct": -2.64861044092084,
+        "max_drawdown_pct": 4.962144135834945,
+        "annualized_sharpe": -1.789543420849915,
+        "fill_count": 24,
+        "marker_count": 24,
+        "round_trip_count": 11,
+        "round_trip_win_rate_pct": 18.181818181818183,
+        "turnover_notional": 21.400000000000002,
+        "fee_paid_equity": 0.002108169932385097,
+        "slippage_paid_equity": 0.002108169932385097,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.42163398647701944,
+        "breakeven_all_in_cost_bps": -12.37668430336841,
+        "evaluated_real_minutes": 174531,
+        "exposure_minutes": 32549,
+        "exposure_time_pct": 18.649408987515113,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 155,
+        "order_count": 24,
+        "order_fill_count": 24,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 643285,
+        "processed_real_source_minutes": 630407,
+        "excluded_synthetic_minutes": 12878,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 565,
+        "target_complete_bars": 565,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 468,
+          "session_sparse_unverified_allowed": 93,
+          "session_sparse_boundary_allowed": 4
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.107874320998235
+    },
+    {
+      "asset": "GC",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 176915
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.057841625632451106,
+        "total_return_pct": -94.2158374367549,
+        "gross_total_return_pct": -11.321246133155427,
+        "max_drawdown_pct": 94.23778179178755,
+        "annualized_sharpe": -36.33162087185729,
+        "fill_count": 16053,
+        "marker_count": 16053,
+        "round_trip_count": 7169,
+        "round_trip_win_rate_pct": 22.946017575673036,
+        "turnover_notional": 13648.200000000064,
+        "fee_paid_equity": 0.4499561087856018,
+        "slippage_paid_equity": 0.4499561087856018,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 89.99122175712037,
+        "breakeven_all_in_cost_bps": -0.08295047063462856,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 34606,
+        "exposure_time_pct": 19.743493193669487,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 175278,
+        "order_count": 16053,
+        "order_fill_count": 16053,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 16021,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 176915,
+        "processed_real_source_minutes": 175278,
+        "excluded_synthetic_minutes": 1637,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 175278,
+        "target_complete_bars": 175278,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 175278
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 28.469831323000108
+    },
+    {
+      "asset": "GC",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 181115
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7504646365013519,
+        "total_return_pct": -24.953536349864812,
+        "gross_total_return_pct": -5.499125972278374,
+        "max_drawdown_pct": 26.473052719207622,
+        "annualized_sharpe": -3.7141276413279702,
+        "fill_count": 1387,
+        "marker_count": 1387,
+        "round_trip_count": 602,
+        "round_trip_win_rate_pct": 28.737541528239202,
+        "turnover_notional": 1152.4000000000012,
+        "fee_paid_equity": 0.09846081889741669,
+        "slippage_paid_equity": 0.09846081889741669,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 19.692163779483337,
+        "breakeven_all_in_cost_bps": -0.4771889944705283,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 38642,
+        "exposure_time_pct": 22.04612101918096,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11796,
+        "order_count": 1388,
+        "order_fill_count": 1387,
+        "order_pending_count": 1,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 181115,
+        "processed_real_source_minutes": 179478,
+        "excluded_synthetic_minutes": 1637,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12076,
+        "target_complete_bars": 12076,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 11655,
+          "session_sparse_unverified_allowed": 383,
+          "session_sparse_boundary_allowed": 30,
+          "session_sparse_scheduled_gap_allowed": 8
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.081357199000195
+    },
+    {
+      "asset": "GC",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 193340
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0593047549917907,
+        "total_return_pct": 5.9304754991790665,
+        "gross_total_return_pct": 11.549428144782393,
+        "max_drawdown_pct": 10.066840026874836,
+        "annualized_sharpe": 0.8858261691937857,
+        "fill_count": 326,
+        "marker_count": 326,
+        "round_trip_count": 135,
+        "round_trip_win_rate_pct": 30.37037037037037,
+        "turnover_notional": 258.3999999999999,
+        "fee_paid_equity": 0.02817168140961137,
+        "slippage_paid_equity": 0.02817168140961137,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 5.634336281922274,
+        "breakeven_all_in_cost_bps": 4.469592935287305,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 41165,
+        "exposure_time_pct": 23.485548671253664,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 2953,
+        "order_count": 326,
+        "order_fill_count": 326,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 193340,
+        "processed_real_source_minutes": 191703,
+        "excluded_synthetic_minutes": 1637,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3227,
+        "target_complete_bars": 3227,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 3021,
+          "session_sparse_boundary_allowed": 5,
+          "session_sparse_unverified_allowed": 170,
+          "session_sparse_scheduled_gap_allowed": 31
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.6445698170027754
+    },
+    {
+      "asset": "GC",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 250368
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.964355442368731,
+        "total_return_pct": -3.5644557631268947,
+        "gross_total_return_pct": -1.9226512799315865,
+        "max_drawdown_pct": 16.530019062428458,
+        "annualized_sharpe": -0.4554169825092339,
+        "fill_count": 103,
+        "marker_count": 103,
+        "round_trip_count": 44,
+        "round_trip_win_rate_pct": 36.36363636363637,
+        "turnover_notional": 84.4,
+        "fee_paid_equity": 0.00868980880134183,
+        "slippage_paid_equity": 0.00868980880134183,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.737961760268366,
+        "breakeven_all_in_cost_bps": -2.2780228435208367,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 40850,
+        "exposure_time_pct": 23.305834160590603,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 797,
+        "order_count": 103,
+        "order_fill_count": 103,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 250368,
+        "processed_real_source_minutes": 248233,
+        "excluded_synthetic_minutes": 2135,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1131,
+        "target_complete_bars": 1131,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 185,
+          "session_exact": 833,
+          "session_sparse_boundary_allowed": 41,
+          "session_sparse_unverified_allowed": 72
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.709480239002005
+    },
+    {
+      "asset": "GC",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 330498
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.2057091974484824,
+        "total_return_pct": 20.570919744848236,
+        "gross_total_return_pct": 21.272325738646813,
+        "max_drawdown_pct": 8.563217590413153,
+        "annualized_sharpe": 2.693032225133682,
+        "fill_count": 44,
+        "marker_count": 44,
+        "round_trip_count": 15,
+        "round_trip_win_rate_pct": 46.666666666666664,
+        "turnover_notional": 29.0,
+        "fee_paid_equity": 0.003360517994904993,
+        "slippage_paid_equity": 0.003360517994904993,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.6721035989809986,
+        "breakeven_all_in_cost_bps": 73.35284737464418,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 40911,
+        "exposure_time_pct": 23.34063601821107,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 412,
+        "order_count": 44,
+        "order_fill_count": 44,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 330498,
+        "processed_real_source_minutes": 328325,
+        "excluded_synthetic_minutes": 2173,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 773,
+        "target_complete_bars": 773,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 242,
+          "session_exact": 429,
+          "session_sparse_unverified_allowed": 52,
+          "session_sparse_boundary_allowed": 50
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.264261587999499
+    },
+    {
+      "asset": "GC",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 407323
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.191097973518861,
+        "total_return_pct": 19.109797351886094,
+        "gross_total_return_pct": 19.47725228109245,
+        "max_drawdown_pct": 9.6810864350936,
+        "annualized_sharpe": 2.2297199920904336,
+        "fill_count": 27,
+        "marker_count": 27,
+        "round_trip_count": 8,
+        "round_trip_win_rate_pct": 37.5,
+        "turnover_notional": 15.399999999999999,
+        "fee_paid_equity": 0.0017702258840491994,
+        "slippage_paid_equity": 0.0017702258840491994,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.3540451768098399,
+        "breakeven_all_in_cost_bps": 126.47566416293799,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 43992,
+        "exposure_time_pct": 25.09841508917263,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 283,
+        "order_count": 27,
+        "order_fill_count": 27,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 407323,
+        "processed_real_source_minutes": 403929,
+        "excluded_synthetic_minutes": 3394,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 656,
+        "target_complete_bars": 656,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_boundary_allowed": 61,
+          "session_sparse_scheduled_gap_allowed": 298,
+          "session_exact": 247,
+          "session_sparse_unverified_allowed": 50
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.5918510669980606
+    },
+    {
+      "asset": "GC",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "27e8c7bd15c99d89",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/gc/htf_canonical_ohlcv/1m/gc_1m_canonical.parquet",
+            "size": 23224581,
+            "mtime_ns": 1783769230970382956
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 640138
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0471575819568346,
+        "total_return_pct": 4.7157581956834616,
+        "gross_total_return_pct": 4.933810568246955,
+        "max_drawdown_pct": 14.584642207992115,
+        "annualized_sharpe": 0.6768516227814383,
+        "fill_count": 18,
+        "marker_count": 18,
+        "round_trip_count": 6,
+        "round_trip_win_rate_pct": 33.333333333333336,
+        "turnover_notional": 10.400000000000002,
+        "fee_paid_equity": 0.0011004048063434889,
+        "slippage_paid_equity": 0.0011004048063434889,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.22008096126869778,
+        "breakeven_all_in_cost_bps": 47.44048623314379,
+        "evaluated_real_minutes": 175278,
+        "exposure_minutes": 35929,
+        "exposure_time_pct": 20.49829413845434,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 154,
+        "order_count": 18,
+        "order_fill_count": 18,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 640138,
+        "processed_real_source_minutes": 634550,
+        "excluded_synthetic_minutes": 5588,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 564,
+        "target_complete_bars": 564,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 469,
+          "session_sparse_unverified_allowed": 22,
+          "session_sparse_boundary_allowed": 73
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.534607468001923
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 177735
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.0407937385456657,
+        "total_return_pct": -95.92062614543343,
+        "gross_total_return_pct": -5.211938625926271,
+        "max_drawdown_pct": 95.92127057484657,
+        "annualized_sharpe": -62.79515504315476,
+        "fill_count": 18003,
+        "marker_count": 18003,
+        "round_trip_count": 8172,
+        "round_trip_win_rate_pct": 16.629955947136565,
+        "turnover_notional": 15727.000000000206,
+        "fee_paid_equity": 0.47055968753353333,
+        "slippage_paid_equity": 0.47055968753353333,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 94.11193750670667,
+        "breakeven_all_in_cost_bps": -0.03314006883656262,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 42802,
+        "exposure_time_pct": 24.09181479438484,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 177662,
+        "order_count": 18004,
+        "order_fill_count": 18003,
+        "order_pending_count": 1,
+        "order_suppressed_pending_count": 17978,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 177735,
+        "processed_real_source_minutes": 177662,
+        "excluded_synthetic_minutes": 73,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 177662,
+        "target_complete_bars": 177662,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 177662
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 32.62279985600253
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 181935
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7635779498870401,
+        "total_return_pct": -23.642205011295992,
+        "gross_total_return_pct": -4.488094316158364,
+        "max_drawdown_pct": 24.27760492759361,
+        "annualized_sharpe": -5.392504338566786,
+        "fill_count": 1373,
+        "marker_count": 1373,
+        "round_trip_count": 594,
+        "round_trip_win_rate_pct": 28.45117845117845,
+        "turnover_notional": 1119.0,
+        "fee_paid_equity": 0.09985931750028962,
+        "slippage_paid_equity": 0.09985931750028962,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 19.971863500057925,
+        "breakeven_all_in_cost_bps": -0.4010808146700951,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 45163,
+        "exposure_time_pct": 25.420742758721616,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11849,
+        "order_count": 1374,
+        "order_fill_count": 1373,
+        "order_pending_count": 1,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 181935,
+        "processed_real_source_minutes": 181862,
+        "excluded_synthetic_minutes": 73,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12129,
+        "target_complete_bars": 12129,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 12087,
+          "session_sparse_unverified_allowed": 37,
+          "session_sparse_boundary_allowed": 4,
+          "session_sparse_scheduled_gap_allowed": 1
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 4.013276202997076
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 194130
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9246446156656392,
+        "total_return_pct": -7.535538433436084,
+        "gross_total_return_pct": -1.3961573903080615,
+        "max_drawdown_pct": 10.461055639935356,
+        "annualized_sharpe": -1.4221461539682874,
+        "fill_count": 412,
+        "marker_count": 412,
+        "round_trip_count": 172,
+        "round_trip_win_rate_pct": 33.72093023255814,
+        "turnover_notional": 321.40000000000043,
+        "fee_paid_equity": 0.03121686378707761,
+        "slippage_paid_equity": 0.03121686378707761,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 6.243372757415521,
+        "breakeven_all_in_cost_bps": -0.43439869020163646,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 53254,
+        "exposure_time_pct": 29.974896151118415,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 2963,
+        "order_count": 412,
+        "order_fill_count": 412,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 194130,
+        "processed_real_source_minutes": 194050,
+        "excluded_synthetic_minutes": 80,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3237,
+        "target_complete_bars": 3237,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 3203,
+          "session_sparse_unverified_allowed": 25,
+          "session_sparse_boundary_allowed": 4,
+          "session_sparse_scheduled_gap_allowed": 5
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.637034228999255
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 250980
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0120521874213257,
+        "total_return_pct": 1.2052187421325744,
+        "gross_total_return_pct": 2.603450202542046,
+        "max_drawdown_pct": 6.508087046863309,
+        "annualized_sharpe": 0.2719428728105425,
+        "fill_count": 94,
+        "marker_count": 94,
+        "round_trip_count": 36,
+        "round_trip_win_rate_pct": 44.44444444444444,
+        "turnover_notional": 68.6,
+        "fee_paid_equity": 0.0068337720380584836,
+        "slippage_paid_equity": 0.0068337720380584836,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.3667544076116966,
+        "breakeven_all_in_cost_bps": 3.795116913326598,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 61601,
+        "exposure_time_pct": 34.67314338462924,
+        "open_position": 1.0,
+        "ruined": false,
+        "signal_count": 801,
+        "order_count": 94,
+        "order_fill_count": 94,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 250980,
+        "processed_real_source_minutes": 250888,
+        "excluded_synthetic_minutes": 92,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1135,
+        "target_complete_bars": 1135,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 185,
+          "session_exact": 885,
+          "session_sparse_boundary_allowed": 45,
+          "session_sparse_unverified_allowed": 20
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.6443415690009715
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 331020
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.013562128235093,
+        "total_return_pct": 1.3562128235093063,
+        "gross_total_return_pct": 2.039676583219352,
+        "max_drawdown_pct": 7.27241876318333,
+        "annualized_sharpe": 0.33265913773259714,
+        "fill_count": 49,
+        "marker_count": 49,
+        "round_trip_count": 20,
+        "round_trip_win_rate_pct": 45.0,
+        "turnover_notional": 33.600000000000016,
+        "fee_paid_equity": 0.0033134539295446687,
+        "slippage_paid_equity": 0.0033134539295446687,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.6626907859089337,
+        "breakeven_all_in_cost_bps": 6.070466021486164,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 58113,
+        "exposure_time_pct": 32.70986479945064,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 414,
+        "order_count": 49,
+        "order_fill_count": 49,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 331020,
+        "processed_real_source_minutes": 330893,
+        "excluded_synthetic_minutes": 127,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 775,
+        "target_complete_bars": 775,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 243,
+          "session_exact": 458,
+          "session_sparse_boundary_allowed": 49,
+          "session_sparse_unverified_allowed": 25
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.356150900999637
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 407595
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.078672369897603,
+        "total_return_pct": 7.867236989760307,
+        "gross_total_return_pct": 8.334268706505643,
+        "max_drawdown_pct": 4.771534492654372,
+        "annualized_sharpe": 1.6266031398543241,
+        "fill_count": 35,
+        "marker_count": 35,
+        "round_trip_count": 13,
+        "round_trip_win_rate_pct": 38.46153846153846,
+        "turnover_notional": 21.59999999999999,
+        "fee_paid_equity": 0.0021840405664362086,
+        "slippage_paid_equity": 0.0021840405664362086,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.43680811328724173,
+        "breakeven_all_in_cost_bps": 38.58457734493355,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 60222,
+        "exposure_time_pct": 33.896950388940795,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 285,
+        "order_count": 35,
+        "order_fill_count": 35,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 407595,
+        "processed_real_source_minutes": 407453,
+        "excluded_synthetic_minutes": 142,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 658,
+        "target_complete_bars": 658,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_boundary_allowed": 61,
+          "session_sparse_scheduled_gap_allowed": 299,
+          "session_exact": 276,
+          "session_sparse_unverified_allowed": 22
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.7217681239999365
+    },
+    {
+      "asset": "NQ",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "a1fa817e878eabde",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/nq/htf_canonical_ohlcv/1m/nq_1m_canonical.parquet",
+            "size": 24848560,
+            "mtime_ns": 1783769235618222976
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 639913
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 1.0383211337243707,
+        "total_return_pct": 3.8321133724370737,
+        "gross_total_return_pct": 4.027519164436555,
+        "max_drawdown_pct": 7.405407442586698,
+        "annualized_sharpe": 0.8974394225464851,
+        "fill_count": 12,
+        "marker_count": 12,
+        "round_trip_count": 5,
+        "round_trip_win_rate_pct": 20.0,
+        "turnover_notional": 9.4,
+        "fee_paid_equity": 0.0009451615816750078,
+        "slippage_paid_equity": 0.0009451615816750078,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.18903231633500156,
+        "breakeven_all_in_cost_bps": 42.84594855783569,
+        "evaluated_real_minutes": 177662,
+        "exposure_minutes": 43081,
+        "exposure_time_pct": 24.24885456653646,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 155,
+        "order_count": 12,
+        "order_fill_count": 12,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": true,
+        "annualized_sharpe_positive": true,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": true
+      },
+      "data_quality": {
+        "input_source_rows": 639913,
+        "processed_real_source_minutes": 639751,
+        "excluded_synthetic_minutes": 162,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 565,
+        "target_complete_bars": 565,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 468,
+          "session_sparse_boundary_allowed": 91,
+          "session_sparse_unverified_allowed": 6
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.482920397000271
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "1m",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2026-01-11T23:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 178571
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.4215797540542948,
+        "total_return_pct": -57.84202459457052,
+        "gross_total_return_pct": -0.5730134289000821,
+        "max_drawdown_pct": 57.84376180187976,
+        "annualized_sharpe": -61.02414931226388,
+        "fill_count": 5170,
+        "marker_count": 5170,
+        "round_trip_count": 2280,
+        "round_trip_win_rate_pct": 6.008771929824562,
+        "turnover_notional": 4289.60000000001,
+        "fee_paid_equity": 0.28654310961639723,
+        "slippage_paid_equity": 0.28654310961639723,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 57.308621923279446,
+        "breakeven_all_in_cost_bps": -0.013358201904608373,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 11618,
+        "exposure_time_pct": 6.802665323855585,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 170786,
+        "order_count": 5170,
+        "order_fill_count": 5170,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 5131,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 178571,
+        "processed_real_source_minutes": 170786,
+        "excluded_synthetic_minutes": 7785,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 170786,
+        "target_complete_bars": 170786,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 170786
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 21.582782528999815
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "15m",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2026-01-06T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 182771
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.7764700969476623,
+        "total_return_pct": -22.352990305233767,
+        "gross_total_return_pct": -2.5251282065821723,
+        "max_drawdown_pct": 22.40010820905567,
+        "annualized_sharpe": -13.343401920137966,
+        "fill_count": 1322,
+        "marker_count": 1322,
+        "round_trip_count": 593,
+        "round_trip_win_rate_pct": 15.682967959527824,
+        "turnover_notional": 1136.9999999999993,
+        "fee_paid_equity": 0.10054658559842514,
+        "slippage_paid_equity": 0.10054658559842514,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 20.109317119685027,
+        "breakeven_all_in_cost_bps": -0.22208691350766702,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 37659,
+        "exposure_time_pct": 22.050402257796307,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 11903,
+        "order_count": 1322,
+        "order_fill_count": 1322,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": false,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 182771,
+        "processed_real_source_minutes": 174860,
+        "excluded_synthetic_minutes": 7911,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 12183,
+        "target_complete_bars": 12183,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_exact": 8884,
+          "session_sparse_unverified_allowed": 3003,
+          "session_sparse_scheduled_gap_allowed": 71,
+          "session_sparse_boundary_allowed": 225
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.9904093650002324
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "1h",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2025-12-22T21:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 194996
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9443145381586268,
+        "total_return_pct": -5.568546184137324,
+        "gross_total_return_pct": 0.8465868956274214,
+        "max_drawdown_pct": 6.672060322424644,
+        "annualized_sharpe": -3.1745474461556773,
+        "fill_count": 383,
+        "marker_count": 383,
+        "round_trip_count": 172,
+        "round_trip_win_rate_pct": 21.511627906976745,
+        "turnover_notional": 328.60000000000025,
+        "fee_paid_equity": 0.03170845173653399,
+        "slippage_paid_equity": 0.03170845173653399,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 6.341690347306798,
+        "breakeven_all_in_cost_bps": 0.25763447827979935,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 39837,
+        "exposure_time_pct": 23.32568243298631,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 2977,
+        "order_count": 383,
+        "order_fill_count": 383,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 194996,
+        "processed_real_source_minutes": 186740,
+        "excluded_synthetic_minutes": 8256,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 3251,
+        "target_complete_bars": 3251,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 1440,
+          "session_sparse_scheduled_gap_allowed": 108,
+          "session_exact": 1693,
+          "session_sparse_boundary_allowed": 10
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.5558322760007286
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "4h",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2025-10-23T20:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 252180
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9319105093441324,
+        "total_return_pct": -6.808949065586756,
+        "gross_total_return_pct": -5.063006116899227,
+        "max_drawdown_pct": 6.971528718720455,
+        "annualized_sharpe": -3.585229436038254,
+        "fill_count": 105,
+        "marker_count": 105,
+        "round_trip_count": 49,
+        "round_trip_win_rate_pct": 18.367346938775512,
+        "turnover_notional": 92.80000000000001,
+        "fee_paid_equity": 0.008958711842725627,
+        "slippage_paid_equity": 0.008958711842725627,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 1.7917423685451253,
+        "breakeven_all_in_cost_bps": -5.455825557003476,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 43295,
+        "exposure_time_pct": 25.35043856053775,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 801,
+        "order_count": 105,
+        "order_fill_count": 105,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 252180,
+        "processed_real_source_minutes": 241736,
+        "excluded_synthetic_minutes": 10444,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 1135,
+        "target_complete_bars": 1135,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 185,
+          "session_sparse_unverified_allowed": 703,
+          "session_exact": 243,
+          "session_sparse_boundary_allowed": 4
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.595371569001145
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "8h",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2025-08-04T16:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 332459
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9587468981842336,
+        "total_return_pct": -4.125310181576635,
+        "gross_total_return_pct": -3.262330406629965,
+        "max_drawdown_pct": 5.766830907000509,
+        "annualized_sharpe": -1.881889694204208,
+        "fill_count": 54,
+        "marker_count": 54,
+        "round_trip_count": 24,
+        "round_trip_win_rate_pct": 37.5,
+        "turnover_notional": 44.800000000000004,
+        "fee_paid_equity": 0.004405917362950608,
+        "slippage_paid_equity": 0.004405917362950608,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.8811834725901215,
+        "breakeven_all_in_cost_bps": -7.281987514799029,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 47468,
+        "exposure_time_pct": 27.793847270853583,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 414,
+        "order_count": 54,
+        "order_fill_count": 54,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 332459,
+        "processed_real_source_minutes": 319772,
+        "excluded_synthetic_minutes": 12687,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 775,
+        "target_complete_bars": 775,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 243,
+          "session_sparse_unverified_allowed": 463,
+          "session_exact": 68,
+          "session_sparse_boundary_allowed": 1
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 2.9708789680007612
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "12h",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2025-05-16T12:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 409736
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.965883260521451,
+        "total_return_pct": -3.4116739478548985,
+        "gross_total_return_pct": -2.8847539519288645,
+        "max_drawdown_pct": 4.3495053082616035,
+        "annualized_sharpe": -1.5937436432142986,
+        "fill_count": 34,
+        "marker_count": 34,
+        "round_trip_count": 15,
+        "round_trip_win_rate_pct": 33.333333333333336,
+        "turnover_notional": 27.2,
+        "fee_paid_equity": 0.0026743679503090255,
+        "slippage_paid_equity": 0.0026743679503090255,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.5348735900618051,
+        "breakeven_all_in_cost_bps": -10.605713058562003,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 43324,
+        "exposure_time_pct": 25.367418875083438,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 285,
+        "order_count": 34,
+        "order_fill_count": 34,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": true,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 409736,
+        "processed_real_source_minutes": 395532,
+        "excluded_synthetic_minutes": 14204,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 658,
+        "target_complete_bars": 658,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_unverified_allowed": 337,
+          "session_sparse_scheduled_gap_allowed": 299,
+          "session_exact": 21,
+          "session_sparse_boundary_allowed": 1
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 3.422891977999825
+    },
+    {
+      "asset": "USDJPY",
+      "timeframe": "1d",
+      "status": "ok",
+      "source": {
+        "source_generation": "ccf165d9dceddb1a",
+        "source_snapshot": [
+          {
+            "path": "data/htf_multiasset/usdjpy/htf_canonical_ohlcv/1m/usdjpy_1m_canonical.parquet",
+            "size": 18699894,
+            "mtime_ns": 1783769229471175157
+          }
+        ],
+        "loaded_start": "2024-09-18T00:00:00Z",
+        "loaded_end": "2026-07-10T20:59:00Z",
+        "source_rows": 643340
+      },
+      "metrics": {
+        "initial_equity": 1.0,
+        "final_equity": 0.9733443090903513,
+        "total_return_pct": -2.66556909096487,
+        "gross_total_return_pct": -2.3574752980985547,
+        "max_drawdown_pct": 3.8781075181671953,
+        "annualized_sharpe": -1.8102778289993366,
+        "fill_count": 16,
+        "marker_count": 16,
+        "round_trip_count": 8,
+        "round_trip_win_rate_pct": 12.5,
+        "turnover_notional": 15.8,
+        "fee_paid_equity": 0.001553562450521762,
+        "slippage_paid_equity": 0.001553562450521762,
+        "spread_paid_equity": 0.0,
+        "total_cost_pct_of_initial": 0.31071249010435237,
+        "breakeven_all_in_cost_bps": -14.920729734800979,
+        "evaluated_real_minutes": 170786,
+        "exposure_minutes": 31032,
+        "exposure_time_pct": 18.170107620062534,
+        "open_position": 0.0,
+        "ruined": false,
+        "signal_count": 155,
+        "order_count": 16,
+        "order_fill_count": 16,
+        "order_pending_count": 0,
+        "order_suppressed_pending_count": 0,
+        "order_cancelled_data_gap_count": 0
+      },
+      "gates": {
+        "minimum_fills": false,
+        "net_return_positive": false,
+        "annualized_sharpe_positive": false,
+        "drawdown_at_most_20pct": true,
+        "gross_edge_exceeds_2x_cost_scenario": false
+      },
+      "data_quality": {
+        "input_source_rows": 643340,
+        "processed_real_source_minutes": 626142,
+        "excluded_synthetic_minutes": 17198,
+        "invalid_source_rows": 0,
+        "continuous_source_gap_count": 0,
+        "missing_continuous_source_minutes": 0,
+        "target_closed_bars": 565,
+        "target_complete_bars": 565,
+        "suppressed_incomplete_target_bars": 0,
+        "target_bar_completeness_counts": {
+          "session_sparse_scheduled_gap_allowed": 468,
+          "session_sparse_unverified_allowed": 92,
+          "session_sparse_boundary_allowed": 5
+        },
+        "order_cancelled_data_gap_count": 0
+      },
+      "elapsed_seconds": 5.051245217000542
+    }
+  ],
+  "limitations": [
+    "Current canonical revisions have no historical first-seen or revision timestamps.",
+    "The strategy executes CUSUM and online trend/volatility logic; Market Context v1 chart diagnostics are not execution gates.",
+    "Normalized PnL omits instrument multipliers, rolls, funding, borrow, FX conversion, margin, liquidation and market impact.",
+    "OHLCV next-open fills do not model quote depth, queue position, partial fills or venue order lifecycle.",
+    "The fixed generic cost scenario is not an instrument-specific historical cost series.",
+    "Each selection is an independent normalized stream, not a capital-netted portfolio."
+  ]
+}
