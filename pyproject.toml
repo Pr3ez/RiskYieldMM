@@ -52,6 +52,7 @@ include = [
     "fetchingByBit*",
     "fetchingMultiAsset*",
     "regression_feature_engineering*",
+    "riskyieldmm*",
     "schemas*",
     "scripts*",
 ]
@@ -95,4 +96,4 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 
 [tool.ruff.lint.isort]
-known-first-party = ["regression_feature_engineering", "scripts", "schemas"]
+known-first-party = ["regression_feature_engineering", "riskyieldmm", "scripts", "schemas"]
