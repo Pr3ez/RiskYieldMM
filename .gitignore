@@ -76,6 +76,9 @@ test_output/quarantine/
 test_output/ta_signal_diagnostics/
 test_output/tmp_stage1_*/
 test_output/python_documentation_audit.md
+# Raw-V8 exploratory/provenance products are reproducible non-authorities.
+test_output/raw_v8_step2_external_schema_v2_maximum_protocol_structural_self_test_v49f.json
+test_output/raw_v8_step2_inventory_v2_candidate.json
 # Legacy Analyst runtime output; new writes use XDG/RISKYIELDMM state storage.
 test_output/analyst_indicator_optimizer_trials.jsonl
 tmp/

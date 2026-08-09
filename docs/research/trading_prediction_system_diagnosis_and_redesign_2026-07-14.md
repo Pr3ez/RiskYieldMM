@@ -41,7 +41,7 @@ The current system is not failing because one model class was omitted. It is fai
 
 3. **The two research objectives are not the deployed economic decision.** The Analyst meta-model predicts TP-first on fresh CUSUM events, while the runtime only invokes it after other entry gates have opened a position. RPF rows use each row's current close but share a later fixed future path and ignore first-touch order. Neither objective directly estimates net utility of a trade entered at the next executable price.
 
-4. **The evidence is pooled and unbalanced.** The Analyst meta data are 95.33% 1-minute rows; only 26 of 56 intended asset/timeframe selections have any rows, and session assets have no training rows at 1 hour or slower. A pooled metric therefore cannot justify “all assets and all timeframes.” RPF has 2,530 features for its BTCUSDT 8h/B benchmark but only 29 in 47 other core asset/root manifests.
+4. **The evidence is pooled and unbalanced.** The Analyst meta data are 95.33% 1-minute rows; only 26 of 56 intended asset/timeframe selections have any rows, and session assets have no training rows at 1 hour or slower. A pooled metric therefore cannot justify “all assets and all timeframes.” RPF has 2,530 features for its BTCUSDT 8h/B benchmark but only 29 in 47 other core asset/root manifests. The legacy 2,530-feature multi-asset RPF surface is therefore retained only as an informative research inventory; it is too heterogeneous, noisy, and scope-specific to become the production model panel without a family-level redesign.
 
 5. **Discrimination is modest and calibration/deployment utility are unproven.** Analyst OOF PR-AUC is 0.1988 versus 0.1536 for the causal base-rate predictor; observed prevalence is 0.1547. Brier improvement is only 0.00125 and is negative in 35 of 128 folds. There is no separately calibrated OOF probability ledger, net-PnL policy comparison, or final untouched test for the meta-gated strategy.
 
@@ -171,6 +171,7 @@ The RPF horizons are prediction-label windows, not current holding periods. They
 | RPF label is not an executable trade | `scripts/analysis/materialize_stage1_regression_targets.py:285-353` | Critical | 227 sample rows with different current closes share one later 04:00-08:00 future path; intervening movement/fill absent | Replace with next-executable-entry events and a fixed chronological holding/barrier contract | Hand-built path fixtures plus random sample reconciliation against an independent event-label implementation |
 | RPF ignores first-touch ordering | `walkforward/classification/targets.py:24-32` | Critical | Label compares maximum favorable/adverse excursion rather than TP/SL order | Resolve TP/SL chronologically at the finest reliable bar; adverse outcome for same-bar ambiguity | Fixtures for TP-first, SL-first, timeout, gap, and ambiguous bars |
 | RPF optimization is disconnected from PnL | `walkforward/rank_signal.py:1527-1560` | Critical | Precision/lift and arbitrary `5*FP + 1*FN`; no fills, costs, positions, or capital | Make executable net utility and portfolio replay the promotion objective; keep predictive metrics as diagnostics | Full OOF decision-policy replay with no-trade/random/simple baselines and portfolio constraints |
+| Legacy RPF feature surface is too large and non-invariant for production | RPF feature catalogs and manifests; 2,530-feature BTCUSDT 8h/B benchmark versus 29-feature core scopes | High | The catalog is informative for discovery, but bulk multi-asset use mixes heterogeneous availability, normalization variants, redundancy, and scope coverage; a large factory has not shown stable incremental OOS value | Do not bulk-migrate the old panel. Preserve its metadata, group features into causal families, and admit only a small invariant core plus later family additions that pass availability, redundancy, stability, and net-utility ablations | Family-by-family causal audit and identical-fold OOS ablation; leave-asset/timeframe-out coverage; reject any family whose benefit is unstable, redundant, or unavailable live |
 | Historical point-in-time provenance is incomplete | Canonical files and Analyst nominal clock | High | No historical first-seen/revision clocks; nominal close+5s assumption | Create append-only raw/normalized observation journal; preserve source, event, receive, available, revision, and ingest clocks | Replay first-seen journal and assert feature hashes match live inference; inject late revisions and prove no history mutation |
 | Synthetic/non-tradable rows can be labeled | Target materializer `:285-307`; loaders `walkforward/data.py:240-273`, `classification/data.py:14-43` | High | Valid synthetic rows observed, e.g. EURUSD 8h/B 12,701 and USDJPY 18,186 | Add `eligible_for_decision`; exclude closed-market, gap-fill, stale, synthetic, and invalid-calendar rows before labeling | Property test: zero labels/trades on ineligible rows across all asset/root manifests |
 | Decision timestamp is ambiguous | `core/alignment.py:68-73`; RPF data contract | High | Stored key is bar-open time while current OHLC is available only after close | Persist `bar_open_ts`, `bar_close_ts`, `observed_at`, `feature_available_ts`, `decision_ts`, `earliest_entry_ts` | Assert every raw dependency `available_ts <= decision_ts`; current bar cannot be traded at its own open |
@@ -529,17 +530,23 @@ Probability calibration is required for probability thresholds, probability-time
 
 Before the next model experiment:
 
-1. Version and hash the raw-source manifest, first-seen rules, calendar, eligibility policy, target/execution policy, feature schema, split manifest, cost grid, metric code, and hypothesis family.
+1. Version and hash the raw-source manifest, first-seen rules, calendar, eligibility policy, target/execution policy, feature schema, split manifest, cost grid, metric code, drift-control registry, and hypothesis family.
 2. Treat every period and asset already inspected in current reports as development data.
 3. Begin append-only first-seen collection immediately, but treat data from 2026-07-14 onward as a **quarantine candidate**, not automatically as the final holdout. If anyone inspects its raw future price path, labels, or PnL during development, it becomes development data.
-4. After Stage 1 contracts and one candidate artifact are signed, persist `protocol_frozen_at` and define `final_holdout_start_ts` as the first v3 event whose `ingested_first_seen_ts > protocol_frozen_at`. No historical backfill may enter it.
+4. After Stage 1 contracts, one candidate artifact, and its complete drift-control registry are signed, persist `protocol_frozen_at` and define `final_holdout_start_ts` as the first v3 event whose `ingested_first_seen_ts > protocol_frozen_at`. No historical backfill may enter it. Any later estimator, reference, threshold, action, re-entry, model, calibrator, or policy change creates a new version and requires a new future holdout.
 5. Access-control final-holdout raw price paths, labels, PnL, and aggregate performance until the minimum evidence gate is reached. Operational staff may monitor schema, heartbeat, freshness, and incident counts without opening economic outcomes.
 6. Record every trial, including failed and interrupted trials, in an append-only ledger with parent hypothesis and code/artifact hashes.
 
 The final holdout must accrue at least:
 
-- **Fast scopes (1m/15m):** 90 calendar days and 500 independent executed-event clusters.
-- **Slower scopes:** 12 months and 200 independent executed-event clusters.
+- **Fast scopes (1m/15m):** 90 calendar days and 500 independent mature
+  paper-selected event/trade clusters resolved under the frozen modeled-execution
+  policy.
+- **Slower scopes:** 12 months and 200 independent mature paper-selected
+  event/trade clusters resolved under the same frozen modeled-execution policy.
+
+These support units are paper-policy outcomes, not venue executions or observed
+fills. Venue-execution evidence is a separate later production/canary gate.
 
 These are minimum opening rules, not proof thresholds. If a scope lacks enough events, report **insufficient evidence**; do not pool it silently into an all-timeframe claim.
 
@@ -652,7 +659,9 @@ Every candidate must pass:
 - Turnover, exposure, leverage, capital utilisation, margin utilisation, and liquidity/capacity usage.
 - Asset/timeframe/side/regime contributions and concentration.
 - Fee, spread, slippage, funding/borrow/roll, impact, and missed-fill attribution.
-- Live-versus-replay slippage and decision disagreement.
+- Modeled-versus-realised slippage attribution. Any unexplained deterministic
+  live-versus-replay feature, score, eligibility, policy, or decision divergence
+  is an integrity failure, not a trading-performance metric.
 
 ### 12.4 Historical candidate viability gate
 
@@ -671,9 +680,11 @@ The 35% concentration and evidence-count gates are proposed governance defaults 
 
 ### 12.5 Final promotion gate
 
-After historical candidacy, a model remains shadow-only until the forward holdout reaches its minimum duration/count. Promotion then requires:
+After historical candidacy, a model remains shadow-only until the forward
+holdout reaches the Section 10.1 calendar-duration and independent-cluster
+minima. Promotion then requires:
 
-- all schema, artifact, clock, feature-parity, and reconciliation checks pass;
+- all schema, artifact, clock, feature-parity, drift-control registry, and reconciliation checks pass without changing the protocol frozen before `final_holdout_start_ts`;
 - positive net EV with the same dependence-aware lower confidence requirement;
 - conservative execution cost and delay sensitivity still pass;
 - no unresolved severe data/model incidents;
@@ -811,68 +822,130 @@ ingest append-only observations
 
 ### 15.3 Version and parity rules
 
-- Service, code commit, data contract, calendar, feature schema, model, calibrator, policy, and cost table each have immutable IDs.
+- Service, code commit, data contract, calendar, feature schema, model, calibrator, policy, drift-control registry, and cost table each have immutable IDs.
 - A mismatch fails closed; the stopped v2/v3 state observed in this audit is not a valid candidate test.
 - For identical first-seen journal prefixes, replay and live features/scores/decisions must match exactly or within declared floating-point tolerance.
 - Paper and live ledgers are append-only and reconciled after restart. Historical backfill is never counted as forward paper evidence.
 
 ## 16. Monitoring, drift, retraining, and rollback
 
-### 16.1 Monitoring matrix
+### 16.1 Drift coverage and control contract
 
-Thresholds below are provisional operational gates. Baselines are established from training plus shadow data and frozen per artifact. Confidence-interval rules take precedence over noisy point estimates.
+“Drift” is not one statistic and does not by itself identify a cause. The live
+design must distinguish the following surfaces rather than treating every
+distribution change or drawdown as a retraining signal:
+
+| Drift surface | What changes | Required interpretation |
+|---|---|---|
+| Availability and data-quality drift | Freshness, gaps, duplicates, revisions, synthetic rows, source coverage | Integrity and observability problem; required-input failure can suspend immediately |
+| Schema and semantic drift | Columns, types, units, calendars, label definitions, source/model versions | Contract change; fail closed and create new versioned lineage rather than adapting silently |
+| Universe and candidate-composition drift | Tradable assets, eligible candidates, sessions, asset/group mix | Selection-population change; compare only currently observable eligible candidates and never fill a missing asset from future knowledge |
+| Feature/covariate and missingness drift | Marginal/joint feature distributions, missingness, OOD distance | Input-distribution change; diagnose by family/scope and combine with model instability before statistical suspension |
+| Target, prior, and payoff drift | Outcome base rates, net payoff, MAE/MFE, holding time, censoring/ambiguity | Matured-outcome change; a label-definition change is schema drift, while a distribution change requires later-data analysis |
+| Concept and predictive-value drift | Relationship between information at `t` and later outcome/utility | Requires matured labels and matched controls; feature drift alone cannot establish it |
+| Calibration drift | Score-to-frequency or score-to-payoff mapping | May justify temporal recalibration when discrimination remains stable; it does not automatically justify model retraining |
+| Score, rank, and selection-policy drift | Score tail, rank concentration, model disagreement, trade count, abstention | Decision-layer change; collapse, explosion, or artifact disagreement can halt new orders |
+| Market/regime and dependence drift | Volatility, liquidity, spread, breadth, correlation, tail state, session behavior | Context change and stress input; never an automatic hard gate unless that exact regime policy passed prior OOS validation |
+| Execution, cost, and capacity drift | Spread, slippage, latency, fills, rejects, impact, turnover capacity | Economic/actionability change; route or strategy can be suspended even when prediction quality is unchanged |
+| Portfolio and risk drift | Exposure concentration, correlations, margin, liquidity, realised tail risk | Risk-state change governed by hard portfolio limits, independent of model confidence |
+| Live-parity and infrastructure drift | Replay/live features and decisions, clocks, queues, provider state, reconciliation | System-integrity change; unexplained decision or ledger mismatch fails closed |
+
+Every deployed monitor must be represented by an immutable, version-linked
+control record containing its reference artifact, scope/horizon/model IDs,
+metric and estimator version, observation window, minimum mature support,
+warning and suspension rules, multiplicity family, prescribed action, and
+re-entry evidence. Hard integrity rules act immediately; statistical rules use
+predeclared persistence and uncertainty. A warning, suspension, recalibration,
+retraining decision, and rollback are distinct events. No drift detector may
+silently change a model, threshold, feature schema, universe, or risk limit.
+
+The complete registry is fitted only on development/training evidence and, when
+needed, a prior **non-promotion** monitor-qualification shadow cohort. It is
+signed before the Section 10.1 `final_holdout_start_ts`. The locked promotion
+cohort never fits or changes a monitor. During that sealed cohort, only
+integrity/operational status may be inspected; its economic outcomes are opened
+once at the Section 12.5 gate. Any monitor estimator, reference, threshold,
+action, or re-entry change creates a new registry version and a new future
+holdout. Each scope freezes both Section 10.1 calendar-duration and independent
+mature-cluster minima; probability monitors additionally require the Section 9
+class-support rule.
+
+This is a downstream design specification. It is not evidence that a production
+drift-control registry or accepted live monitor currently exists.
+
+### 16.2 Monitoring matrix
+
+Thresholds below are provisional operational gates. Baselines are established
+from development/training evidence plus an explicitly identified prior
+non-promotion monitor-qualification shadow cohort and are frozen per artifact
+before the promotion cohort. Confidence-interval rules take precedence over
+noisy point estimates.
 
 | Area | Monitor | Warning | Automatic suspension / action |
 |---|---|---|---|
 | Data freshness | `now - latest_available_ts` by source/scope | >2 expected bar intervals or source SLA | >3 intervals for a required input: no new orders in affected scope |
 | Schema/version | Column/dtype/unit/calendar/source hashes | Any unrecognized but non-required field | Required hash/version mismatch: fail closed globally or by scope |
-| Gaps/revisions | Missing bars, late revisions, duplicates, synthetic rate | Outside 99% training/shadow control band | Unresolved required bar, authoritative-calendar failure, or revision changing a pending decision: suspend scope |
+| Gaps/revisions | Missing bars, late revisions, duplicates, synthetic rate | Outside the frozen 99% development/qualification control band | Unresolved required bar, authoritative-calendar failure, or revision changing a pending decision: suspend scope |
+| Universe/composition | Tradable and eligible asset counts, session/group mix, stale/missing-candidate rate | Outside frozen schedule/composition band | Required universe authority unavailable or candidate eligibility cannot be reproduced: suspend affected snapshot/scope |
 | Feature drift | Robust location/scale, missingness, PSI/KS as diagnostics, OOD distance | Two consecutive windows outside frozen control limits | Severe multi-family OOD plus model instability: abstain and review; do not auto-retrain |
+| Target/prior/payoff drift | Matured event base rates, ambiguity/censoring, net utility, MAE/MFE, holding time | Dependence-aware interval excludes frozen reference for two adequate windows | Label-contract mismatch: fail closed; severe payoff/prior shift plus invalid calibration/utility: disable affected model policy and review |
 | Score/rank drift | Score distribution, top-tail size, rank concentration, model disagreement | Outside 99% expected band | Collapse/explosion of scores or artifact disagreement: no new orders |
-| Calibration | Brier/log loss, slope/intercept, reliability by side/scope | CI excludes training/shadow tolerance or slope outside provisional 0.8-1.2 | Slope outside 0.6-1.4 with adequate events, or severe top-tail overconfidence: disable probability-sized policy; fall back/abstain |
-| Predictive value | PR-AUC, precision@k, rank IC/lift on matured events | Lower CI no longer exceeds matched control over two windows | Sustained adjusted lower CI below control: demote challenger; do not infer from one drawdown |
+| Calibration | Brier/log loss, slope/intercept, reliability by side/scope | For two adequate evaluations: slope estimate outside `[0.8, 1.2]` with its 95% CI excluding `1`, or Brier/log loss >10% worse than the frozen reference | Slope estimate outside `[0.6, 1.4]` with its 95% CI excluding `1`, or severe top-tail overconfidence for two adequate evaluations: disable probability-sized policy; fall back/abstain |
+| Concept/predictive value | PR-AUC, precision@k, rank IC/lift and selected net utility on matured events | 90% lower CI of the incremental metric is `<=0` for two consecutive evaluations | 95% upper CI of the incremental metric is `<=0` for two consecutive evaluations: demote to champion/no-trade; do not infer from one drawdown |
+| Market/regime/dependence | Realised/downside volatility, spread/liquidity, breadth, correlation, dispersion, tail state | Joint state outside frozen reference/support band | Multi-family OOD plus model instability: abstain/review; use a regime-conditioned policy only if already versioned and validated |
 | Signal frequency | Candidates, trades, abstention, zero/overactive snapshots | Outside frozen 99% count band | Overactive rule, duplicate signals, or cap breach: stop new orders |
 | Execution | Rejects, misses, fill latency, slippage, spread, adverse selection | Cost quantile above validation base | Realised cost exceeds 2x locked assumption over adequate sample or reconciliation mismatch: suspend affected route |
 | Portfolio | Exposure, correlation, margin, liquidity, turnover | 80% of any hard limit | Any hard limit, stale risk state, daily/weekly/DD halt: reject/flatten under approved emergency policy |
-| Live vs replay | Feature, score, policy, fill-scenario divergence | Any unexplained decision mismatch | Schema/feature/model mismatch or cash/position reconciliation failure: global fail closed |
-| Infrastructure | Heartbeat, queue lag, clock skew, rate limits, provider state | SLA degradation | Missing heartbeat/clock integrity/primary+backup source: suspend relevant scope |
+| Live vs replay | Deterministic feature, score, eligibility, policy, decision, and ledger divergence; modeled execution residuals stay under Execution | Declared numerical tolerance nearing its frozen bound | Any unexplained feature/score/eligibility/policy/decision divergence or cash/position reconciliation mismatch: fail closed globally or for the provably isolated affected scope |
+| Infrastructure | Heartbeat, queue lag, clock skew, rate limits, provider state | SLA degradation | Missing heartbeat/clock integrity or unavailable required source set/failover authority: suspend relevant scope |
 
-#### 16.1.1 Frozen window and persistence definitions
+#### 16.2.1 Frozen window and persistence definitions
 
 To make the table implementable, each production manifest must use these initial definitions until a later governance change is evaluated prospectively:
 
 - **Operational windows:** rolling 60 minutes and rolling 24 hours, evaluated every completed base bar. Calendar/session assets additionally use the current completed session. Hard integrity failures—schema/hash mismatch, stale required state, duplicate order ID, risk-limit breach, or cash/position mismatch—suspend immediately and are not subject to statistical persistence.
-- **Fast model window (1m/15m):** evaluate after each 100 newly matured independent event clusters using a trailing 500-cluster window. Two “consecutive” windows means two non-overlapping 100-cluster increments both breaching the rule.
-- **Slower model window:** evaluate after each 25 newly matured clusters using a trailing 200-cluster window. Probability-calibration decisions still require at least 100 observations in each material outcome class; otherwise report insufficient evidence and retain the prior calibrator/no probability sizing.
-- **Control bands:** estimate from outer-test plus version-matched shadow data using the same dependence-aware blocks. “99% band” means a frozen two-sided 99% predictive interval, not the observed min/max.
+- **Fast model window (1m/15m):** evaluate after each 100 newly matured independent event clusters using a trailing 500-cluster window. Two “consecutive” evaluations means that their newly added 100-cluster cohorts do not overlap; the trailing estimates still share history, so dependence must be retained in uncertainty and persistence calculations.
+- **Slower model window:** evaluate after each 25 newly matured clusters using a trailing 200-cluster window. Consecutive evaluations likewise have non-overlapping new 25-cluster cohorts but overlapping trailing estimates. Probability-calibration decisions still require at least 100 observations in each material outcome class; otherwise report insufficient evidence and retain the prior calibrator/no probability sizing.
+- **Control bands:** estimate from outer-test plus version-matched prior non-promotion monitor-qualification shadow data using the same dependence-aware blocks. Never fit them on the current Section 12.5 promotion cohort. “99% band” means a frozen two-sided 99% predictive interval, not the observed min/max.
+- **Universe/composition drift:** compare point-in-time tradable/eligible counts, asset/group shares, session coverage, and stale/missing-candidate rates with the authoritative schedule and frozen reference. A missing candidate is excluded and reported; it is never reconstructed with a later universe or filled from another scope.
 - **Feature drift:** compute 10-bin training-reference PSI and a dependence-aware two-sample KS diagnostic for registered core features. Warn when PSI >0.20 in at least 10% of core features for two windows. Suspend model-based entries when PSI >0.30 in at least 20% for two windows **and** more than 10% of events exceed the frozen 99.5th-percentile OOD distance. Missingness has its own training 99% band and can suspend immediately when a required feature becomes unavailable.
-- **Calibration drift:** with the support above, warn when the 95% CI for slope excludes 0.8-1.2 or Brier/log loss worsens by >10% relative to the frozen shadow baseline in two windows. Disable probability thresholds/sizing when the slope point estimate is outside 0.6-1.4 or top-selected reliability error doubles for two windows; a direct-return score may continue only through its separately validated non-probability policy.
-- **Predictive/ranking degradation:** warn when the 90% lower CI of incremental PR-AUC, precision@k/NDCG, or rank correlation versus its matched control is <=0 for two windows. Demote to the champion/no-trade policy when the 95% upper CI is <=0 for two windows. Net PnL is monitored, but drawdown alone is not a retraining trigger.
-- **Execution drift:** evaluate after 100 fills for fast scopes or 50 for slow scopes. Warn when median or 90th-percentile all-in cost exceeds the locked base assumption; suspend the route after two windows above 2x base cost, or immediately on reconciliation failure.
+- **Target/prior/payoff drift:** evaluate only mature independent event clusters under the unchanged target/execution contract. Track event-class rate, ambiguity/censoring, net utility, MAE/MFE, time to barrier/exit, and no-trade opportunity rate by side/scope. A target-definition or maturity-rule change creates a new lineage immediately; distribution change alone triggers diagnosis and requires corroborating calibration or utility failure before model-policy suspension.
+- **Calibration drift:** with the support above, warn after two adequate evaluations when the slope estimate is outside `[0.8, 1.2]` and its 95% CI excludes `1`, or when Brier/log loss worsens by >10% relative to the frozen reference. Disable probability thresholds/sizing after two adequate evaluations when the slope estimate is outside `[0.6, 1.4]` and its 95% CI excludes `1`, or when top-selected reliability error doubles; a direct-return score may continue only through its separately validated non-probability policy.
+- **Predictive/ranking degradation:** warn when the 90% lower CI of the predeclared incremental predictive, ranking, or selected-utility metric versus its matched control is `<=0` for two consecutive evaluations. Demote to the champion/no-trade policy when the corresponding 95% upper CI is `<=0` for two consecutive evaluations. Net PnL is monitored, but drawdown alone is not a retraining trigger.
+- **Market/regime/dependence drift:** monitor volatility, liquidity/spread, breadth, dispersion, correlation, and tail-state families jointly. A descriptive regime change is not a retraining command or permission to switch models; it can invoke only a policy that was frozen and validated before the observation, otherwise the response is OOD abstention and review.
+- **Execution drift:** evaluate after 100 fills for fast scopes or 50 for slow scopes. Warn when median or 90th-percentile all-in cost exceeds the locked base assumption; suspend the route after two windows above 2x base cost, or immediately on reconciliation failure. During no-routing paper qualification, only modeled-fill scenarios and observable market-data/cost inputs can be monitored; empirical venue-fill drift activates only after separately authorized routing and cannot be inferred from paper fills.
 - **Signal frequency:** warn after two operational windows outside the frozen 99% predictive interval. A duplicate signal, hard trade-count cap breach, or risk-budget breach suspends immediately.
-- **Multiple streams:** apply Benjamini-Hochberg false-discovery-rate control at `q=0.05` within each diagnostic family across active scopes. Hard safety/integrity invariants are never relaxed by multiple-testing adjustment.
+- **Multiple streams and repeated looks:** apply Benjamini-Hochberg at `q=0.05` within each predeclared diagnostic family across active scopes at one scheduled evaluation look. This is a per-look diagnostic and does not claim FDR control across repeated rolling looks or optional stopping. Operational actions rely on frozen persistence/recovery rules and dependence-aware uncertainty. Any inferential claim requiring global sequential error control must predeclare an always-valid or alpha-spending design plus the dependency-aware family definition. Hard safety/integrity invariants are never relaxed by multiple-testing adjustment.
 
-These are provisional safety defaults, not findings optimized on recent outcomes. Paper trading must measure their false-alarm and missed-detection rates before live use.
+These are provisional safety defaults, not findings optimized on recent
+outcomes. A separate non-promotion paper-qualification cohort must measure their
+false-alarm and missed-detection rates before the registry is frozen for a live
+promotion cohort.
 
-### 16.2 Retraining and recalibration rules
+### 16.3 Retraining and recalibration rules
 
-Retraining is justified by evidence of data-generating or input-distribution change, scheduled information accrual, or a predeclared champion-challenger cycle—not merely recent losses.
+Retraining may be proposed only after a causal/drift diagnosis identifies an
+actionable data-generating, input, or feature-target relationship change; after
+predeclared scheduled information accrual; or within a predeclared
+champion-challenger cycle. Predictive degradation alone demotes or abstains and
+starts investigation; it does not justify refitting, and recent losses never do.
 
-- **Recalibrate** after the calibration trigger above persists for two non-overlapping windows while the predictive/ranking trigger does not fire; fit only on data available before the recalibration cutoff and run it as a challenger first.
-- **Retrain** when predictive value is demoted by the rule above, or when the feature-drift suspension condition persists for two windows and a causal attribution/ablation shows changed feature-target relationships. A scheduled challenger may be trained every 90 days for fast scopes or 180 days for slower scopes only if minimum new mature-event support exists.
+- **Recalibrate** after the calibration trigger above persists for two consecutive evaluations whose newly added cohorts do not overlap while the predictive/ranking trigger does not fire; fit only on data available before the recalibration cutoff and run it as a challenger first.
+- **Retrain** after predictive demotion or persistent feature drift only when causal attribution/ablation supports a changed actionable input or feature-target relationship. Otherwise retain the champion/no-trade state and investigate. A scheduled challenger may be trained every 90 days for fast scopes or 180 days for slower scopes only if its predeclared minimum new mature-event support exists.
 - **Do not retrain** after one drawdown, one bad regime, or before labels mature.
-- New models run shadow beside the champion, use the same candidate/events, and require the full promotion gate.
+- New models run shadow beside the champion, use the same candidates/events, and require the unchanged Section 12.5 final promotion gate.
 - Preserve the last known-good artifact, calibrator, policy, feature schema, and environment for one-command rollback.
 - A rollback restores a previously validated version; it never rewrites the append-only journal or hides intervening outcomes.
+- Re-enable a statistically suspended policy only after its documented trigger/root cause is resolved or the frozen recovery criterion is met, minimum mature support is restored, and two consecutive evaluations with non-overlapping new cohorts pass that rule; hard schema/version failures require a corrected, independently verified deployment rather than statistical recovery.
 
-### 16.3 Model replacement evidence
+### 16.4 Model replacement evidence
 
 A challenger replaces the champion only when it:
 
 1. passes mechanical, causal, feature-parity, and stress tests;
 2. improves the predeclared primary economic metric with adjusted confidence;
 3. does not materially worsen tail loss, drawdown, calibration, turnover, or coverage constraints;
-4. repeats across several outer folds and the locked forward shadow period;
+4. passes the unchanged Section 12.5 final promotion gate after the Section 10.1 calendar-duration and independent-cluster minima, plus Section 9 class support when probability semantics are used;
 5. is reviewed with complete trial and incident history;
 6. has an approved rollback artifact and operational runbook.
 
@@ -914,18 +987,1523 @@ No cited paper demonstrates profitability of this repository's strategy. The tab
 
 ## 18. Implementation roadmap
 
-Each stage is a gate. Later complexity is not a substitute for failure at an earlier stage.
+Each stage is a gate. Later complexity is not a substitute for failure at an
+earlier dependency, but independent workstreams may proceed in parallel after
+their explicitly named prerequisite contracts are accepted.
+
+### Current execution pointer — 2026-08-09 dual preflight accepted
+
+<!-- STAGE1_ACTIVE_GATE: S1-A3 -->
+
+The sole mutable status authority is
+[`stage1_execution_control_2026-08-08.md`](stage1_execution_control_2026-08-08.md).
+`S1-A1` and `S1-A2` are accepted. `S1-A3` is active: freeze the final
+two-component V2 authority and mechanically derived F1/F2 limits, then repeat
+preflights A, B, and the comparator. `A3-T` fail-first finalization-manifest
+tests are the next bounded action. The detailed chronology below is retained
+as evidence and design rationale; any older sentence naming an active P0 is
+superseded by this paragraph and the control ledger.
+
+The active Stage 1 transport sub-track is **V4.9F-A2-M Raw V8 Step-2
+constructive maxima, work accounting, production-adapter, and compatibility
+closure**. The external-schema V2 correction and its canonical V3 inventory
+are accepted prerequisite components; the remaining gates are prerequisites
+to reaccepting the corrected Step 3 design. Raw V6 and Raw V7 are accepted
+bounded predecessor sub-gates. Raw V6
+supplies observed-local manifest authority; Raw V7 supplies durable
+pre-effect attempts, exactly-one terminals, exact failed-prefix replay,
+cancellation/interruption propagation, startup orphan recovery, and a
+runner-bound four-member provisional artifact. Raw V7 closed every one of its
+27 acceptance rows with **242 direct cases** and the frozen **39-file / 558-case
+adjacent matrix** on its accepted post-format tree. The shared path-lease
+safety correction now requires final-tree Raw V7 direct/adjacent reacceptance
+before Step 3 can close. The public `LIVE_LINUX` path remains closed.
+
+Raw V8 Section 18 Step 2 as a whole has only historical local acceptance. The
+2026-07-28 re-audit rejected its lossy 27-record, member-name-inferred external
+registry and reopened the gate. The corrected design required an exact 49-record plus
+three-tagged-union graph, explicit per-member value schemas, Unicode 15.0.0
+profiles, typed rule/application and fixed-position resolver ledgers, and an
+exact pre-frozen 408-profile maximum-constraint universe. That V3 inventory is
+now independently accepted and byte-frozen before constructive maxima are
+generated, because every non-intrinsic maximum scope commits the resulting V3
+semantic inventory identity. Maxima remain a mandatory later Step-2 gate; this
+dependency order does not waive them.
+The isolated foundation, topology, scalar/path, Unicode, rule/application,
+and structural-assembly components are now materialized. The structural root
+contains the exact 49 + 3 graph and all accepted catalogs under registry ID
+`5dc95a3e99c5646e912b6a7e9c3970cf2489d560ea890b0a19d38af4c51c2140`;
+20 focused structural tests and the 213-test combined component suite passed
+at that increment. Its then-current explicit status was
+`STRUCTURAL_REGISTRY_ONLY_RULE_RUNTIME_AND_MAXIMA_PENDING`; the subsequent
+runtime and V3-inventory increments below supersede that dated component
+status without supplying maxima or a production adapter.
+The subsequent runtime increments now validate all frozen schema/type forms,
+all nine DFAs and three Unicode profiles, exact owner/self union dispatch,
+record/union byte ceilings, standalone identities, and secure authority
+loading under a graph-derived 4,202,555-schema-node ceiling. They execute all
+41 generic and 11 complex operators, all 42 rules with 1,057 direct nodes, and
+recursive composite-literal intrinsic closure. The retained authorities
+execute exactly 500 intrinsic invocations and 6,081 nodes. The generic witness
+supplies schema-valid true and business-false cases for all 33 generic-only
+rules; the separate complex witness supplies 44 cases across all nine
+dependent rules: 27 true, 13 business-false, and four deterministic evaluation
+failures. The complete runtime now also executes all eight applications and
+both fixed-position resolvers with global snapshot, schema, dependency-
+postorder intrinsic, resolver, and cross-rule phases. Its independent
+application oracle contains 57 cases: 18 accepts, 26 application failures,
+and 13 business-false outcomes, all executed without skips; a separate
+27-case adversarial suite covers hostile I-JSON values, phase ordering,
+resolver/ordinal boundaries, cache accounting, and mid-call authority
+substitution. The focused runtime suite passes 124 tests and the complete
+current component matrix passes 375 tests. The stable runtime is 249,268
+bytes with SHA-256
+`47aa90d897e8dbae5e244b7c04cbd82dfe036b0292d36ef0f5552c868627ab22`;
+the complex witness is 456,162 bytes with physical SHA-256
+`d74bbc6bd98de6f143bd1bfcc9c2660f8923713ac901911289939dfd12712e4b`
+and semantic ID
+`ac01e4b1eee0ae3ee394818f230380a71dc778f7d7c688d084da1f9aebb81e2a`.
+The application witness is 697,208 bytes with physical SHA-256
+`d2f40badc85c58965a72e52fd98bfebbd4caf3335ec5a0415a89294cc3fb3415`
+and semantic ID
+`1d859520c24a973a5a157139183ae24ef0184ce4cede5531bb4b442227e1a8ba`.
+The runtime deliberately reports
+`APPLICATION_RUNTIME_ONLY_MAXIMA_AND_PRODUCTION_INTEGRATION_PENDING`;
+constructive maxima, work accounting/certification, and production
+differential adapters remain open. The V3 inventory gate is now independently
+accepted and canonical: the 5,264,966-byte golden has raw SHA-256
+`f33c1019afa7f49a316aac1bfbef7498e240f391e4fee00dfd95fdcda658669f`
+and semantic inventory ID
+`128d07a45dc2300c140f333cc3a45e2497aaa4089684f6e44da048ab403bbf9d`.
+The 2026-08-01 bounded-context re-freeze preserved all 408 complete scope
+profiles and their IDs byte-for-byte; its four changed inventory coordinates
+are limited to the correction count/hash, exact invariant mirror, and root
+identity.
+Its independent validator reconstructs all 408 maximum-constraint scope
+profiles and the focused inventory/security suite passes 45 tests. The
+historical V2 candidate remains provenance-only.
+The private runtime now contains the exact four-operation/185-field/66-counter
+record layer and the empty-profile initializer sub-slice retains its narrow
+technical GO, but no accepted constructive target-bound maximum evidence or
+whole Raw V8 acceptance exists.
+
+The first constructive-maximum certificate protocol is now an accepted
+falsification, not an active candidate. An independent pre-search derivation
+found at least 94,905 mandatory coordinates/prefix nodes in intrinsic row 62
+`TargetFieldRegistryV1`. The coordinate lower bound exceeds its immutable
+65,536 cap by 29,369; the minimum 94,906-node/depth tie-break chain exceeds the
+node and depth caps by at least 29,370 before other members or base nodes. V1
+is physically pinned as rejected;
+its pilot, rebind, and witness-publication paths remain closed. The accepted
+external-schema correction also normatively requires the same infeasible
+global primitive-vector tie-break and one evidence/proof position per
+coordinate. The compact-proof correction is now independently accepted as the
+normative design authority, and its exact-delta V4 successor inventory is now
+accepted with the V3 registry, all 408 profile objects/IDs, and 474-row universe
+preserved. Raw V8 Step 2 remains NO-GO. The corrected V2 seed protocol is now
+accepted under the S1-A1 closure gate. The active P0 is two independent full-
+row feasibility preflights over all 475 cases—not further integration of the
+rejected V1 prefix chain. The
+correction separates the exact maximum theorem (a verifier-owned sound upper
+bound plus one independently validated legal attainer) from a separately
+pinned publication choice. See the
+[`compact maximum-proof V2 correction`](v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md)
+and its
+[`independent acceptance`](v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md),
+and the
+[`V1 feasibility rejection`](v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md).
+
+The provisional correctness and trust ceilings remain unchanged:
+`CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and
+`POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` are mandatory, `passed` remains false,
+and the manifest signature authenticates the manifest/starting baseline rather
+than the unsigned post-run suffix. Neither accepted sub-gate is a campaign
+result, external attestation, A2-M completion, or Stage 1 exit.
+
+The active next-gate order is:
+
+1. complete Raw V8 Step-2 after the accepted V3 inventory and external-schema
+   V2 by closing maxima, accounting, adapters, and compatibility. The exact path ledger, 52-node closure,
+   scalar/Unicode conformance, value runtime, all 52 operators, all 42 rules,
+   recursive intrinsic-literal closure, and independent generic/complex
+   witnesses are accepted component sub-gates. The eight applications,
+   intrinsic-before-cross orchestration, exact failure coordinates, both
+   resolvers, and their independent/adversarial witnesses are accepted too.
+   The V3 inventory and its exact 408 scope profiles are independently
+   accepted and byte-frozen. The first constructive-maximum grammar is rejected
+   by its pre-search cap contradiction. The compact-proof correction explicitly
+   superseding the infeasible global least-vector/evidence clause and the exact-
+   delta V4 successor inventory are now accepted, with the accepted V3 registry
+   and all 408 profile objects/IDs preserved. The corrected seed V2 protocol is
+   now frozen and accepted. Next prove through two independent all-475-case
+   preflights that it fits immutable work/file caps. Only
+   then run its replacement pilot and independently prove the 474 byte maxima
+   plus the local-shutdown unrepresentable counterexample. Aggregate runtime-
+   work claims remain separate until the accounting-completeness audit freezes
+   all counters and proof obligations. Next implement production differential
+   adapters, adversarial validation, and Raw V7/final-tree compatibility.
+   Then independently re-audit the
+   corrected Step 3 design before lifecycle implementation. The initializer
+   sub-slice is technically GO. Step 3 must retain causal target-span
+   ownership, retained-intent replay, finite ingress/local-shutdown work,
+   exact operation receipt grammar, and complete result lineage. Only after
+   both gates agree may candidate/attempt/terminal/marker-closure
+   lifecycle, locators, atomic finalization, recovery, marker/probe, observer,
+   adapter, collector, artifact, and acceptance steps proceed;
+2. implement and audit the physical event-field normalizer plus fixture-level
+   deterministic OFF/OFF, ON/ON, and OFF/ON oracles;
+3. implement an independently evidence-derived, versioned correctness finalizer
+   without weakening the fail-closed invariant;
+4. implement campaign isolation and then an atomic durable publisher with
+   tested collision/restart behavior;
+5. run complete matched neutrality/overhead and frozen workloads through those
+   accepted surfaces; and only then
+6. perform separately governed calibration, independent confirmation,
+   threshold freeze, and A2-E.
+
+The Raw V6 **228-test** result is the dated 2026-07-21 predecessor checkpoint,
+not the current final-tree count. It remains observed-local and EXPLORATORY:
+bytecode/in-memory state is not attested, and an independently admitted
+expectation is required to authenticate serialized manifest authority offline.
+The Raw V8 freeze now specifies the prepared-versus-dispatched distinction,
+four-operation lifecycle, crash/recovery boundaries, and explicit external-
+trust ceiling that its implementation must preserve.
+
+Calibration, numeric thresholds, A2-E, the public live factory, Stage 1 exit,
+production/live readiness, predictive edge, trading safety, and profitability
+remain blocked.
+
+Roadmap gate semantics are now explicit:
+
+- **Offline Stage 2 baselines** may begin only after the Stage 1
+  event/label/eligibility/split contracts required by those experiments are
+  accepted. They do not require the public live transport to be promoted.
+- **Paper/live activation and production promotion** require full Stage 1 exit,
+  including the remaining A2-M/A2-E and operational transport gates. Offline
+  model results cannot waive those gates.
+- The modeling/data priorities in the final recommendation remain important,
+  but they are not the current sequential task in the active transport
+  sub-track.
+
+#### Historical chronology notice
+
+The dated implementation checkpoints and amendments below preserve audit
+history. Every present-tense statement is scoped to its named checkpoint; a
+later amendment and the current execution pointer supersede it when status,
+implementation, or counts differ.
+
+Implementation checkpoint (2026-07-14): the first Stage 1 foundation sub-gates
+are implemented in `riskyieldmm/trading/`. The event contract is now the
+explicitly breaking `riskyieldmm_trade_event_v3_2` graph:
+
+```text
+typed source bundle + typed dependency slots/ordered feature schema
+→ candidate-neutral InformationSet
+→ authoritative scheduled ActionResolution
+→ PrimarySignalCandidate
+→ exact CandidateFeatureMaterialization
+→ EligibilityDecision
+→ DecisionEvent
+```
+
+The SOURCE manifest's content root resolves to a finite
+`SourceBundleV3`/`SourceBundleMemberV3` graph. The PROTOCOL feature-schema ID
+resolves to typed dependency slots and ordered feature definitions. Strict
+validation now checks member role and membership, exact fields and policies,
+observation/state kind, total or per-member finite cardinality, maximum age,
+causal clocks, stable global observation-revision claims, and complete protocol
+binding. Member objects are staged while bundle lineage is the authoritative
+source-snapshot commit, preventing rejected member candidates from poisoning a
+stable key.
+
+The V3.2 action gate adds exact `CalendarSourceArtifactV3`,
+`TradingIntervalV3`, `CalendarScheduleSnapshotV3`, `ActionProtocolV3`,
+`InstrumentMappingV3`, and `ActionResolutionV3` records. A pure resolver now
+selects the first complete scheduled base-bar window strictly after the frozen
+computation/submission clock, within one matching-enabled half-open interval
+and one known executable-instrument mapping. It emits a content-addressed
+`RESOLVED` result or a typed fail-closed abstention. The ledger replays that
+resolver and requires the resolution to be registered before a candidate;
+candidate and decision records bind its exact ID/hash and executable contract,
+so their action clocks can no longer be supplied independently. The first
+protocol intentionally supports only `NEXT_SCHEDULED_BASE_BAR_OPEN`.
+Only a declared official-venue artifact whose authority name matches the
+calendar venue may enter this logical action gate, and the compiled schedule
+must remain inside the exact artifact's retrieved, effective coverage. This
+integrity-binds declared metadata and hashes; it is not external host,
+signature, or parser-execution authentication, which remains a
+provider-adapter responsibility. The pure resolver consumes exact revisions,
+while ledger admission applies one deterministic as-of rule to resolved and
+abstained outcomes. With a schedule-valid window, it prefers the latest known
+calendar covering submission and the full window and the latest known mapping
+covering that window. Without a valid window, it uses the latest known
+same-scope inputs, preferring a calendar that covers submission. If no mapping
+covers an existing window, the latest known same-scope blocker wins rather
+than an older executable mapping. Future or non-overlapping successors do not
+rewrite an applicable historical result. A mapping gap at the first
+schedule-valid window abstains instead of moving the trade to a later session.
+
+A raw resolver call can diagnose `MAPPING_NOT_KNOWN` by inspecting a supplied
+mapping learned after the cutoff, but the governance ledger correctly refuses
+to canonicalize that noncausal reference. Other no-trade outcomes can cite a
+same-scope mapping known by the cutoff: a non-executable blocker yields
+`MAPPING_NOT_EXECUTABLE`, and a known mapping that misses the first valid
+window yields `MAPPING_WINDOW_MISSING`. A future schema needs explicit absence
+evidence if the system must canonically audit a state in which no as-of mapping
+record existed at all.
+
+This logical result proves a scheduled opportunity under frozen evidence; it
+does not prove physical row completion, venue/instrument status, feed health,
+order acceptance, or fill. Forward/live promotion still requires certified
+prospective first-seen evidence, protocol precommitment, post-protocol source
+receipts, and the provider-specific physical adapters described below. The
+candidate/materialization split
+fixes the prior grain collision: simultaneous LONG and SHORT alternatives may
+share raw evidence while retaining separate economics and feature vectors.
+Vectors use the schema-bound, ordered
+`riskyieldmm_float64_be_hex_null_v1` encoding (finite IEEE-754 binary64
+big-endian hex plus explicit nulls); exact bits establish identity, not
+cross-library numerical parity. Candidate-neutral vector positions must remain
+bit-identical across candidates, while candidate conditioning propagates
+through derived-feature ancestry. Conditioned roots now content-address only
+allowlisted immutable candidate-economic fields, and candidate-only schemas do
+not need dummy raw inputs. Counts below a dependency slot's positive
+sufficiency threshold execute `FAIL`, `ABSTAIN_DATA`, or exact null-plus-binary
+missingness-indicator behavior. The logical graph still cannot inspect opaque
+transform code; executable input-use attestation remains a physical-adapter
+gate.
+
+The immutable source/protocol/split/trial manifests, progressive protocol
+validators, and local append-only governance ledger also remain in place. The
+ledger provides transactional semantic heads, global/channel receipts,
+metadata-bound identities, hardened Ed25519 checkpoints, single-snapshot
+exact-schema/bijection verification, trusted-prefix/unanchored-tail reports,
+and one-time final-holdout grants that require a registered, externally
+retained post-grant checkpoint for sealing.
+
+The confirmed RPF calendar leakage has been corrected at the model-feature
+boundary. `session_progress`, `minutes_to_close`, `session_close`, and
+`weekly_close` were derived from completed-segment endpoints or a future row
+and are now removed from the regime source contract, feature catalog, and
+model-facing outputs. Historical feature roots, diagnostics, and trained
+artifacts that contain any retired field are **quarantined**; they must be
+regenerated and re-evaluated, because a code fix cannot repair prior evidence.
+
+The V3.3 physical reference checkpoint is now implemented in
+`riskyieldmm/trading/physical_market_data.py`. It adds frozen provider and
+selection policies, exact bounded raw-message capture, deterministic
+normalization derivations, immutable observation revisions, an exhaustive
+one-disposition-per-message classifier, deterministic blocker recovery, finite
+evidence prefixes, recomputed exact/latest/trailing selection proofs, and a
+fail-closed physical promotion gate. Physical sources opt in when their source-contract ID
+resolves to the provider policy, so legacy V3.2 identities remain logically
+readable without being misrepresented as physical evidence. The reviewed
+classifiers accept the narrow Bybit V5 public 1-minute kline and prospective
+instrument-status shapes plus exact subscription/pong controls; `confirm=true`
+is the price completion authority and REST kline remains reconciliation-only.
+
+This is a narrow fixture-backed vertical slice, not a live-ready physical
+store. The parser hash is an accepted release allowlist, not proof of the
+runtime executable or build. The Bybit end-inclusive conversion is a
+fixture-locked adapter inference. Same-raw-fixture parser identity is not
+operational replay/live parity. The ledger currently reconstructs a
+full-history reference registry and prefixes carry cumulative ID arrays; it
+does not itself have typed observation indexes, the frozen V4 continuous
+per-scope disposition commitment, or a streaming verifier. Every raw
+occurrence now has exactly one immutable typed
+disposition: normalized observation, exact duplicate, reviewed control,
+provider/status error, malformed/unsupported/out-of-scope, lag/clock rejection,
+or content conflict. Neutral controls/duplicates create no value; blockers
+produce typed non-healthy prefixes and gate abstention; reconnect/complete-data
+recovery is deterministic. This closes the reference semantic gap but adds a
+further cumulative disposition-ID array, so it does not close the P0 scale gap.
+
+The fresh-genesis V4.1 slice now closes the storage, causal-observation
+selection, and bounded result-commitment parts of that gap without mutating
+V3.3 or silently upgrading V4.0. `transparency_log.py` supplies exact RFC 9162
+hashing. `physical_evidence_v4.py` freezes the revised scope, disposition,
+cutoff, and selector-query identities. `physical_selection_v4.py` binds one
+exact selector policy and commits the canonical ordered result tuple, bounded
+at 256 revision IDs. The `STRICT`, single-writer
+`physical_projection_v4.py` now requires every normalized disposition to
+carry its real V3 derivation, revision, and classifier provenance; stores the
+typed causal clocks and revision lineage; selects completed primary 1-minute
+UTC-grid bars using both receipt and availability cutoffs with a correlated
+`NOT EXISTS` active-head query; and refuses to persist a result unless an
+independently structured canonical-record replay returns the same ordered IDs
+and reason codes. Full verification recomputes every historical selector and
+result commitment after later corrections. Focused contract/projection tests
+cover exact/latest/trailing selection, short and missing results, 0/1/256/257
+commitment bounds, ordering and context substitution, historical correction
+stability, idempotency, atomic rollback, reopen, and typed-index use. The
+V4.2 slice now adds the reviewed, identity-bearing physical-health policy,
+pure causal reducer, independent typed-query versus canonical-replay equality,
+immutable per-scope health-transition chains, explicit no-message time ticks,
+and full-genesis replay. Authoritative scopes require registered, role-exact
+primary `BYBIT_V5_PUBLIC_KLINE`/`TRADING_AUTHORITY` and status
+`BYBIT_V5_INSTRUMENT_INFO`/`RECONCILIATION_ONLY` policies. Public admission and
+full replay enforce capture membership/lineage, deterministic raw
+classification and normalization, monotone receipt/classifier clocks, and a
+shared `capture_partition_id` for the subscription ACK and recovery bars. The
+compatibility cutoff remains available for non-authoritative research
+selection but cannot assert `HEALTHY`; only an atomically derived cutoff plus
+verified health transition can do so.
+
+V4.2 also persists the exact `InformationSetV3` and derives a constant-size
+`DECISION_INPUT` gate from exact V4 selection-proof links, decision-time health,
+latest current health, one frozen receipt boundary, and one projection-clock
+sample taken inside the same `BEGIN IMMEDIATE` transaction. The caller cannot
+supply or backdate `evaluated_at`; an idempotent retry returns the stored gate.
+`DECISION_INPUT` may locally `PASS`. `EXECUTION_BAR` always persists `ABSTAIN`
+with `EXECUTION_GATE_BRIDGE_NOT_IMPLEMENTED`, and the contract rejects H2
+`PASS` until an atomic H1/H2/order-intent/outbox bridge exists. Full verification
+reconstructs the typed projections, raw classifier outputs, selector, health
+reducer, and every stored gate.
+
+The fresh-genesis V4.3 local transport-authority slice now adds five canonical
+records: a registered transport policy, signed TLS/WebSocket session
+attestation, projection-generated exact one-topic outbound intent, signed
+dispatch-to-raw-ACK binding, and signed terminal session event. The projection
+derives the request ID, command bytes, topic manifest, and deadlines internally
+and commits the intent before any permitted external send. A provider
+`conn_id` remains an opaque remote label, distinct from the local session ID,
+while exact capture partition, boot, generation, manifest, request echo, raw
+bytes, classifier provenance, and signed dispatch chronology bind the ACK to
+one local session. Raw ACK-shaped metadata can no longer restore health by
+itself; only bars admitted strictly after the binding receipt enter the
+two-completed-bar recovery suffix. A termination immediately removes current
+transport eligibility, transport changes make older health stale for gate
+evaluation, H1 remains locally pass-capable, and H2 remains forced to
+`ABSTAIN`.
+
+This is focused local authority acceptance over deterministic signed records
+and fixtures. It does not prove that a production collector opened or
+continuously owned the real socket, observed the attested TLS facts, committed
+before a real send, or received a live provider ACK. Final post-integration
+acceptance is **119 focused V4.3 tests passed**, **201 physical tests passed**,
+and **1,426 repository tests passed with 32 skipped**.
+
+Corrective V4.4 work on 2026-07-15 deliberately stopped before adding the real
+socket. The audit found that V4.3 did not freeze handshake-hash input, could not
+compare honest termination clocks across an OS reboot, rejected a valid first
+capture after an empty generation-one session, and had no cross-process writer
+lease. V4.4 now commits exact decrypted HTTP/1.1 opening-handshake octets,
+records explicit monotonic domains, admits a later capture only across a fully
+proved chain of exact-bound terminal zero-capture sessions, and adds
+`BACKPRESSURE` / `STORAGE_FAILURE` terminal reasons. The projection adds restart/orphan reconciliation plus a
+transactional application-fence generation; a hardened local Linux `flock`
+lease supplies process exclusion; and a dependency-injected mediator enforces
+claim -> verify -> reconcile -> signed session -> durable exact intent ->
+one-shot exact-Text-frame permit -> raw ACK binding. Clock uncertainty/domain
+failure, permit ambiguity, cancellation, queue saturation, storage failure, and
+stale socket callbacks fail closed. Synthetic senders plus real SQLite/lease
+integration test the local boundary, but do not prove WebSocket Text framing,
+exact handshake bytes, kernel writes, or that a real provider socket followed
+the sequence. See
+`docs/research/v4_4_operational_transport_runtime_protocol_freeze_2026-07-15.md`.
+
+The fresh-genesis V4.5 authority slice now removes the next two local
+ambiguities without connecting a provider socket. An independently pinned
+deployment-root identity gates an exact threshold-signed DSSE bundle and its
+closed six-manifest release/dependency/TLS/clock/runtime/collector-key graph.
+The canonical projection persists one immutable root, reusable exact children,
+and a linear sequence/parent deployment head; policy and signed session
+admission must match that head, its environment, every relevant child, clock
+limits, and the authorized collector key. Collector-key and root rotation are
+deliberately rejected until a future drain/revocation protocol exists. Runtime
+startup re-verifies the signed graph at its clock cutoff before claiming the
+projection writer fence, and the encrypted-PKCS8 key loader rejects unsafe
+ownership, modes, links, replacements, algorithms, and key identities.
+
+V4.5 also freezes a raw-first WebSocket control boundary: exact decrypted
+ingress batches, parsed RFC control triggers, logical application-heartbeat or
+reactive-control intents, exact masked pre-TLS wire chunks, and signed one-shot
+dispatch outcomes form distinct immutable records. This makes automatic
+Pong/Close output visible to the authority model and keeps Bybit JSON heartbeat
+Text messages separate from RFC 6455 Ping/Pong. At the V4.5 checkpoint, the
+projection slice enforced the causal associations and replay invariants, while
+runtime control mediation and the pinned Sans-I/O/TLS adapter remained
+subsequent gates. See
+`docs/research/v4_5_governed_deployment_and_outbound_control_protocol_freeze_2026-07-15.md`.
+
+At the historical V4.6 checkpoint, the durable-control mediator closed the next
+local side-effect ambiguity without claiming a provider connection. A typed
+incorrect-masking failure is admitted only where the raw
+record can prove the first post-handshake frame boundary. Exact prepared bytes
+must then consume an immutable durable attempt-one permit before the serialized
+writer callback. Permit replay is evidence-only; a missing result never rearms
+the write. The no-network mediator makes at most one writer call, records
+`SENT` only for a full explicit local return, records `UNKNOWN_DELIVERY` after
+an invoked-but-uncertain write, and uses a null submitted-byte count rather
+than fabricating zero after an exception or cancellation. Failures before the
+writer call leave a session-scoped permit-without-result orphan. Historical
+orphans remain audit evidence after terminal restart but cannot block a fresh
+session or become writable. See
+`docs/research/v4_6_durable_control_mediator_protocol_freeze_2026-07-15.md`.
+
+Two V4.4 identities remain intentionally stable compatibility domains: the
+collector transport-key ID derivation and the diagnostic writer-lease JSON
+schema. They are not stale deployment authority. Likewise, typed
+one-socket-per-session continuity is a local ledger invariant against identity
+substitution; it is not proof of a kernel socket, descriptor ownership, or
+actual byte delivery.
+
+At the historical V4.6 mediator checkpoint, this did **not** complete Stage 1,
+certify deployment, or demonstrate predictive edge or profitability. A
+backfilled `LIVE_FIRST_SEEN_CERTIFIED` record could not prove real-time
+pre-decision availability. At that checkpoint Stage 1 still required
+the real pinned Sans-I/O/TLS/WebSocket adapter around the bounded mediator, a
+real governed clock-evidence source, measured
+release/runtime/trust-store/dependency artifacts,
+an external root ceremony and launcher, provider conformance, raw-first live
+capture, and long-running scale/restart soaks. Persisted subscription intent
+and exact local transport correlation were implemented, but the production
+collector still had to prove actual TLS/WebSocket facts,
+intent-before-real-send ordering, live `req_id`/`conn_id` conformance, socket
+fencing, restart/orphan reconciliation, provider drift, and long soaks. Stage 1
+also required deterministic completed-1m-to-HTF derivation; measured host-backed
+deployment-manifest verification plus governance-record validation; a
+V4-to-governance authority bridge;
+one atomic H1/H2 plus exact intent/outbox operation; and operational replay/live
+parity. The local V4 gate is not consumed by the governance ledger or Analyst,
+so the forward-paper/live candidate, order, and fill boundary must explicitly
+forbid V3 and legacy activation bypass before any activation.
+`ActionProtocolV3` currently expresses only `NEXT_SCHEDULED_BASE_BAR_OPEN`, so
+the opaque legacy forward/live behavior is an activation-critical boundary,
+not an already exercised V3.3 path. Independent
+path/label verification, physical Arrow/Parquet round trips, interval-aware
+split certification, an explicit cross-lineage model-promotion artifact, and
+legacy replay/live shadow adapters also remain ahead of model baseline work.
+See
+`docs/research/v3_physical_market_data_evidence_design_2026-07-14.md` and the
+V4.0 baseline plus fresh-genesis selector freeze in
+`docs/research/v4_physical_evidence_protocol_freeze_2026-07-14.md` and
+`docs/research/v4_1_causal_selector_protocol_freeze_2026-07-14.md`, followed by
+`docs/research/v4_2_physical_health_and_gate_protocol_freeze_2026-07-14.md` and
+`docs/research/v4_3_transport_subscription_authority_protocol_freeze_2026-07-14.md`,
+`docs/research/v4_4_operational_transport_runtime_protocol_freeze_2026-07-15.md`,
+`docs/research/v4_5_governed_deployment_and_outbound_control_protocol_freeze_2026-07-15.md`,
+and
+`docs/research/v4_6_durable_control_mediator_protocol_freeze_2026-07-15.md`.
+The earlier
+fixed-epoch exploration remains design history in
+`docs/research/v3_4_bounded_physical_evidence_architecture_2026-07-14.md`.
+
+Asset support remains fail-closed. BTCUSDT and ETHUSDT are only potentially
+supportable until Bybit completion/status/feed-health evidence is captured and
+tested prospectively. The current `6E.v.0`, `6J.v.0`, `GC.v.0`, `CL.v.0`,
+`ES.v.0`, and `NQ.v.0` continuous futures aliases cannot authorize an order
+until point-in-time mappings identify the exact listed contract over the full
+entry window. USDJPY additionally remains unsupported because its reciprocal
+research-price transform has no independently specified side, price, tick,
+quantity, barrier, cost, and fill mapping.
+
+The legacy 2,530-feature RPF panel is a discovery inventory, not the production
+schema and not a wholesale migration target. The logical schema IDs are
+canonical JSON descriptors; later
+physical artifacts must have separate schema descriptors, semantic roots, and
+file hashes rather than using Parquet or Arrow IPC bytes as logical identity.
+
+See `docs/architecture/trading_event_v3_contract.md`,
+`docs/research/v3_governance_ledger_design_2026-07-14.md`, and
+`docs/research/v3_source_feature_candidate_contract_design_2026-07-14.md`, and
+`docs/research/v3_calendar_action_resolution_design_2026-07-14.md` for the
+implemented boundary, design alternatives, evidence, and explicit
+non-guarantees.
 
 ### Stage 1 — Critical corrections
 
+**Current execution control:**
+[`stage1_execution_control_2026-08-08.md`](stage1_execution_control_2026-08-08.md)
+is the mutable gate ledger for the remaining work. The versioned seed
+correction closes `S1-A1`; independent preflights A and B plus their exact
+comparator close `S1-A2`; `S1-A3` is active for the final two-component V2
+authority, mechanically derived F1/F2 limits, and repeated dual preflight. It
+separates the `S1-R0` offline-research milestone
+from the complete `S1-X` live-activation exit, and defines bounded acceptance,
+replan, WIP, and resume rules. This roadmap remains the program specification;
+dated amendments do not override the control document's current state.
+
 | Item | Specification |
 |---|---|
-| Required code changes | Add shared `InformationSet`, `DecisionEvent`, and `LabelOutcome` schemas; explicit clock columns; one eligibility predicate; next-executable-entry/first-touch labeler; interval-aware splitter; exclude synthetic/stale/closed rows; quarantine legacy causal claims; immutable protocol/trial manifests |
-| Required tests | Clock inequalities, TP/SL/gap/timeout/ambiguity fixtures, interval-overlap rejection, synthetic no-trade property, prefix invariance, current-row/HTF boundary, future-poison rejection, replay/live parity fixtures |
-| Expected output | Versioned event ledger and split manifest for every supported scope; data/label audit with cluster counts |
-| Acceptance criteria | Zero known clock/eligibility violations; independent label implementations agree on sampled events; every feature dependency has availability metadata |
-| Dependencies | Authoritative calendar/contract metadata for session instruments; first-seen journal for future evidence |
+| Required code changes | **Implemented through bounded V4.9F-A1 plus locally accepted A2-M Raw V6 and Raw V7, with a historical Raw V8 Step-2 runtime surface and the Raw V8 initializer technically GO:** signed local manifest authority; durable pre-effect attempt/exactly-one-terminal lifecycle; exact failed-prefix replay; synchronous cancellation/interruption evidence; startup orphan recovery; strict provisional four-member replay; explicit unsigned-suffix trust disclosure; the private V8 four-operation/185-field/66-counter records; and the crash-safe empty V8 profile initializer. `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and `POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` remain mandatory and `passed` remains false. **Immediate next A2-M P0:** V1 maximum proof is rejected by immutable coordinate/node/depth cap contradictions; the replacement compact-proof V2 correction, exact-delta V4 successor inventory, and deterministic V2 seed are accepted without changing the registry, any of the 408 V3 profile objects/IDs, or the 474-row universe. Complete two independent counting-only all-475-case feasibility preflights covering 474 maxima plus local shutdown; only then freeze immutable final V2 limits, implement the independent verifier/generator, run the replacement pilot, and prove the 474 maxima plus separate local-shutdown result. Next complete separate work accounting/certification, production adapters, and Raw V7/final-tree compatibility; then re-audit and implement the corrected Step 3 target-span ownership, retained-intent replay, finite ingress/shutdown work, receipt grammar, result lineage, and remaining projection lifecycle through step 12. **Later A2-M order:** physical normalization and fixture-level oracles; independent finalizer; campaign isolation; atomic publication; full matched neutrality/overhead and frozen workloads; calibration, confirmation, thresholds, then A2-E. Remaining Stage 1 work also includes durable saturation/BACKPRESSURE and bounded causal parser turns; independently qualified runtime-currentness and incremental actor designs; multi-session fairness; effective systemd/chronyd/VM authority; provider/certificate, crash, storage-fault and long no-trading campaigns; measured immutable deployment and external anchors; atomic H1/H2/order-intent/outbox; non-bypassable governance/order/fill authority; heartbeat/disconnect status; deterministic HTF/futures mapping; independent labels and interval-aware splits; cross-lineage promotion; stale/synthetic-row exclusion; quarantined-artifact rebuild; and legacy migration. |
+| Required tests | **Accepted predecessor Raw V7 evidence:** every one of 27 audit rows is Direct; 242/242 direct cases and the frozen 39-file/558-case adjacent matrix passed on its accepted post-format tree, with exact inventories, static/public-surface audits, compilation/lint, and leftover/worktree review. The shared constructor safety correction requires that exact inventory to be rerun on the final tree. **Historical Raw V8 Step-2 evidence:** the then-current independent golden replay, 185-field/85-null-attempt and operation/checkpoint truth tables, generated boundary witnesses, process isolation, and 12 targeted Raw V7 compatibility cases remain predecessor evidence, not current target-bound acceptance. **Current Step-2 accepted sub-gates:** exact 52-node graph/path coverage; scalar, DFA, and Unicode conformance; typed rule/application structure; registry-bound value validation; all 41 generic plus 11 complex operators; all 42 rules with recursive literal closure; schema-valid generic true/false witnesses; a 44-case complex true/business-false/evaluation-failure witness; all eight applications and two resolvers with a 57-case no-skip oracle; 27 additional application-boundary adversaries; 375 combined component tests; a canonical V3 inventory with 408 scope profiles accepted by a 45-case focused inventory/security suite; the deterministic 31-test V1 feasibility rejection; two independent READY reviews plus final hash verification for the compact-proof V2 correction; and the exact-delta V4 inventory accepted after 33 focused adversaries, independent consumer review, and a final 134-case predecessor/V4/security/consumer matrix. **Current Step-2 test gap:** both all-475-case counting preflights; V2 recurrence/exhaustive/batched equivalence, legal-attainer, equal-maxima publication, cap/file-security and independent-producer tests; constructive per-type/result/observation byte maxima; separate complete runtime-work accounting/certification; production differential adapters; and final Raw V7 compatibility. **Initializer evidence:** 38 focused projection cases plus independent replacement/alias/lease probes, lint, and compilation. The dated Raw V6 228-test and earlier 2,441-passed/32-skipped repository results remain predecessor context, not current full-suite claims. **Known focused gaps:** V8 target-span/finite-grammar correction, projection lifecycle, marker/probe/runtime-adapter and full-field integration, collector/artifact/replay, and whole-V8 acceptance; physical normalization and fixture-level then matched neutrality; independently derived correctness finalization; campaign isolation; and atomic durable publication. **Required before Stage 1 exit:** complete A2-M neutrality/overhead and layer-availability evidence; immutable calibration plus independent confirmation; measured 10k/100k correctness, crash/restart/scaling, 30-day two-asset and 100-scope capacity/fairness campaigns; durable saturation/parser/actor evidence; real provider and certificate conformance; privileged clock/deployment validation; governance/order/fill attacks; atomic H1/H2/intent/outbox tests; complete heartbeat/disconnect/recovery status; independent labels and interval-overlap tests; HTF/futures boundary tests; and operational raw replay/live parity. |
+| Expected output | Versioned event ledger and split manifest for every supported scope; data/label audit with cluster counts; versioned A2-M bundle and durable publisher; frozen campaign manifests and raw bundles; separately regenerable analysis with explicit limitations/nonclaims |
+| Acceptance criteria | No constructible or replayable correctness PASS without independently derived roots/results; declared and observed provenance are distinct; selected physical-output and boundary evidence is immutable and replayable under its frozen profile; no sampling failure is omitted; no threshold is selected before independent confirmation; zero known clock/eligibility violations or caller-controlled authority clocks; no raw `CONTROL_SUBSCRIPTION_ACK` independently restores health; no pre-binding bar enters recovery; no terminated or superseded session authorizes H1; zero `EXECUTION_BAR PASS` before the exact intent/outbox is atomically present; independent labels agree on sampled events; every feature dependency has availability metadata |
+| Dependencies | For the active A2-M work: qualified host/storage authority, authoritative source/runtime/environment collector inputs, stable marker and attempt/terminal interfaces, and campaign isolation or a separately frozen external-isolation mechanism. For the data-contract work: provider completed-bar/status/feed-health sources, point-in-time concrete futures mappings and product schedules, and a first-seen journal for future evidence |
 | Abandon condition | A scope cannot define an executable entry/exit or reliable calendar from available data: mark unsupported rather than approximate silently |
+
+**Stage 1 V4.4 amendment (2026-07-15):** the historical V4.3 counts in the
+table remain the predecessor checkpoint. The corrected local runtime slice now
+also includes exact handshake commitment semantics, reboot-safe clock domains,
+empty-session reconnect lineage, explicit backpressure/storage termination,
+kernel plus transactional writer fencing, startup orphan reconciliation, and
+the one-shot exact-Text-frame port. The P0 wording “crash-safe production
+collector” is narrowed: its crash-aware fail-closed local writer/ordering
+boundary is implemented, but
+the real pinned TLS/WebSocket adapter, governed clock/release/runtime/trust/key
+manifests, provider conformance, actual raw-first socket capture, randomized
+reconnect budget, process/storage crash campaign, and long soaks remain open.
+Local V4.4 verification is **183 focused tests passed**, **298 physical tests
+passed**, and **1,523 repository tests passed with 32 skipped**. Exact scope and
+remaining nonclaims are recorded in the V4.4 protocol document.
+
+**Stage 1 V4.5 amendment (2026-07-15):** the fresh-genesis operational
+authority slice now adds an independently pinned trust-root identity,
+threshold-valid DSSE deployment approval, an exact six-manifest closure,
+linear deployment-head admission, deployment-bound policy/session/runtime
+checks, and a restricted encrypted-PKCS8 collector-key loader. The canonical
+control projection now commits and independently replays five records from raw
+decrypted ingress through exact trigger, intent, masked pre-TLS wire, and signed
+dispatch outcome. Adversarial review additionally closed arbitrary
+protocol-failure causes, expired-record admission, missing receipt chronology,
+cross-path Close/`UNKNOWN_DELIVERY` bypasses, H1 reuse after a control fence,
+and heartbeat/subscription request-ID collision. Immediate inbound Close,
+Close intent, and unknown delivery now fence subscription authorization, ACK
+binding, prospective primary capture, health authority, and decision gates as
+well as later control records. The stable V4.4 collector-key identity domain
+and lease diagnostic schema are intentional compatibility surfaces, not stale
+deployment authority.
+
+Local V4.5 verification is **107 dedicated authority/control tests passed**,
+**232 authority/transport tests passed**, **344 physical tests passed**, and
+**1,636 repository tests passed with 32 skipped**. This is still not a real
+socket or deployment-readiness result. Runtime control mediation, a durable
+pre-write permit transition, a typed protocol-failure cause, measured
+release/dependency/TLS/runtime/clock artifacts, external root ceremony,
+Sans-I/O/TLS integration, provider conformance, process-crash campaigns, and
+soaks remain P0 gates. Any orphan prepared wire must be treated as an
+irrevocable at-most-once slot and never resent after restart until that runtime
+boundary is implemented.
+
+**Stage 1 V4.6 amendment (2026-07-15):** the bounded control mediator now
+places an immutable durable attempt-one permit between exact prepared pre-TLS
+bytes and the only admitted writer callback. Permit replay is evidence-only:
+a prepared-only prefix is abandoned on restart, while a permit without a
+result is an unresolved active-session orphan that can never authorize another
+write. The serialized no-network mediator records `SENT` only after an exact
+full local return; short returns preserve their exact prefix, and exceptions or
+cancellation record `UNKNOWN_DELIVERY` with an unknown byte count. Typed
+incorrect-masking evidence is restricted to the first post-handshake frame and
+cannot coexist with any later trigger from the same raw ingress. Canonical
+replay, typed-table bijection, and both append directions enforce those rules.
+Here “short returns preserve their exact prefix” is scoped to the one V4.6
+writer-attempt result. It does not mean the current V4.9F public ingress call
+returns completed multi-unit progress after a later parser/output failure; that
+call currently returns no partial progress to the A2-M sampler.
+Late result persistence is non-authorizing and requires proof that the complete
+writer observation preceded terminal detection in the same monotonic domain;
+termination cannot be backdated before an already durable outcome.
+
+Local V4.6 verification is **50 dedicated V4.6 tests passed**, **90 combined
+V4.5/V4.6 control tests passed**, **302 authority/transport/gate tests passed**,
+**394 physical tests passed**, and **1,686 repository tests passed with 32
+skipped**. Touched control files also pass Ruff, Ruff format, `py_compile`, and
+`git diff --check`. This closes the local permit/attempt ambiguity; it does not
+prove socket ownership or delivery. Eager runtime-session/socket binding, a
+typed governed clock/boot adapter, ordered multi-output obligations, full
+heartbeat and Close/TCP lifecycle, one unified subscription/control writer,
+the real pinned Sans-I/O/TLS adapter, measured deployment artifacts, provider
+conformance, crash campaigns, and no-trading soaks remained open at the V4.6
+checkpoint before any real provider connection could be authorized.
+
+**Stage 1 V4.7A amendment (2026-07-15):** the session handoff no longer
+accepts a caller-selected socket lease string. The runtime snapshots one
+private owner capability, derives a lease from runtime entropy plus the active
+writer-fence epoch, signs a separate `TransportSocketOwnerBindingV4`, and
+commits the owner and unchanged V4.5 handshake session atomically in one V4.7
+operation batch. The exact retained owner is also the only admitted Text-frame
+writer. Owner, OS lease, projection fence, and a fresh causal clock are checked
+before authority becomes live and again at permit/writer boundaries. Raw,
+heartbeat, subscription, capture, and control replay now require the eager
+binding; no later record can establish or mutate it. Kernel socket and lease
+identities are single-use, typed state is checked bijectively against canonical
+replay, and transaction faults cannot preserve only one half of the pair.
+
+Local V4.7A verification is **27 owner-contract tests passed**, **14 dedicated
+owner-projection tests passed**, **58 subscription-runtime tests passed**, **4
+real SQLite/OS-lease runtime integration tests passed**, and **510 combined
+physical/operational-manifest/transport-key tests passed**; the full repository
+then passed **1,735 tests with 32 skipped**. V4.7A remains a local correctness
+result. Its generic test clock supplies a zero-width point
+bracket; it does not implement real `CLOCK_BOOTTIME`, pinned time/network
+namespace handles, `SO_COOKIE`, or strict chrony evidence. Those capabilities,
+one shared owner/clock adapter for subscription and control, the real pinned
+TLS/Sans-I/O driver, measured deployment artifacts, provider conformance,
+crash campaigns, and no-trading soaks remain V4.7B/P0 gates. No predictive
+edge, trading safety, live-provider delivery, or profitability claim follows.
+
+**Stage 1 V4.7B amendment (2026-07-15):** the bounded production constructor
+now couples one Linux socket owner, one governed clock, and one shared
+subscription/control send lock. It pins and revalidates the chronyc
+executable, chrony configuration, and configured-source artifacts; invokes an
+exact chronyc 4.8 machine-output profile through a shell-free, output- and
+deadline-bounded process; and admits only strict, fresh, finite,
+policy-sufficient clock/source evidence. Every production sample retains real
+`CLOCK_BOOTTIME`/wall brackets and resolution and fences boot ID, current
+thread time namespace, process, thread, and fork inheritance. The socket side
+retains and revalidates its current-thread network namespace, `SO_COOKIE`, and
+`SO_NETNS_COOKIE`; permits are constrained by uncertainty-adjusted wall and
+BOOTTIME deadlines; and the durable control mediator can only be derived from
+the exact bound owner/clock authority.
+
+Focused V4.7B verification is **198 tests passed**, including artifact
+replacement/mutation attacks, malformed/truncated/oversized/non-finite chrony
+evidence, runner timeout/exit/version failures, real Linux
+clock/namespace/socket-cookie probes, shared-send serialization, and
+process/thread/fork/closed-owner misuse. Adversarial review additionally closed
+fake-clock/prebuilt-owner construction, direct generic runtime/control
+construction, final-admission TOCTOU behind the shared lock, wrong-signer and
+cross-binding wire substitution, and unexpected child-process cleanup. Queued
+subscription and control operations now recheck owner, exact writer fence,
+governed clock, and wall/BOOTTIME deadlines inside the shared I/O lock before
+the driver can be invoked. The combined
+physical/operational-manifest/artifact/key surface passed **584 tests**, and
+the full repository passed **1,809 tests with 32 skipped**. The diagnostic host
+proves the kernel capabilities and chronyc 4.8 parser path, but the invoking
+desktop user cannot access the configured chronyd command socket. It therefore
+fails the strict production profile closed; localhost fallback data is not
+accepted as promotion evidence.
+
+V4.7B does not yet prove which executable/configuration the already-running
+chronyd loaded, a complete launcher or dynamic-source chain, descriptor
+exclusivity outside the cooperating process, projection-clock binding, real
+TLS/pinned-Sans-I/O framing, provider behavior, or trading safety. Those
+remain Stage 1 gates together with measured deployment campaigns, crash and
+restart campaigns, drift monitoring, and no-trading soaks. No predictive edge,
+live-delivery, or profitability claim follows.
+
+**Stage 1 V4.8A amendment (2026-07-15):** the open projection now binds
+one-shot to the exact retained Linux owner/clock authority and consumes one
+validated governed wall/`CLOCK_BOOTTIME` evidence sample per mutating
+transaction. The same sample supplies all generated fence, receipt, batch,
+deployment, authorization, and H1 timestamps. Same-domain monotonic probes
+after `BEGIN IMMEDIATE` and immediately before commit reject evidence that
+regressed or expired while waiting or executing. Invalid samples fail before
+SQL mutation; rollback consumes the observation; `BaseException` paths roll
+back explicitly; and reopening never restores live authority.
+
+The sealed-construction audit additionally closed fake/subclassed clock,
+driver, journal, and lease admission; equal-identifiers/different-owner
+substitution; direct live/test construction-token use; test-profile downgrade;
+live wall-clock/entropy seam injection; direct live projection session append;
+caller-authored live session facts; decoy-owner abort; and late live-owner
+admission through a non-live runtime. Current structural drivers remain
+non-live until the exact reviewed TLS/WebSocket driver exists.
+
+Final V4.8A verification is **40 focused sealing tests passed**, **608 combined
+physical/operational-manifest/artifact/key tests passed**, and **1,833
+repository tests passed with 32 skipped**. Ruff lint/format, `py_compile`,
+`git diff --check`, and an independent adversarial audit are clean for the
+bounded slice. The exact design and primary-source basis are recorded in
+`docs/research/v4_8a_governed_projection_clock_protocol_freeze_2026-07-15.md`.
+
+V4.8A is still explicitly non-promotion. Loaded-chronyd launch/configuration
+provenance, the exact TLS 1.3/WebSocket Sans-I/O driver and driver-derived
+session API, provider conformance, crash campaigns, and no-trading soaks remain
+Stage 1 gates. No live-delivery, predictive-edge, trading-safety, or
+profitability claim follows.
+
+**Stage 1 V4.8B amendment (2026-07-15):** the clock boundary no longer treats
+an unrelated already-running distribution daemon as admissible provenance.
+The prospective authority now retains the signed systemd unit file,
+`chronyd 4.8` executable, base configuration, and finite source-fragment
+closure; canonicalizes a literal-IP-only static profile; seals the assembled
+bytes in a fully sealed `memfd`; and requires the same retained executable to
+produce the independently signed `chronyd -p` interpretation before launch.
+Production preparation has no injectable runner, while deterministic test
+preparation is marked non-live and refused by the launch capability.
+
+The root supervisor launches the retained executable/configuration descriptors
+inside the named systemd invocation, retains a pidfd, authenticates the exact
+`READY=1` lifecycle datagram, and binds the child parent/start/executable,
+UID/GID and supplementary-group state, exact capabilities, `NoNewPrivs`,
+seccomp, coredump, cgroup, LSM, boot, and namespace observations. A dedicated
+post-drop UID must be otherwise unused. The command-socket directory and exact
+socket inode are frozen under root ownership after creation. Every later
+read-only query uses a fresh in-process credential proxy and admits only the
+exact Chrony v6 `TRACKING -> N_SOURCES -> SOURCE_DATA[0..N-1]` exchange with
+per-datagram `SCM_CREDENTIALS`, zero retries, an exact sealed source count, and
+one shared `CLOCK_BOOTTIME`/output/thread deadline. Lifecycle readiness and
+source readiness remain separate gates.
+
+The stable `(chronyd_launch_id,
+chronyd_runtime_observation_sha256)` pair is carried through clock evidence,
+the retained socket owner, runtime sampling, projection mutation, and control
+mediation. The session-commit path contains the same exact-owner comparison,
+but current live admission rejects at the earlier V4.9 driver-derived-session
+gate and therefore cannot yet accept a stable live commit. The sealed live
+factory also continues to reject at the V4.9 exact-driver gate before artifact
+preparation, daemon launch, clock construction, or socket transfer, so V4.8B
+cannot activate a partial live stack.
+
+Final V4.8B verification is **46 dedicated provenance tests passed**, **10
+pair-focused tests passed**, **308 adjacent operational/provenance/physical
+tests passed**, and **1,913 repository tests passed with 32 skipped**. Ruff
+lint is clean across the trading package and trading tests; the 19 touched
+implementation/test files pass Ruff format; and the affected modules pass
+`py_compile`. The pre-existing repository-wide format baseline remains dirty
+because one notebook does not match Ruff's notebook schema and 246 older files
+outside this slice would be reformatted; V4.8B does not conceal that by
+rewriting unrelated work.
+
+V4.8B remains prospective and non-promotion. It does not attest systemd's
+complete in-memory effective unit/drop-ins/transient properties, revoke a
+same-UID datagram client connected before DAC sealing, prove that no other
+`CAP_SYS_TIME` process disciplines the host clock, implement the reserved
+durable supervisor API, or provide real root/systemd/chronyd/VM integration
+evidence. Those gates, V4.9, provider conformance, crash campaigns, and
+no-trading soaks remain open. Exact mechanics, primary-source grounding, and
+the final verification record are in
+`docs/research/v4_8b_loaded_chronyd_provenance_protocol_freeze_2026-07-15.md`.
+No live delivery, predictive edge, trading safety, or profitability claim
+follows.
+
+**Stage 1 V4.9A amendment (2026-07-15):** the previously hypothetical TLS and
+WebSocket layer now has a bounded exact local implementation, without removing
+the live deny gate. `PinnedTlsTrustStoreV49` retains the operational CA file,
+rechecks its exact digest and byte size, admits only unique certificate PEM
+blocks, reproduces a domain-separated canonical DER-set root and count, and
+requires OpenSSL's effective CA set to equal the signed manifest. Every
+connection receives a fresh TLS 1.3-only `PROTOCOL_TLS_CLIENT` context with
+certificate and SAN hostname verification, no ambient default roots, no ALPN,
+no compression, no session reuse, and no key logging.
+
+`ExactTlsWebSocketDriverV49` owns paired `MemoryBIO` objects, one `SSLObject`,
+and exact `websockets==16.0` Sans-I/O state. It records the exact HTTP request
+and response hashes, negotiated TLS/cipher, remote address, and leaf
+certificate/SPKI hashes. A coalesced first WebSocket frame is separated at the
+original `\r\n\r\n` boundary and retained unparsed. Later plaintext is also
+held as a one-shot pending batch. Only an exact matching `RawIngressCommitV4`
+may precede `ClientProtocol.receive_data()`, and every automatic Pong/Close
+output is drained into owned memory with zero receive-path network writes.
+Multiple outputs remain ordered and unsent rather than being selected or
+dropped.
+
+Final V4.9A verification is **24 dedicated trust/engine tests passed** using a
+real local TLS 1.3 fake server, **712 broad physical/operational/transport tests
+passed**, and **1,937 repository tests passed with 32 skipped**. The full run
+reported one expected Python 3.12 multi-threaded-`fork()` deprecation warning
+from the existing V4.8B fork adversary. Focused Ruff lint/format,
+`py_compile`, and diff checks are clean. The exact design, alternatives,
+limitations, and primary-source basis are recorded in
+`docs/research/v4_9a_exact_tls_websocket_engine_protocol_freeze_2026-07-15.md`.
+
+V4.9A is still non-promotion. It does not yet provide signed driver/runtime
+artifact policy, the internal driver-derived atomic session/owner append,
+canonical-receipt-proof raw/parser mediation, cross-ingress parser spans, a
+durable ordered automatic-output queue, prepared-wire subscription sends,
+exact positive partial-kernel-send accounting, or the WebSocket Close/TLS
+`close_notify`/TCP terminal state machine. The V4.8B live factory still closes
+the presented socket and fails before chronyd/artifact side effects. Those
+V4.9B/C gates, privileged integration, provider conformance, crash campaigns,
+and no-trading soaks remain open. No live-delivery, data-authority,
+predictive-edge, trading-safety, or profitability claim follows.
+
+**Stage 1 V4.9B amendment (2026-07-17):** the initial live-session authority
+path no longer accepts caller-authored handshake or session facts. The existing
+six-child deployment closure now signs a full nested
+`TlsWebSocketDriverPolicyV49B` inside `RuntimeEnvironmentManifestV4`. That
+policy contains seven role-exact Python/OpenSSL/repository members, the three
+associated `ssl`/driver/trust-store bytecode caches that Python may read under
+`-B`, and every recorded installed file for `websockets` and `cryptography`,
+with exact paths, sizes, SHA-256 values, import origins, versions, and the
+Python/OpenSSL profile.
+The runtime verifier independently remeasures and retains every member, checks
+the actual imported-module and `/proc/self/maps` OpenSSL origins, rejects
+group/world-writable promotion artifacts, rejects shared `libpython` and
+`-O`/`-OO`, and requires the effective `-I -S -B` launch profile. The `-S`
+sentinel is handled explicitly:
+`site.ENABLE_USER_SITE` may remain `None`, so user-site denial requires it not
+to be `True` together with `site.check_enableusersite() is False` and the
+immutable `sys.flags` checks.
+
+The exact retained Linux owner now runs one handshake under its shared I/O
+lock between governed pre/post samples and unchanged socket, namespace, clock,
+chronyd, driver-policy, and runtime-observation identities. The runtime alone
+constructs the generation-1 `TransportSessionAttestationV4` from the exact
+driver observation and conservative outer clock bracket. A private projection
+path admits only that projection's same exact live owner and atomically commits
+the signed session plus signed socket-owner binding; the public live append
+continues to reject caller-authored facts. Owner, writer lease, application
+fence, and a strictly later governed clock are revalidated after commit, and
+the retained driver evidence is bound before `SESSION_COMMITTED` send authority
+is published. A failure after durable commit aborts the owner and fault-latches
+the runtime; the durable pair remains evidence, not send authority.
+
+Final V4.9B verification is **29 dedicated tests passed**,
+**700 adjacent physical/operational/transport tests passed**, and
+**1,971 repository tests passed with 32 skipped**. Focused Ruff lint/format,
+`py_compile`, and `git diff --check` **passed**. The exact design, alternatives,
+primary-source basis, and residuals are recorded in
+`docs/research/v4_9b_driver_derived_session_authority_protocol_freeze_2026-07-17.md`.
+
+V4.9B remains non-promotion and the public factory remains closed. The bounded
+policy measures the driver files named above; it is not full-process or
+in-memory attestation and cannot prove the integrity of already loaded pages.
+An external measured launcher/immutable image or a full collector-runtime
+closure remains required, together with a signed exact lock and hashed
+wheelhouse. The bounded V4.9C amendment below closes only the local
+subscription-egress slice: exact prepared application wire, deterministic actor
+permit, staged TLS ordering, and positive partial-send evidence. The V4.9D
+amendment below then closes runtime RAW/parser mediation, cross-ingress spans,
+and automatic Pong/Close dispatch. Actor-ordered provider ACK/terminal
+integration and the positive WebSocket/TLS/TCP terminal lifecycle remain for
+V4.9E.
+Privileged/systemd/chronyd integration, provider and certificate-rollover
+conformance, crash/restart campaigns, long no-trading soaks, and independent
+review also remain open. No live readiness, provider authority, predictive
+edge, trading safety, or profitability claim follows.
+
+**Stage 1 V4.9C amendment (2026-07-17):** one private session actor now owns
+the bounded local subscription-egress order. The public method exposes only an
+intent idempotency key; the sender, socket, permit, wire, TLS artifact, and
+callback remain runtime-retained capabilities. Actor activation fences the
+legacy subscription/control writers, rejects retained post-upgrade plaintext
+and pending automatic output, and restores only the exact V4.9B
+session/owner/fence authority.
+
+The causal application path is now durable intent → exact masked WebSocket
+Text artifact → atomic exact-wire/deterministic-permit batch → TLS preparation
+from that exact object → durable TLS artifact → atomic send-attempt/started
+batch → one bounded positive local socket acceptance → atomic
+send-result/resolved batch → local-dispatch completion. TLS state cannot advance
+before the wire/permit transaction commits, and a kernel effect cannot occur
+before the TLS artifact and send attempt are durable. Application wire records
+are independently decoded for mask, FIN, RSV, opcode, minimal length, exact
+single-frame extent and unmasked payload, then cross-linked to the actual
+durable one-topic intent. Forged permit IDs, reconstructed RAW authority,
+transactional partial batches, positive-result persistence failure, expired
+preflight, concurrent backpressure, activation failure, reconnect overlap, and
+close-during-send all fail closed without reviving or replaying the owner.
+
+The frozen authorization-to-send budget is five seconds and the unchanged ACK
+budget is ten seconds, both authorization-relative. The earlier one-second
+budget could expire inside its own durable intent/pre-send path before any
+socket call. Bybit's public WebSocket contract does not impose that one-second
+rule, so five seconds is a provisional local engineering bound rather than a
+provider guarantee. Signed one-second transport manifests are rejected and
+must be regenerated; promotion still requires target-host high-quantile
+latency measurements and margin sensitivity.
+
+Final bounded verification is **156 focused V4.9C/adjacent staged-transport
+tests passed** and **612 broad transport/operational tests passed**. This
+includes real local TLS 1.3 egress, exact masked-frame adversaries, transaction
+rollback and idempotent replay, deadline fencing, positive-result persistence
+failure, concurrent terminal races, and owner/actor recovery semantics.
+The full repository then passed **2,114 tests with 32 skipped** and the two
+known Python 3.12 multi-threaded-`fork()` deprecation warnings from the existing
+V4.8B/runtime-artifact fork adversaries.
+Focused Ruff lint/format, `py_compile`, `git diff --check`, and generated-file
+leftover checks are clean.
+
+This remains a bounded local egress checkpoint, not Stage 1 completion. The
+runtime still cannot adopt/read/parse continuing raw ingress, drive automatic
+Pong/Close output, represent multiple automatic obligations, or place ACK and
+all terminal transitions in the actor's total order. Positive TLS
+`close_notify`/TCP shutdown, queue-depth policy, full-process measurement,
+privileged/provider/certificate-rollover conformance, process-crash campaigns,
+long no-trading soaks, and independent review remain open. The public live
+factory stays closed. No data authority, live readiness, predictive edge,
+trading safety, or profitability claim follows.
+
+**Stage 1 V4.9D amendment (2026-07-17):** the implemented and accepted bounded
+local checkpoint closes the ingress-to-automatic-output seam without opening
+the public live factory. One runtime call adopts exactly one canonical
+RAW plaintext batch before parsing and may then drain every complete oldest
+frame already present in those durable bytes. Parser mutations are
+frame-at-a-time rather than whole-batch: an incomplete suffix retains exact
+source-receipt slices across calls, and the eventual transition is replayed
+against the canonical RAW bytes spanning every contributing receipt. Matching
+only lengths, offsets, or caller-presented hashes is not authority. Fragmented
+Text and Continuation payloads are checked with strict incremental UTF-8
+validation before application acceptance; invalid text closes with code 1007.
+
+An open-state RFC Ping or applicable Close response becomes a mandatory actor
+obligation only after its parser event is durable. Its exact masked wire and
+one-shot permit commit atomically, TLS advances only from that durable wire,
+the exact ciphertext is persisted before a write-ahead kernel attempt, and the
+V4.9C partial-send/result/completion rules remain unchanged. Automatic output
+cannot be overtaken by application output. The causal ingress reader may
+receive ciphertext but never flushes unjournaled TLS output: pending outgoing
+BIO bytes or `SSLWantWriteError` fail closed before any hidden socket write.
+
+The focused V4.9 transport neighborhood passed **156 tests**. The full
+repository passed **2,156 tests with 32 skipped** and the two known Python 3.12
+multi-threaded-`fork()` deprecation warnings from the existing chronyd and
+runtime-artifact adversaries. Focused Ruff lint/format, `py_compile`, and
+`git diff --check` passed. V4.9D is therefore the latest accepted bounded local
+predecessor checkpoint. At that boundary, V4.9E still had to place provider
+message classification, exact subscription ACK/completion, deadlines and all
+terminal facts into the actor order. The bounded V4.9E amendment below now
+addresses those local protocol seams. Queue policy, privileged/provider/
+certificate conformance, process-crash campaigns, long no-trading soaks, and
+independent review remain open. The public live factory remains closed. No data
+authority, live readiness, predictive edge, trading safety, or profitability
+claim follows. The exact V4.9D contract and acceptance tests are recorded in
+`docs/research/v4_9d_causal_ingress_and_automatic_output_protocol_freeze_2026-07-17.md`.
+
+**Stage 1 V4.9E amendment (2026-07-18):** the implemented and verified bounded
+local checkpoint extends the one total actor order across completed provider
+messages, deterministic classification, exact subscription ACK binding and
+completion, absolute ACK and shutdown deadlines, WebSocket Close, TLS-control
+effects, TCP half-close/EOF, and the final terminal record. A provider message
+is reconstructed from canonical RAW/parser predecessors and classified from
+its exact bytes; caller-presented disposition, callback, socket, or ACK identity
+cannot create authority. The subscription ACK and operation completion commit
+as one exact causal unit, and an actor-ordered deadline cannot be overtaken or
+revived by a later message.
+
+Local shutdown now begins with one durable predecessor-bound command before any
+terminal mutation. The same retained command object and absolute dual-clock
+deadline bind the Close wire and every later owner operation. TLS shutdown and
+supported post-handshake control output use write-ahead prepared artifacts plus
+exact kernel attempt/result records; no hidden outgoing-BIO write is accepted.
+Positive local `close_notify` kernel acceptance precedes retained-owner
+`shutdown(SHUT_WR)`. Authenticated peer `close_notify` and retained-owner TCP
+EOF remain distinct observations and neither is synthesized from the other.
+Conclusive failure, truncation, cancellation, storage failure, unknown send,
+and clean completion also remain distinct rather than collapsing into one
+generic disconnect.
+
+An irreversible terminal journal clock is authorized only after the owner
+consumes the same one-shot exact physical-evidence capability. Copied fields,
+hash-only equivalents, or a self-consistent recovered chain cannot upgrade an
+unauthorized observation, and post-EOF `ENOTCONN` is not treated as a substitute
+for the retained evidence. Dual-clock evaluation preserves `BOTH_DUE`, clock
+disagreement, and owner-evidence-before-both outcomes. Projection and recovery
+recompute nested driver evidence before owner evidence, then verify the exact
+session nonce, socket identity, command deadline, causal predecessors, and
+signed termination clocks. Crash-prefix replay is deterministic and
+idempotent, and the actor terminal outcome converges with one legacy
+termination pair without repeating a TLS or socket effect.
+
+Final post-edit repository verification is **2,335 passed with 32 skipped and three known
+Python 3.12 multi-threaded-`fork()` deprecation warnings** from the existing
+fork adversaries. Scoped Ruff lint and Ruff format checks, scoped
+`py_compile`, `git diff --check`, and the explicit public-live-factory denial
+checks passed. These results accept only the bounded local V4.9E contract and
+its deterministic replay surface.
+
+The post-edit revalidation also closes three narrower invariants that were not
+covered by the first acceptance run: peer TLS closure and TCP EOF cannot switch
+to a different self-consistent owner socket identity; recovered terminal
+markers and clean convergence use fresh governed terminal clock samples rather
+than synthesized monotonic increments; and an initialized actor can adopt only
+an append-only journal-prefix extension. The final focused evidence is 287
+protocol/owner/TLS/session tests and 146 independent projection/provider/
+authority tests. Disconnected-owner and true process-loss restoration remain
+fail-closed and deferred to the supervisor/restart gate.
+
+**Stage 1 V4.9F-A1 amendment (2026-07-18):** the first bounded-capacity slice
+replaces invisible, unbounded coroutine waiting at the V4.9E runtime
+orchestration seam with a signed single-session admission contract. The exact
+policy is nested in the signed runtime-environment manifest, carried into the
+verified deployment capability, and rechecked at runtime startup. Four closed
+command kinds—ingress, subscription dispatch, ACK-deadline expiry, and local
+shutdown—each receive one singleton reservation. One global sequence preserves
+FIFO across all surviving tickets, while dedicated singleton capacity prevents
+ingress/dispatch pressure from consuming shutdown or deadline admission.
+
+Cancellation or local queue expiry before entry removes only the exact ticket,
+releases its count/work reservation, and cannot sample the governed clock or
+mutate the socket, TLS driver, actor, projection, runtime state, or termination
+ledger. Grant handoff alone is not effect authority: the owner task rechecks the
+local absolute deadline when it actually resumes, immediately before caller
+entry. Same-task, inherited-child-context, cross-loop, stale-epoch, equal-clone,
+forged, wrong-task, wrong-kind, and direct private-helper bypasses reject before
+effects. The exact issued grant is bound by object identity, task, active
+context, epoch, sequence, policy, reservation, and timestamps through every
+effect-capable ingress/dispatch/shutdown helper. Local shutdown uses a two-phase
+barrier: later admission stops when shutdown is reserved, earlier tickets retain
+FIFO precedence, and explicit barrier commitment occurs only after the exact
+`LOCAL_SHUTDOWN_COMMAND_STARTED` actor fact exists. A pre-durable failure or a
+queued shutdown settled by gate close clears the reservation without leaving a
+phantom committed diagnostic.
+
+A1 deliberately keeps local event-loop queue age separate from governed
+`CLOCK_BOOTTIME` evidence. Existing ingress/shutdown operation timeouts still
+start after admission; a true end-to-end deadline requires a later absolute
+governed-deadline contract through runtime, actor, TLS, and owner APIs. Durable
+overload/BACKPRESSURE evidence, parser turn bounds, incremental actor state,
+cross-session DRR, and 100-scope capacity remain V4.9F-A2/A3/B work. An
+independent adversarial audit rejected the first implementation after
+reproducing late entry after an on-time grant, forged/cloned grant acceptance,
+and a false committed shutdown barrier after close. Those defects were repaired
+and converted into explicit regression oracles. At that A1 checkpoint,
+corrected evidence was
+21 pure gate tests, 3 signed-policy Linux/TLS/runtime tests, 85 combined pure/
+manifest/live-factory-denial tests, and an expanded 144-test adjacent regression
+pass in 632.73 seconds. The repository-wide baseline was 2,361 passed, 32
+skipped, and three known Python 3.12 multi-threaded-`fork()` deprecation warnings
+in 2,313.34 seconds. Formatting, lint, compilation, unchanged verification
+hashes, and `git diff --check` also passed. V4.9F-A1 is therefore accepted only
+as this bounded local checkpoint. The exact protocol, research basis, residuals,
+and worklog are recorded in the
+[V4.9F-A1 protocol](v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md).
+
+**Stage 1 V4.9F-A2-M foundation amendment (2026-07-20):** implementation did
+not proceed directly from A1 into provisional numeric backpressure or parser
+limits. An exhaustive audit proved that the generic A1 `capacity_rejections`
+branch is unreachable under the valid signed policy: there are exactly four
+singleton command kinds, the count limit is four, the work limit is the sum of
+their four reservations, and a fifth request necessarily fails the earlier
+duplicate-kind branch. That counter cannot calibrate saturation. The accepted
+sequence is now measurement-only A2-M, immutable calibration and independent
+confirmation, threshold/policy freeze, and only then A2-E enforcement.
+
+The first A2-M foundation is narrower than the initially drafted artifact
+surface. It admits only an exact EXPLORATORY raw bundle containing canonical
+manifest, sample JSONL, correctness, and exact bundle-member byte-integrity
+artifacts. The implementation constructs the content-addressed members in
+memory; atomic durable filesystem publication remains open.
+Calibration and confirmation phases are rejected; summary and threshold
+artifacts/classes are absent, and any fifth bundle member fails replay. The
+campaign-manifest identity binds one exact physical session and plan, while a
+distinct evidence-bundle identity closes the actual sample bytes. Samples use
+relative I-JSON-safe clock offsets from an arbitrary-length textual monotonic
+origin, retain exact null/unavailable semantics, enforce declared schedule and
+parent/RAW causality, and reject physically impossible source-snapshot states.
+The manifest, nested environment/design, every sample, correctness, and
+integrity records persist the exact canonicalization/schema/domain identifiers;
+their semantic IDs are domain-separated and version-bound, while raw member
+and sample-stream SHA-256 values remain literal byte digests.
+Source revision/identity, clean/dirty status, runtime identity, and most
+environment fields are immutable committed declarations, not independently
+observed attestations. The current runner rechecks the exact
+session/driver/socket/A1-policy boundary and projection-storage identity; a
+production source/runtime/environment manifest collector remains open.
+The foundation also adds count-only snapshots across TLS `MemoryBIO`, SSL
+plaintext, pending RAW, durable parser bytes, automatic protocol output,
+staged ciphertext, Linux `getsockopt(SO_RCVBUF/SO_SNDBUF)`, and
+`SIOCINQ`/`SIOCOUTQ`. The socket-buffer values are Linux-doubled maximum-buffer
+observations, not occupancy or remaining headroom. The ioctls are sequential
+point observations of unread receive and unsent send data, not ACK, peer
+receipt, or a simultaneous TLS/kernel state. Snapshots retain the driver actor
+and owner I/O locks, expose no bytes, fd, parser token, send artifact, or
+transport capability, and perform before/after sealed socket-owner checks.
+They deliberately do not invoke full runtime-closure currentness verification
+because that would contaminate the measured flow state; every mutating
+transport seam continues to perform the full check. The public factory, actor
+schema, runtime behavior, threshold policy, and terminal behavior are
+unchanged.
+
+A pre-contract exploratory loopback probe remains routing evidence only. One,
+two, four, and eight coalesced minimum two-byte Pong frames took approximately
+2.326, 3.102, 4.689, and 7.968 seconds in the complete local TLS/runtime/actor/
+SQLite/A1 path. In a one-frame cProfile observation, six driver-currentness
+checks accounted for 2.678 of 3.056 cumulative seconds, while the projection
+append core accounted for 0.263 seconds. A current static audit finds that the
+retained closure contains 314 files and 57,260,695 bytes; the six-check ingress
+topology hashes this closure three times per check, establishing a minimum of
+5,652 file-content hashes and 1,030,692,510 bytes before trust-store/profile
+work for one two-byte frame. Because the TLS source changed when the new
+snapshot was added, the absolute exploratory timings are stale and must be
+rerun through the frozen A2-M campaign; the call topology and measured source
+closure diagnosis remain explicit hypotheses to falsify.
+
+This evidence rejects a parser-count-only service claim. A credible A2-E bound
+depends on separately measured runtime-artifact currentness, parser, actor,
+projection/SQLite, TLS, kernel, and event-loop costs. It also cannot yield by
+silently releasing and re-admitting residual durable RAW work: that would allow
+later shutdown, ACK, or dispatch commands to overtake already-observed unseen
+bytes. `asyncio.sleep(0)` while retaining the original active grant and
+orchestration lock may bound uninterrupted event-loop occupation, but it does
+not let another admitted transport command start. Successful queued-command
+service therefore requires a signed active-ingress/backlog-age hard bound,
+completion of the current indivisible parser/control-output closure, and a
+bounded terminal transaction. The current cumulative actor/projection and
+currentness paths prevent that end-to-end latency claim.
+
+The initial 12-artifact/4-snapshot result was superseded after independent
+audit rejected its calibration-shaped authority, incomplete session binding,
+unsafe absolute-clock representation, lossy unavailable-value semantics, and
+causal gaps. The corrected checkpoint comprises 31 raw-contract, 6
+non-mutating snapshot, 16 adjacent TLS/Linux, and 25 A1 capacity/closed-factory
+tests: **78 passed in 129.15 seconds**. The older **32 passed** checkpoint is
+historical only and is not acceptance evidence. This is not A2-M completion.
+At this foundation checkpoint, unified admission/actor/projection/process/
+event-loop sampling was still open; the superseding raw V5 evidence amendment
+below
+partially closes that item without supplying an in-operation hook or every
+required field. Observer-neutrality pairs, immutable campaign publication,
+calibration, independent confirmation, numeric thresholds, A2-E, A3, and
+multi-session V4.9F-B remain open. The protocol, primary-source basis,
+exploratory artifact, causal constraints, and exact nonclaims are recorded in
+the
+[V4.9F-A2 protocol](v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md)
+and [exploratory probe](v4_9f_a2_exploratory_probe_2026-07-20.json).
+
+**Stage 1 V4.9F-A2-M sampler and exact-evidence amendment (2026-07-20):**
+primary-source and runtime-lock audits rejected both a synthetic componentwise
+"peak" and a single-timestamp cross-layer snapshot. The exploratory contract
+is now an explicit raw V5 evidence profile with a V2 ingress-workload schema.
+It embeds canonical workload JSON and derives the corpus root. The implemented
+workload schema is exactly one `INGRESS` operation with bound family, stage,
+ordered input chunks, ordered expected logical Pong/Close frames, timeout, and
+schema version. Before one public ingress call, the runner
+reconstructs this specification and requires literal canonical-JSON equality
+with the selected manifest workload; afterward it checks the returned ordered
+RAW-batch hash and committed-octet count. The runtime now returns actual
+serialized automatic-output chunks plus actor-ordered logical frames,
+source-parser IDs, dispatch-completion IDs, and per-frame physical chunk
+grouping. The exact decoded logical frame is appended to returned ingress
+progress only after dispatch completion. Actor evidence durably records the
+prepared logical opcode, payload hash/octet count, and serialized wire chunks
+earlier, before TLS/send. The runner compares the returned frame with the
+preregistered oracle. Physical client wire bytes are not preregistered because
+WebSocket masking uses fresh entropy; two masks can produce different correct
+wire bytes for the same logical Pong. Raw V5 instead persists one canonical
+base64 concatenation of the exact returned wire bytes, the ordered chunk-length
+partition, per-frame chunk grouping, and decoded logical frames in
+`samples.jsonl`. Replay reconstructs the original chunks and rejects a physical/
+logical mismatch. This exact mapping still does not cover the non-ingress
+operation union or prove execution of the frozen workload campaign. The profile
+separates observer-monotonic, BOOTTIME, and event-loop clock domains; records
+observer versus underlying-operation spans;
+separates operation from measurement outcomes; attributes every flat field to
+a timed adapter span; derives observation completeness; and persists exact
+successful A1 policy, epoch, sequence, command kind, reservation, admit/start/
+deadline offsets, and queue-wait coordinates. Inferred sole-caller attribution
+is rejected; only an exact returned grant or explicit unavailability is valid.
+
+An internal single-session ingress runner now calls the existing public runtime
+operation exactly once. It takes full observations only at quiescent
+boundaries, never polls owner/driver locks concurrently, never performs
+artifact writes inside transport authority, and records the absent stable
+internal checkpoint as all-null `NO_STABLE_IN_OPERATION_HOOK`. Adapter ownership
+is exact: `TRANSPORT_FLOW` owns sequential driver/BIO/RAW/parser-ready/output
+counts and four Linux socket observations; `ADMISSION` owns the quiescent A1
+snapshot; `ACTOR` owns persisted constant-cost event count and
+queued-obligation count/octets. Raw V5 additionally persists actor count/tail
+coordinates in every exact runtime boundary and in returned ingress progress;
+`SQLITE` owns sequential filesystem lengths; `PROCESS` owns procfs RSS/PSS and
+cgroup-v2 memory; and `EVENT_LOOP` owns one scheduled callback delay. Successful
+fields survive a sibling observation failure; unavailable fields remain null
+with explicit reasons.
+
+The runner compares and persists role-bound initial, before, and after runtime
+boundaries and their observer capture spans, plus progress-returned actor
+before/after coordinates. Each boundary includes exact session/socket/policy
+identity, actor tail and wire-queue counters, runtime state, and the complete
+quiescent A1 admission snapshot, including rejection decomposition and maxima.
+It also checks that exactly one A1 command was released without new rejection,
+timeout, cancellation, or closure outcomes. A valid competing command inserted before
+or after the target is classified as `NON_TARGET_RUNTIME_ACTIVITY_DETECTED`.
+This is retrospective boundary-delta detection, not campaign exclusivity or a
+campaign mutex, and no pre-gate lock was added because doing so would change A1
+FIFO, duplicate-kind, capacity, and cancellation semantics.
+
+`CapacityMeasurementSampleRunV49F` retains the initial, before, and after
+runtime boundaries, and `build_capacity_measurement_bundle_v49f()` serializes
+their exact non-capability evidence inside each V5 sample. The immutable bundle
+therefore reconstructs and validates the actor-tail/cumulative-admission
+boundary proof rather than retaining only its contamination classification.
+
+The runtime supplies the projection path, and the manifest storage identity
+binds its resolved path, device, and inode. The adapter rechecks the main
+database identity and then observes main, rollback-journal, WAL, and SHM lengths
+in sequence. These are filesystem-occupancy readings only, not an atomic
+transaction, commit, durability, row-count, or logical-database snapshot.
+`page_count` and `freelist_count` remain unavailable because the sampler does
+not re-enter SQLite. Procfs RSS is approximate; PSS is proportional,
+observer-expensive, and affected by sharing; cgroup `memory.current` includes
+the cgroup's descendants and non-process-only memory. The event-loop field is
+one `call_soon()` callback delay overlapping the operation, not maximum lag,
+and its float-derived nanosecond serialization does not establish nanosecond
+clock resolution. `CANCELLED` is reserved by the schema, while the current
+runner cancels the pending probe and propagates task cancellation without
+retry, shielding, a post-snapshot, or a persisted cancelled sample. A truthful
+terminal-record path remains runner-hardening work. On the ordinary
+active-ingress non-terminal cleanup path, cancellation after entry aborts the
+owner and fault-latches the runtime before propagation; an existing stronger
+terminal convergence remains authoritative. Current sampler coverage does not
+assert that final runtime state or an exact post-observer call count.
+
+An operation exception retains its Python exception class, but the public
+runtime call still returns no partial progress when a later parser unit fails
+after an earlier unit or Pong completed. Raw V5 records
+`RETURNED_PROGRESS_UNAVAILABLE_AFTER_EXCEPTION`, keeps every returned-progress
+summary null rather than fabricating a legitimate empty output, and persists
+the exact after boundary. That boundary can show actor/admission/runtime state
+changes, but the completed prefix itself still cannot be reconstructed from the
+failed sample. Runtime cleanup was narrowed so an earlier completed Pong cannot
+misclassify a later parser failure as unknown delivery, while a current
+unresolved kernel attempt remains `DispatchUnknown` and a conclusive send result
+without authoritative dispatch completion is a distinct fault-latched state. A
+versioned attempt/terminal record is still required for complete failed-prefix
+and cancellation evidence.
+
+Two neutrality profiles are structurally separated. Deterministic authority
+tests may require literal RAW/actor/projection prefix equality. Fresh physical
+TLS/Linux sessions require a preregistered alpha-equivalence trace because
+socket identity, session signatures, TLS secrets, masking entropy, event IDs,
+and projection receipts legitimately differ. The strict comparators exist,
+but the field-by-field physical normalizer, balanced OFF/OFF and ON/ON controls,
+OFF/ON trials, fixed internal marker ring, non-ingress operation union,
+future independently evidence-derived versioned correctness-root finalizer, and
+frozen workload campaigns remain open. This is
+therefore a truthful boundary-sampler checkpoint, not A2-M completion or an
+enforcement/calibration/live/profitability result.
+
+The V5 sample enforces the 65,536-RAW-octet causal maximum of 32,768 minimum
+two-byte ingress units while the V2 workload profile caps preregistered
+automatic-output frames at 32. This lets a larger observed run be preserved
+instead of failing during evidence construction, but such a run cannot pass an
+exact oracle above the workload cap. The frozen source-derived V5 artifact
+bounds allow at most 32 physical chunks per logical output, 1,048,576 chunks
+per raw sample, and 4,292,608 decoded wire octets (32,768 control frames times
+the 131-octet maximum). Unlike V4, V5 persists those exact bytes as one
+canonical base64 stream plus the chunk partition and frame grouping. These are
+schema plausibility bounds, not measured capacity, TLS limits, or enforcement
+thresholds. Structural event IDs and ordered-subset checks do not prove actor
+descent by themselves. The sampler-facing
+`build_capacity_measurement_bundle_v49f()` helper forces six lineage/cleanup
+correctness booleans false, derives `observations_complete` from sample coverage,
+and adds `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED`.
+The same provisional invariant is now enforced by
+`CapacityMeasurementCorrectnessV49F` itself and by every current public or
+low-level acceptance seam: direct construction, mapping/raw decode,
+serialization, the `passed` property, direct and classmethod bundle construction,
+and fully rehashed raw replay. An unfinalized record must include the finalizer-
+missing code and cannot set any of `no_loss`, `no_duplication`, `no_reordering`,
+`control_output_causal`, `projection_verified`, or `cleanup_complete` true.
+`observations_complete` remains the separately derived sample-coverage result;
+it cannot remove the failure code or make `passed` true. Adversarial tests cover
+ordinary construction, asserted-field replacement, a forged object crossing
+serialization/bundle/property seams, and a forged PASS whose correctness bytes
+and integrity closure were both rehashed before replay. This closes the prior
+caller-authored correctness-PASS defect at the current local schema boundary.
+It does not derive RAW/actor/projection roots, implement the future versioned
+finalizer, execute a workload campaign, or complete A2-M.
+
+Focused raw V5 verification now exercises exact byte/chunk reconstruction,
+physical/logical substitution rejection, boundary-role and admission-snapshot
+invariants, full returned-grant persistence, exception/unavailable semantics,
+forged nested evidence, and legacy-V4 rejection, alongside the measurement,
+sampler, runtime-ingress, and runtime-capacity neighborhoods. Exact completed
+command-level counts and timings are maintained in the A2-M protocol rather
+than duplicated here. This evidence validates only the bounded local raw V5
+schema and adjacent runtime behavior; it does not supply manifest authority, an
+evidence-derived finalizer, failed-prefix/cancellation recovery, neutrality,
+calibration, confirmation, long-soak, or production campaigns.
+
+The earlier uninterrupted full repository run passed **2,441 tests with 32
+skipped and three known Python 3.12 multi-threaded-`fork()` deprecation
+warnings in 2,727.60 seconds (45:27)**. It is predecessor regression context,
+not a post-fix full-suite result, and it does not turn the explicitly unavailable
+A2-M observations or campaigns into evidence.
+
+**Stage 1 V4.9F-A2-M Raw V6 amendment (2026-07-21):** the authoritative-
+manifest sub-gate is now locally accepted. A deterministic frozen source
+inventory, retained runtime/process/storage/session observations, one-shot
+runtime signing authorization, direct domain-separated Ed25519 authority,
+independently admitted deployment-static verifier, strict Raw V5 rejection,
+and bounded four-member replay replace the V5 caller-declaration seam. The
+current disjoint verification passed **228 tests** across source/manifest/
+adversarial, collector, runtime-authority, sampler, and adjacent runtime groups.
+This is observed-local EXPLORATORY integrity only: the serialized key is
+self-authentication without the independent expectation, executed bytecode and
+host integrity are not attested, and the public `LIVE_LINUX` path is unexercised.
+
+At that checkpoint, the active focused gap was versioned Raw V7 pre-effect attempt,
+journal-derived failed-prefix, and exactly-one terminal/cancellation evidence.
+Later gaps include stable in-operation markers, non-ingress operations,
+complete target fields, physical normalization and matched neutrality, an
+independent correctness finalizer, campaign isolation, and atomic durable
+publication. Focused tests must not be read as closure of those obligations.
+
+**Stage 1 V4.9F-A2-M Raw V7 amendment (2026-07-22):** the bounded local
+failed-prefix/cancellation sub-gate is now accepted. Durable pre-effect
+attempts, exactly-one terminals, exact actor/RAW prefix reconstruction,
+synchronous cancellation and interruption persistence, startup orphan
+recovery, strict runner-bound artifact replay, and the explicit unsigned-suffix
+trust ceiling closed all 27 audit rows. The final evidence is **242 direct
+cases** plus the frozen **39-file / 558-case adjacent matrix**, with static,
+inventory, serialization/public-surface, and leftover checks recorded in the
+acceptance audit.
+
+At that checkpoint, the active focused gap was the separately frozen Raw V8
+contract. Section 18 step 1 was complete and step 2 still had to introduce the
+new-domain exact registry constants and four operation spec/result types. Raw
+V7 did not implement the 185-field target surface, physical normalization,
+independent finalization, isolation, publication, campaigns, calibration,
+thresholds, or enforcement. Its manifest authenticates the starting authority
+but not the unsigned post-run suffix.
+
+**Stage 1 V4.9F-A2-M Raw V8 Step-2 amendment (2026-07-25):** the isolated
+exact-contract sub-gate was locally accepted for its then-frozen surface. An independent adversarial review
+first found mode-relabel, null-attempt, and checkpoint-applicability semantic
+gaps; acceptance was withheld until the protocol, production validator,
+independent generator, and exhaustive tests were corrected. The final private
+surface freezes the exact four-operation tagged union, spec/result records,
+185-field registry, 66-counter schema, 85-field null-attempt rule, 13-entry
+checkpoint map, mode truth table, and generated 262,144-byte envelope proof.
+The later Step-3 correction is breaking, so this is now historical acceptance
+evidence rather than current implementation authority until the V2 contracts
+and inventory are regenerated and reaccepted.
+
+The active focused gap is Raw V8 Section 18 Step 3: durable candidate, attempt,
+terminal, marker-closure, locator, receipt, replay, atomic final-transaction,
+and startup-recovery semantics. Whole Raw V8 acceptance and every later A2-M
+gate remain open. See
+[`v4_9f_a2_raw_v8_step2_acceptance_audit_2026-07-25.md`](v4_9f_a2_raw_v8_step2_acceptance_audit_2026-07-25.md).
+
+**Stage 1 V4.9F-A2-M Raw V8 initializer amendment (2026-07-26):** the private
+empty-profile initializer has an independent technical GO. The schema and
+metadata commit atomically; uncertain COMMIT acknowledgement is resolved on a
+fresh connection; active-transaction contention rolls back; V8 failure
+handling is non-destructive; and lease/path/inode/alias/concurrent-creator
+adversaries pass. The combined focused projection command passed 38 tests with
+lint and bytecode compilation green.
+
+This is not Step-3 acceptance. Independent target-grammar review found four
+blocking defects: no frozen target-span ownership across multi-transaction
+awaited operations, ambiguous retained-intent creation versus replay,
+ingress/parser cardinality exceeding the declared output model, and an
+unbounded local-shutdown terminal-ingress loop with incomplete result lineage.
+Lifecycle implementation remains halted until those contracts are finite and
+causal, the corrected child receives GO, the parent/Step-2 inventory is
+regenerated, and Raw V7 is reaccepted on the final tree. See
+[`v4_9f_a2_raw_v8_initializer_technical_acceptance_2026-07-26.md`](v4_9f_a2_raw_v8_initializer_technical_acceptance_2026-07-26.md)
+and
+[`v4_9f_a2_raw_v8_step3_projection_lifecycle_protocol_freeze_2026-07-25.md`](v4_9f_a2_raw_v8_step3_projection_lifecycle_protocol_freeze_2026-07-25.md).
+
+**Stage 1 V4.9F-A2-M Raw V8 target-span/lifecycle correction amendment
+(2026-07-26):** the active normative correction now selects one store-wide
+open locator, exact task/store/fence-bound single-use transaction permits,
+operation-batch partition replay under four explicit DFAs, a distinct 65,536
+measured-target receipt ceiling plus a 48-MiB canonical-entry ceiling,
+generator-derived pre-effect reservation, causal V2 ingress/subscription/
+shutdown shapes, fixed checkpoint-selector placeholders, explicit terminal/
+marker/probe failure truth, preconstructed terminal-plus-closure finalization,
+and one-entry startup recovery. It remains NO-GO pending independent audit,
+parent/Step-2/schema regeneration, implementation, bound evidence, and final
+Raw V7/V8 reacceptance. See
+[`v4_9f_a2_raw_v8_step3_target_and_lifecycle_correction_2026-07-26.md`](v4_9f_a2_raw_v8_step3_target_and_lifecycle_correction_2026-07-26.md).
+
+**Stage 1 V4.9F-A2-M Raw V8 external-schema re-audit amendment
+(2026-07-28):** Step-2 acceptance is reopened. The prior V1 descriptor dialect
+cannot distinguish array item schemas, finite unions, literal versus enum
+text, strict versus inclusive byte ceilings, Unicode authority, or bounded
+cross-record rules, and its generator assigns schemas from member names. The
+corrected V3 inventory design contains a standalone V2 registry for exactly
+49 concrete records plus three tagged unions, 16 standalone plus 36 nested
+roles, three UCD-15 identifier profiles across ten Unicode surfaces, explicit
+ASCII/text/value-schema catalogs, typed fixed-position applications, and
+constructive maxima. The canonical golden has now been replaced by the
+independently regenerated V3 inventory with 408 pre-frozen maximum-constraint
+scope profiles.
+The exact scalar/path and rule/application ledgers, structurally closed
+52-node registry, value runtime, all 52 operators, all 42 rules, and recursive
+intrinsic-literal closure are now materialized and adversarially green. Every
+generic rule has a hash-pinned schema-valid true and business-false witness;
+the nine complex rules have a separate 44-case true/business-false/evaluation-
+failure witness; the combined component suite passes 321 tests. This is a
+complete rule-runtime checkpoint, not Step-2 acceptance. The later
+application-runtime increment now executes all eight applications and both
+resolvers through an independently pinned 57-case oracle plus 27 adversarial
+cases; the current complete component matrix passes 375 tests. The focused
+V3 inventory/security suite separately passes 45 tests against the canonical
+raw and semantic identities above. Technical
+freeze remains NO-GO until constructive byte-maximum witnesses, the separate
+runtime-work accounting/certification gate, production differential adapters,
+Raw V7 compatibility, and final-tree acceptance agree on that same registry
+identity.
+See
+[`v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md`](v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md).
+The canonical V3 inventory decision and exact evidence are recorded in
+[`v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md`](v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md).
+
+**Stage 1 V4.9F-A2-M Raw V8 maximum-proof feasibility amendment
+(2026-08-02):** the first constructive-maximum protocol is rejected under its
+own immutable seed limits. The primary pinned row-62 derivation requires 94,905
+pre-search coordinates. V1's mandatory maximum-slice-plus-prefix chain then
+requires at least 94,906 proof nodes and depth, so its coordinate, node, and
+depth limits all fail before other members/base nodes. A stronger independent
+row-17 cross-check reaches at least 2,101,253 coordinates and also exceeds the
+proof-edge cap. The dormant V1 pilot/publication files remain prohibited; the
+validator reports rejection rather than treating the protocol as pilot-ready.
+
+The successor design preserves the exact maximum theorem while removing the
+unnecessary global least-attainer objective: the independent verifier must
+derive a sound upper bound over the complete legal domain (or a proved
+superset), independently validate one completely legal witness/context, and
+require exact length equality. Mathematical acceptance is separate from a
+pinned publication selection. Resource measurements are also separate from the
+certificate to prevent an identity/length fixed point. Because the amendment
+adds a fifth normative authority, the successor inventory is V4, not a
+relabelled V3 refreeze. That exact-delta V4 inventory is now accepted with the
+registry, all 408 V3 profile objects/IDs, and 474-row universe preserved. See the
+[`V1 feasibility rejection`](v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md)
+and the accepted
+[`compact maximum-proof V2 correction`](v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md).
+Its final authority and narrow V4-only authorization are recorded by the
+[`independent acceptance`](v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md).
+The migration evidence and next preflight boundary are recorded by the
+[`V4 inventory acceptance`](v4_9f_a2_raw_v8_step2_v4_inventory_acceptance_2026-08-02.md).
+
+**Stage 1 V4.9F-A2-M Raw V8 corrected V2 seed and event-metadata amendment
+(2026-08-09):** S1-A2 input review falsified the provisional seed because it
+named but did not publish per-kernel transition expansion, delegated complete-
+case subjects to an unresolved collection, and used placeholder event
+cardinalities. The versioned correction now binds all 18 transition programs,
+ordinary/local unit contexts, all 16 subject constructors, exact source-list
+cardinalities, local endpoint selectors, retention/depth/finalization rules,
+and fixed ordinary/local byte probes without embedding a 475-case answer
+vector. A subsequent preflight-A dry run caught one narrower ambiguity: roles,
+ordinal sources, observed-value sources, and ordinary/null step sources were
+not yet bound per emission. The accepted amendment closes those values without
+adding expected case results. Write/check/write/check reproduced a
+13,419,905-byte seed with raw SHA-256
+`a75a2f352e8513b7ff0043693a0c65ebbf4bc6f06859354789af69e1162b0e4f`
+and semantic ID
+`ac22151fa74702ac1488924f01161eaa38574545e6272a290db6b0bbd288ae5f`;
+the focused seed/security matrix passed 108 tests. `S1-A1` is accepted; its
+two independent all-case counting implementations and comparator now also
+close `S1-A2`. See the
+[`closure correction`](v4_9f_a2_raw_v8_step2_v2_full_case_execution_closure_correction_2026-08-09.md)
+and its
+[`corrected seed acceptance`](v4_9f_a2_raw_v8_step2_maximum_protocol_v2_seed_correction_acceptance_2026-08-09.md)
+and
+[`event-metadata amendment`](v4_9f_a2_raw_v8_step2_v2_event_metadata_amendment_2026-08-09.md).
+
+The S1-A2 shared boundary is now separately refrozen as data-only contract ID
+`6609ad7b9abf21432136e49af178e20c17cb7bc27d3b444a4b6f01a17073fc76`.
+It binds the sole seed input, exact semantic/result/comparison schemas, error
+taxonomy, exact report version literals, parent-owned F0 resource evidence,
+atomic output, and strict A/B
+import separation without sharing executable semantics or expected case
+answers. Its 13 boundary/hostile tests pass; the complete amended matrix passes
+121 tests. Preflight A then passed 6 focused tests and repeated the identical
+475-case candidate payload under semantic ID
+`d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b`.
+Independently authored preflight B reproduced that exact semantic payload, and
+the isolated comparator accepted exact agreement over all 475 cases and all 18
+metrics under F0. `S1-A2` is accepted; `S1-A3` final authority/limit freeze and
+repeat preflight is the next bounded packet. See the
+[`S1-A2 boundary freeze`](v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md)
+and the
+[`A2-A acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md),
+[`A2-B acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md),
+[`comparator acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md),
+[`combined acceptance`](v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md),
+and
+[`S1-A3 design correction`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md).
+
+**Stage 1 is NOT exited.** The public live factory stays closed. Production
+queue/fairness policy, privileged systemd/chronyd/VM integration, provider and
+certificate-rollover conformance, real process-kill/restart and storage-fault
+campaigns, long no-trading soaks, measured immutable deployment, external
+review, and the remaining data/label/split/governance/order-authority gates are
+still required. Neither the accepted
+[V4.9F-A1 checkpoint](v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md)
+nor the exploratory
+[V4.9F-A2-M boundary](v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md)
+establishes provider behavior, completed-bar authority, production or live
+readiness, predictive edge, trading safety, or profitability. The A2-M document
+is the current measurement-status reference layered on the accepted A1 admission
+contract; it neither supersedes nor changes A1 admission semantics.
 
 ### Stage 2 — Strong baselines
 
@@ -935,16 +2513,25 @@ Each stage is a gate. Later complexity is not a substitute for failure at an ear
 | Required tests | Deterministic rerun, fold isolation, random-label null, matched-frequency control, artifact round-trip |
 | Expected output | Identical-fold baseline comparison with predictive, signal, and gross/net scenario metrics |
 | Acceptance criteria | Mechanics pass; at least one simple model shows repeatable incremental gross information and net selected utility before adding complexity |
-| Dependencies | Stage 1 event/split contracts |
+| Dependencies | Accepted Stage 1 event/label/eligibility/split contracts for offline work; full Stage 1 exit, including A2-M/A2-E and live operational gates, before paper/live activation or production promotion |
 | Abandon condition | No model or deterministic baseline clears conservative net utility across folds: stop alpha-model expansion and reassess data/market/horizon |
 
 ### Stage 3 — Feature redesign
 
+The existing RPF catalog is an **exploratory source library**, not the target
+model schema. Its 2,000+ features will not be carried forward as one
+multi-asset matrix. Stage 3 first maps them into interpretable families,
+preserves their formulas and provenance for analysis, and then rebuilds a
+small cross-scope causal panel. Individual RPF features may survive only when
+their family passes live availability, redundancy, stability, and incremental
+out-of-sample economic ablation. Failure to survive is evidence to remove the
+family, not a reason to tune a larger model.
+
 | Item | Specification |
 |---|---|
-| Required code changes | Feature registry and invariant core panel; causal trend/vol/path/HTF/data-quality features; later liquidity/cross-sectional/portfolio families; per-feature age/missingness |
+| Required code changes | Classify the legacy RPF inventory by causal feature family and quarantine the bulk 2,530-feature panel; build a new feature registry and small invariant core panel; causal trend/vol/path/HTF/data-quality features; later liquidity/cross-sectional/portfolio families; per-feature age/missingness |
 | Required tests | Prefix invariance, boundary/DST/session checks, future-row perturbation, live parity, unit/scale tests, redundancy/missing/drift reports |
-| Expected output | Versioned feature manifest and one-family-at-a-time OOS ablation matrix |
+| Expected output | RPF retain/redesign/remove family report, versioned compact feature manifest, and one-family-at-a-time OOS ablation matrix |
 | Acceptance criteria | Added family improves predeclared later-fold metrics repeatedly, is stable enough to operate, and is available across its claimed scope |
 | Dependencies | Stage 1 clocks; L1/contract metadata for liquidity/execution families |
 | Abandon condition | Incremental benefit vanishes after trial correction or requires unavailable/revised/future information |
@@ -986,10 +2573,10 @@ Each stage is a gate. Later complexity is not a substitute for failure at an ear
 
 | Item | Specification |
 |---|---|
-| Required code changes | Restartable v3 append-only shadow service; artifact/version lock; candidate/model shadow events; reconciliation and incident dashboards; champion-challenger |
-| Required tests | Cold/warm restart, provider failover/rate limit, stale/revised/missing bars, exact replay parity, no real routing invariant |
-| Expected output | New forward-only cohort from the frozen start, with data/decision/order/fill/reconciliation evidence |
-| Acceptance criteria | Minimum duration/event count; final shadow gate; zero unresolved integrity incidents; costs and decisions reconcile |
+| Required code changes | Restartable v3 append-only shadow service; artifact/version lock; candidate/model shadow events; immutable drift-control registry and per-version monitor state; reconciliation and incident dashboards; champion-challenger |
+| Required tests | Cold/warm restart, configured provider failover/rate limit, stale/revised/missing bars, exact replay parity, deterministic drift-window replay, target-maturity gating, synthetic drift injections across every Section 16 surface, suspension/re-entry actions, and no real routing invariant |
+| Expected output | New forward-only cohort from the frozen start, with data/decision/paper-order/modeled-fill/reconciliation evidence; no venue acknowledgment or fill evidence is claimed under the no-real-routing invariant |
+| Acceptance criteria | Section 10.1 calendar-duration and independent-cluster minima, plus Section 9 probability-class support where applicable; unchanged Section 12.5 final promotion gate; every Section 16 drift surface has a versioned reference, owner, threshold/action, and tested re-entry rule frozen before the cohort; zero unresolved integrity incidents; costs and decisions reconcile |
 | Dependencies | All prior stages; reliable live sources and calendars |
 | Abandon condition | Live features/eligibility diverge from replay, data quality is inadequate, or net evidence fails the frozen gate |
 
@@ -1034,7 +2621,12 @@ frozen primary CUSUM/rule event
 → version-locked forward shadow and monitoring
 ```
 
-### 20.2 Highest-priority corrections
+### 20.2 Highest-priority modeling corrections after current Stage 1 evidence prerequisites
+
+This modeling/data list is not the active execution pointer. The current P0
+transport evidence work is defined at the start of the implementation roadmap;
+the following items begin when their Stage 1 data-contract dependencies are
+accepted and may not be used to waive incomplete live/promotion gates.
 
 1. Replace the RPF surrogate label and unify prediction/entry/label clocks.
 2. Make training eligibility identical to replay/live eligibility and exclude synthetic/non-tradable rows.

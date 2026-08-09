@@ -1291,7 +1291,84 @@ RiskYieldMM is built around financial time-series validation constraints:
 ## Documentation Index
 
 Start with [`docs/README.md`](docs/README.md) for the organized documentation
-map. High-signal documents:
+map.
+
+### Current trading-system redesign Stage 1 checkpoint
+
+<!-- STAGE1_ACTIVE_GATE: S1-A3 -->
+
+The mutable execution pointer is now
+[`docs/research/stage1_execution_control_2026-08-08.md`](docs/research/stage1_execution_control_2026-08-08.md).
+It is the sole mutable source for gate state, dependencies, WIP limits, and
+resume commands. `S1-A1` and the dual 475-case `S1-A2` feasibility preflight
+are accepted. The single active gate is `S1-A3`: freeze the final two-component
+V2 authority and mechanically derived F1/F2 limits, then repeat preflights A,
+B, and their comparator against that authority. The next bounded action is
+`A3-T`, the fail-first finalization-manifest test packet. The dated narrative
+below remains historical checkpoint evidence and must not be used to infer
+that a later gate passed.
+
+As of 2026-08-02, V4.9F-A1 remains the latest complete accepted transport
+checkpoint, and the A2-M Raw V6 observed-local authoritative-manifest and Raw
+V7 failed-prefix/cancellation sub-gates are locally accepted. Raw V7 passed all
+27 acceptance rows on one post-format tree, including 242 direct cases and the
+frozen 558-case adjacent matrix. A2-M itself remains incomplete and unaccepted.
+Raw V8 Step-2 as a whole has historical acceptance only: its 2026-07-28
+re-audit rejected the lossy 27-record, member-name-inferred external registry.
+The replacement V3 inventory and exact external-schema V2 for 49 concrete
+records plus three finite unions are now accepted narrow component sub-gates.
+Accepted components also cover the exact path and
+52-node graph, scalar/DFA/Unicode authority, value runtime, all 41 generic
+operators, all 33 generic-only rules, and recursive intrinsic-literal closure
+with schema-valid true/false witnesses. The complete 11-operator complex
+runtime and all nine dependent rules are also accepted as a narrow component
+sub-gate, with a 44-case hash-pinned true/business-false/evaluation-failure
+witness. The complete eight-application/two-resolver executor is now also an
+accepted component sub-gate: all 57 independent application cases execute
+without skips, 27 additional hostile-boundary cases pass, and the complete
+current component matrix passes 375 tests. The independently regenerated V3
+inventory is now the canonical golden: all 408 pre-frozen maximum-constraint
+scope profiles pass the 45-case focused inventory/security suite under
+semantic inventory ID
+`128d07a45dc2300c140f333cc3a45e2497aaa4089684f6e44da048ab403bbf9d`.
+The 2026-08-01 bounded-context re-freeze changed only the correction authority,
+its exact invariant mirror, and the resulting inventory identity; all 408
+complete scope profiles and their IDs remained byte-for-byte unchanged.
+The first constructive byte-maximum protocol is now formally rejected: one
+intrinsic row requires 94,905 pre-search coordinates and a minimum
+94,906-node/depth tie-break chain, exceeding three immutable 65,536 seed caps.
+Its pilot and publication paths remain closed. The compact-proof V2 correction
+is now independently accepted as design authority, and its V4 successor
+inventory is accepted with the V3 registry and all 408 profile objects/IDs
+preserved. Raw V8 Step 2 remains NO-GO. The corrected seed V2 proof protocol,
+including its exact per-emission event-metadata amendment, is accepted under a
+108-test focused seed/security matrix. The dependent data-only boundary was
+refrozen under contract ID
+`6609ad7b9abf21432136e49af178e20c17cb7bc27d3b444a4b6f01a17073fc76`;
+the complete seed-plus-boundary matrix passes 121 tests. Preflight A is now
+accepted as a single-implementation candidate after 6 focused tests. The
+independently authored preflight B and the isolated comparator are also
+accepted; all 475 cases and all 18 metrics agree exactly. That closes `S1-A2`.
+The active P0 is now `S1-A3`; immutable final V2 authority and limits must be
+frozen and the dual preflight repeated before a replacement pilot is
+authorized.
+The remaining Step-2 gates are 474 legal maximum attainers,
+separate runtime-work accounting/certification, production differential
+adapters, and final Raw V7 compatibility. The corrected Step-3 lifecycle
+follows only after that reacceptance. Physical normalization and
+fixture-level oracles, independent finalization, isolation, atomic publication,
+and only then full matched campaigns follow before calibration, independent
+confirmation, threshold freeze, or A2-E. The public live factory remains
+closed; Stage 1 exit, production/live readiness, predictive edge, trading
+safety, and profitability are not established.
+
+Use the
+[`trading-prediction-system implementation roadmap`](docs/research/trading_prediction_system_diagnosis_and_redesign_2026-07-14.md)
+for program sequencing and the
+[`V4.9F-A2 measurement and enforcement protocol`](docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md)
+for the active transport gate, exact blockers, and nonclaims.
+
+Other high-signal documents:
 
 - [`docs/htf/stage1-logic.md`](docs/htf/stage1-logic.md) - isolated Stage-1 design and leakage constraints
 - [`docs/htf/stage1-artifacts.md`](docs/htf/stage1-artifacts.md) - Stage-1 artifact contract
@@ -1302,6 +1379,27 @@ map. High-signal documents:
 - [`docs/conformal/README.md`](docs/conformal/README.md) - conformal prediction module summary
 - [`docs/conformal/ARCHITECTURE.md`](docs/conformal/ARCHITECTURE.md) - conformal integration details
 - [`docs/validation/validation-testing-research.md`](docs/validation/validation-testing-research.md) - validation research notes
+- [`docs/research/v4_9d_causal_ingress_and_automatic_output_protocol_freeze_2026-07-17.md`](docs/research/v4_9d_causal_ingress_and_automatic_output_protocol_freeze_2026-07-17.md) - accepted bounded Stage-1 causal ingress/automatic-output checkpoint; focused and full-repository verification passed, and its V4.9E actor-ordered ACK/terminal successor is now recorded separately while the public live factory stays closed
+- [`docs/research/v4_9e_actor_ordered_provider_and_terminal_protocol_freeze_2026-07-17.md`](docs/research/v4_9e_actor_ordered_provider_and_terminal_protocol_freeze_2026-07-17.md) - accepted and post-edit revalidated bounded Stage-1 actor-ordered provider/terminal checkpoint covering exact ACK/deadline causality, predecessor-bound shutdown commands, one-socket owner-authorized TLS/TCP evidence, governed recovery clocks, and deterministic replay; the public live factory remains closed, with no production-readiness or profitability claim
+- [`docs/research/v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md`](docs/research/v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md) - latest accepted bounded V4.9F-A1 local checkpoint with a signed policy, four singleton FIFO tickets, actual-entry deadlines, exact non-forgeable helper grants, audit-corrected shutdown commitment, and local diagnostics; at that checkpoint the full repository passed 2,361 tests with 32 skipped, while durable overload/parser/actor/cross-session capacity gates and the public live factory remained closed
+- [`docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md`](docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md) - current A2 design freeze and incomplete, unaccepted A2-M exploratory implementation boundary; records the evidence-integrity blockers, required falsification tests, frozen campaigns, and exact promotion order before calibration, thresholds, A2-E, or any live authority. The recorded 2026-07-20 implementation-checkpoint run was 2,441 passed with 32 skipped; it is regression evidence, not A2-M acceptance
+- [`docs/research/v4_9f_a2_authoritative_manifest_v6_protocol_freeze_2026-07-21.md`](docs/research/v4_9f_a2_authoritative_manifest_v6_protocol_freeze_2026-07-21.md) - locally accepted observed-local Raw V6 manifest-authority sub-gate: deterministic source and runtime/process/storage observations, one-shot direct Ed25519 binding, independent admitted-deployment verification, strict Raw V5 rejection, and bounded four-member replay. At its 2026-07-21 checkpoint, 228 disjoint tests passed. It is not external attestation, live-path qualification, A2-M completion, or Stage 1 exit
+- [`docs/research/v4_9f_a2_failed_prefix_cancellation_v7_protocol_freeze_2026-07-21.md`](docs/research/v4_9f_a2_failed_prefix_cancellation_v7_protocol_freeze_2026-07-21.md) - locally accepted Raw V7 attempt/terminal, failed-prefix, cancellation/interruption, recovery, runner-bound construction, and explicit unsigned-suffix trust-ceiling contract
+- [`docs/research/v4_9f_a2_raw_v7_acceptance_audit_2026-07-22.md`](docs/research/v4_9f_a2_raw_v7_acceptance_audit_2026-07-22.md) - independent traceability audit closing all 27 Raw V7 acceptance rows with 242 direct and 558 frozen adjacent cases plus final stable-tree static and leftover checks
+- [`docs/research/v4_9f_a2_marker_operation_target_v8_protocol_freeze_2026-07-22.md`](docs/research/v4_9f_a2_marker_operation_target_v8_protocol_freeze_2026-07-22.md) - Raw V8 parent gate for four operations, bounded markers/probes, and the complete typed 185-field target registry; Step-2 target-bound acceptance is reopened
+- [`docs/research/v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md`](docs/research/v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md) - active exact external-schema V2 correction; structural/value, all 52 operators/42 rules, all eight applications/two resolvers, and the canonical V3 inventory with 408 maximum-constraint scope profiles are accepted components, while constructive byte maxima, work accounting/certification, adapters, and compatibility gates remain
+- [`docs/research/v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md`](docs/research/v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md) - narrow acceptance record for the canonical V3 inventory, independent 408-profile reconstruction, 45-case inventory/security suite, migrated 98-case consumer matrix, exact identities, closed promotion defects, and explicit maxima/production nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md) - accepted deterministic rejection of maximum protocol V1 under its coordinate, proof-node, and proof-depth seed caps
+- [`docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md) - accepted compact-proof successor separating exact upper-bound-plus-attainer verification from pinned publication; its V4 migration is accepted while every later proof/artifact gate remains open
+- [`docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md) - narrow two-review acceptance record, final physical authority, explicit V4-only authorization, and Raw V8 Step-2/Stage-1 nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_v4_inventory_acceptance_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_v4_inventory_acceptance_2026-08-02.md) - accepted exact-delta V4 inventory, independent generator/validator, preserved 408-profile/474-row authority, final 134-case predecessor/V4/consumer matrix, and explicit preflight/maxima nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v2_seed_correction_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v2_seed_correction_acceptance_2026-08-09.md) - corrected deterministic V2 seed acceptance: full-case unit/subject/cardinality closure, ordinary/local fixed-byte probes, 108 focused tests, and authorization for the two S1-A2 counting-only preflights
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md) - frozen data-only S1-A2 input/result/error/resource/import boundary used by both accepted independent preflights and their comparator
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md) - A2-A iterative-counter acceptance: deterministic 475-case candidate, 18 F0-bounded metrics per case, 6 focused tests, exact identities, and explicit B/comparator/nonprofitability nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md) - independently authored flat-ledger counter acceptance over the same 475 cases and 18 metrics
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md) - isolated parent-owned resource enforcement and exact A/B comparison acceptance
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md) - combined `S1-A2` acceptance after exact agreement on all cases/metrics and fresh regression
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) - active `S1-A3` two-component authority design; `A3-T` fail-first finalization-manifest tests are next
 - [`Archive/README.md`](Archive/README.md) - legacy implementation/archive index
 
 ## Technology Stack
