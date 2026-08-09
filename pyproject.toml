@@ -19,14 +19,24 @@ dependencies = [
     "pydantic>=2.0",
 ]
 
+[project.scripts]
+riskyieldmm-ledger = "riskyieldmm.trading.ledger_cli:main"
+
 [project.optional-dependencies]
 ci = [
+    "cryptography>=42",
     "pytest>=8,<10",
     "ruff>=0.8,<1.0",
+    "websockets==16.0",
 ]
 dev = [
+    "cryptography>=42",
     "pytest>=8,<10",
     "ruff>=0.8,<1.0",
+    "websockets==16.0",
+]
+governance = [
+    "cryptography>=42",
 ]
 market-data = [
     "databento>=0.50",
@@ -42,6 +52,10 @@ research = [
     "optuna>=3.5",
     "mapie>=0.8",
     "mlflow>=2.10",
+]
+transport = [
+    "cryptography>=42",
+    "websockets==16.0",
 ]
 rust = [
     "maturin>=1.7",

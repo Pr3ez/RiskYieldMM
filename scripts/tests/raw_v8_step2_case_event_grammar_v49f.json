@@ -1,0 +1,3193 @@
+{
+  "byte_metric_partition": {
+    "event_token_serialization_policy": "OUTSIDE_M8_M9_M10_M18",
+    "global_validation_hash_policy": "F0_PREFLIGHT_ONLY_EXCLUDED_FROM_PER_CASE_M11",
+    "m18_complete_final_result_event_count": 1,
+    "m18_fragment_or_nested_result_policy": "REJECT",
+    "nested_container_policy": "FINAL_RESULT_ONLY_ONCE_IN_M18",
+    "ordered_metric_equation_records": [
+      {
+        "metric_position": 8,
+        "ordered_term_records": [
+          {
+            "coefficient": 1,
+            "event_kind": "CACHE_INSERT",
+            "subject_kind": "RECURRENCE_CACHE_KEY_V2"
+          }
+        ]
+      },
+      {
+        "metric_position": 9,
+        "ordered_term_records": [
+          {
+            "coefficient": 1,
+            "event_kind": "CACHE_INSERT",
+            "subject_kind": "RECURRENCE_CACHE_KEY_V2"
+          },
+          {
+            "coefficient": 1,
+            "event_kind": "TRANSITION_ATTEMPT",
+            "subject_kind": "RECURRENCE_TRANSITION_TOKEN_V2"
+          }
+        ]
+      },
+      {
+        "metric_position": 10,
+        "ordered_term_records": [
+          {
+            "coefficient": 1,
+            "event_kind": "CACHE_INSERT",
+            "subject_kind": "RECURRENCE_CACHE_KEY_V2"
+          },
+          {
+            "coefficient": 1,
+            "event_kind": "TRANSITION_ATTEMPT",
+            "subject_kind": "RECURRENCE_TRANSITION_TOKEN_V2"
+          },
+          {
+            "coefficient": 1,
+            "event_kind": "RESULT_CELL_EMIT",
+            "subject_kind": "RECURRENCE_RESULT_CELL_V2"
+          }
+        ]
+      },
+      {
+        "metric_position": 11,
+        "ordered_term_records": [
+          {
+            "coefficient": 1,
+            "event_kind": "HASH_PREIMAGE",
+            "subject_kind": "HASH_PREIMAGE_BYTES_V1"
+          }
+        ]
+      },
+      {
+        "metric_position": 18,
+        "ordered_term_records": [
+          {
+            "coefficient": 1,
+            "event_kind": "FINAL_RESULT_EMIT",
+            "subject_kind": "LOGICAL_CASE_DERIVATION_RESULT_V1"
+          }
+        ]
+      }
+    ],
+    "term_coefficient": 1,
+    "term_uniqueness_key": [
+      "metric_position",
+      "event_position"
+    ]
+  },
+  "event_expression_instruction_set": {
+    "evaluation_order": "DEPTH_FIRST_LEFT_TO_RIGHT_CHECKED_UINT128",
+    "instruction_set_version": "riskyieldmm.raw_v8_step2_external_schema_v2.event_expression.v1",
+    "ordered_opcode_records": [
+      {
+        "opcode": "CONST_U128",
+        "opcode_position": 1
+      },
+      {
+        "opcode": "SOURCE_LIST_COUNT",
+        "opcode_position": 2
+      },
+      {
+        "opcode": "SOURCE_FIELD_U128",
+        "opcode_position": 3
+      },
+      {
+        "opcode": "INDICATOR_SOURCE_PRESENT",
+        "opcode_position": 4
+      },
+      {
+        "opcode": "CHECKED_ADD",
+        "opcode_position": 5
+      },
+      {
+        "opcode": "CHECKED_MUL",
+        "opcode_position": 6
+      }
+    ],
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "event_metadata_program": {
+    "binding_rule": "ZIP_PROGRAM_POSITION_THEN_EMISSION_POSITION_AND_MATERIALIZE_METADATA_ON_EMISSION_RECORD_BEFORE_TOKENIZATION_V1",
+    "logical_derivation_step_position_source_enum": [
+      "NULL",
+      "CURRENT_ORDINARY_TEMPLATE_STEP_POSITION"
+    ],
+    "observed_value_source_enum": [
+      "NULL",
+      "SUBJECT_OBSERVED_VALUE"
+    ],
+    "ordered_program_metadata_records": [
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "CASE_OPEN_RECORD"
+        ],
+        "program_name": "CASE_OPEN",
+        "program_position": 1,
+        "subject_ordinal_sources": [
+          "NULL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "BOUND_PLAN_IDENTITY_ENVELOPE"
+        ],
+        "program_name": "BOUND_PLAN_HASH_PREIMAGE",
+        "program_position": 2,
+        "subject_ordinal_sources": [
+          "EVENT_KIND_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "CURRENT_ORDINARY_TEMPLATE_STEP_POSITION",
+        "observed_value_sources": [
+          "NULL",
+          "NULL",
+          "NULL",
+          "NULL",
+          "NULL",
+          "SUBJECT_OBSERVED_VALUE",
+          "NULL",
+          "NULL",
+          "NULL",
+          "SUBJECT_OBSERVED_VALUE"
+        ],
+        "ordered_subject_role_literals": [
+          "LOGICAL_STEP_REFERENCE",
+          "ORDINARY_TRANSITION",
+          "HOMOGENEOUS_RUN_BATCH",
+          "ORDINARY_RESULT_CELL",
+          "ORDINARY_CACHE_KEY",
+          "LIVE_CHILDREN_PLUS_PROSPECTIVE_PARENT",
+          "RETAINED_RESULT_CELL_PREIMAGE",
+          "ORDINARY_STEP_COMMITMENT",
+          "STEP_COMMITMENT_PREIMAGE",
+          "AFTER_PARENT_COMMITMENT_HASH_AND_RELEASE"
+        ],
+        "program_name": "ORDINARY_POSTORDER_STEPS",
+        "program_position": 3,
+        "subject_ordinal_sources": [
+          "NULL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "DERIVATION_UNIT_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "EVENT_KIND_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL",
+          "NULL",
+          "NULL",
+          "NULL",
+          "NULL",
+          "SUBJECT_OBSERVED_VALUE",
+          "NULL",
+          "NULL",
+          "NULL",
+          "SUBJECT_OBSERVED_VALUE"
+        ],
+        "ordered_subject_role_literals": [
+          "LOCAL_CONTROLLER_REFERENCE",
+          "LOCAL_CONTROLLER_TRANSITION",
+          "LOCAL_CONTROLLER_INTRINSIC_RELATIONS",
+          "LOCAL_CONTROLLER_STATE_RESULT_CELL",
+          "LOCAL_CONTROLLER_STATE_CACHE_KEY",
+          "LIVE_CHILDREN_PLUS_PROSPECTIVE_PARENT",
+          "RETAINED_RESULT_CELL_PREIMAGE",
+          "LOCAL_CONTROLLER_COMMITMENT",
+          "STEP_COMMITMENT_PREIMAGE",
+          "AFTER_PARENT_COMMITMENT_HASH_AND_RELEASE"
+        ],
+        "program_name": "LOCAL_CONTROLLER",
+        "program_position": 4,
+        "subject_ordinal_sources": [
+          "NULL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "NULL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "DERIVATION_UNIT_ORDINAL",
+          "EVENT_KIND_ORDINAL",
+          "EVENT_KIND_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "EXACT_RETAINED_ATTAINER_INTRINSIC_RULES"
+        ],
+        "program_name": "EXACT_ATTAINER_VALIDATION",
+        "program_position": 5,
+        "subject_ordinal_sources": [
+          "NULL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL",
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "EXACT_SCOPE_APPLICATION_INVOCATIONS",
+          "EXACT_SCOPE_CROSS_RULE_ROOTS"
+        ],
+        "program_name": "SCOPE_APPLICATIONS",
+        "program_position": 6,
+        "subject_ordinal_sources": [
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+          "EMISSION_SUBJECT_COLLECTION_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "SUBJECT_OBSERVED_VALUE",
+          "SUBJECT_OBSERVED_VALUE",
+          "SUBJECT_OBSERVED_VALUE"
+        ],
+        "ordered_subject_role_literals": [
+          "DERIVATION_DAG_DEPTH",
+          "ITERATION_DEPTH",
+          "ROOT_COMMITMENT_DIGEST_THROUGH_FINAL_RESULT_HASH"
+        ],
+        "program_name": "DEPTH_AND_RETENTION",
+        "program_position": 7,
+        "subject_ordinal_sources": [
+          "NULL",
+          "NULL",
+          "EVENT_KIND_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL",
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "COMPLETE_LOGICAL_CASE_DERIVATION_RESULT",
+          "FINAL_RESULT_IDENTITY_PREIMAGE"
+        ],
+        "program_name": "FINAL_RESULT",
+        "program_position": 8,
+        "subject_ordinal_sources": [
+          "NULL",
+          "EVENT_KIND_ORDINAL"
+        ]
+      },
+      {
+        "logical_derivation_step_position_source": "NULL",
+        "observed_value_sources": [
+          "NULL",
+          "NULL"
+        ],
+        "ordered_subject_role_literals": [
+          "EVENT_STREAM_PREIMAGE_DESCRIPTOR",
+          "EVENT_STREAM_PREIMAGE"
+        ],
+        "program_name": "STREAM_FINALIZATION",
+        "program_position": 9,
+        "subject_ordinal_sources": [
+          "NULL",
+          "EVENT_KIND_ORDINAL"
+        ]
+      }
+    ],
+    "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.event_metadata_program.v1",
+    "subject_ordinal_source_enum": [
+      "NULL",
+      "EMISSION_SUBJECT_COLLECTION_ORDINAL",
+      "EVENT_KIND_ORDINAL",
+      "DERIVATION_UNIT_ORDINAL"
+    ],
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "event_ordinal_rule": "CONTIGUOUS_ONE_BASED_PER_EVENT_KIND_PER_CASE",
+  "final_result_subject_contract": {
+    "commitment_digest_record_schema": {
+      "digest_algorithm": "SHA256",
+      "ordered_member_names": [
+        "derivation_unit_ordinal",
+        "subject_variant",
+        "logical_derivation_step_position",
+        "local_controller_unit_ordinal",
+        "step_commitment_sha256"
+      ],
+      "ordinary_local_null_rule": "EXACTLY_ONE_OF_LOGICAL_STEP_OR_LOCAL_UNIT_PRESENT"
+    },
+    "commitment_material_member_name": "ordered_step_commitment_digest_records",
+    "complete_commitment_preimage_lifetime": "RELEASE_IMMEDIATELY_AFTER_PER_UNIT_HASH",
+    "contract_version": "riskyieldmm.raw_v8_step2_external_schema_v2.logical_case_derivation_result_contract.v1",
+    "forbidden_member_names": [
+      "ordered_step_result_commitments",
+      "ordered_step_commitment_preimages"
+    ],
+    "ordered_member_names": [
+      "logical_case_derivation_result_version",
+      "logical_count_plan_id",
+      "result_status",
+      "ordered_root_result_cell_digest_records",
+      "ordered_step_commitment_digest_records"
+    ],
+    "subject_kind": "LOGICAL_CASE_DERIVATION_RESULT_V1",
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "full_case_execution_program": {
+    "ambient_ceiling_source": "/recurrence_catalog/arithmetic_policy/published_maximum",
+    "depth_observation_program": {
+      "derivation_depth_rule": "LEAF_ONE_PARENT_ONE_PLUS_MAXIMUM_CHILD_DEPTH_V1",
+      "iteration_depth_rule": "MAXIMUM_OF_KERNEL_SPECIFIC_ITERATION_AND_SCOPE_APPLICATION_LENGTH_V1",
+      "local_iteration_depth_source": "/recurrence_catalog/local_shutdown_analytic_catalog/fixed_controller_transition_count",
+      "ordered_kernel_iteration_rule_records": [
+        {
+          "derivation_kind": "ASSOCIATIVE_HOMOGENEOUS_RUN_BATCH",
+          "rule": "CEIL_LOG2_MAXIMUM_ITEMS_ZERO_FOR_ZERO_OR_ONE_V1"
+        },
+        {
+          "derivation_kind": "ARRAY_STREAM_FOLD",
+          "rule": "MAXIMUM_ITEMS_V1"
+        },
+        {
+          "derivation_kind": "APPLICATION_SCHEDULE_COUNT",
+          "rule": "ORDERED_APPLICATION_INVOCATION_COUNT_V1"
+        },
+        {
+          "derivation_kind": "ALL_OTHER_KINDS",
+          "rule": "PHYSICAL_TRANSITION_COUNT_V1"
+        }
+      ]
+    },
+    "derivation_unit_context_program": {
+      "local_unit": {
+        "derivation_kind": "LOCAL_SHUTDOWN_ANALYTIC_CONTROLLER",
+        "effective_canonical_octet_ceiling_source": "AMBIENT_CEILING",
+        "logical_derivation_step_id_source": "PLAN.local_analytic_catalog_id",
+        "logical_derivation_step_position": null,
+        "ordered_result_cell_source": "LOCAL_CONTROLLER_STATE_CELLS_IN_POSITION_ORDER",
+        "owner_profile_position": null,
+        "state_signature_source": "LOCAL_CATALOG.state_signature_id",
+        "subject_variant": "LOCAL_CONTROLLER"
+      },
+      "ordinary_unit": {
+        "derivation_kind_source": "STEP.derivation_kind",
+        "effective_canonical_octet_ceiling_source": "AMBIENT_CEILING",
+        "logical_derivation_step_id_source": "STEP.logical_derivation_step_id",
+        "logical_derivation_step_position_source": "STEP.template_step_position",
+        "ordered_result_cell_source": "SINGLE_EVALUATED_STEP_RESULT_CELL",
+        "owner_profile_position_source": "MATCH_PROFILE_PROGRAM_ID_TO_PROFILE_POSITION_OR_NULL",
+        "state_signature_source": "STEP.state_signature_id",
+        "subject_variant": "ORDINARY_STEP"
+      },
+      "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.derivation_unit_context_program.v1",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "final_result_program": {
+      "commitment_digest_order": "STRICT_DERIVATION_UNIT_POSTORDER_V1",
+      "final_result_event_count": 1,
+      "full_commitment_preimage_policy": "FORBIDDEN_DIGEST_ONLY",
+      "result_status": "ACCEPT",
+      "root_cell_order": "COMPLETE_CANONICAL_CACHE_KEY_BYTES_V1"
+    },
+    "local_controller_state_cell_program": {
+      "ambient_ceiling_source": "/recurrence_catalog/arithmetic_policy/published_maximum",
+      "cell_status": "MAY_BE_NONEMPTY",
+      "certified_lower_bound_octets": 0,
+      "certified_upper_bound_rule": "INITIAL_BASELINE_INTERMEDIATE_COMPONENT_3_TERMINAL_COMPONENT_7_V1",
+      "initial_controller_state_source": "CONTROLLER_STATE_AT_LOCAL_CATALOG_INITIAL_POSITION",
+      "result_cell_order": "controller_state_position_ASCENDING_CONTIGUOUS_ONE_BASED",
+      "root_result_cell_source": "TERMINAL_CONTROLLER_STATE_CELL",
+      "state_component_source": "CONTROLLER_STATE.ordered_state_components",
+      "state_signature_source": "CONTROLLER_STATE.state_signature_id",
+      "terminal_controller_state_source": "CONTROLLER_STATE_AT_LOCAL_CATALOG_TERMINAL_POSITION"
+    },
+    "local_derivation_unit_order": "ONE_CONTROLLER_UNIT_STATES_1_TO_12_TRANSITIONS_1_TO_11_V1",
+    "local_event_cardinality_program": {
+      "batch_application_count": 0,
+      "cache_insert_count_source": "/recurrence_catalog/local_shutdown_analytic_catalog/fixed_controller_state_count",
+      "descriptor_aggregation_source": "/recurrence_catalog/local_shutdown_analytic_catalog/fixed_controller_transition_count",
+      "descriptor_event_count": 1,
+      "result_cell_count_source": "/recurrence_catalog/local_shutdown_analytic_catalog/fixed_controller_state_count",
+      "step_commitment_count": 1,
+      "transition_count_source": "/recurrence_catalog/local_shutdown_analytic_catalog/fixed_controller_transition_count"
+    },
+    "local_transition_expansion_program": {
+      "candidate_state_component_source": "CONTROLLER_TRANSITION.expected_target_state_components",
+      "candidate_upper_bound_source": "TARGET_STATE_CELL.certified_upper_bound_octets",
+      "input_symbol_source": "CONTROLLER_TRANSITION.input_mutable_limit_lexical_position",
+      "logical_unbatched_count_per_token": 1,
+      "physical_transition_count_source": "LOCAL_CATALOG.fixed_controller_transition_count",
+      "physical_transition_ordinal_source": "CONTROLLER_TRANSITION.controller_transition_position",
+      "source_state_component_source": "SOURCE_STATE.ordered_state_components",
+      "source_state_selector": "CONTROLLER_STATE_AT_TRANSITION_POSITION",
+      "target_state_cell_selector": "RESULT_CELL_AT_TRANSITION_POSITION_PLUS_ONE",
+      "transition_order": "controller_transition_position_ASCENDING_CONTIGUOUS_ONE_BASED"
+    },
+    "ordered_kernel_transition_expansion_program_records": [
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "FIXED_VALUE",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 1,
+        "kernel_record_sha256": "217dfbd5ad44244d9f303099dabc700216c59f04f8a1ea4eb05316910377da28",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/0/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/0/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "EXACT_BOOLEAN",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 2,
+        "kernel_record_sha256": "c49a914e9b32ce65cc560c78a2728d9053599166e32d2dd43e86b900069ee9b5",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/1/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/1/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "SAFE_INTEGER_BAND",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 3,
+        "kernel_record_sha256": "a3723772190afa924e427a4b51efa98c062581b1aac2a9a09e59f4d06ba5d92d",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/2/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/2/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "TEXT_FINITE",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 4,
+        "kernel_record_sha256": "61cbfb282a096733bd04f44ddeac245f83239053597993ca7e733e625a58b75f",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/3/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/3/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "TEXT_BUILTIN_BOUNDED",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 5,
+        "kernel_record_sha256": "8dee65eac0cb41f2a2f79524ff38b2e94dae47a9a1942d540ac106f06d812ef9",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/4/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/4/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "TEXT_BOUNDED_LANGUAGE",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 6,
+        "kernel_record_sha256": "0e66d72d6ff9a7c3169085560a3abd7acc564640a2002fe43d3d26cdeb035bb7",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/5/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/5/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "DERIVED_IDENTITY_FIXED_WIDTH",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 7,
+        "kernel_record_sha256": "0a845ad24936af9ad2d1879b996367b192d2bbab1070054c677363c61c3f71f9",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/6/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/6/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "NULLABLE_BRANCH",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 8,
+        "kernel_record_sha256": "56ab31d127abc39cadcbbc265b86faadac3591679acf1a8db5f8886cb73e3476",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/7/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/7/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "OBJECT_REFERENCE",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 9,
+        "kernel_record_sha256": "55cd3eb41441d9591feb680f9c90ec026fcb6fbb353ee0b7ae16e9a9a4924c65",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/8/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/8/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "ASSOCIATIVE_HOMOGENEOUS_RUN_BATCH",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 10,
+        "kernel_record_sha256": "d87d65a9cc96a79e705563ab94727b229f243b782a1bd7422914c307e9f88d45",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/9/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/9/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "ARRAY_STREAM_FOLD",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 11,
+        "kernel_record_sha256": "e2852628a0849b29de06f7c250037ffaeb21e435ca3508bcb85e7244073f5b53",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/10/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/10/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "RECORD_MEMBER_FOLD",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 12,
+        "kernel_record_sha256": "a3dc2d489b8ae0178104c9e3c81b5849bd31a984ca7c47f21198ccda39cbc423",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/11/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/11/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "TAGGED_UNION_BRANCH",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 13,
+        "kernel_record_sha256": "d5843f2003f4be4d39ae98e936394e2485715eb619cd05c771ea7dbb02ef44e0",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/12/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/12/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "CODEC_INTERSECTION",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 14,
+        "kernel_record_sha256": "5843cfbbd682a76ee2ae73570b4ecb0a56ce1baae9d0fe610ea8b0fb8ee8f620",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/13/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/13/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "SAFE_RELAXATION",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 15,
+        "kernel_record_sha256": "be77b52f8c5e996ccb908907e0aeb20e02789afd588ea234822d8cd67a45fccf",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/14/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/14/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "SCOPE_ROOT",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 16,
+        "kernel_record_sha256": "fad5804b1bfe8e01389fa79655ca9bcb1606c1275022e5dd4539ae996c189b38",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/15/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/15/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "APPLICATION_SCHEDULE_COUNT",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 17,
+        "kernel_record_sha256": "ccfc48806b302f93cb0596d01711b837d94e58cca63bc3865d39d6955cb3ce27",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/16/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/16/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      },
+      {
+        "candidate_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "candidate_upper_bound_rule": "COPY_EVALUATED_RESULT_CELL_CERTIFIED_UPPER_BOUND_V1",
+        "derivation_kind": "LOCAL_SHUTDOWN_ANALYTIC_LENGTH_SWEEP",
+        "input_symbol_rule": "ORDERED_OBJECT_DERIVATION_KIND_THEN_PHYSICAL_TRANSITION_ORDINAL_V1",
+        "kernel_position": 18,
+        "kernel_record_sha256": "66fa40dd7c52552e4afa0ef245b1f50236e12730dfc2eb8d4bf89b0ac2f9e008",
+        "logical_count_distribution_rule": "EUCLIDEAN_QUOTIENT_REMAINDER_FIRST_R_TOKENS_PLUS_ONE_V1",
+        "logical_unbatched_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/17/meter_program/logical_unbatched_transition_equivalent_count_expression",
+        "physical_transition_count_expression_pointer": "/recurrence_catalog/ordered_derivation_kernel_records/17/meter_program/transition_attempt_count_expression",
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.kernel_transition_expansion_program.v1",
+        "source_state_component_rule": "COPY_EVALUATED_RESULT_CELL_STATE_COMPONENTS_V1",
+        "token_ordinal_rule": "CONTIGUOUS_ONE_BASED_THROUGH_PHYSICAL_TRANSITION_COUNT_V1"
+      }
+    ],
+    "ordered_subject_constructor_records": [
+      {
+        "constructor_opcode": "BUILD_CASE_OPEN_RECORD_V1",
+        "constructor_position": 1,
+        "event_kind": "CASE_OPEN",
+        "ordered_value_source_records": [
+          {
+            "member_name": "case_open_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.case_open_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "case_position",
+            "value_source": "PLAN.case_position",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "case_kind",
+            "value_source": "PLAN.case_kind",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 4
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_LOGICAL_STEP_REFERENCE_V1",
+        "constructor_position": 2,
+        "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "logical_step_reference_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.logical_step_reference.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "subject_variant",
+            "value_source": "UNIT.subject_variant",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "UNIT.logical_derivation_step_position",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "logical_derivation_step_id",
+            "value_source": "UNIT.logical_derivation_step_id",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "derivation_kind",
+            "value_source": "UNIT.derivation_kind",
+            "value_source_position": 6
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_TAGGED_CACHE_KEY_V3",
+        "constructor_position": 3,
+        "event_kind": "CACHE_INSERT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "cache_key_version",
+            "value_source": "RECURRENCE.cache_key_schema.cache_key_version",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "subject_variant",
+            "value_source": "UNIT.subject_variant",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "effective_canonical_octet_ceiling",
+            "value_source": "UNIT.effective_canonical_octet_ceiling",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "state_signature_id",
+            "value_source": "UNIT.state_signature_id",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "ordered_state_components",
+            "value_source": "CELL.ordered_state_components",
+            "value_source_position": 6
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "ORDINARY:STEP.template_step_position|LOCAL:null",
+            "value_source_position": 7
+          },
+          {
+            "member_name": "derivation_kind",
+            "value_source": "ORDINARY:STEP.derivation_kind|LOCAL:null",
+            "value_source_position": 8
+          },
+          {
+            "member_name": "occurrence_ordinal",
+            "value_source": "ORDINARY:CONST_U128_1|LOCAL:null",
+            "value_source_position": 9
+          },
+          {
+            "member_name": "array_ordinal",
+            "value_source": "null",
+            "value_source_position": 10
+          },
+          {
+            "member_name": "owner_profile_position",
+            "value_source": "UNIT.owner_profile_position",
+            "value_source_position": 11
+          },
+          {
+            "member_name": "application_invocation_ordinal",
+            "value_source": "null",
+            "value_source_position": 12
+          },
+          {
+            "member_name": "observation_ordinal",
+            "value_source": "null",
+            "value_source_position": 13
+          },
+          {
+            "member_name": "local_controller_state_position",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_STATE.controller_state_position",
+            "value_source_position": 14
+          },
+          {
+            "member_name": "local_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_STATE.controller_state_id",
+            "value_source_position": 15
+          }
+        ],
+        "subject_member_order_source": "/recurrence_catalog/cache_key_schema/ordered_member_names"
+      },
+      {
+        "constructor_opcode": "BUILD_TAGGED_TRANSITION_TOKEN_V3",
+        "constructor_position": 4,
+        "event_kind": "TRANSITION_ATTEMPT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "transition_token_version",
+            "value_source": "RECURRENCE.transition_token_schema.transition_token_version",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "subject_variant",
+            "value_source": "UNIT.subject_variant",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "transition_ordinal",
+            "value_source": "TRANSITION.physical_transition_ordinal",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "transition_kind",
+            "value_source": "ORDINARY:ORDINARY_KERNEL_TRANSITION|LOCAL:LOCAL_CONTROLLER_TRANSITION",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "source_state_components",
+            "value_source": "TRANSITION.source_state_components",
+            "value_source_position": 6
+          },
+          {
+            "member_name": "input_symbol",
+            "value_source": "TRANSITION.input_symbol",
+            "value_source_position": 7
+          },
+          {
+            "member_name": "candidate_state_components",
+            "value_source": "TRANSITION.candidate_state_components",
+            "value_source_position": 8
+          },
+          {
+            "member_name": "candidate_certified_upper_bound_octets",
+            "value_source": "TRANSITION.candidate_certified_upper_bound_octets",
+            "value_source_position": 9
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "ORDINARY:STEP.template_step_position|LOCAL:null",
+            "value_source_position": 10
+          },
+          {
+            "member_name": "local_controller_transition_position",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_TRANSITION.controller_transition_position",
+            "value_source_position": 11
+          },
+          {
+            "member_name": "local_controller_transition_id",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_TRANSITION.controller_transition_id",
+            "value_source_position": 12
+          },
+          {
+            "member_name": "source_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_TRANSITION.source_controller_state_id",
+            "value_source_position": 13
+          },
+          {
+            "member_name": "target_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_TRANSITION.target_controller_state_id",
+            "value_source_position": 14
+          }
+        ],
+        "subject_member_order_source": "/recurrence_catalog/transition_token_schema/ordered_member_names"
+      },
+      {
+        "constructor_opcode": "BUILD_BATCH_APPLICATION_RECORD_V1",
+        "constructor_position": 5,
+        "event_kind": "BATCH_APPLICATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "batch_application_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.batch_application_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "STEP.template_step_position",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "physical_batch_ordinal",
+            "value_source": "BATCH.physical_batch_ordinal",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "derivation_kind",
+            "value_source": "STEP.derivation_kind",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "logical_transfer_multiplicity",
+            "value_source": "STEP.logical_transfer_multiplicity",
+            "value_source_position": 6
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_TAGGED_RESULT_CELL_V3",
+        "constructor_position": 6,
+        "event_kind": "RESULT_CELL_EMIT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "result_cell_version",
+            "value_source": "RECURRENCE.result_cell_schema.result_cell_version",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "subject_variant",
+            "value_source": "UNIT.subject_variant",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "state_signature_id",
+            "value_source": "CELL.state_signature_id",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "ordered_state_components",
+            "value_source": "CELL.ordered_state_components",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "cell_status",
+            "value_source": "CELL.cell_status",
+            "value_source_position": 6
+          },
+          {
+            "member_name": "certified_lower_bound_octets",
+            "value_source": "CELL.certified_lower_bound_octets",
+            "value_source_position": 7
+          },
+          {
+            "member_name": "certified_upper_bound_octets",
+            "value_source": "CELL.certified_upper_bound_octets",
+            "value_source_position": 8
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "ORDINARY:STEP.template_step_position|LOCAL:null",
+            "value_source_position": 9
+          },
+          {
+            "member_name": "result_cell_ordinal",
+            "value_source": "ORDINARY:CONST_U128_1|LOCAL:null",
+            "value_source_position": 10
+          },
+          {
+            "member_name": "local_controller_state_position",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_STATE.controller_state_position",
+            "value_source_position": 11
+          },
+          {
+            "member_name": "local_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:CONTROLLER_STATE.controller_state_id",
+            "value_source_position": 12
+          }
+        ],
+        "subject_member_order_source": "/recurrence_catalog/result_cell_schema/ordered_member_names"
+      },
+      {
+        "constructor_opcode": "BUILD_TAGGED_STEP_COMMITMENT_V3",
+        "constructor_position": 7,
+        "event_kind": "STEP_COMMITMENT_EMIT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "step_commitment_version",
+            "value_source": "RECURRENCE.step_commitment_schema.step_commitment_version",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "subject_variant",
+            "value_source": "UNIT.subject_variant",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "state_count",
+            "value_source": "UNIT.ordered_result_cells.LENGTH",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "certified_upper_bound_octets",
+            "value_source": "MAXIMUM:UNIT.ordered_result_cells.certified_upper_bound_octets",
+            "value_source_position": 5
+          },
+          {
+            "member_name": "ordered_result_cell_sha256",
+            "value_source": "UNIT.ordered_result_cells.CANONICAL_SHA256",
+            "value_source_position": 6
+          },
+          {
+            "member_name": "logical_derivation_step_position",
+            "value_source": "ORDINARY:STEP.template_step_position|LOCAL:null",
+            "value_source_position": 7
+          },
+          {
+            "member_name": "local_shutdown_analytic_catalog_id",
+            "value_source": "ORDINARY:null|LOCAL:PLAN.local_analytic_catalog_id",
+            "value_source_position": 8
+          },
+          {
+            "member_name": "initial_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:INITIAL_CONTROLLER_STATE.controller_state_id",
+            "value_source_position": 9
+          },
+          {
+            "member_name": "terminal_controller_state_id",
+            "value_source": "ORDINARY:null|LOCAL:TERMINAL_CONTROLLER_STATE.controller_state_id",
+            "value_source_position": 10
+          }
+        ],
+        "subject_member_order_source": "/recurrence_catalog/step_commitment_schema/ordered_member_names"
+      },
+      {
+        "constructor_opcode": "BUILD_COMPLETE_LOGICAL_CASE_DERIVATION_RESULT_V1",
+        "constructor_position": 8,
+        "event_kind": "FINAL_RESULT_EMIT",
+        "ordered_value_source_records": [
+          {
+            "member_name": "logical_case_derivation_result_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.logical_case_derivation_result.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "result_status",
+            "value_source": "CONST:ACCEPT",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "ordered_root_result_cell_digest_records",
+            "value_source": "ROOT_RESULT_CELLS.IN_CANONICAL_CELL_KEY_ORDER.DIGEST_RECORDS",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "ordered_step_commitment_digest_records",
+            "value_source": "DERIVATION_UNITS.IN_POSTORDER.COMMITMENT_DIGEST_RECORDS",
+            "value_source_position": 5
+          }
+        ],
+        "subject_member_order_source": "/logical_event_catalog/case_level_event_grammar/final_result_subject_contract/ordered_member_names"
+      },
+      {
+        "constructor_opcode": "BUILD_INTRINSIC_RULE_EVALUATION_RECORD_V1",
+        "constructor_position": 9,
+        "event_kind": "INTRINSIC_RULE_EVALUATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "evaluation_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.intrinsic_rule_evaluation_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "ordered_intrinsic_rule_ids",
+            "value_source": "ORDINARY:TEMPLATE_STEPS.ordered_intrinsic_rule_ids|LOCAL:LOCAL_METRIC_PROGRAM.metric_12.ordered_authority_values",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "aggregation_multiplicity",
+            "value_source": "ORDERED_INTRINSIC_RULE_IDS.LENGTH",
+            "value_source_position": 4
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_CROSS_RULE_EVALUATION_RECORD_V1",
+        "constructor_position": 10,
+        "event_kind": "CROSS_RULE_EVALUATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "evaluation_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.cross_rule_evaluation_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "schedule_authority_id",
+            "value_source": "PLAN.scope_summary.schedule_authority_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "aggregation_multiplicity",
+            "value_source": "PLAN.scope_summary.cross_rule_evaluation_count",
+            "value_source_position": 4
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_APPLICATION_EVALUATION_RECORD_V1",
+        "constructor_position": 11,
+        "event_kind": "APPLICATION_EVALUATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "evaluation_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.application_evaluation_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "schedule_authority_id",
+            "value_source": "PLAN.scope_summary.schedule_authority_id",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "aggregation_multiplicity",
+            "value_source": "PLAN.scope_summary.application_invocation_count",
+            "value_source_position": 4
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "USE_EXACT_HASH_SOURCE_BYTES_V1",
+        "constructor_position": 12,
+        "event_kind": "HASH_PREIMAGE",
+        "ordered_value_source_records": [
+          {
+            "member_name": "raw_bytes",
+            "value_source": "ORDERED_CASE_HASH_PROGRAM_SELECTED_PREIMAGE_BYTES",
+            "value_source_position": 1
+          }
+        ],
+        "subject_member_order_source": "RAW_BYTES_NO_OBJECT_MEMBER_ORDER"
+      },
+      {
+        "constructor_opcode": "BUILD_LIVE_SET_SNAPSHOT_V1",
+        "constructor_position": 13,
+        "event_kind": "RETENTION_OBSERVATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "snapshot_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.live_set_snapshot.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "snapshot_position",
+            "value_source": "CONTIGUOUS_ONE_BASED_RETENTION_OBSERVATION_ORDINAL",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "observation_label",
+            "value_source": "RETENTION.observation_label",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "ordered_live_entry_records",
+            "value_source": "RETENTION.ordered_live_entry_records",
+            "value_source_position": 4
+          },
+          {
+            "member_name": "observed_value",
+            "value_source": "SUM:RETENTION.ordered_live_entry_records.canonical_octets",
+            "value_source_position": 5
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_DERIVATION_DEPTH_RECORD_V1",
+        "constructor_position": 14,
+        "event_kind": "DERIVATION_DEPTH_OBSERVATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "depth_record_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.derivation_depth_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "derived_depth",
+            "value_source": "DEPTH.maximum_derivation_depth",
+            "value_source_position": 3
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_ITERATION_DEPTH_RECORD_V1",
+        "constructor_position": 15,
+        "event_kind": "ITERATION_DEPTH_OBSERVATION",
+        "ordered_value_source_records": [
+          {
+            "member_name": "depth_record_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.iteration_depth_record.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "iteration_depth",
+            "value_source": "DEPTH.maximum_iteration_depth",
+            "value_source_position": 3
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      },
+      {
+        "constructor_opcode": "BUILD_EVENT_STREAM_PREIMAGE_DESCRIPTOR_V1",
+        "constructor_position": 16,
+        "event_kind": "EVENT_STREAM_CLOSE",
+        "ordered_value_source_records": [
+          {
+            "member_name": "descriptor_version",
+            "value_source": "CONST:riskyieldmm.raw_v8_step2_external_schema_v2.event_stream_preimage_descriptor.v1",
+            "value_source_position": 1
+          },
+          {
+            "member_name": "logical_count_plan_id",
+            "value_source": "PLAN.logical_count_plan_id",
+            "value_source_position": 2
+          },
+          {
+            "member_name": "preimage_canonical_octets",
+            "value_source": "EVENT_STREAM_PREIMAGE.RAW_OCTET_COUNT",
+            "value_source_position": 3
+          },
+          {
+            "member_name": "preimage_sha256",
+            "value_source": "EVENT_STREAM_PREIMAGE.SHA256",
+            "value_source_position": 4
+          }
+        ],
+        "subject_member_order_source": "CONSTRUCTOR_ORDERED_VALUE_SOURCE_RECORDS"
+      }
+    ],
+    "ordinary_cell_execution_program": {
+      "ambient_ceiling_source": "/recurrence_catalog/arithmetic_policy/published_maximum",
+      "cell_transfer_rule_source": "KERNEL.transfer_program.opcode_TO_INSTRUCTION_SET.transfer_rule_id",
+      "child_cell_order": "STEP.ordered_child_step_positions",
+      "execution_opcode": "EXECUTE_LINKED_LOW_LEVEL_TRANSFER_RULE_AST_V1",
+      "profile_root_conditioning_source": "BOUND_PROFILE_CONDITIONING_PROGRAM_P2_AT_ROOT_ONLY",
+      "result_cell_count_per_step": 1,
+      "step_order": "TEMPLATE_STEP_POSITION_ASCENDING_STRICT_POSTORDER_V1"
+    },
+    "ordinary_derivation_unit_order": "TEMPLATE_STEP_POSITION_ASCENDING_STRICT_POSTORDER_V1",
+    "ordinary_event_cardinality_program": {
+      "batch_application_count_source": "STEP.physical_batch_application_count",
+      "cache_insert_count_per_step": 1,
+      "descriptor_aggregation_source": "STEP.logical_descriptor_occurrence_count",
+      "descriptor_event_count_per_step": 1,
+      "result_cell_count_per_step": 1,
+      "step_commitment_count_per_step": 1,
+      "transition_count_source": "STEP.physical_transition_count"
+    },
+    "ordinary_transition_input_symbol_contract": {
+      "ordered_member_names": [
+        "derivation_kind",
+        "physical_transition_ordinal"
+      ],
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.full_case_execution_program.v1",
+    "retention_observation_program": {
+      "equal_bytes_distinct_entries_count_separately": true,
+      "full_commitment_release": "IMMEDIATELY_AFTER_OWN_HASH_RETAIN_32_OCTET_DIGEST_V1",
+      "observation_order": [
+        "LIVE_CHILDREN_BEFORE_PARENT",
+        "LIVE_CHILDREN_PLUS_PROSPECTIVE_PARENT",
+        "AFTER_PARENT_COMMITMENT_HASH_AND_RELEASE",
+        "ROOT_COMMITMENT_DIGEST_THROUGH_FINAL_RESULT_HASH"
+      ],
+      "raw_key_and_cell_release": "IMMEDIATELY_AFTER_LAST_PARENT_COMMITMENT_HASH_V1",
+      "reverse_parent_index_rule": "MAXIMUM_PARENT_STEP_POSITION_FOR_EACH_CHILD_V1",
+      "root_snapshot_entries": "ALL_STEP_COMMITMENT_DIGESTS_32_OCTETS_EACH_V1"
+    },
+    "rule_application_event_program": {
+      "application_aggregation_source": "PLAN.scope_summary.application_invocation_count",
+      "cross_rule_aggregation_source": "PLAN.scope_summary.cross_rule_evaluation_count",
+      "emit_application_event_rule": "ONE_EVENT_IFF_AGGREGATION_POSITIVE_V1",
+      "emit_cross_rule_event_rule": "ONE_EVENT_IFF_AGGREGATION_POSITIVE_V1",
+      "emit_intrinsic_event_rule": "ONE_EVENT_IFF_ORDERED_INTRINSIC_RULE_ID_COUNT_POSITIVE_V1",
+      "intrinsic_aggregation_rule": "SUM_ORDERED_INTRINSIC_RULE_ID_COUNTS_ACROSS_ORDINARY_STEPS_OR_LOCAL_METRIC_PROGRAM_V1"
+    },
+    "stream_finalization_program": {
+      "close_and_hash_event_order": [
+        "EVENT_STREAM_CLOSE",
+        "HASH_PREIMAGE"
+      ],
+      "excluded_from_preimage": [
+        "EVENT_STREAM_CLOSE",
+        "FINAL_EVENT_STREAM_HASH_PREIMAGE_EVENT"
+      ],
+      "preimage_member_order_source": "/logical_event_catalog/case_level_event_grammar/stream_finalization_program/preimage_member_names",
+      "terminal_hash_must_be_last": true
+    },
+    "subject_collection_export_name": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION",
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "global_event_position_rule": "CONTIGUOUS_ONE_BASED_COMPLETE_CASE_STREAM",
+  "grammar_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case_event_grammar.v1",
+  "hand_oracle_contract": {
+    "contract_version": "riskyieldmm.raw_v8_step2_external_schema_v2.hand_oracle_contract.v1",
+    "ordered_required_coverage_tags": [
+      "UNRESTRICTED_BOOLEAN",
+      "NULLABLE",
+      "FINITE_TEXT",
+      "RELAXED_TEXT",
+      "SAFE_INTEGER",
+      "BATCHED_ARRAY",
+      "STREAM_FALLBACK_ARRAY",
+      "RECORD",
+      "SELF_VALUE_UNION",
+      "OWNER_PAYLOAD_UNION",
+      "CODEC_INTERSECTION",
+      "CONTEXT_APPLICATION_SCHEDULE",
+      "LOCAL_SHUTDOWN_CASE_475"
+    ],
+    "ordered_required_member_names": [
+      "oracle_position",
+      "oracle_id",
+      "ordered_coverage_tags",
+      "complete_logical_count_plan",
+      "exact_source_objects_or_fixture_locators",
+      "ordered_logical_event_tokens",
+      "event_stream_preimage_canonical_octets_hex",
+      "event_stream_preimage_sha256",
+      "ordered_expected_resource_measurements",
+      "final_result_canonical_octets_hex",
+      "final_result_sha256",
+      "ordered_live_set_snapshots",
+      "expected_status"
+    ],
+    "ordered_required_mutation_classes": [
+      "OMIT_EVENT",
+      "DUPLICATE_EVENT",
+      "REORDER_EVENT",
+      "RESIZE_SUBJECT",
+      "CHANGE_SUBJECT_SHA256",
+      "CHANGE_EVENT_ORDINAL",
+      "CHANGE_AGGREGATION_MULTIPLICITY",
+      "CHANGE_LOGICAL_UNBATCHED_EQUIVALENT_COUNT",
+      "EARLY_OR_LATE_RELEASE",
+      "MOVE_BYTE_ACCOUNTING_TERM",
+      "COUNT_M18_FRAGMENT",
+      "DUPLICATE_FINAL_RESULT",
+      "INCLUDE_EXCLUDED_CONTROL_EVENT_IN_PREIMAGE",
+      "EVENT_AFTER_FINAL_HASH"
+    ],
+    "required_metric_positions": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  "live_set_program": {
+    "equal_bytes_distinct_entries_count_separately": true,
+    "full_commitment_preimage_release_point": "IMMEDIATELY_AFTER_CURRENT_DERIVATION_UNIT_COMMITMENT_HASH",
+    "last_parent_source": "POSTORDER_DAG_EXACT_REVERSE_PARENT_INDEX",
+    "ordered_excluded_transient_kinds": [
+      "TRANSITION_TOKEN_BUFFER",
+      "CANONICALIZER_SCRATCH",
+      "SOURCE_AUTHORITY_BYTES",
+      "EVENT_TOKEN_BYTES",
+      "FINAL_RESULT_SERIALIZER_BUFFER",
+      "EVENT_STREAM_PREIMAGE_BUFFER"
+    ],
+    "ordered_observation_points": [
+      "LIVE_CHILDREN_BEFORE_PARENT",
+      "LIVE_CHILDREN_PLUS_PROSPECTIVE_PARENT",
+      "AFTER_PARENT_COMMITMENT_HASH_AND_RELEASE",
+      "ROOT_COMMITMENT_DIGEST_THROUGH_FINAL_RESULT_HASH"
+    ],
+    "ordered_retained_subject_kinds": [
+      "RECURRENCE_CACHE_KEY_V2",
+      "RECURRENCE_RESULT_CELL_V2",
+      "RECURRENCE_STEP_COMMITMENT_V2"
+    ],
+    "post_hash_commitment_material_policy": "DIGEST_ONLY_IF_REQUIRED_NEVER_RETAIN_FULL_PREIMAGE",
+    "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.live_set.v1",
+    "release_order": "REVERSE_CHILD_STEP_POSITION_IMMEDIATELY_AFTER_LAST_USE"
+  },
+  "ordered_case_hash_program_records": [
+    {
+      "hash_program_name": "BOUND_PLAN_IDENTITY_HASH",
+      "hash_program_position": 1,
+      "iteration_source": {
+        "source": "SINGLETON"
+      },
+      "opcode": "HASH_BOUND_PLAN_IDENTITY_ENVELOPE_ONCE_V1",
+      "ordered_hash_source_records": [
+        {
+          "cardinality_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "hash_purpose": "BOUND_PLAN_IDENTITY_ENVELOPE",
+          "hash_source_position": 1,
+          "ordinal_source": {
+            "primary": "SINGLETON",
+            "secondary": null
+          },
+          "source_locator": {
+            "source": "BOUND_PLAN_IDENTITY_ENVELOPE"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "local_case_unit_count": 0,
+        "primary": "SINGLETON"
+      }
+    },
+    {
+      "hash_program_name": "DERIVATION_UNITS_POSTORDER",
+      "hash_program_position": 2,
+      "iteration_source": {
+        "source": "ALL_DERIVATION_UNITS"
+      },
+      "opcode": "HASH_CELLS_THEN_COMMITMENT_PER_DERIVATION_UNIT_V1",
+      "ordered_hash_source_records": [
+        {
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "source": "CURRENT_UNIT_RETAINED_CELLS"
+            }
+          },
+          "hash_purpose": "RETAINED_RESULT_CELL_PREIMAGE",
+          "hash_source_position": 1,
+          "ordinal_source": {
+            "primary": "CURRENT_DERIVATION_UNIT",
+            "secondary": "COMPLETE_CANONICAL_CELL_KEY_BYTES"
+          },
+          "source_locator": {
+            "source": "RETAINED_RESULT_CELL_PREIMAGE"
+          }
+        },
+        {
+          "cardinality_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "hash_purpose": "STEP_COMMITMENT_PREIMAGE",
+          "hash_source_position": 2,
+          "ordinal_source": {
+            "primary": "CURRENT_DERIVATION_UNIT",
+            "secondary": "SINGLE_COMMITMENT_AFTER_ALL_CELL_HASHES"
+          },
+          "source_locator": {
+            "source": "STEP_COMMITMENT_PREIMAGE"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "local_case_unit_count": 1,
+        "primary": "STRICT_DERIVATION_UNIT_POSTORDER"
+      }
+    },
+    {
+      "hash_program_name": "FINAL_RESULT_IDENTITY_HASH",
+      "hash_program_position": 3,
+      "iteration_source": {
+        "source": "SINGLETON"
+      },
+      "opcode": "HASH_FINAL_RESULT_IDENTITY_ONCE_V1",
+      "ordered_hash_source_records": [
+        {
+          "cardinality_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "hash_purpose": "FINAL_RESULT_IDENTITY_PREIMAGE",
+          "hash_source_position": 1,
+          "ordinal_source": {
+            "primary": "SINGLETON",
+            "secondary": null
+          },
+          "source_locator": {
+            "source": "FINAL_RESULT_IDENTITY_PREIMAGE"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "local_case_unit_count": 0,
+        "primary": "SINGLETON"
+      }
+    },
+    {
+      "hash_program_name": "EVENT_STREAM_HASH",
+      "hash_program_position": 4,
+      "iteration_source": {
+        "source": "SINGLETON"
+      },
+      "opcode": "HASH_EVENT_STREAM_PREIMAGE_ONCE_LAST_V1",
+      "ordered_hash_source_records": [
+        {
+          "cardinality_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "hash_purpose": "EVENT_STREAM_PREIMAGE",
+          "hash_source_position": 1,
+          "ordinal_source": {
+            "primary": "SINGLETON",
+            "secondary": null
+          },
+          "source_locator": {
+            "source": "EVENT_STREAM_PREIMAGE"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "local_case_unit_count": 0,
+        "primary": "SINGLETON"
+      }
+    }
+  ],
+  "ordered_case_program_records": [
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "CASE_OPEN"
+        }
+      },
+      "opcode": "EMIT_CASE_OPEN_ONCE_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "CASE_OPEN",
+              "program_name": "CASE_OPEN",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "CASE_OPEN",
+          "execution_phase": "CASE_OPEN",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "CASE_OPEN",
+      "program_position": 1
+    },
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "BOUND_PLAN_HASH_PREIMAGE"
+        }
+      },
+      "opcode": "EMIT_BOUND_PLAN_IDENTITY_HASH_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "BOUND_PLAN_HASH_PREIMAGE",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "PLAN_IDENTITY_BINDING",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "BOUND_PLAN_HASH_PREIMAGE",
+      "program_position": 2
+    },
+    {
+      "case_selection": "LOGICAL_PLAN_TEMPLATE_PRESENT",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "ORDINARY_POSTORDER_STEPS"
+        }
+      },
+      "opcode": "EXECUTE_ORDINARY_STEPS_POSTORDER_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "TRANSITION_ATTEMPT",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "TRANSITION_ATTEMPT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "field_name": "logical_unbatched_equivalent_count",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "BATCH_APPLICATION",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 3,
+          "event_kind": "BATCH_APPLICATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RESULT_CELL_EMIT",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 4,
+          "event_kind": "RESULT_CELL_EMIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "CACHE_INSERT",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 5,
+          "event_kind": "CACHE_INSERT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RETENTION_OBSERVATION",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 6,
+          "event_kind": "RETENTION_OBSERVATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 7,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "STEP_COMMITMENT_EMIT",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 8,
+          "event_kind": "STEP_COMMITMENT_EMIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 9,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RETENTION_OBSERVATION",
+              "program_name": "ORDINARY_POSTORDER_STEPS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 10,
+          "event_kind": "RETENTION_OBSERVATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "ORDINARY_POSTORDER_STEPS",
+      "program_position": 3
+    },
+    {
+      "case_selection": "LOCAL_ANALYTIC_CATALOG_PRESENT",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "LOCAL_CONTROLLER"
+        }
+      },
+      "opcode": "EXECUTE_LOCAL_CONTROLLER_ORDER_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "TRANSITION_ATTEMPT",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "TRANSITION_ATTEMPT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "field_name": "logical_unbatched_equivalent_count",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "INTRINSIC_RULE_EVALUATION",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 3,
+          "event_kind": "INTRINSIC_RULE_EVALUATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RESULT_CELL_EMIT",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 4,
+          "event_kind": "RESULT_CELL_EMIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "CACHE_INSERT",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 5,
+          "event_kind": "CACHE_INSERT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RETENTION_OBSERVATION",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 6,
+          "event_kind": "RETENTION_OBSERVATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 7,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "STEP_COMMITMENT_EMIT",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 8,
+          "event_kind": "STEP_COMMITMENT_EMIT",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 9,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RETENTION_OBSERVATION",
+              "program_name": "LOCAL_CONTROLLER",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 10,
+          "event_kind": "RETENTION_OBSERVATION",
+          "execution_phase": "UPPER_BOUND_DERIVATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "LOCAL_CONTROLLER",
+      "program_position": 4
+    },
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "EXACT_ATTAINER_VALIDATION"
+        }
+      },
+      "opcode": "EXECUTE_EXACT_ATTAINER_VALIDATION_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "INTRINSIC_RULE_EVALUATION",
+              "program_name": "EXACT_ATTAINER_VALIDATION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "INTRINSIC_RULE_EVALUATION",
+          "execution_phase": "LEGAL_ATTAINMENT_VALIDATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "EXACT_ATTAINER_VALIDATION",
+      "program_position": 5
+    },
+    {
+      "case_selection": "SCOPE_SCHEDULE_NONEMPTY",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "SCOPE_APPLICATIONS"
+        }
+      },
+      "opcode": "EXECUTE_SCOPE_SCHEDULE_LEXICAL_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "APPLICATION_EVALUATION",
+              "program_name": "SCOPE_APPLICATIONS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "APPLICATION_EVALUATION",
+          "execution_phase": "SCOPE_APPLICATION_VALIDATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "field_name": "aggregation_multiplicity",
+            "opcode": "SOURCE_FIELD_U128"
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "CROSS_RULE_EVALUATION",
+              "program_name": "SCOPE_APPLICATIONS",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "CROSS_RULE_EVALUATION",
+          "execution_phase": "SCOPE_APPLICATION_VALIDATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "SCOPE_APPLICATIONS",
+      "program_position": 6
+    },
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "DEPTH_AND_RETENTION"
+        }
+      },
+      "opcode": "EMIT_DEPTH_AND_LIVE_SET_MAXIMA_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "DERIVATION_DEPTH_OBSERVATION",
+              "program_name": "DEPTH_AND_RETENTION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "DERIVATION_DEPTH_OBSERVATION",
+          "execution_phase": "DEPTH_AND_RETENTION_FINALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "ITERATION_DEPTH_OBSERVATION",
+              "program_name": "DEPTH_AND_RETENTION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "ITERATION_DEPTH_OBSERVATION",
+          "execution_phase": "DEPTH_AND_RETENTION_FINALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "RETENTION_OBSERVATION",
+              "program_name": "DEPTH_AND_RETENTION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 3,
+          "event_kind": "RETENTION_OBSERVATION",
+          "execution_phase": "DEPTH_AND_RETENTION_FINALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "DEPTH_AND_RETENTION",
+      "program_position": 7
+    },
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "FINAL_RESULT"
+        }
+      },
+      "opcode": "EMIT_FINAL_RESULT_ONCE_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "FINAL_RESULT_EMIT",
+              "program_name": "FINAL_RESULT",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "FINAL_RESULT_EMIT",
+          "execution_phase": "FINAL_RESULT_SERIALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "FINAL_RESULT",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "FINAL_RESULT_SERIALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "FINAL_RESULT",
+      "program_position": 8
+    },
+    {
+      "case_selection": "ALL_CASES",
+      "iteration_source": {
+        "cardinality_expression": {
+          "opcode": "CONST_U128",
+          "value": 1
+        },
+        "source_kind": "CLOSED_CASE_DERIVATION_UNIT_SOURCE",
+        "source_locator": {
+          "program_name": "STREAM_FINALIZATION"
+        }
+      },
+      "opcode": "CLOSE_THEN_HASH_EXCLUDED_CONTROL_EVENTS_V1",
+      "ordered_event_emission_records": [
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "EVENT_STREAM_CLOSE",
+              "program_name": "STREAM_FINALIZATION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 1,
+          "event_kind": "EVENT_STREAM_CLOSE",
+          "execution_phase": "EVENT_STREAM_FINALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        },
+        {
+          "aggregation_multiplicity_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "cardinality_expression": {
+            "opcode": "SOURCE_LIST_COUNT",
+            "source_locator": {
+              "event_kind": "HASH_PREIMAGE",
+              "program_name": "STREAM_FINALIZATION",
+              "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+            }
+          },
+          "condition_expression": {
+            "opcode": "CONST_U128",
+            "value": 1
+          },
+          "emission_position": 2,
+          "event_kind": "HASH_PREIMAGE",
+          "execution_phase": "EVENT_STREAM_FINALIZATION",
+          "logical_unbatched_equivalent_count_expression": {
+            "opcode": "CONST_U128",
+            "value": 0
+          },
+          "subject_collection_locator": {
+            "source": "CASE_PROGRAM_EXACT_SUBJECT_COLLECTION"
+          },
+          "subject_order": "PROGRAM_FROZEN_ORDER",
+          "subject_ordinal_source": {
+            "source": "CASE_PROGRAM_SUBJECT_ORDINAL"
+          }
+        }
+      ],
+      "ordinal_source": {
+        "ordinal_kind": "PROGRAM_FROZEN_ORDER",
+        "reset_scope": "CASE"
+      },
+      "program_name": "STREAM_FINALIZATION",
+      "program_position": 9
+    }
+  ],
+  "ordered_execution_phase_records": [
+    {
+      "execution_phase": "CASE_OPEN",
+      "phase_position": 1
+    },
+    {
+      "execution_phase": "PLAN_IDENTITY_BINDING",
+      "phase_position": 2
+    },
+    {
+      "execution_phase": "UPPER_BOUND_DERIVATION",
+      "phase_position": 3
+    },
+    {
+      "execution_phase": "LEGAL_ATTAINMENT_VALIDATION",
+      "phase_position": 4
+    },
+    {
+      "execution_phase": "SCOPE_APPLICATION_VALIDATION",
+      "phase_position": 5
+    },
+    {
+      "execution_phase": "DEPTH_AND_RETENTION_FINALIZATION",
+      "phase_position": 6
+    },
+    {
+      "execution_phase": "FINAL_RESULT_SERIALIZATION",
+      "phase_position": 7
+    },
+    {
+      "execution_phase": "EVENT_STREAM_FINALIZATION",
+      "phase_position": 8
+    }
+  ],
+  "ordered_hand_oracle_records": [],
+  "ordered_subject_schema_records": [
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "CASE_OPEN",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "CASE_OPEN_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 1,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.1.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "LOGICAL_DESCRIPTOR_VISIT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "LOGICAL_DERIVATION_STEP_REFERENCE_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 2,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.2.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "CACHE_INSERT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "RECURRENCE_CACHE_KEY_V2",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 3,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.3.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "TRANSITION_ATTEMPT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "RECURRENCE_TRANSITION_TOKEN_V2",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 4,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.4.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "BATCH_APPLICATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "BATCH_APPLICATION_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 5,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.5.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "RESULT_CELL_EMIT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "RECURRENCE_RESULT_CELL_V2",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 6,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.6.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "STEP_COMMITMENT_EMIT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "RECURRENCE_STEP_COMMITMENT_V2",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 7,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.7.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "FINAL_RESULT_EMIT",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "LOGICAL_CASE_DERIVATION_RESULT_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 8,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.8.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "INTRINSIC_RULE_EVALUATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "INTRINSIC_RULE_EVALUATION_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 9,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.9.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "CROSS_RULE_EVALUATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "CROSS_RULE_EVALUATION_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 10,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.10.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "APPLICATION_EVALUATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "APPLICATION_EVALUATION_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 11,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.11.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "HASH_PREIMAGE",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "HASH_PREIMAGE_BYTES_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 12,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.12.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "RETENTION_OBSERVATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "LIVE_SET_SNAPSHOT_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 13,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.13.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "DERIVATION_DEPTH_OBSERVATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "DERIVATION_DEPTH_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 14,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.14.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "ITERATION_DEPTH_OBSERVATION",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "ITERATION_DEPTH_RECORD_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 15,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.15.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    },
+    {
+      "aggregation_multiplicity_source": "EMISSION_RECORD_AGGREGATION_MULTIPLICITY_EXPRESSION",
+      "event_kind": "EVENT_STREAM_CLOSE",
+      "logical_derivation_step_position_source": "EMISSION_RECORD_DERIVATION_UNIT",
+      "logical_unbatched_equivalent_count_source": "EMISSION_RECORD_LOGICAL_UNBATCHED_EQUIVALENT_COUNT_EXPRESSION",
+      "observed_value_source": "EMISSION_RECORD_OBSERVED_VALUE",
+      "subject_bytes_source": {
+        "source": "EXACT_SUBJECT_COLLECTION_ITEM"
+      },
+      "subject_kind": "EVENT_STREAM_PREIMAGE_DESCRIPTOR_V1",
+      "subject_ordinal_source": "EMISSION_RECORD_SUBJECT_ORDINAL",
+      "subject_role_source": "EMISSION_RECORD_SUBJECT_ROLE",
+      "subject_schema_position": 16,
+      "subject_schema_version": "riskyieldmm.raw_v8_step2_external_schema_v2.subject.16.v1",
+      "subject_sha256_source": "SHA256_EXACT_SUBJECT_BYTES"
+    }
+  ],
+  "stream_finalization_program": {
+    "close_event_in_preimage": false,
+    "comparator_recomputes_excluded_control_events": true,
+    "event_after_final_hash_policy": "REJECT",
+    "hash_event_in_preimage": false,
+    "ordered_terminal_event_kinds": [
+      "EVENT_STREAM_CLOSE",
+      "HASH_PREIMAGE"
+    ],
+    "preimage_member_names": [
+      "logical_event_stream_version",
+      "logical_count_plan_id",
+      "ordered_pre_close_logical_event_tokens"
+    ],
+    "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.stream_finalization.v1",
+    "stream_hash_algorithm": "SHA256",
+    "stream_hash_subject_kind": "EVENT_STREAM_PREIMAGE"
+  },
+  "transition_expansion_contract": {
+    "contract_version": "riskyieldmm.raw_v8_step2_external_schema_v2.transition_expansion.v1",
+    "hand_oracle_scale_policy": "BOUNDED_DISCRIMINATING_MICROFIXTURES_UP_TO_CARDINALITY_16",
+    "local_run_source": "ELEVEN_CONTROLLER_TRANSITIONS_ONE_TO_ONE_PHYSICAL_1_LOGICAL_1",
+    "logical_count_distribution_rule": "PER_TOKEN_POSITIVE_U128_SUM_EQUALS_RUN_LOGICAL_UNBATCHED_COUNT",
+    "ordered_reconciliation_equations": [
+      "SUM_RUN_PHYSICAL_COUNTS_EQUALS_KERNEL_PHYSICAL_TRANSITION_COUNT",
+      "SUM_RUN_LOGICAL_COUNTS_EQUALS_KERNEL_LOGICAL_UNBATCHED_EQUIVALENT_COUNT",
+      "EMITTED_TOKEN_COUNT_EQUALS_SUM_RUN_PHYSICAL_COUNTS",
+      "SUM_TOKEN_LOGICAL_COUNTS_EQUALS_SUM_RUN_LOGICAL_COUNTS",
+      "SUM_TOKEN_CANONICAL_OCTETS_EQUALS_EXACT_RUN_CANONICAL_OCTET_SUM"
+    ],
+    "ordered_run_record_member_names": [
+      "transition_run_position",
+      "transition_source_kind",
+      "first_physical_transition_ordinal",
+      "physical_transition_count",
+      "logical_unbatched_equivalent_count",
+      "token_subject_expansion_program",
+      "logical_count_distribution_program",
+      "canonical_octet_sum_program"
+    ],
+    "ordinary_run_source": "RECURRENCE_KERNEL_CLOSED_TRANSITION_EXPANSION_PROGRAM",
+    "physical_event_expansion_rule": "EMIT_EXACTLY_PHYSICAL_TRANSITION_COUNT_DISTINCT_TOKENS",
+    "run_order": "CONTIGUOUS_PHYSICAL_TRANSITION_ORDINAL_RANGES",
+    "transition_aggregation_policy": "EVERY_EMITTED_TOKEN_AGGREGATION_MULTIPLICITY_ONE",
+    "transition_byte_accounting_policy": "SUM_EXACT_PER_TOKEN_CANONICAL_OCTETS_NEVER_RESIZE_ONE_TOKEN",
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "unknown_or_extra_member_policy": "REJECT"
+}

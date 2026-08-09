@@ -1,17 +1,25 @@
 """Immutable V3 contracts for causal trading decisions and later outcomes.
 
-The contract graph deliberately keeps future-dependent labels out of the
-pre-outcome decision identity:
+The contract graph deliberately separates candidate-neutral evidence from a
+candidate and its exact model vector, while keeping future-dependent labels
+out of the pre-outcome decision identity:
 
-``InformationSetV3 -> EligibilityDecisionV3 -> DecisionEventV3``
+``InformationSetV3 -> ActionResolutionV3 -> PrimarySignalCandidateV3``
+
+``PrimarySignalCandidateV3 -> CandidateFeatureMaterializationV3``
+
+``CandidateFeatureMaterializationV3 -> EligibilityDecisionV3 -> DecisionEventV3``
 
 ``LabelOutcomeV3`` is appended later and links to the unchanged decision ID.
 """
 
 from __future__ import annotations
 
+import math
+import re
+import struct
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from decimal import ROUND_HALF_EVEN, Decimal, localcontext
 from enum import Enum
@@ -32,7 +40,9 @@ from .canonical import (
     utc_iso,
 )
 
-CONTRACT_SCHEMA_VERSION = "riskyieldmm_trade_event_v3"
+CONTRACT_SCHEMA_VERSION = "riskyieldmm_trade_event_v3_2"
+FEATURE_VECTOR_ENCODING = "riskyieldmm_float64_be_hex_null_v1"
+_FLOAT64_BE_HEX_RE = re.compile(r"^[0-9a-f]{16}$")
 MAX_HOLDING_SECONDS = 315_576_000
 MAX_COST_COMPONENTS = 64
 DECIMAL_ARITHMETIC_PRECISION = 100
@@ -65,6 +75,7 @@ class EligibilityVerdict(str, Enum):
 class EntryScenario(str, Enum):
     """Predeclared order-entry interpretation."""
 
+    NEXT_SCHEDULED_BASE_BAR_OPEN = "NEXT_SCHEDULED_BASE_BAR_OPEN"
     NEXT_REAL_BASE_BAR_OPEN = "NEXT_REAL_BASE_BAR_OPEN"
     FORWARD_MARKET_ORDER = "FORWARD_MARKET_ORDER"
     LIVE_MARKET_ORDER = "LIVE_MARKET_ORDER"
@@ -168,13 +179,81 @@ def _enum_value(value: Enum) -> str:
     return str(value.value)
 
 
+def encode_float64_be_hex_null_v1(value: float | None) -> str | None:
+    """Encode one finite binary64 value without JSON floating-point ambiguity."""
+
+    if value is None:
+        return None
+    if isinstance(value, bool) or type(value) is not float:
+        raise CanonicalizationError("feature value must be a binary64 float or null")
+    if not math.isfinite(value):
+        raise CanonicalizationError("feature value must be finite")
+    if value == 0.0 and math.copysign(1.0, value) < 0:
+        raise CanonicalizationError("feature value must not be negative zero")
+    return struct.pack(">d", value).hex()
+
+
+def decode_float64_be_hex_null_v1(value: str | None) -> float | None:
+    """Decode and validate one canonical binary64 hexadecimal value."""
+
+    if value is None:
+        return None
+    if not isinstance(value, str) or _FLOAT64_BE_HEX_RE.fullmatch(value) is None:
+        raise CanonicalizationError(
+            "encoded feature value must be 16 lowercase hexadecimal characters or null"
+        )
+    decoded = struct.unpack(">d", bytes.fromhex(value))[0]
+    if not math.isfinite(decoded):
+        raise CanonicalizationError(
+            "encoded feature value must represent a finite binary64"
+        )
+    if decoded == 0.0 and math.copysign(1.0, decoded) < 0:
+        raise CanonicalizationError(
+            "encoded feature value must not represent negative zero"
+        )
+    if struct.pack(">d", decoded).hex() != value:
+        raise CanonicalizationError("encoded feature value is not canonical binary64")
+    return decoded
+
+
+def float64_feature_vector_digest_v1(
+    *,
+    feature_schema_id: str,
+    feature_values: Sequence[str | None],
+    feature_vector_encoding: str = FEATURE_VECTOR_ENCODING,
+) -> str:
+    """Digest an ordered, schema-bound feature vector."""
+
+    schema_id = canonical_hash(feature_schema_id, field="feature_schema_id")
+    encoding = canonical_identifier(
+        feature_vector_encoding, field="feature_vector_encoding"
+    )
+    if encoding != FEATURE_VECTOR_ENCODING:
+        raise CanonicalizationError("unsupported feature_vector_encoding")
+    if isinstance(feature_values, (str, bytes)):
+        raise CanonicalizationError("feature_values must be an ordered sequence")
+    values = tuple(feature_values)
+    for value in values:
+        decode_float64_be_hex_null_v1(value)
+    return sha256_digest(
+        {
+            "feature_schema_id": schema_id,
+            "feature_values": list(values),
+            "feature_vector_encoding": encoding,
+        }
+    )
+
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class InformationDependencyV3:
     """One exact source observation revision selected before a cutoff."""
 
+    dependency_slot_id: str
+    source_member_id: str
     name: str
     source_id: str
     source_manifest_id: str
+    source_field_ids: tuple[str, ...]
     observation_revision_id: str
     source_event_ts: datetime
     bar_open_ts: datetime
@@ -184,13 +263,31 @@ class InformationDependencyV3:
     revision_received_ts: datetime
     feature_available_ts: datetime
     value_digest: str
-    required: bool = True
 
     def __post_init__(self) -> None:
+        for field_name in ("dependency_slot_id", "source_member_id"):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_hash(getattr(self, field_name), field=field_name),
+            )
         object.__setattr__(self, "name", canonical_identifier(self.name, field="name"))
         object.__setattr__(
             self, "source_id", canonical_identifier(self.source_id, field="source_id")
         )
+        if isinstance(self.source_field_ids, (str, bytes)):
+            raise CanonicalizationError("source_field_ids must be a sequence")
+        source_field_ids = tuple(
+            canonical_identifier(value, field="source_field_ids")
+            for value in self.source_field_ids
+        )
+        if not source_field_ids:
+            raise CanonicalizationError("source_field_ids must not be empty")
+        if len(set(source_field_ids)) != len(source_field_ids):
+            raise CanonicalizationError("source_field_ids contain duplicates")
+        # Field order is part of the dependency contract: transforms may bind
+        # columns positionally, so canonicalization must not silently reorder it.
+        object.__setattr__(self, "source_field_ids", source_field_ids)
         for field_name in (
             "source_manifest_id",
             "observation_revision_id",
@@ -236,9 +333,6 @@ class InformationDependencyV3:
             "feature_available_ts",
             utc_datetime(self.feature_available_ts, field="feature_available_ts"),
         )
-        object.__setattr__(
-            self, "required", _strict_bool(self.required, field="required")
-        )
         if self.bar_open_ts >= self.bar_close_ts:
             raise CanonicalizationError("bar_open_ts must precede bar_close_ts")
         if not self.bar_open_ts <= self.source_event_ts <= self.bar_close_ts:
@@ -251,6 +345,10 @@ class InformationDependencyV3:
         ):
             raise CanonicalizationError(
                 "source_event_ts must not exceed source_publish_ts"
+            )
+        if self.source_event_ts > self.ingested_first_seen_ts:
+            raise CanonicalizationError(
+                "source_event_ts must not exceed ingested_first_seen_ts"
             )
         if (
             self.source_publish_ts is not None
@@ -276,15 +374,17 @@ class InformationDependencyV3:
         return {
             "bar_open_ts": utc_iso(self.bar_open_ts),
             "bar_close_ts": utc_iso(self.bar_close_ts),
+            "dependency_slot_id": self.dependency_slot_id,
             "feature_available_ts": utc_iso(self.feature_available_ts),
             "ingested_first_seen_ts": utc_iso(self.ingested_first_seen_ts),
             "name": self.name,
             "observation_revision_id": self.observation_revision_id,
-            "required": self.required,
             "revision_received_ts": utc_iso(self.revision_received_ts),
             "source_event_ts": utc_iso(self.source_event_ts),
+            "source_field_ids": list(self.source_field_ids),
             "source_id": self.source_id,
             "source_manifest_id": self.source_manifest_id,
+            "source_member_id": self.source_member_id,
             "source_publish_ts": (
                 None
                 if self.source_publish_ts is None
@@ -311,17 +411,19 @@ class InformationDependencyV3:
             "bar_open_ts",
             "bar_close_ts",
             "canonicalization_version",
+            "dependency_slot_id",
             "dependency_id",
             "feature_available_ts",
             "ingested_first_seen_ts",
             "name",
             "observation_revision_id",
-            "required",
             "revision_received_ts",
             "schema_version",
             "source_event_ts",
+            "source_field_ids",
             "source_id",
             "source_manifest_id",
+            "source_member_id",
             "source_publish_ts",
             "value_digest",
         }
@@ -330,9 +432,14 @@ class InformationDependencyV3:
         )
         _require_versions(payload)
         item = cls(
+            dependency_slot_id=payload["dependency_slot_id"],
+            source_member_id=payload["source_member_id"],
             name=payload["name"],
             source_id=payload["source_id"],
             source_manifest_id=payload["source_manifest_id"],
+            source_field_ids=_string_sequence(
+                payload["source_field_ids"], field="source_field_ids"
+            ),
             observation_revision_id=payload["observation_revision_id"],
             source_event_ts=payload["source_event_ts"],
             bar_open_ts=payload["bar_open_ts"],
@@ -342,7 +449,6 @@ class InformationDependencyV3:
             revision_received_ts=payload["revision_received_ts"],
             feature_available_ts=payload["feature_available_ts"],
             value_digest=payload["value_digest"],
-            required=payload["required"],
         )
         _require_digest(
             payload["dependency_id"], item.dependency_id, field="dependency_id"
@@ -351,8 +457,129 @@ class InformationDependencyV3:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class StateCheckpointDependencyV3:
+    """One exact online-state checkpoint selected before an information cutoff."""
+
+    dependency_slot_id: str
+    state_schema_id: str
+    state_cutoff_ts: datetime
+    state_available_ts: datetime
+    value_digest: str
+    parent_state_checkpoint_id: str | None = None
+    state_checkpoint_id: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        for field_name in ("dependency_slot_id", "state_schema_id", "value_digest"):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_hash(getattr(self, field_name), field=field_name),
+            )
+        object.__setattr__(
+            self,
+            "parent_state_checkpoint_id",
+            _optional_hash(
+                self.parent_state_checkpoint_id, field="parent_state_checkpoint_id"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "state_cutoff_ts",
+            utc_datetime(self.state_cutoff_ts, field="state_cutoff_ts"),
+        )
+        object.__setattr__(
+            self,
+            "state_available_ts",
+            utc_datetime(self.state_available_ts, field="state_available_ts"),
+        )
+        if self.state_cutoff_ts > self.state_available_ts:
+            raise CanonicalizationError(
+                "state_cutoff_ts must not exceed state_available_ts"
+            )
+        object.__setattr__(
+            self,
+            "state_checkpoint_id",
+            _identity("StateCheckpointV3", self.checkpoint_content_payload()),
+        )
+        if self.parent_state_checkpoint_id == self.state_checkpoint_id:
+            raise CanonicalizationError(
+                "parent_state_checkpoint_id must differ from state_checkpoint_id"
+            )
+
+    def checkpoint_content_payload(self) -> dict[str, Any]:
+        return {
+            "parent_state_checkpoint_id": self.parent_state_checkpoint_id,
+            "state_available_ts": utc_iso(self.state_available_ts),
+            "state_cutoff_ts": utc_iso(self.state_cutoff_ts),
+            "state_schema_id": self.state_schema_id,
+            "value_digest": self.value_digest,
+        }
+
+    def identity_payload(self) -> dict[str, Any]:
+        return {
+            "dependency_slot_id": self.dependency_slot_id,
+            "parent_state_checkpoint_id": self.parent_state_checkpoint_id,
+            "state_available_ts": utc_iso(self.state_available_ts),
+            "state_checkpoint_id": self.state_checkpoint_id,
+            "state_cutoff_ts": utc_iso(self.state_cutoff_ts),
+            "state_schema_id": self.state_schema_id,
+            "value_digest": self.value_digest,
+        }
+
+    @property
+    def state_dependency_id(self) -> str:
+        return _identity("StateCheckpointDependencyV3", self.identity_payload())
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "canonicalization_version": CANONICALIZATION_VERSION,
+            **self.identity_payload(),
+            "schema_version": CONTRACT_SCHEMA_VERSION,
+            "state_dependency_id": self.state_dependency_id,
+        }
+
+    @classmethod
+    def from_mapping(cls, payload: Mapping[str, Any]) -> StateCheckpointDependencyV3:
+        expected = {
+            "canonicalization_version",
+            "dependency_slot_id",
+            "parent_state_checkpoint_id",
+            "schema_version",
+            "state_available_ts",
+            "state_checkpoint_id",
+            "state_cutoff_ts",
+            "state_dependency_id",
+            "state_schema_id",
+            "value_digest",
+        }
+        require_exact_keys(
+            payload, expected=expected, context="StateCheckpointDependencyV3"
+        )
+        _require_versions(payload)
+        item = cls(
+            dependency_slot_id=payload["dependency_slot_id"],
+            state_schema_id=payload["state_schema_id"],
+            state_cutoff_ts=payload["state_cutoff_ts"],
+            state_available_ts=payload["state_available_ts"],
+            value_digest=payload["value_digest"],
+            parent_state_checkpoint_id=payload["parent_state_checkpoint_id"],
+        )
+        _require_digest(
+            payload["state_checkpoint_id"],
+            item.state_checkpoint_id,
+            field="state_checkpoint_id",
+        )
+        _require_digest(
+            payload["state_dependency_id"],
+            item.state_dependency_id,
+            field="state_dependency_id",
+        )
+        return item
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class InformationSetV3:
-    """All observations and causal feature evidence available at one cutoff."""
+    """Candidate-neutral source and state evidence available at one cutoff."""
 
     asset_id: str
     venue_id: str
@@ -364,13 +591,12 @@ class InformationSetV3:
     protocol_manifest_id: str
     calendar_manifest_id: str
     feature_schema_id: str
-    feature_materialization_hash: str
     dependencies: tuple[InformationDependencyV3, ...]
+    state_dependencies: tuple[StateCheckpointDependencyV3, ...]
     vintage_class: VintageClass
     point_in_time_certified: bool
     certification_blockers: tuple[str, ...]
     data_quality_flags: tuple[str, ...] = ()
-    state_checkpoint_ids: tuple[str, ...] = ()
     universe_snapshot_id: str | None = None
 
     def __post_init__(self) -> None:
@@ -385,7 +611,6 @@ class InformationSetV3:
             "protocol_manifest_id",
             "calendar_manifest_id",
             "feature_schema_id",
-            "feature_materialization_hash",
         ):
             object.__setattr__(
                 self,
@@ -411,21 +636,19 @@ class InformationSetV3:
             )
 
         dependencies = tuple(self.dependencies)
-        if not dependencies or not all(
-            isinstance(item, InformationDependencyV3) for item in dependencies
-        ):
+        if not all(isinstance(item, InformationDependencyV3) for item in dependencies):
             raise CanonicalizationError(
                 "dependencies must contain InformationDependencyV3 records"
             )
         if len({item.dependency_id for item in dependencies}) != len(dependencies):
             raise CanonicalizationError("dependencies contain duplicate identities")
-        dependencies = tuple(sorted(dependencies, key=lambda item: item.dependency_id))
         if any(
             item.source_manifest_id != self.source_manifest_id for item in dependencies
         ):
             raise CanonicalizationError(
-                "every dependency must reference the information-set source manifest"
+                "every dependency source_manifest_id must match the information set"
             )
+        dependencies = tuple(sorted(dependencies, key=lambda item: item.dependency_id))
         if any(
             item.feature_available_ts > self.observation_cutoff_ts
             for item in dependencies
@@ -434,6 +657,38 @@ class InformationSetV3:
                 "a dependency became available after observation_cutoff_ts"
             )
         object.__setattr__(self, "dependencies", dependencies)
+
+        state_dependencies = tuple(self.state_dependencies)
+        if not all(
+            isinstance(item, StateCheckpointDependencyV3) for item in state_dependencies
+        ):
+            raise CanonicalizationError(
+                "state_dependencies must contain StateCheckpointDependencyV3 records"
+            )
+        if len({item.state_dependency_id for item in state_dependencies}) != len(
+            state_dependencies
+        ):
+            raise CanonicalizationError(
+                "state_dependencies contain duplicate identities"
+            )
+        state_dependencies = tuple(
+            sorted(state_dependencies, key=lambda item: item.state_dependency_id)
+        )
+        if any(
+            item.state_cutoff_ts > self.observation_cutoff_ts
+            for item in state_dependencies
+        ):
+            raise CanonicalizationError(
+                "a state checkpoint cutoff exceeds observation_cutoff_ts"
+            )
+        if any(
+            item.state_available_ts > self.observation_cutoff_ts
+            for item in state_dependencies
+        ):
+            raise CanonicalizationError(
+                "a state checkpoint became available after observation_cutoff_ts"
+            )
+        object.__setattr__(self, "state_dependencies", state_dependencies)
 
         vintage = _enum(self.vintage_class, VintageClass, field="vintage_class")
         object.__setattr__(self, "vintage_class", vintage)
@@ -447,19 +702,8 @@ class InformationSetV3:
         quality = canonical_reason_codes(
             self.data_quality_flags, field="data_quality_flags"
         )
-        checkpoints = tuple(
-            sorted(
-                {
-                    canonical_hash(value, field="state_checkpoint_ids")
-                    for value in self.state_checkpoint_ids
-                }
-            )
-        )
-        if len(checkpoints) != len(tuple(self.state_checkpoint_ids)):
-            raise CanonicalizationError("state_checkpoint_ids contain duplicates")
         object.__setattr__(self, "certification_blockers", blockers)
         object.__setattr__(self, "data_quality_flags", quality)
-        object.__setattr__(self, "state_checkpoint_ids", checkpoints)
         _validate_certification(vintage, certified, blockers)
 
     def identity_payload(self) -> dict[str, Any]:
@@ -475,7 +719,9 @@ class InformationSetV3:
             "observation_cutoff_ts": utc_iso(self.observation_cutoff_ts),
             "protocol_manifest_id": self.protocol_manifest_id,
             "source_manifest_id": self.source_manifest_id,
-            "state_checkpoint_ids": list(self.state_checkpoint_ids),
+            "state_dependencies": [
+                item.state_dependency_id for item in self.state_dependencies
+            ],
             "timeframe_id": self.timeframe_id,
             "universe_snapshot_id": self.universe_snapshot_id,
             "venue_id": self.venue_id,
@@ -492,9 +738,9 @@ class InformationSetV3:
             "assembled_at": utc_iso(self.assembled_at),
             "certification_blockers": list(self.certification_blockers),
             "dependencies": [item.as_dict() for item in self.dependencies],
-            "feature_materialization_hash": self.feature_materialization_hash,
             "information_set_id": self.information_set_id,
             "point_in_time_certified": self.point_in_time_certified,
+            "state_dependencies": [item.as_dict() for item in self.state_dependencies],
         }
 
     @property
@@ -520,7 +766,6 @@ class InformationSetV3:
             "contract_id",
             "data_quality_flags",
             "dependencies",
-            "feature_materialization_hash",
             "feature_schema_id",
             "information_set_id",
             "observation_cutoff_ts",
@@ -529,7 +774,7 @@ class InformationSetV3:
             "record_hash",
             "schema_version",
             "source_manifest_id",
-            "state_checkpoint_ids",
+            "state_dependencies",
             "timeframe_id",
             "universe_snapshot_id",
             "venue_id",
@@ -540,6 +785,9 @@ class InformationSetV3:
         raw_dependencies = payload["dependencies"]
         if not isinstance(raw_dependencies, list):
             raise CanonicalizationError("dependencies must be a JSON array")
+        raw_state_dependencies = payload["state_dependencies"]
+        if not isinstance(raw_state_dependencies, list):
+            raise CanonicalizationError("state_dependencies must be a JSON array")
         item = cls(
             asset_id=payload["asset_id"],
             venue_id=payload["venue_id"],
@@ -551,10 +799,13 @@ class InformationSetV3:
             protocol_manifest_id=payload["protocol_manifest_id"],
             calendar_manifest_id=payload["calendar_manifest_id"],
             feature_schema_id=payload["feature_schema_id"],
-            feature_materialization_hash=payload["feature_materialization_hash"],
             dependencies=tuple(
                 InformationDependencyV3.from_mapping(value)
                 for value in raw_dependencies
+            ),
+            state_dependencies=tuple(
+                StateCheckpointDependencyV3.from_mapping(value)
+                for value in raw_state_dependencies
             ),
             vintage_class=payload["vintage_class"],
             point_in_time_certified=payload["point_in_time_certified"],
@@ -563,9 +814,6 @@ class InformationSetV3:
             ),
             data_quality_flags=_string_sequence(
                 payload["data_quality_flags"], field="data_quality_flags"
-            ),
-            state_checkpoint_ids=_string_sequence(
-                payload["state_checkpoint_ids"], field="state_checkpoint_ids"
             ),
             universe_snapshot_id=payload["universe_snapshot_id"],
         )
@@ -579,14 +827,694 @@ class InformationSetV3:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class PrimarySignalCandidateV3:
+    """One economically complete primary-signal candidate, sealed before scoring."""
+
+    information_set_id: str
+    information_set_record_hash: str
+    asset_id: str
+    venue_id: str
+    contract_id: str
+    timeframe_id: str
+    primary_signal_id: str
+    primary_signal_version: str
+    primary_signal_policy_id: str
+    signal_ts: datetime
+    side: TradeSide
+    candidate_available_ts: datetime
+    entry_reference: str
+    earliest_order_submission_ts: datetime
+    earliest_entry_ts: datetime
+    entry_expiry_ts: datetime
+    action_protocol_id: str
+    action_resolution_id: str
+    action_resolution_record_hash: str
+    executable_contract_id: str
+    label_protocol_id: str
+    entry_scenario: EntryScenario
+    barrier_policy_id: str
+    cost_scenario_id: str
+    risk_unit: str
+    stop_r_multiple: str
+    target_r_multiple: str
+    max_holding_seconds: int
+    estimated_roundtrip_cost_bps: str
+    vintage_class: VintageClass
+    point_in_time_certified: bool
+    certification_blockers: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "information_set_id",
+            "information_set_record_hash",
+            "primary_signal_policy_id",
+            "action_protocol_id",
+            "action_resolution_id",
+            "action_resolution_record_hash",
+            "label_protocol_id",
+            "barrier_policy_id",
+            "cost_scenario_id",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_hash(getattr(self, field_name), field=field_name),
+            )
+        for field_name in (
+            "asset_id",
+            "venue_id",
+            "contract_id",
+            "executable_contract_id",
+            "timeframe_id",
+            "primary_signal_id",
+            "primary_signal_version",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_identifier(getattr(self, field_name), field=field_name),
+            )
+        object.__setattr__(self, "side", _enum(self.side, TradeSide, field="side"))
+        for field_name in (
+            "signal_ts",
+            "candidate_available_ts",
+            "earliest_order_submission_ts",
+            "earliest_entry_ts",
+            "entry_expiry_ts",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                utc_datetime(getattr(self, field_name), field=field_name),
+            )
+        if self.signal_ts > self.candidate_available_ts:
+            raise CanonicalizationError(
+                "signal_ts must not exceed candidate_available_ts"
+            )
+        if self.candidate_available_ts > self.earliest_order_submission_ts:
+            raise CanonicalizationError(
+                "candidate_available_ts must not exceed earliest_order_submission_ts"
+            )
+        if self.earliest_order_submission_ts >= self.earliest_entry_ts:
+            raise CanonicalizationError(
+                "earliest_order_submission_ts must precede earliest_entry_ts"
+            )
+        if self.earliest_entry_ts > self.entry_expiry_ts:
+            raise CanonicalizationError(
+                "earliest_entry_ts must not exceed entry_expiry_ts"
+            )
+        object.__setattr__(
+            self,
+            "entry_reference",
+            canonical_decimal(
+                self.entry_reference, field="entry_reference", strictly_positive=True
+            ),
+        )
+        object.__setattr__(
+            self,
+            "entry_scenario",
+            _enum(self.entry_scenario, EntryScenario, field="entry_scenario"),
+        )
+        object.__setattr__(
+            self,
+            "risk_unit",
+            canonical_decimal(
+                self.risk_unit, field="risk_unit", strictly_positive=True
+            ),
+        )
+        for field_name in ("stop_r_multiple", "target_r_multiple"):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_decimal(
+                    getattr(self, field_name),
+                    field=field_name,
+                    strictly_positive=True,
+                ),
+            )
+        object.__setattr__(
+            self,
+            "max_holding_seconds",
+            canonical_safe_int(
+                self.max_holding_seconds,
+                field="max_holding_seconds",
+                minimum=1,
+                maximum=MAX_HOLDING_SECONDS,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "estimated_roundtrip_cost_bps",
+            canonical_decimal(
+                self.estimated_roundtrip_cost_bps,
+                field="estimated_roundtrip_cost_bps",
+                minimum=0,
+            ),
+        )
+        vintage = _enum(self.vintage_class, VintageClass, field="vintage_class")
+        certified = _strict_bool(
+            self.point_in_time_certified, field="point_in_time_certified"
+        )
+        blockers = canonical_reason_codes(
+            self.certification_blockers, field="certification_blockers"
+        )
+        _validate_certification(vintage, certified, blockers)
+        object.__setattr__(self, "vintage_class", vintage)
+        object.__setattr__(self, "point_in_time_certified", certified)
+        object.__setattr__(self, "certification_blockers", blockers)
+
+    def candidate_key_payload(self) -> dict[str, Any]:
+        return {
+            "information_set_id": self.information_set_id,
+            "information_set_record_hash": self.information_set_record_hash,
+            "primary_signal_id": self.primary_signal_id,
+            "primary_signal_policy_id": self.primary_signal_policy_id,
+            "primary_signal_version": self.primary_signal_version,
+            "side": _enum_value(self.side),
+            "signal_ts": utc_iso(self.signal_ts),
+        }
+
+    @property
+    def primary_signal_candidate_key(self) -> str:
+        return _identity("PrimarySignalCandidateKeyV3", self.candidate_key_payload())
+
+    def identity_payload(self) -> dict[str, Any]:
+        return {
+            **self.candidate_key_payload(),
+            "action_protocol_id": self.action_protocol_id,
+            "action_resolution_id": self.action_resolution_id,
+            "action_resolution_record_hash": self.action_resolution_record_hash,
+            "asset_id": self.asset_id,
+            "barrier_policy_id": self.barrier_policy_id,
+            "contract_id": self.contract_id,
+            "cost_scenario_id": self.cost_scenario_id,
+            "earliest_entry_ts": utc_iso(self.earliest_entry_ts),
+            "earliest_order_submission_ts": utc_iso(self.earliest_order_submission_ts),
+            "entry_expiry_ts": utc_iso(self.entry_expiry_ts),
+            "entry_reference": self.entry_reference,
+            "entry_scenario": _enum_value(self.entry_scenario),
+            "executable_contract_id": self.executable_contract_id,
+            "label_protocol_id": self.label_protocol_id,
+            "max_holding_seconds": self.max_holding_seconds,
+            "risk_unit": self.risk_unit,
+            "stop_r_multiple": self.stop_r_multiple,
+            "target_r_multiple": self.target_r_multiple,
+            "estimated_roundtrip_cost_bps": self.estimated_roundtrip_cost_bps,
+            "timeframe_id": self.timeframe_id,
+            "venue_id": self.venue_id,
+        }
+
+    @property
+    def primary_signal_candidate_id(self) -> str:
+        return _identity("PrimarySignalCandidateV3", self.identity_payload())
+
+    def record_payload(self) -> dict[str, Any]:
+        return {
+            **self.identity_payload(),
+            "candidate_available_ts": utc_iso(self.candidate_available_ts),
+            "certification_blockers": list(self.certification_blockers),
+            "point_in_time_certified": self.point_in_time_certified,
+            "primary_signal_candidate_id": self.primary_signal_candidate_id,
+            "primary_signal_candidate_key": self.primary_signal_candidate_key,
+            "vintage_class": _enum_value(self.vintage_class),
+        }
+
+    @property
+    def record_hash(self) -> str:
+        return _record_hash("PrimarySignalCandidateV3", self.record_payload())
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        information_set: InformationSetV3,
+        primary_signal_id: str,
+        primary_signal_version: str,
+        primary_signal_policy_id: str,
+        signal_ts: datetime | str,
+        side: TradeSide | str,
+        candidate_available_ts: datetime | str,
+        entry_reference: Decimal | int | float | str,
+        earliest_order_submission_ts: datetime | str,
+        earliest_entry_ts: datetime | str,
+        entry_expiry_ts: datetime | str,
+        action_protocol_id: str,
+        action_resolution_id: str,
+        action_resolution_record_hash: str,
+        executable_contract_id: str,
+        label_protocol_id: str,
+        entry_scenario: EntryScenario | str,
+        barrier_policy_id: str,
+        cost_scenario_id: str,
+        risk_unit: Decimal | int | float | str,
+        stop_r_multiple: Decimal | int | float | str,
+        target_r_multiple: Decimal | int | float | str,
+        max_holding_seconds: int,
+        estimated_roundtrip_cost_bps: Decimal | int | float | str,
+    ) -> PrimarySignalCandidateV3:
+        item = cls(
+            information_set_id=information_set.information_set_id,
+            information_set_record_hash=information_set.record_hash,
+            asset_id=information_set.asset_id,
+            venue_id=information_set.venue_id,
+            contract_id=information_set.contract_id,
+            timeframe_id=information_set.timeframe_id,
+            primary_signal_id=primary_signal_id,
+            primary_signal_version=primary_signal_version,
+            primary_signal_policy_id=primary_signal_policy_id,
+            signal_ts=signal_ts,
+            side=side,
+            candidate_available_ts=candidate_available_ts,
+            entry_reference=entry_reference,
+            earliest_order_submission_ts=earliest_order_submission_ts,
+            earliest_entry_ts=earliest_entry_ts,
+            entry_expiry_ts=entry_expiry_ts,
+            action_protocol_id=action_protocol_id,
+            action_resolution_id=action_resolution_id,
+            action_resolution_record_hash=action_resolution_record_hash,
+            executable_contract_id=executable_contract_id,
+            label_protocol_id=label_protocol_id,
+            entry_scenario=entry_scenario,
+            barrier_policy_id=barrier_policy_id,
+            cost_scenario_id=cost_scenario_id,
+            risk_unit=risk_unit,
+            stop_r_multiple=stop_r_multiple,
+            target_r_multiple=target_r_multiple,
+            max_holding_seconds=max_holding_seconds,
+            estimated_roundtrip_cost_bps=estimated_roundtrip_cost_bps,
+            vintage_class=information_set.vintage_class,
+            point_in_time_certified=information_set.point_in_time_certified,
+            certification_blockers=information_set.certification_blockers,
+        )
+        item.validate_against(information_set)
+        return item
+
+    def validate_against(self, information_set: InformationSetV3) -> None:
+        expected = {
+            "information_set_id": information_set.information_set_id,
+            "information_set_record_hash": information_set.record_hash,
+            "asset_id": information_set.asset_id,
+            "venue_id": information_set.venue_id,
+            "contract_id": information_set.contract_id,
+            "timeframe_id": information_set.timeframe_id,
+            "vintage_class": information_set.vintage_class,
+            "point_in_time_certified": information_set.point_in_time_certified,
+            "certification_blockers": information_set.certification_blockers,
+        }
+        for field_name, expected_value in expected.items():
+            if getattr(self, field_name) != expected_value:
+                raise CanonicalizationError(
+                    f"candidate {field_name} differs from the information set"
+                )
+        if self.signal_ts > information_set.observation_cutoff_ts:
+            raise CanonicalizationError(
+                "candidate signal_ts exceeds the information-set cutoff"
+            )
+        if self.candidate_available_ts < information_set.assembled_at:
+            raise CanonicalizationError(
+                "candidate became available before the information set was assembled"
+            )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "canonicalization_version": CANONICALIZATION_VERSION,
+            **self.record_payload(),
+            "record_hash": self.record_hash,
+            "schema_version": CONTRACT_SCHEMA_VERSION,
+        }
+
+    @classmethod
+    def from_mapping(cls, payload: Mapping[str, Any]) -> PrimarySignalCandidateV3:
+        expected = {
+            "action_protocol_id",
+            "action_resolution_id",
+            "action_resolution_record_hash",
+            "asset_id",
+            "barrier_policy_id",
+            "candidate_available_ts",
+            "canonicalization_version",
+            "certification_blockers",
+            "contract_id",
+            "cost_scenario_id",
+            "earliest_entry_ts",
+            "earliest_order_submission_ts",
+            "entry_expiry_ts",
+            "entry_reference",
+            "entry_scenario",
+            "estimated_roundtrip_cost_bps",
+            "executable_contract_id",
+            "information_set_id",
+            "information_set_record_hash",
+            "label_protocol_id",
+            "max_holding_seconds",
+            "point_in_time_certified",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_key",
+            "primary_signal_id",
+            "primary_signal_policy_id",
+            "primary_signal_version",
+            "record_hash",
+            "risk_unit",
+            "schema_version",
+            "side",
+            "signal_ts",
+            "stop_r_multiple",
+            "target_r_multiple",
+            "timeframe_id",
+            "venue_id",
+            "vintage_class",
+        }
+        require_exact_keys(
+            payload, expected=expected, context="PrimarySignalCandidateV3"
+        )
+        _require_versions(payload)
+        item = cls(
+            information_set_id=payload["information_set_id"],
+            information_set_record_hash=payload["information_set_record_hash"],
+            asset_id=payload["asset_id"],
+            venue_id=payload["venue_id"],
+            contract_id=payload["contract_id"],
+            timeframe_id=payload["timeframe_id"],
+            primary_signal_id=payload["primary_signal_id"],
+            primary_signal_version=payload["primary_signal_version"],
+            primary_signal_policy_id=payload["primary_signal_policy_id"],
+            signal_ts=payload["signal_ts"],
+            side=payload["side"],
+            candidate_available_ts=payload["candidate_available_ts"],
+            entry_reference=payload["entry_reference"],
+            earliest_order_submission_ts=payload["earliest_order_submission_ts"],
+            earliest_entry_ts=payload["earliest_entry_ts"],
+            entry_expiry_ts=payload["entry_expiry_ts"],
+            action_protocol_id=payload["action_protocol_id"],
+            action_resolution_id=payload["action_resolution_id"],
+            action_resolution_record_hash=payload["action_resolution_record_hash"],
+            executable_contract_id=payload["executable_contract_id"],
+            label_protocol_id=payload["label_protocol_id"],
+            entry_scenario=payload["entry_scenario"],
+            barrier_policy_id=payload["barrier_policy_id"],
+            cost_scenario_id=payload["cost_scenario_id"],
+            risk_unit=payload["risk_unit"],
+            stop_r_multiple=payload["stop_r_multiple"],
+            target_r_multiple=payload["target_r_multiple"],
+            max_holding_seconds=payload["max_holding_seconds"],
+            estimated_roundtrip_cost_bps=payload["estimated_roundtrip_cost_bps"],
+            vintage_class=payload["vintage_class"],
+            point_in_time_certified=payload["point_in_time_certified"],
+            certification_blockers=_string_sequence(
+                payload["certification_blockers"], field="certification_blockers"
+            ),
+        )
+        _require_digest(
+            payload["primary_signal_candidate_key"],
+            item.primary_signal_candidate_key,
+            field="primary_signal_candidate_key",
+        )
+        _require_digest(
+            payload["primary_signal_candidate_id"],
+            item.primary_signal_candidate_id,
+            field="primary_signal_candidate_id",
+        )
+        _require_digest(payload["record_hash"], item.record_hash, field="record_hash")
+        return item
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class CandidateFeatureMaterializationV3:
+    """Exact, ordered candidate feature vector and its causal availability clock."""
+
+    information_set_id: str
+    information_set_record_hash: str
+    primary_signal_candidate_id: str
+    primary_signal_candidate_record_hash: str
+    feature_schema_id: str
+    feature_vector_encoding: str
+    feature_values: tuple[str | None, ...]
+    feature_count: int
+    missing_count: int
+    feature_vector_digest: str
+    feature_available_ts: datetime
+    vintage_class: VintageClass
+    point_in_time_certified: bool
+    certification_blockers: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        for field_name in (
+            "information_set_id",
+            "information_set_record_hash",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
+            "feature_schema_id",
+            "feature_vector_digest",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                canonical_hash(getattr(self, field_name), field=field_name),
+            )
+        encoding = canonical_identifier(
+            self.feature_vector_encoding, field="feature_vector_encoding"
+        )
+        if encoding != FEATURE_VECTOR_ENCODING:
+            raise CanonicalizationError("unsupported feature_vector_encoding")
+        object.__setattr__(self, "feature_vector_encoding", encoding)
+        if isinstance(self.feature_values, (str, bytes)):
+            raise CanonicalizationError("feature_values must be an ordered sequence")
+        values = tuple(self.feature_values)
+        for value in values:
+            decode_float64_be_hex_null_v1(value)
+        object.__setattr__(self, "feature_values", values)
+        count = canonical_safe_int(self.feature_count, field="feature_count", minimum=1)
+        missing = canonical_safe_int(
+            self.missing_count, field="missing_count", minimum=0
+        )
+        if count != len(values):
+            raise CanonicalizationError("feature_count must equal len(feature_values)")
+        if missing != sum(value is None for value in values):
+            raise CanonicalizationError("missing_count does not match feature_values")
+        object.__setattr__(self, "feature_count", count)
+        object.__setattr__(self, "missing_count", missing)
+        expected_digest = float64_feature_vector_digest_v1(
+            feature_schema_id=self.feature_schema_id,
+            feature_values=values,
+            feature_vector_encoding=encoding,
+        )
+        if self.feature_vector_digest != expected_digest:
+            raise CanonicalizationError(
+                "feature_vector_digest does not match feature_values"
+            )
+        object.__setattr__(
+            self,
+            "feature_available_ts",
+            utc_datetime(self.feature_available_ts, field="feature_available_ts"),
+        )
+        vintage = _enum(self.vintage_class, VintageClass, field="vintage_class")
+        certified = _strict_bool(
+            self.point_in_time_certified, field="point_in_time_certified"
+        )
+        blockers = canonical_reason_codes(
+            self.certification_blockers, field="certification_blockers"
+        )
+        _validate_certification(vintage, certified, blockers)
+        object.__setattr__(self, "vintage_class", vintage)
+        object.__setattr__(self, "point_in_time_certified", certified)
+        object.__setattr__(self, "certification_blockers", blockers)
+
+    def materialization_key_payload(self) -> dict[str, Any]:
+        return {
+            "feature_schema_id": self.feature_schema_id,
+            "feature_vector_encoding": self.feature_vector_encoding,
+            "information_set_id": self.information_set_id,
+            "information_set_record_hash": self.information_set_record_hash,
+            "primary_signal_candidate_id": self.primary_signal_candidate_id,
+            "primary_signal_candidate_record_hash": self.primary_signal_candidate_record_hash,
+        }
+
+    @property
+    def candidate_feature_materialization_key(self) -> str:
+        return _identity(
+            "CandidateFeatureMaterializationKeyV3", self.materialization_key_payload()
+        )
+
+    def identity_payload(self) -> dict[str, Any]:
+        return {
+            **self.materialization_key_payload(),
+            "feature_count": self.feature_count,
+            "feature_vector_digest": self.feature_vector_digest,
+            "missing_count": self.missing_count,
+        }
+
+    @property
+    def candidate_feature_materialization_id(self) -> str:
+        return _identity("CandidateFeatureMaterializationV3", self.identity_payload())
+
+    def record_payload(self) -> dict[str, Any]:
+        return {
+            **self.identity_payload(),
+            "candidate_feature_materialization_id": self.candidate_feature_materialization_id,
+            "candidate_feature_materialization_key": self.candidate_feature_materialization_key,
+            "certification_blockers": list(self.certification_blockers),
+            "feature_available_ts": utc_iso(self.feature_available_ts),
+            "feature_values": list(self.feature_values),
+            "point_in_time_certified": self.point_in_time_certified,
+            "vintage_class": _enum_value(self.vintage_class),
+        }
+
+    @property
+    def record_hash(self) -> str:
+        return _record_hash("CandidateFeatureMaterializationV3", self.record_payload())
+
+    @classmethod
+    def create(
+        cls,
+        *,
+        information_set: InformationSetV3,
+        candidate: PrimarySignalCandidateV3,
+        feature_values: Sequence[str | None],
+        feature_available_ts: datetime | str,
+    ) -> CandidateFeatureMaterializationV3:
+        candidate.validate_against(information_set)
+        if isinstance(feature_values, (str, bytes)):
+            raise CanonicalizationError("feature_values must be an ordered sequence")
+        values = tuple(feature_values)
+        item = cls(
+            information_set_id=information_set.information_set_id,
+            information_set_record_hash=information_set.record_hash,
+            primary_signal_candidate_id=candidate.primary_signal_candidate_id,
+            primary_signal_candidate_record_hash=candidate.record_hash,
+            feature_schema_id=information_set.feature_schema_id,
+            feature_vector_encoding=FEATURE_VECTOR_ENCODING,
+            feature_values=values,
+            feature_count=len(values),
+            missing_count=sum(value is None for value in values),
+            feature_vector_digest=float64_feature_vector_digest_v1(
+                feature_schema_id=information_set.feature_schema_id,
+                feature_values=values,
+            ),
+            feature_available_ts=feature_available_ts,
+            vintage_class=information_set.vintage_class,
+            point_in_time_certified=information_set.point_in_time_certified,
+            certification_blockers=information_set.certification_blockers,
+        )
+        item.validate_against(information_set, candidate)
+        return item
+
+    def validate_against(
+        self, information_set: InformationSetV3, candidate: PrimarySignalCandidateV3
+    ) -> None:
+        candidate.validate_against(information_set)
+        expected = {
+            "information_set_id": information_set.information_set_id,
+            "information_set_record_hash": information_set.record_hash,
+            "primary_signal_candidate_id": candidate.primary_signal_candidate_id,
+            "primary_signal_candidate_record_hash": candidate.record_hash,
+            "feature_schema_id": information_set.feature_schema_id,
+            "vintage_class": information_set.vintage_class,
+            "point_in_time_certified": information_set.point_in_time_certified,
+            "certification_blockers": information_set.certification_blockers,
+        }
+        for field_name, expected_value in expected.items():
+            if getattr(self, field_name) != expected_value:
+                raise CanonicalizationError(
+                    f"materialization {field_name} differs from linked records"
+                )
+        if self.feature_available_ts < candidate.candidate_available_ts:
+            raise CanonicalizationError(
+                "features became available before the candidate"
+            )
+        if self.feature_available_ts > candidate.earliest_order_submission_ts:
+            raise CanonicalizationError(
+                "features became available after earliest order submission"
+            )
+
+    def as_dict(self) -> dict[str, Any]:
+        return {
+            "canonicalization_version": CANONICALIZATION_VERSION,
+            **self.record_payload(),
+            "record_hash": self.record_hash,
+            "schema_version": CONTRACT_SCHEMA_VERSION,
+        }
+
+    @classmethod
+    def from_mapping(
+        cls, payload: Mapping[str, Any]
+    ) -> CandidateFeatureMaterializationV3:
+        expected = {
+            "candidate_feature_materialization_id",
+            "candidate_feature_materialization_key",
+            "canonicalization_version",
+            "certification_blockers",
+            "feature_available_ts",
+            "feature_count",
+            "feature_schema_id",
+            "feature_values",
+            "feature_vector_digest",
+            "feature_vector_encoding",
+            "information_set_id",
+            "information_set_record_hash",
+            "missing_count",
+            "point_in_time_certified",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
+            "record_hash",
+            "schema_version",
+            "vintage_class",
+        }
+        require_exact_keys(
+            payload, expected=expected, context="CandidateFeatureMaterializationV3"
+        )
+        _require_versions(payload)
+        raw_values = payload["feature_values"]
+        if not isinstance(raw_values, list) or not all(
+            value is None or isinstance(value, str) for value in raw_values
+        ):
+            raise CanonicalizationError(
+                "feature_values must be a JSON array of strings or null"
+            )
+        item = cls(
+            information_set_id=payload["information_set_id"],
+            information_set_record_hash=payload["information_set_record_hash"],
+            primary_signal_candidate_id=payload["primary_signal_candidate_id"],
+            primary_signal_candidate_record_hash=payload[
+                "primary_signal_candidate_record_hash"
+            ],
+            feature_schema_id=payload["feature_schema_id"],
+            feature_vector_encoding=payload["feature_vector_encoding"],
+            feature_values=tuple(raw_values),
+            feature_count=payload["feature_count"],
+            missing_count=payload["missing_count"],
+            feature_vector_digest=payload["feature_vector_digest"],
+            feature_available_ts=payload["feature_available_ts"],
+            vintage_class=payload["vintage_class"],
+            point_in_time_certified=payload["point_in_time_certified"],
+            certification_blockers=_string_sequence(
+                payload["certification_blockers"], field="certification_blockers"
+            ),
+        )
+        _require_digest(
+            payload["candidate_feature_materialization_key"],
+            item.candidate_feature_materialization_key,
+            field="candidate_feature_materialization_key",
+        )
+        _require_digest(
+            payload["candidate_feature_materialization_id"],
+            item.candidate_feature_materialization_id,
+            field="candidate_feature_materialization_id",
+        )
+        _require_digest(payload["record_hash"], item.record_hash, field="record_hash")
+        return item
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class EligibilityDecisionV3:
     """Deterministic primary-signal cohort decision, not a portfolio decision."""
 
     information_set_id: str
     information_set_record_hash: str
-    primary_candidate_id: str
+    primary_signal_candidate_id: str
+    primary_signal_candidate_record_hash: str
+    candidate_feature_materialization_id: str
+    candidate_feature_materialization_record_hash: str
     eligibility_policy_id: str
-    input_state_hash: str
     observation_cutoff_ts: datetime
     evaluated_at: datetime
     verdict: EligibilityVerdict
@@ -598,19 +1526,17 @@ class EligibilityDecisionV3:
         for field_name in (
             "information_set_id",
             "information_set_record_hash",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
+            "candidate_feature_materialization_id",
+            "candidate_feature_materialization_record_hash",
             "eligibility_policy_id",
-            "input_state_hash",
         ):
             object.__setattr__(
                 self,
                 field_name,
                 canonical_hash(getattr(self, field_name), field=field_name),
             )
-        object.__setattr__(
-            self,
-            "primary_candidate_id",
-            canonical_hash(self.primary_candidate_id, field="primary_candidate_id"),
-        )
         object.__setattr__(
             self,
             "observation_cutoff_ts",
@@ -646,10 +1572,13 @@ class EligibilityDecisionV3:
 
     def eligibility_key_payload(self) -> dict[str, Any]:
         return {
+            "candidate_feature_materialization_id": self.candidate_feature_materialization_id,
+            "candidate_feature_materialization_record_hash": self.candidate_feature_materialization_record_hash,
             "eligibility_policy_id": self.eligibility_policy_id,
             "information_set_id": self.information_set_id,
             "information_set_record_hash": self.information_set_record_hash,
-            "primary_candidate_id": self.primary_candidate_id,
+            "primary_signal_candidate_id": self.primary_signal_candidate_id,
+            "primary_signal_candidate_record_hash": self.primary_signal_candidate_record_hash,
         }
 
     @property
@@ -659,7 +1588,6 @@ class EligibilityDecisionV3:
     def identity_payload(self) -> dict[str, Any]:
         return {
             **self.eligibility_key_payload(),
-            "input_state_hash": self.input_state_hash,
             "reason_codes": list(self.reason_codes),
             "verdict": _enum_value(self.verdict),
         }
@@ -688,21 +1616,25 @@ class EligibilityDecisionV3:
         cls,
         *,
         information_set: InformationSetV3,
-        primary_candidate_id: str,
+        candidate: PrimarySignalCandidateV3,
+        materialization: CandidateFeatureMaterializationV3,
         eligibility_policy_id: str,
-        input_state_hash: str,
         evaluated_at: datetime | str,
         verdict: EligibilityVerdict | str,
         reason_codes: Sequence[str],
     ) -> EligibilityDecisionV3:
         """Create eligibility with clocks and attestations inherited from its input."""
 
+        candidate.validate_against(information_set)
+        materialization.validate_against(information_set, candidate)
         item = cls(
             information_set_id=information_set.information_set_id,
             information_set_record_hash=information_set.record_hash,
-            primary_candidate_id=primary_candidate_id,
+            primary_signal_candidate_id=candidate.primary_signal_candidate_id,
+            primary_signal_candidate_record_hash=candidate.record_hash,
+            candidate_feature_materialization_id=materialization.candidate_feature_materialization_id,
+            candidate_feature_materialization_record_hash=materialization.record_hash,
             eligibility_policy_id=eligibility_policy_id,
-            input_state_hash=input_state_hash,
             observation_cutoff_ts=information_set.observation_cutoff_ts,
             evaluated_at=evaluated_at,
             verdict=verdict,
@@ -710,10 +1642,15 @@ class EligibilityDecisionV3:
             vintage_class=information_set.vintage_class,
             point_in_time_certified=information_set.point_in_time_certified,
         )
-        item.validate_against(information_set)
+        item.validate_against(information_set, candidate, materialization)
         return item
 
-    def validate_against(self, information_set: InformationSetV3) -> None:
+    def validate_against(
+        self,
+        information_set: InformationSetV3,
+        candidate: PrimarySignalCandidateV3,
+        materialization: CandidateFeatureMaterializationV3,
+    ) -> None:
         """Validate cross-record identity, causality, vintage, and certification."""
 
         if self.information_set_id != information_set.information_set_id:
@@ -724,17 +1661,41 @@ class EligibilityDecisionV3:
             raise CanonicalizationError(
                 "eligibility does not bind the supplied information-set record"
             )
-        if self.input_state_hash != information_set.feature_materialization_hash:
+        candidate.validate_against(information_set)
+        materialization.validate_against(information_set, candidate)
+        if self.primary_signal_candidate_id != candidate.primary_signal_candidate_id:
             raise CanonicalizationError(
-                "eligibility input_state_hash must equal feature materialization hash"
+                "eligibility does not reference the supplied candidate"
+            )
+        if self.primary_signal_candidate_record_hash != candidate.record_hash:
+            raise CanonicalizationError(
+                "eligibility does not bind the supplied candidate record"
+            )
+        if (
+            self.candidate_feature_materialization_id
+            != materialization.candidate_feature_materialization_id
+        ):
+            raise CanonicalizationError(
+                "eligibility does not reference the supplied materialization"
+            )
+        if (
+            self.candidate_feature_materialization_record_hash
+            != materialization.record_hash
+        ):
+            raise CanonicalizationError(
+                "eligibility does not bind the supplied materialization record"
             )
         if self.observation_cutoff_ts != information_set.observation_cutoff_ts:
             raise CanonicalizationError(
                 "eligibility cutoff differs from the information-set cutoff"
             )
-        if self.evaluated_at < information_set.assembled_at:
+        if self.evaluated_at < materialization.feature_available_ts:
             raise CanonicalizationError(
-                "eligibility was evaluated before the information set was assembled"
+                "eligibility was evaluated before candidate features were available"
+            )
+        if self.evaluated_at > candidate.earliest_order_submission_ts:
+            raise CanonicalizationError(
+                "eligibility was evaluated after earliest order submission"
             )
         if self.vintage_class is not information_set.vintage_class:
             raise CanonicalizationError(
@@ -761,12 +1722,14 @@ class EligibilityDecisionV3:
             "eligibility_key",
             "eligibility_policy_id",
             "evaluated_at",
+            "candidate_feature_materialization_id",
+            "candidate_feature_materialization_record_hash",
             "information_set_id",
             "information_set_record_hash",
-            "input_state_hash",
             "observation_cutoff_ts",
             "point_in_time_certified",
-            "primary_candidate_id",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
             "reason_codes",
             "record_hash",
             "schema_version",
@@ -778,9 +1741,17 @@ class EligibilityDecisionV3:
         item = cls(
             information_set_id=payload["information_set_id"],
             information_set_record_hash=payload["information_set_record_hash"],
-            primary_candidate_id=payload["primary_candidate_id"],
+            primary_signal_candidate_id=payload["primary_signal_candidate_id"],
+            primary_signal_candidate_record_hash=payload[
+                "primary_signal_candidate_record_hash"
+            ],
+            candidate_feature_materialization_id=payload[
+                "candidate_feature_materialization_id"
+            ],
+            candidate_feature_materialization_record_hash=payload[
+                "candidate_feature_materialization_record_hash"
+            ],
             eligibility_policy_id=payload["eligibility_policy_id"],
-            input_state_hash=payload["input_state_hash"],
             observation_cutoff_ts=payload["observation_cutoff_ts"],
             evaluated_at=payload["evaluated_at"],
             verdict=payload["verdict"],
@@ -808,6 +1779,10 @@ class DecisionEventV3:
 
     information_set_id: str
     information_set_record_hash: str
+    primary_signal_candidate_id: str
+    primary_signal_candidate_record_hash: str
+    candidate_feature_materialization_id: str
+    candidate_feature_materialization_record_hash: str
     eligibility_decision_id: str
     eligibility_record_hash: str
     asset_id: str
@@ -817,14 +1792,19 @@ class DecisionEventV3:
     primary_signal_id: str
     primary_signal_version: str
     primary_signal_policy_id: str
-    primary_signal_instance_id: str
+    signal_ts: datetime
     side: TradeSide
+    candidate_available_ts: datetime
     decision_ts: datetime
     eligibility_evaluated_at: datetime
     earliest_order_submission_ts: datetime
     earliest_entry_ts: datetime
     entry_expiry_ts: datetime
+    entry_reference: str
     action_protocol_id: str
+    action_resolution_id: str
+    action_resolution_record_hash: str
+    executable_contract_id: str
     label_protocol_id: str
     entry_scenario: EntryScenario
     barrier_policy_id: str
@@ -833,6 +1813,7 @@ class DecisionEventV3:
     stop_r_multiple: str
     target_r_multiple: str
     max_holding_seconds: int
+    estimated_roundtrip_cost_bps: str
     vintage_class: VintageClass
     point_in_time_certified: bool
     certification_blockers: tuple[str, ...]
@@ -842,10 +1823,16 @@ class DecisionEventV3:
         for field_name in (
             "information_set_id",
             "information_set_record_hash",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
+            "candidate_feature_materialization_id",
+            "candidate_feature_materialization_record_hash",
             "eligibility_decision_id",
             "eligibility_record_hash",
             "primary_signal_policy_id",
             "action_protocol_id",
+            "action_resolution_id",
+            "action_resolution_record_hash",
             "label_protocol_id",
             "barrier_policy_id",
             "cost_scenario_id",
@@ -859,6 +1846,7 @@ class DecisionEventV3:
             "asset_id",
             "venue_id",
             "contract_id",
+            "executable_contract_id",
             "timeframe_id",
             "primary_signal_id",
             "primary_signal_version",
@@ -868,16 +1856,10 @@ class DecisionEventV3:
                 field_name,
                 canonical_identifier(getattr(self, field_name), field=field_name),
             )
-        object.__setattr__(
-            self,
-            "primary_signal_instance_id",
-            canonical_hash(
-                self.primary_signal_instance_id,
-                field="primary_signal_instance_id",
-            ),
-        )
         object.__setattr__(self, "side", _enum(self.side, TradeSide, field="side"))
         for field_name in (
+            "signal_ts",
+            "candidate_available_ts",
             "decision_ts",
             "eligibility_evaluated_at",
             "earliest_order_submission_ts",
@@ -888,6 +1870,14 @@ class DecisionEventV3:
                 self,
                 field_name,
                 utc_datetime(getattr(self, field_name), field=field_name),
+            )
+        if self.signal_ts > self.candidate_available_ts:
+            raise CanonicalizationError(
+                "signal_ts must not exceed candidate_available_ts"
+            )
+        if self.candidate_available_ts > self.eligibility_evaluated_at:
+            raise CanonicalizationError(
+                "candidate_available_ts must not exceed eligibility_evaluated_at"
             )
         if self.eligibility_evaluated_at > self.decision_ts:
             raise CanonicalizationError(
@@ -905,6 +1895,13 @@ class DecisionEventV3:
             raise CanonicalizationError(
                 "earliest_entry_ts must not exceed entry_expiry_ts"
             )
+        object.__setattr__(
+            self,
+            "entry_reference",
+            canonical_decimal(
+                self.entry_reference, field="entry_reference", strictly_positive=True
+            ),
+        )
         object.__setattr__(
             self,
             "entry_scenario",
@@ -937,6 +1934,15 @@ class DecisionEventV3:
                 maximum=MAX_HOLDING_SECONDS,
             ),
         )
+        object.__setattr__(
+            self,
+            "estimated_roundtrip_cost_bps",
+            canonical_decimal(
+                self.estimated_roundtrip_cost_bps,
+                field="estimated_roundtrip_cost_bps",
+                minimum=0,
+            ),
+        )
         vintage = _enum(self.vintage_class, VintageClass, field="vintage_class")
         certified = _strict_bool(
             self.point_in_time_certified, field="point_in_time_certified"
@@ -962,33 +1968,55 @@ class DecisionEventV3:
     def identity_payload(self) -> dict[str, Any]:
         return {
             "action_protocol_id": self.action_protocol_id,
+            "action_resolution_id": self.action_resolution_id,
+            "action_resolution_record_hash": self.action_resolution_record_hash,
             "asset_id": self.asset_id,
             "barrier_policy_id": self.barrier_policy_id,
+            "candidate_available_ts": utc_iso(self.candidate_available_ts),
+            "candidate_feature_materialization_id": self.candidate_feature_materialization_id,
+            "candidate_feature_materialization_record_hash": self.candidate_feature_materialization_record_hash,
             "contract_id": self.contract_id,
             "cost_scenario_id": self.cost_scenario_id,
             "decision_ts": utc_iso(self.decision_ts),
             "earliest_entry_ts": utc_iso(self.earliest_entry_ts),
             "earliest_order_submission_ts": utc_iso(self.earliest_order_submission_ts),
             "entry_expiry_ts": utc_iso(self.entry_expiry_ts),
+            "entry_reference": self.entry_reference,
             "eligibility_decision_id": self.eligibility_decision_id,
             "eligibility_record_hash": self.eligibility_record_hash,
             "entry_scenario": _enum_value(self.entry_scenario),
+            "executable_contract_id": self.executable_contract_id,
             "information_set_id": self.information_set_id,
             "information_set_record_hash": self.information_set_record_hash,
             "label_protocol_id": self.label_protocol_id,
             "max_holding_seconds": self.max_holding_seconds,
             "primary_signal_id": self.primary_signal_id,
-            "primary_signal_instance_id": self.primary_signal_instance_id,
+            "primary_signal_candidate_id": self.primary_signal_candidate_id,
+            "primary_signal_candidate_record_hash": self.primary_signal_candidate_record_hash,
             "primary_signal_policy_id": self.primary_signal_policy_id,
             "primary_signal_version": self.primary_signal_version,
             "risk_unit": self.risk_unit,
             "side": _enum_value(self.side),
+            "signal_ts": utc_iso(self.signal_ts),
             "stop_r_multiple": self.stop_r_multiple,
             "target_r_multiple": self.target_r_multiple,
+            "estimated_roundtrip_cost_bps": self.estimated_roundtrip_cost_bps,
             "timeframe_id": self.timeframe_id,
             "venue_id": self.venue_id,
             "vintage_class": _enum_value(self.vintage_class),
         }
+
+    def decision_key_payload(self) -> dict[str, Any]:
+        """Stable one-decision key for one exact eligibility record."""
+
+        return {
+            "eligibility_decision_id": self.eligibility_decision_id,
+            "eligibility_record_hash": self.eligibility_record_hash,
+        }
+
+    @property
+    def decision_event_key(self) -> str:
+        return _identity("DecisionEventKeyV3", self.decision_key_payload())
 
     @property
     def decision_event_id(self) -> str:
@@ -999,6 +2027,7 @@ class DecisionEventV3:
             **self.identity_payload(),
             "certification_blockers": list(self.certification_blockers),
             "decision_event_id": self.decision_event_id,
+            "decision_event_key": self.decision_event_key,
             "eligibility_evaluated_at": utc_iso(self.eligibility_evaluated_at),
             "eligibility_verdict": _enum_value(self.eligibility_verdict),
             "point_in_time_certified": self.point_in_time_certified,
@@ -1021,37 +2050,87 @@ class DecisionEventV3:
         cls,
         *,
         information_set: InformationSetV3,
+        candidate: PrimarySignalCandidateV3,
+        materialization: CandidateFeatureMaterializationV3,
         eligibility: EligibilityDecisionV3,
         **values: Any,
     ) -> DecisionEventV3:
-        """Create an event while checking linked InformationSet/eligibility facts."""
+        """Create an event while checking the complete pre-decision graph."""
 
-        eligibility.validate_against(information_set)
+        candidate.validate_against(information_set)
+        materialization.validate_against(information_set, candidate)
+        eligibility.validate_against(information_set, candidate, materialization)
         if eligibility.verdict is not EligibilityVerdict.ELIGIBLE:
             raise CanonicalizationError(
                 "only ELIGIBLE candidates become decision events"
             )
         linked_values: dict[str, Any] = {
-            "asset_id": information_set.asset_id,
-            "venue_id": information_set.venue_id,
-            "contract_id": information_set.contract_id,
-            "timeframe_id": information_set.timeframe_id,
-            "primary_signal_instance_id": eligibility.primary_candidate_id,
-            "vintage_class": information_set.vintage_class,
-            "point_in_time_certified": information_set.point_in_time_certified,
-            "certification_blockers": information_set.certification_blockers,
+            "primary_signal_candidate_id": candidate.primary_signal_candidate_id,
+            "primary_signal_candidate_record_hash": candidate.record_hash,
+            "candidate_feature_materialization_id": materialization.candidate_feature_materialization_id,
+            "candidate_feature_materialization_record_hash": materialization.record_hash,
+            "asset_id": candidate.asset_id,
+            "venue_id": candidate.venue_id,
+            "contract_id": candidate.contract_id,
+            "timeframe_id": candidate.timeframe_id,
+            "primary_signal_id": candidate.primary_signal_id,
+            "primary_signal_version": candidate.primary_signal_version,
+            "primary_signal_policy_id": candidate.primary_signal_policy_id,
+            "signal_ts": candidate.signal_ts,
+            "side": candidate.side,
+            "candidate_available_ts": candidate.candidate_available_ts,
+            "earliest_order_submission_ts": candidate.earliest_order_submission_ts,
+            "earliest_entry_ts": candidate.earliest_entry_ts,
+            "entry_expiry_ts": candidate.entry_expiry_ts,
+            "entry_reference": candidate.entry_reference,
+            "action_protocol_id": candidate.action_protocol_id,
+            "action_resolution_id": candidate.action_resolution_id,
+            "action_resolution_record_hash": candidate.action_resolution_record_hash,
+            "executable_contract_id": candidate.executable_contract_id,
+            "label_protocol_id": candidate.label_protocol_id,
+            "entry_scenario": candidate.entry_scenario,
+            "barrier_policy_id": candidate.barrier_policy_id,
+            "cost_scenario_id": candidate.cost_scenario_id,
+            "risk_unit": candidate.risk_unit,
+            "stop_r_multiple": candidate.stop_r_multiple,
+            "target_r_multiple": candidate.target_r_multiple,
+            "max_holding_seconds": candidate.max_holding_seconds,
+            "estimated_roundtrip_cost_bps": candidate.estimated_roundtrip_cost_bps,
+            "vintage_class": candidate.vintage_class,
+            "point_in_time_certified": candidate.point_in_time_certified,
+            "certification_blockers": candidate.certification_blockers,
         }
         for field_name, expected in linked_values.items():
             if field_name not in values:
                 continue
             supplied = values.pop(field_name)
-            if field_name == "vintage_class":
+            if isinstance(expected, datetime):
+                supplied = utc_datetime(supplied, field=field_name)
+            elif field_name == "vintage_class":
                 supplied = _enum(supplied, VintageClass, field=field_name)
+            elif field_name == "side":
+                supplied = _enum(supplied, TradeSide, field=field_name)
+            elif field_name == "entry_scenario":
+                supplied = _enum(supplied, EntryScenario, field=field_name)
             elif field_name == "certification_blockers":
                 supplied = canonical_reason_codes(supplied, field=field_name)
+            elif field_name == "point_in_time_certified":
+                supplied = _strict_bool(supplied, field=field_name)
+            elif field_name == "max_holding_seconds":
+                supplied = canonical_safe_int(
+                    supplied, field=field_name, minimum=1, maximum=MAX_HOLDING_SECONDS
+                )
+            elif field_name in {
+                "entry_reference",
+                "risk_unit",
+                "stop_r_multiple",
+                "target_r_multiple",
+                "estimated_roundtrip_cost_bps",
+            }:
+                supplied = canonical_decimal(supplied, field=field_name)
             if supplied != expected:
                 raise CanonicalizationError(
-                    f"{field_name} does not match the linked records"
+                    f"{field_name} does not match the linked candidate"
                 )
         if "decision_ts" not in values:
             raise CanonicalizationError("decision_ts is required")
@@ -1070,22 +2149,44 @@ class DecisionEventV3:
             **linked_values,
             **values,
         )
-        item.validate_against(information_set, eligibility)
+        item.validate_against(information_set, candidate, materialization, eligibility)
         return item
 
     def validate_against(
         self,
         information_set: InformationSetV3,
+        candidate: PrimarySignalCandidateV3,
+        materialization: CandidateFeatureMaterializationV3,
         eligibility: EligibilityDecisionV3,
     ) -> None:
         """Validate the complete pre-outcome record graph."""
 
-        eligibility.validate_against(information_set)
+        candidate.validate_against(information_set)
+        materialization.validate_against(information_set, candidate)
+        eligibility.validate_against(information_set, candidate, materialization)
         if self.information_set_id != information_set.information_set_id:
             raise CanonicalizationError("event references a different information set")
         if self.information_set_record_hash != information_set.record_hash:
             raise CanonicalizationError(
                 "event references a different information-set record"
+            )
+        if self.primary_signal_candidate_id != candidate.primary_signal_candidate_id:
+            raise CanonicalizationError("event references a different candidate")
+        if self.primary_signal_candidate_record_hash != candidate.record_hash:
+            raise CanonicalizationError("event references a different candidate record")
+        if (
+            self.candidate_feature_materialization_id
+            != materialization.candidate_feature_materialization_id
+        ):
+            raise CanonicalizationError(
+                "event references a different candidate feature materialization"
+            )
+        if (
+            self.candidate_feature_materialization_record_hash
+            != materialization.record_hash
+        ):
+            raise CanonicalizationError(
+                "event references a different candidate feature materialization record"
             )
         if self.eligibility_decision_id != eligibility.eligibility_decision_id:
             raise CanonicalizationError(
@@ -1100,14 +2201,36 @@ class DecisionEventV3:
                 "only ELIGIBLE candidates become decision events"
             )
         expected_values = {
-            "asset_id": information_set.asset_id,
-            "venue_id": information_set.venue_id,
-            "contract_id": information_set.contract_id,
-            "timeframe_id": information_set.timeframe_id,
-            "primary_signal_instance_id": eligibility.primary_candidate_id,
-            "vintage_class": information_set.vintage_class,
-            "point_in_time_certified": information_set.point_in_time_certified,
-            "certification_blockers": information_set.certification_blockers,
+            "asset_id": candidate.asset_id,
+            "venue_id": candidate.venue_id,
+            "contract_id": candidate.contract_id,
+            "timeframe_id": candidate.timeframe_id,
+            "primary_signal_id": candidate.primary_signal_id,
+            "primary_signal_version": candidate.primary_signal_version,
+            "primary_signal_policy_id": candidate.primary_signal_policy_id,
+            "signal_ts": candidate.signal_ts,
+            "side": candidate.side,
+            "candidate_available_ts": candidate.candidate_available_ts,
+            "earliest_order_submission_ts": candidate.earliest_order_submission_ts,
+            "earliest_entry_ts": candidate.earliest_entry_ts,
+            "entry_expiry_ts": candidate.entry_expiry_ts,
+            "entry_reference": candidate.entry_reference,
+            "action_protocol_id": candidate.action_protocol_id,
+            "action_resolution_id": candidate.action_resolution_id,
+            "action_resolution_record_hash": candidate.action_resolution_record_hash,
+            "executable_contract_id": candidate.executable_contract_id,
+            "label_protocol_id": candidate.label_protocol_id,
+            "entry_scenario": candidate.entry_scenario,
+            "barrier_policy_id": candidate.barrier_policy_id,
+            "cost_scenario_id": candidate.cost_scenario_id,
+            "risk_unit": candidate.risk_unit,
+            "stop_r_multiple": candidate.stop_r_multiple,
+            "target_r_multiple": candidate.target_r_multiple,
+            "max_holding_seconds": candidate.max_holding_seconds,
+            "estimated_roundtrip_cost_bps": candidate.estimated_roundtrip_cost_bps,
+            "vintage_class": candidate.vintage_class,
+            "point_in_time_certified": candidate.point_in_time_certified,
+            "certification_blockers": candidate.certification_blockers,
             "eligibility_evaluated_at": eligibility.evaluated_at,
         }
         for field_name, expected in expected_values.items():
@@ -1124,37 +2247,48 @@ class DecisionEventV3:
     def from_mapping(cls, payload: Mapping[str, Any]) -> DecisionEventV3:
         expected = {
             "action_protocol_id",
+            "action_resolution_id",
+            "action_resolution_record_hash",
             "asset_id",
             "barrier_policy_id",
+            "candidate_available_ts",
+            "candidate_feature_materialization_id",
+            "candidate_feature_materialization_record_hash",
             "canonicalization_version",
             "certification_blockers",
             "contract_id",
             "cost_scenario_id",
             "decision_event_id",
+            "decision_event_key",
             "decision_ts",
             "earliest_entry_ts",
             "earliest_order_submission_ts",
             "entry_expiry_ts",
+            "entry_reference",
             "eligibility_decision_id",
             "eligibility_record_hash",
             "eligibility_evaluated_at",
             "eligibility_verdict",
             "entry_scenario",
+            "executable_contract_id",
             "information_set_id",
             "information_set_record_hash",
             "label_protocol_id",
             "max_holding_seconds",
             "point_in_time_certified",
+            "primary_signal_candidate_id",
+            "primary_signal_candidate_record_hash",
             "primary_signal_id",
-            "primary_signal_instance_id",
             "primary_signal_policy_id",
             "primary_signal_version",
             "record_hash",
             "risk_unit",
             "schema_version",
             "side",
+            "signal_ts",
             "stop_r_multiple",
             "target_r_multiple",
+            "estimated_roundtrip_cost_bps",
             "timeframe_id",
             "venue_id",
             "vintage_class",
@@ -1164,6 +2298,16 @@ class DecisionEventV3:
         item = cls(
             information_set_id=payload["information_set_id"],
             information_set_record_hash=payload["information_set_record_hash"],
+            primary_signal_candidate_id=payload["primary_signal_candidate_id"],
+            primary_signal_candidate_record_hash=payload[
+                "primary_signal_candidate_record_hash"
+            ],
+            candidate_feature_materialization_id=payload[
+                "candidate_feature_materialization_id"
+            ],
+            candidate_feature_materialization_record_hash=payload[
+                "candidate_feature_materialization_record_hash"
+            ],
             eligibility_decision_id=payload["eligibility_decision_id"],
             eligibility_record_hash=payload["eligibility_record_hash"],
             asset_id=payload["asset_id"],
@@ -1173,14 +2317,19 @@ class DecisionEventV3:
             primary_signal_id=payload["primary_signal_id"],
             primary_signal_version=payload["primary_signal_version"],
             primary_signal_policy_id=payload["primary_signal_policy_id"],
-            primary_signal_instance_id=payload["primary_signal_instance_id"],
+            signal_ts=payload["signal_ts"],
             side=payload["side"],
+            candidate_available_ts=payload["candidate_available_ts"],
             decision_ts=payload["decision_ts"],
             eligibility_evaluated_at=payload["eligibility_evaluated_at"],
             earliest_order_submission_ts=payload["earliest_order_submission_ts"],
             earliest_entry_ts=payload["earliest_entry_ts"],
             entry_expiry_ts=payload["entry_expiry_ts"],
+            entry_reference=payload["entry_reference"],
             action_protocol_id=payload["action_protocol_id"],
+            action_resolution_id=payload["action_resolution_id"],
+            action_resolution_record_hash=payload["action_resolution_record_hash"],
+            executable_contract_id=payload["executable_contract_id"],
             label_protocol_id=payload["label_protocol_id"],
             entry_scenario=payload["entry_scenario"],
             barrier_policy_id=payload["barrier_policy_id"],
@@ -1189,12 +2338,18 @@ class DecisionEventV3:
             stop_r_multiple=payload["stop_r_multiple"],
             target_r_multiple=payload["target_r_multiple"],
             max_holding_seconds=payload["max_holding_seconds"],
+            estimated_roundtrip_cost_bps=payload["estimated_roundtrip_cost_bps"],
             vintage_class=payload["vintage_class"],
             point_in_time_certified=payload["point_in_time_certified"],
             certification_blockers=_string_sequence(
                 payload["certification_blockers"], field="certification_blockers"
             ),
             eligibility_verdict=payload["eligibility_verdict"],
+        )
+        _require_digest(
+            payload["decision_event_key"],
+            item.decision_event_key,
+            field="decision_event_key",
         )
         _require_digest(
             payload["decision_event_id"],
@@ -1952,6 +3107,9 @@ class LabelOutcomeV3:
         if self.vintage_class is not event.vintage_class:
             raise CanonicalizationError("vintage_class differs from decision event")
         expected_mode = {
+            EntryScenario.NEXT_SCHEDULED_BASE_BAR_OPEN: (
+                ExecutionMode.HISTORICAL_NOMINAL_SCENARIO
+            ),
             EntryScenario.NEXT_REAL_BASE_BAR_OPEN: ExecutionMode.HISTORICAL_NOMINAL_SCENARIO,
             EntryScenario.FORWARD_MARKET_ORDER: ExecutionMode.FORWARD_PAPER,
             EntryScenario.LIVE_MARKET_ORDER: ExecutionMode.LIVE_ACTUAL,
@@ -2514,11 +3672,13 @@ def _validate_certification(
 
 __all__ = [
     "CONTRACT_SCHEMA_VERSION",
+    "FEATURE_VECTOR_ENCODING",
     "MAX_HOLDING_SECONDS",
     "BarrierActivationV3",
     "BarrierOutcomeV3",
     "AmbiguityResolution",
     "CostComponentV3",
+    "CandidateFeatureMaterializationV3",
     "DecisionEventV3",
     "EligibilityDecisionV3",
     "EligibilityVerdict",
@@ -2528,6 +3688,11 @@ __all__ = [
     "InformationDependencyV3",
     "InformationSetV3",
     "LabelOutcomeV3",
+    "PrimarySignalCandidateV3",
+    "StateCheckpointDependencyV3",
     "TradeSide",
     "VintageClass",
+    "decode_float64_be_hex_null_v1",
+    "encode_float64_be_hex_null_v1",
+    "float64_feature_vector_digest_v1",
 ]

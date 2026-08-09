@@ -1,0 +1,96 @@
+{
+  "schema_version": "riskyieldmm.raw_v7_adjacent_regression_inventory.v1",
+  "scope": "Disjoint current-file inventory for Raw V6, A1, actor, projection, Linux-owner, ingress, terminal, and public-denial dependencies adjacent to Raw V7.",
+  "inventory_sha256": "3388b0af8b7a5d581f44abc8c6bd86ba4ca70c5f9b3ceb01182c5b51a3eee28d",
+  "expected_file_count": 39,
+  "expected_case_count": 558,
+  "groups": [
+    {
+      "name": "raw_v6",
+      "expected_case_count": 169,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_capacity_source_observation_v49f.py", "expected_cases": 25, "sha256": "af70d0e9f76ee9aab98f310ce84b9aaefa3e2922ca561beba5128a4ab5930548"},
+        {"path": "tests/test_trading_physical_transport_capacity_measurement_v49f.py", "expected_cases": 78, "sha256": "d1731cbce0e356c16404accb89179bd4420b6b6ff40ddc560b3012e747eaa4d6"},
+        {"path": "tests/test_trading_physical_transport_capacity_manifest_v6_adversarial.py", "expected_cases": 31, "sha256": "4b89d759add216872b3f4b6173c1af3c2c1176783a708832cfdb5a9ccda239eb"},
+        {"path": "tests/test_trading_physical_transport_capacity_manifest_collector_v49f.py", "expected_cases": 4, "sha256": "bcc97c09e180f9a9f966cc34aed489f145631f5e1664c39f6aee372a3771b020"},
+        {"path": "tests/test_trading_physical_transport_manifest_authority_runtime_v49f.py", "expected_cases": 5, "sha256": "0b793fa4b3048299d43cac35dc909f06454a635045fb45fb8ed861cd6cc456e7"},
+        {"path": "tests/test_trading_physical_transport_capacity_sampler_v49f.py", "expected_cases": 25, "sha256": "c30de79579748dc0ae0d79f7be86df3f158e5674d7bdff514ce64679891ba0c8"},
+        {"path": "tests/test_trading_physical_transport_capacity_v6_trust_ceiling.py", "expected_cases": 1, "sha256": "436bcb78edceb3e9937ab90f9c7345f6d184883472b2125d5b90714948a36e37"}
+      ]
+    },
+    {
+      "name": "a1",
+      "expected_case_count": 25,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_capacity_v49f_contracts.py", "expected_cases": 22, "sha256": "7f2670d98d54fc0d7d21b949ce616020c643520a10f9c2e30b0c1e8b8b065b55"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49f_capacity.py", "expected_cases": 3, "sha256": "bf01f8a1be44d1087fcceb970713110793400e04a2205af3108a552c37bccf49"}
+      ]
+    },
+    {
+      "name": "actor",
+      "expected_case_count": 104,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_actor_journal_v49c.py", "expected_cases": 2, "sha256": "e2219c06fd0a3ca3fb04865031dbecd6c9df617c40304edd1a9b8adf7dcf8cfb"},
+        {"path": "tests/test_trading_physical_transport_actor_v49c_contracts.py", "expected_cases": 62, "sha256": "613fcaa1cfb24f979352e01ae09606c73657d1d8776478a35659015fe6f946b8"},
+        {"path": "tests/test_trading_physical_transport_actor_v49c_projection.py", "expected_cases": 6, "sha256": "54a8fa49a7d366edb0adf7ceb16570df5b4dd6fc838e9be661d0381febcdf4bb"},
+        {"path": "tests/test_trading_physical_transport_session_actor_v49c.py", "expected_cases": 34, "sha256": "b09c7cc37b1eb93cb84889f5b23351e1ed7863500a857565ab3e80021ffc884f"}
+      ]
+    },
+    {
+      "name": "projection",
+      "expected_case_count": 45,
+      "files": [
+        {"path": "tests/test_trading_physical_projection_clock_v48a.py", "expected_cases": 20, "sha256": "bdff9c9b49e4034512bf73b8b852ce27b81846349b57a89bfdb617a4a983ea9f"},
+        {"path": "tests/test_trading_physical_projection_v4.py", "expected_cases": 5, "sha256": "773e21e8bab091ec8895c9b58868c38ff0c079aafc37398f438f39fc9ab990b1"},
+        {"path": "tests/test_trading_physical_projection_v49e_provider_commit.py", "expected_cases": 16, "sha256": "1b897a216aa2dc3f8cbb9ea089de9009634ba317e350928f31c642584074d862"},
+        {"path": "tests/test_trading_physical_transport_projection_v49d_parser_bytes.py", "expected_cases": 4, "sha256": "873960135ecb9f1ae648e9f329d08f190a84829206ea9be1e2b79fa16d91a6a0"}
+      ]
+    },
+    {
+      "name": "linux_owner",
+      "expected_case_count": 19,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_linux_owner_v4.py", "expected_cases": 8, "sha256": "f529fd222a4ab0c9583c68bd6eb34b6480c53bdbdab42c073f5eb0b1615b320c"},
+        {"path": "tests/test_trading_physical_transport_linux_owner_v49c_staged.py", "expected_cases": 5, "sha256": "34648b797c157f92322a7af5e3f008077dca4c91a4bf1f66df395bff8667e52e"},
+        {"path": "tests/test_trading_physical_transport_linux_owner_v49d_ingress.py", "expected_cases": 3, "sha256": "a71445ca54be0a09e86254db85e8a91aaa5dd77ace1f388e5c2905e62e5e9a3e"},
+        {"path": "tests/test_trading_physical_transport_linux_owner_v49e_shutdown.py", "expected_cases": 3, "sha256": "a6368270efa6570eafde66a58eb8fa3d7cd9310b0fd2ce00e734861d1e55be03"}
+      ]
+    },
+    {
+      "name": "ingress",
+      "expected_case_count": 42,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_runtime_integration_v4.py", "expected_cases": 4, "sha256": "e70984ab8ea6fa6a1db34d1d0ee37bbd808766dc5b8d56d88427530bcb1ccac6"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49b.py", "expected_cases": 15, "sha256": "3ec15673780021a55b296dafab2b72d493cf7c636a752a60c25fcb7089c8728a"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49c_actor.py", "expected_cases": 1, "sha256": "9f1e166d11b60071038c534ea13714d998e0cbca160900ffa94b1568490026b9"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49c_egress.py", "expected_cases": 10, "sha256": "04ef27f5f940ee8b865c12317968e43f2719ebceb920441dd45db22489568532"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49d_ingress.py", "expected_cases": 12, "sha256": "b104918ebf8531a85451500096f74a5f8cdc48651027a06c2736639dce784959"}
+      ]
+    },
+    {
+      "name": "terminal",
+      "expected_case_count": 128,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_actor_v49e_terminal_contract.py", "expected_cases": 19, "sha256": "d38673d1fedaa4a02e7f40a5cd656df4f381846d6a865ff9c9ffe174e5bfe173"},
+        {"path": "tests/test_trading_physical_transport_actor_v49e_two_dimensional_failure.py", "expected_cases": 10, "sha256": "cbc353f04f4cd5016021bca52b57ed984dc6bbbc68c68ad73d47e703f0447e0b"},
+        {"path": "tests/test_trading_physical_transport_projection_v49e_terminal.py", "expected_cases": 23, "sha256": "e738a74772c0e841e8582378c4bca19d775cbe2c05eba5cc1021793a4565d94f"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_command.py", "expected_cases": 11, "sha256": "8de46fdcc433b55a129d21b64181769cda1ae1c88d386d7e8f37e052546bf7b7"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_negative_pair.py", "expected_cases": 2, "sha256": "76b8d908a91106f46e7f8dec55c2ec0c3eb9aaea33e80f824478f5860ea5c872"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_provider_integrity.py", "expected_cases": 1, "sha256": "0b238a62b23a9a79933317a885de66b11c2cdc9bc828d0aa835bb0e09b7c7a00"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_terminal.py", "expected_cases": 5, "sha256": "e5e0f5018e4131d57cc1c00bb67a64b4909d774ec3fcc7412bf9a59207ddc0a2"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_terminal_ingress.py", "expected_cases": 1, "sha256": "51356f54ce02a521906f46646a9891d1de82dbdd33ca6d102d41b220a56a399f"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_timeout.py", "expected_cases": 6, "sha256": "b8c3e2f8c3dd6bd5d84af7121a1dee225a4ec1534c8f8f7616d618b011f19148"},
+        {"path": "tests/test_trading_physical_transport_session_actor_v49e_terminal.py", "expected_cases": 20, "sha256": "54a63b30c3e7b5a7485851d69bed845b6b831e3379bb3cf96994146754d98ab3"},
+        {"path": "tests/test_trading_physical_transport_terminal_v49c.py", "expected_cases": 30, "sha256": "84489606e4b84aceb44d32e18e45938991acc6c4cb62b58086812bd615cc9dd5"}
+      ]
+    },
+    {
+      "name": "public_denial",
+      "expected_case_count": 26,
+      "files": [
+        {"path": "tests/test_trading_physical_transport_v47b_sealing_adversarial.py", "expected_cases": 23, "sha256": "462a6ac8574c314a4ebd084015e8f21e3617d4c4f24e79d346c0b1a452460670"},
+        {"path": "tests/test_trading_physical_transport_runtime_v49e_legacy_bypass.py", "expected_cases": 3, "sha256": "2c9b80c6f008de639de77252485e7c6f39c701a5794c7d829ab09d005afb0556"}
+      ]
+    }
+  ]
+}

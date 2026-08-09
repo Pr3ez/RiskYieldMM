@@ -30,6 +30,15 @@ from riskyieldmm.trading import (
     strict_json_loads,
     utc_iso,
 )
+from riskyieldmm.trading.contracts import (
+    FEATURE_VECTOR_ENCODING,
+    CandidateFeatureMaterializationV3,
+    PrimarySignalCandidateV3,
+    StateCheckpointDependencyV3,
+    decode_float64_be_hex_null_v1,
+    encode_float64_be_hex_null_v1,
+    float64_feature_vector_digest_v1,
+)
 
 
 def digest(name: str) -> str:
@@ -38,9 +47,12 @@ def digest(name: str) -> str:
 
 def dependency(**changes: object) -> InformationDependencyV3:
     values: dict[str, object] = {
+        "dependency_slot_id": digest("ohlcv-slot"),
+        "source_member_id": digest("btc-bybit-source-member"),
         "name": "BTCUSDT.1m.2026-07-14T09:00:00Z",
         "source_id": "bybit.linear.BTCUSDT.1m",
         "source_manifest_id": digest("source-manifest"),
+        "source_field_ids": ("open", "high", "low", "close", "volume"),
         "observation_revision_id": digest("revision-1"),
         "source_event_ts": "2026-07-14T09:01:00Z",
         "bar_open_ts": "2026-07-14T09:00:00Z",
@@ -50,10 +62,22 @@ def dependency(**changes: object) -> InformationDependencyV3:
         "revision_received_ts": "2026-07-14T09:01:02Z",
         "feature_available_ts": "2026-07-14T09:01:03Z",
         "value_digest": digest("ohlcv-row"),
-        "required": True,
     }
     values.update(changes)
     return InformationDependencyV3(**values)  # type: ignore[arg-type]
+
+
+def state_dependency(**changes: object) -> StateCheckpointDependencyV3:
+    values: dict[str, object] = {
+        "dependency_slot_id": digest("cusum-state-slot"),
+        "state_schema_id": digest("cusum-state-schema"),
+        "state_cutoff_ts": "2026-07-14T09:01:00Z",
+        "state_available_ts": "2026-07-14T09:01:03Z",
+        "value_digest": digest("cusum-state-value"),
+        "parent_state_checkpoint_id": digest("previous-cusum-state"),
+    }
+    values.update(changes)
+    return StateCheckpointDependencyV3(**values)  # type: ignore[arg-type]
 
 
 def information_set(**changes: object) -> InformationSetV3:
@@ -68,35 +92,121 @@ def information_set(**changes: object) -> InformationSetV3:
         "protocol_manifest_id": digest("protocol-manifest"),
         "calendar_manifest_id": digest("calendar-manifest"),
         "feature_schema_id": digest("feature-schema"),
-        "feature_materialization_hash": digest("feature-values-v1"),
         "dependencies": (dependency(),),
+        "state_dependencies": (state_dependency(),),
         "vintage_class": VintageClass.LIVE_FIRST_SEEN_CERTIFIED,
         "point_in_time_certified": True,
         "certification_blockers": (),
         "data_quality_flags": (),
-        "state_checkpoint_ids": (digest("cusum-state"),),
         "universe_snapshot_id": digest("universe-snapshot"),
     }
     values.update(changes)
     return InformationSetV3(**values)  # type: ignore[arg-type]
 
 
+def test_information_set_rejects_dependency_from_another_source_manifest() -> None:
+    with pytest.raises(
+        CanonicalizationError,
+        match="every dependency source_manifest_id must match the information set",
+    ):
+        information_set(
+            dependencies=(
+                dependency(source_manifest_id=digest("different-source-manifest")),
+            )
+        )
+
+
+def test_information_dependency_preserves_semantic_source_field_order() -> None:
+    first = dependency(source_field_ids=("open", "close"))
+    reversed_order = dependency(source_field_ids=("close", "open"))
+
+    assert first.source_field_ids == ("open", "close")
+    assert reversed_order.source_field_ids == ("close", "open")
+    assert first.dependency_id != reversed_order.dependency_id
+
+
+def candidate(
+    info: InformationSetV3 | None = None,
+    **changes: object,
+) -> PrimarySignalCandidateV3:
+    info = information_set() if info is None else info
+    values: dict[str, object] = {
+        "primary_signal_id": "online-cusum",
+        "primary_signal_version": "v3",
+        "primary_signal_policy_id": digest("signal-policy"),
+        "signal_ts": "2026-07-14T09:01:03Z",
+        "side": TradeSide.LONG,
+        "candidate_available_ts": "2026-07-14T09:01:05Z",
+        "entry_reference": "100",
+        "earliest_order_submission_ts": "2026-07-14T09:01:09Z",
+        "earliest_entry_ts": "2026-07-14T09:02:00Z",
+        "entry_expiry_ts": "2026-07-14T09:02:00Z",
+        "action_protocol_id": digest("action-protocol"),
+        "action_resolution_id": digest("action-resolution"),
+        "action_resolution_record_hash": digest("action-resolution-record"),
+        "executable_contract_id": "BTCUSDT.LINEAR.PERP",
+        "label_protocol_id": digest("label-protocol"),
+        "entry_scenario": EntryScenario.NEXT_SCHEDULED_BASE_BAR_OPEN,
+        "barrier_policy_id": digest("barrier-policy"),
+        "cost_scenario_id": digest("cost-scenario"),
+        "risk_unit": "10",
+        "stop_r_multiple": "1",
+        "target_r_multiple": "2",
+        "max_holding_seconds": 60,
+        "estimated_roundtrip_cost_bps": "3",
+    }
+    values.update(changes)
+    return PrimarySignalCandidateV3.create(
+        information_set=info,
+        **values,  # type: ignore[arg-type]
+    )
+
+
+def materialization(
+    info: InformationSetV3 | None = None,
+    candidate_record: PrimarySignalCandidateV3 | None = None,
+    **changes: object,
+) -> CandidateFeatureMaterializationV3:
+    info = information_set() if info is None else info
+    candidate_record = candidate(info) if candidate_record is None else candidate_record
+    values: dict[str, object] = {
+        "feature_values": tuple(
+            encode_float64_be_hex_null_v1(value) for value in (1.5, None, -2.0)
+        ),
+        "feature_available_ts": "2026-07-14T09:01:06Z",
+    }
+    values.update(changes)
+    return CandidateFeatureMaterializationV3.create(
+        information_set=info,
+        candidate=candidate_record,
+        **values,  # type: ignore[arg-type]
+    )
+
+
 def eligibility(
     info: InformationSetV3 | None = None,
+    candidate_record: PrimarySignalCandidateV3 | None = None,
+    materialization_record: CandidateFeatureMaterializationV3 | None = None,
     **changes: object,
 ) -> EligibilityDecisionV3:
     info = information_set() if info is None else info
+    candidate_record = candidate(info) if candidate_record is None else candidate_record
+    materialization_record = (
+        materialization(info, candidate_record)
+        if materialization_record is None
+        else materialization_record
+    )
     values: dict[str, object] = {
-        "primary_candidate_id": digest("cusum.BTCUSDT.1m.20260714T090103Z.LONG"),
         "eligibility_policy_id": digest("eligibility-policy"),
-        "input_state_hash": info.feature_materialization_hash,
-        "evaluated_at": "2026-07-14T09:01:05Z",
+        "evaluated_at": "2026-07-14T09:01:07Z",
         "verdict": EligibilityVerdict.ELIGIBLE,
         "reason_codes": (),
     }
     values.update(changes)
     return EligibilityDecisionV3.create(
         information_set=info,
+        candidate=candidate_record,
+        materialization=materialization_record,
         **values,  # type: ignore[arg-type]
     )
 
@@ -104,36 +214,31 @@ def eligibility(
 def event(
     info: InformationSetV3 | None = None,
     eligibility_record: EligibilityDecisionV3 | None = None,
+    candidate_record: PrimarySignalCandidateV3 | None = None,
+    materialization_record: CandidateFeatureMaterializationV3 | None = None,
     **changes: object,
 ) -> DecisionEventV3:
     info = information_set() if info is None else info
-    eligibility_record = (
-        eligibility(info) if eligibility_record is None else eligibility_record
+    decision_ts = changes.pop("decision_ts", "2026-07-14T09:01:08Z")
+    candidate_record = (
+        candidate(info, **changes) if candidate_record is None else candidate_record
     )
-    values: dict[str, object] = {
-        "primary_signal_id": "online-cusum",
-        "primary_signal_version": "v3",
-        "primary_signal_policy_id": digest("signal-policy"),
-        "side": TradeSide.LONG,
-        "decision_ts": "2026-07-14T09:01:06Z",
-        "earliest_order_submission_ts": "2026-07-14T09:01:06Z",
-        "earliest_entry_ts": "2026-07-14T09:02:00Z",
-        "entry_expiry_ts": "2026-07-14T09:02:00Z",
-        "action_protocol_id": digest("action-protocol"),
-        "label_protocol_id": digest("label-protocol"),
-        "entry_scenario": EntryScenario.NEXT_REAL_BASE_BAR_OPEN,
-        "barrier_policy_id": digest("barrier-policy"),
-        "cost_scenario_id": digest("cost-scenario"),
-        "risk_unit": "10",
-        "stop_r_multiple": "1",
-        "target_r_multiple": "2",
-        "max_holding_seconds": 60,
-    }
-    values.update(changes)
+    materialization_record = (
+        materialization(info, candidate_record)
+        if materialization_record is None
+        else materialization_record
+    )
+    eligibility_record = (
+        eligibility(info, candidate_record, materialization_record)
+        if eligibility_record is None
+        else eligibility_record
+    )
     return DecisionEventV3.create(
         information_set=info,
+        candidate=candidate_record,
+        materialization=materialization_record,
         eligibility=eligibility_record,
-        **values,
+        decision_ts=decision_ts,
     )
 
 
@@ -358,11 +463,61 @@ def test_dependency_rejects_future_publication_poison() -> None:
         dependency(source_publish_ts="2026-07-15T09:01:01Z")
 
 
+def test_dependency_without_publish_clock_still_rejects_future_event() -> None:
+    with pytest.raises(CanonicalizationError, match="ingested_first_seen_ts"):
+        dependency(
+            source_publish_ts=None,
+            ingested_first_seen_ts="2026-07-14T09:00:59Z",
+        )
+
+
+def test_state_dependency_round_trip_parent_and_clock_contract() -> None:
+    item = state_dependency()
+    assert StateCheckpointDependencyV3.from_mapping(item.as_dict()) == item
+    with pytest.raises(CanonicalizationError, match="state_cutoff_ts"):
+        state_dependency(state_cutoff_ts="2026-07-14T09:01:04Z")
+    with pytest.raises(CanonicalizationError, match="does not match canonical content"):
+        payload = item.as_dict()
+        payload["state_checkpoint_id"] = digest("forged-checkpoint-id")
+        StateCheckpointDependencyV3.from_mapping(payload)
+
+
+@pytest.mark.parametrize(
+    "value",
+    [False, 1, Decimal("1"), float("nan"), float("inf"), -0.0],
+)
+def test_binary64_feature_encoding_rejects_ambiguous_values(value: object) -> None:
+    with pytest.raises(CanonicalizationError):
+        encode_float64_be_hex_null_v1(value)  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (0.0, "0000000000000000"),
+        (1.5, "3ff8000000000000"),
+        (-0.5, "bfe0000000000000"),
+        (float.fromhex("0x0.0000000000001p-1022"), "0000000000000001"),
+        (float.fromhex("0x1.fffffffffffffp+1023"), "7fefffffffffffff"),
+    ],
+)
+def test_binary64_feature_encoding_golden_bits(value: float, expected: str) -> None:
+    assert encode_float64_be_hex_null_v1(value) == expected
+    assert decode_float64_be_hex_null_v1(expected) == value
+
+
+def test_binary64_feature_encoding_null_and_invalid_bits() -> None:
+    assert encode_float64_be_hex_null_v1(None) is None
+    assert decode_float64_be_hex_null_v1(None) is None
+    for invalid in ("3FF8000000000000", "abc", "7ff8000000000000", "8000000000000000"):
+        with pytest.raises(CanonicalizationError):
+            decode_float64_be_hex_null_v1(invalid)
+
+
 def test_information_set_identity_separates_semantics_from_attestation() -> None:
     first = information_set()
     second = information_set(
         assembled_at="2026-07-14T09:01:04.500000Z",
-        feature_materialization_hash=digest("feature-values-v2"),
     )
     assert first.information_set_id == second.information_set_id
     assert first.record_hash != second.record_hash
@@ -378,15 +533,37 @@ def test_information_set_identity_separates_semantics_from_attestation() -> None
     assert first.information_set_id != changed_source.information_set_id
 
 
-def test_information_set_fails_closed_on_late_or_foreign_dependency() -> None:
+def test_information_set_fails_closed_on_late_dependency_and_keeps_member_identity() -> (
+    None
+):
     with pytest.raises(CanonicalizationError, match="became available"):
         information_set(
             dependencies=(dependency(feature_available_ts="2026-07-14T09:01:04Z"),)
         )
-    with pytest.raises(CanonicalizationError, match="source manifest"):
-        information_set(
-            dependencies=(dependency(source_manifest_id=digest("other-source")),)
+    alternate_member = information_set(
+        dependencies=(
+            dependency(
+                source_member_id=digest("other-member"),
+            ),
         )
+    )
+    assert alternate_member.dependencies[0].source_member_id == digest("other-member")
+    with pytest.raises(
+        CanonicalizationError, match="state checkpoint became available"
+    ):
+        information_set(
+            state_dependencies=(
+                state_dependency(state_available_ts="2026-07-14T09:01:04Z"),
+            )
+        )
+
+
+def test_information_set_can_be_state_only_when_the_schema_allows_it() -> None:
+    item = information_set(dependencies=(), state_dependencies=(state_dependency(),))
+
+    assert item.dependencies == ()
+    assert len(item.state_dependencies) == 1
+    assert InformationSetV3.from_mapping(item.as_dict()) == item
 
 
 def test_certification_rules_do_not_retroactively_certify_nominal_history() -> None:
@@ -413,16 +590,125 @@ def test_information_set_is_frozen_and_round_trips_exactly() -> None:
 
 def test_eligibility_factory_propagates_graph_and_rejects_mismatch() -> None:
     info = information_set()
-    item = eligibility(info)
-    item.validate_against(info)
+    primary = candidate(info)
+    features = materialization(info, primary)
+    item = eligibility(info, primary, features)
+    item.validate_against(info, primary, features)
     invalid = replace(
         item,
         observation_cutoff_ts=datetime(2026, 7, 14, 8, tzinfo=timezone.utc),
     )
     with pytest.raises(CanonicalizationError, match="cutoff differs"):
-        invalid.validate_against(info)
-    with pytest.raises(CanonicalizationError, match="assembled"):
+        invalid.validate_against(info, primary, features)
+    with pytest.raises(CanonicalizationError, match="features were available"):
         eligibility(info, evaluated_at="2026-07-14T09:01:03Z")
+
+
+def test_candidate_identity_excludes_availability_attestation_but_record_binds_it() -> (
+    None
+):
+    info = information_set()
+    first = candidate(info)
+    later = candidate(info, candidate_available_ts="2026-07-14T09:01:05.500000Z")
+    assert first.primary_signal_candidate_id == later.primary_signal_candidate_id
+    assert first.record_hash != later.record_hash
+    assert PrimarySignalCandidateV3.from_mapping(first.as_dict()) == first
+    tampered = first.as_dict()
+    tampered["candidate_available_ts"] = "2026-07-14T09:01:05.500000Z"
+    with pytest.raises(CanonicalizationError, match="record_hash"):
+        PrimarySignalCandidateV3.from_mapping(tampered)
+
+
+def test_long_and_short_candidates_share_information_but_never_candidate_graph() -> (
+    None
+):
+    info = information_set()
+    long_candidate = candidate(info, side=TradeSide.LONG)
+    short_candidate = candidate(info, side=TradeSide.SHORT)
+    assert long_candidate.information_set_id == short_candidate.information_set_id
+    assert (
+        long_candidate.primary_signal_candidate_id
+        != short_candidate.primary_signal_candidate_id
+    )
+    long_features = materialization(info, long_candidate)
+    short_features = materialization(info, short_candidate)
+    assert (
+        long_features.candidate_feature_materialization_key
+        != short_features.candidate_feature_materialization_key
+    )
+    long_eligibility = eligibility(info, long_candidate, long_features)
+    with pytest.raises(CanonicalizationError, match="supplied candidate"):
+        long_eligibility.validate_against(info, short_candidate, short_features)
+
+
+def test_materialization_binds_exact_ordered_vector_and_detects_tamper() -> None:
+    info = information_set()
+    primary = candidate(info)
+    first = materialization(info, primary)
+    swapped_values = (
+        first.feature_values[2],
+        first.feature_values[1],
+        first.feature_values[0],
+    )
+    swapped = materialization(info, primary, feature_values=swapped_values)
+    assert first.feature_vector_digest != swapped.feature_vector_digest
+    assert (
+        first.candidate_feature_materialization_id
+        != swapped.candidate_feature_materialization_id
+    )
+    assert CandidateFeatureMaterializationV3.from_mapping(first.as_dict()) == first
+    tampered = first.as_dict()
+    tampered["feature_values"] = list(swapped_values)
+    with pytest.raises(CanonicalizationError, match="feature_vector_digest"):
+        CandidateFeatureMaterializationV3.from_mapping(tampered)
+    assert first.feature_vector_encoding == FEATURE_VECTOR_ENCODING
+    assert first.feature_vector_digest == float64_feature_vector_digest_v1(
+        feature_schema_id=info.feature_schema_id,
+        feature_values=first.feature_values,
+    )
+    null_moved = (first.feature_values[0], first.feature_values[2], None)
+    assert first.feature_vector_digest != float64_feature_vector_digest_v1(
+        feature_schema_id=info.feature_schema_id,
+        feature_values=null_moved,
+    )
+    assert first.feature_vector_digest != float64_feature_vector_digest_v1(
+        feature_schema_id=digest("different-feature-schema"),
+        feature_values=first.feature_values,
+    )
+
+
+def test_complete_predecision_clock_chain_fails_closed() -> None:
+    info = information_set()
+    with pytest.raises(CanonicalizationError, match="before the information set"):
+        candidate(info, candidate_available_ts="2026-07-14T09:01:03Z")
+    with pytest.raises(CanonicalizationError, match="earliest_order_submission_ts"):
+        candidate(info, candidate_available_ts="2026-07-14T09:01:10Z")
+
+    primary = candidate(info)
+    with pytest.raises(CanonicalizationError, match="before the candidate"):
+        materialization(
+            info,
+            primary,
+            feature_available_ts="2026-07-14T09:01:04Z",
+        )
+    features = materialization(info, primary)
+    eligible = eligibility(info, primary, features)
+    with pytest.raises(CanonicalizationError, match="eligibility_evaluated_at"):
+        event(
+            info,
+            eligible,
+            primary,
+            features,
+            decision_ts="2026-07-14T09:01:06Z",
+        )
+    with pytest.raises(CanonicalizationError, match="earliest_order_submission_ts"):
+        event(
+            info,
+            eligible,
+            primary,
+            features,
+            decision_ts="2026-07-14T09:01:10Z",
+        )
 
 
 def test_eligibility_reason_contract() -> None:
@@ -439,32 +725,42 @@ def test_eligibility_reason_contract() -> None:
 
 def test_event_factory_propagates_linked_state_and_round_trips() -> None:
     info = information_set()
-    eligible = eligibility(info)
-    item = event(info, eligible)
-    item.validate_against(info, eligible)
-    assert item.primary_signal_instance_id == eligible.primary_candidate_id
+    primary = candidate(info)
+    features = materialization(info, primary)
+    eligible = eligibility(info, primary, features)
+    item = event(info, eligible, primary, features)
+    item.validate_against(info, primary, features, eligible)
+    assert item.primary_signal_candidate_id == primary.primary_signal_candidate_id
     assert item.certification_blockers == info.certification_blockers
     assert DecisionEventV3.from_mapping(item.as_dict()) == item
 
 
 def test_event_rejects_noneligible_or_mismatched_candidate_graph() -> None:
     info = information_set()
+    primary = candidate(info)
+    features = materialization(info, primary)
     rejected = eligibility(
         info,
+        primary,
+        features,
         verdict=EligibilityVerdict.INELIGIBLE,
         reason_codes=("CLOSED_MARKET",),
     )
     with pytest.raises(CanonicalizationError, match="ELIGIBLE"):
-        event(info, rejected)
+        event(info, rejected, primary, features)
 
-    valid = eligibility(info)
-    raw = event(info, valid)
+    valid = eligibility(info, primary, features)
+    raw = event(info, valid, primary, features)
     invalid = replace(
         raw,
-        primary_signal_instance_id=digest("different-candidate"),
+        primary_signal_candidate_id=digest("different-candidate"),
     )
-    with pytest.raises(CanonicalizationError, match="primary_signal_instance_id"):
-        invalid.validate_against(info, valid)
+    with pytest.raises(CanonicalizationError, match="different candidate"):
+        invalid.validate_against(info, primary, features, valid)
+
+    wrong_geometry = replace(raw, target_r_multiple="3")
+    with pytest.raises(CanonicalizationError, match="target_r_multiple"):
+        wrong_geometry.validate_against(info, primary, features, valid)
 
 
 def test_event_enforces_assembly_and_strict_pre_entry_sequence() -> None:
@@ -490,6 +786,14 @@ def test_event_identity_contains_policy_but_never_later_outcome() -> None:
     assert decision.decision_event_id == original_id
     changed_policy = event(barrier_policy_id=digest("barrier-policy-v2"))
     assert changed_policy.decision_event_id != original_id
+
+
+def test_decision_event_key_allows_only_one_decision_per_eligibility() -> None:
+    first = event(decision_ts="2026-07-14T09:01:08Z")
+    later_attestation = event(decision_ts="2026-07-14T09:01:08.500000Z")
+
+    assert first.decision_event_key == later_attestation.decision_event_key
+    assert first.decision_event_id != later_attestation.decision_event_id
 
 
 def test_filled_outcome_round_trip_cost_math_and_graph() -> None:

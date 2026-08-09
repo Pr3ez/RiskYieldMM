@@ -10,9 +10,19 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from .calendar_actions import (
+    ActionProtocolV3,
+    ActionResolutionStatus,
+    ActionResolutionV3,
+    CalendarScheduleSnapshotV3,
+    CalendarSourceArtifactV3,
+    InstrumentMappingV3,
+    validate_calendar_schedule_artifact_v3,
+)
 from .canonical import (
     CANONICALIZATION_VERSION,
     CanonicalizationError,
@@ -27,13 +37,38 @@ from .canonical import (
     utc_iso,
 )
 from .contracts import (
+    CONTRACT_SCHEMA_VERSION,
+    CandidateFeatureMaterializationV3,
     DecisionEventV3,
     EligibilityDecisionV3,
+    EligibilityVerdict,
+    EntryScenario,
     InformationSetV3,
+    PrimarySignalCandidateV3,
+    VintageClass,
+    decode_float64_be_hex_null_v1,
+)
+from .evidence import (
+    CardinalityScope,
+    EvidenceKind,
+    FeatureDefinitionV3,
+    FeatureDependencySlotV3,
+    FeatureRole,
+    FeatureSchemaV3,
+    MissingInputPolicy,
+    SourceBundleMemberV3,
+    SourceBundleV3,
+    SourceRole,
+    validate_feature_schema_graph,
+    validate_source_bundle_graph,
+)
+from .physical_market_data import (
+    ObservationSelectionPolicyV3,
+    ProviderAdapterPolicyV3,
 )
 
 MANIFEST_SCHEMA_VERSION = "riskyieldmm_experiment_manifest_v1"
-SUPPORTED_EVENT_SCHEMA_VERSION = "riskyieldmm_trade_event_v3"
+SUPPORTED_EVENT_SCHEMA_VERSION = CONTRACT_SCHEMA_VERSION
 
 
 class ManifestType(str, Enum):
@@ -261,6 +296,20 @@ _TRIAL_RESULT_STATUSES = frozenset({"SUCCEEDED", "FAILED", "INTERRUPTED"})
 _COHORT_CLASSES = frozenset({"DEVELOPMENT", "QUARANTINE_CANDIDATE", "FINAL_HOLDOUT"})
 _REQUIRED_SPLIT_ROLES = frozenset(
     {"TRAIN", "VALIDATION", "CALIBRATION", "POLICY", "TEST"}
+)
+
+EvidenceRecordV3 = (
+    CalendarSourceArtifactV3
+    | CalendarScheduleSnapshotV3
+    | ActionProtocolV3
+    | InstrumentMappingV3
+    | SourceBundleMemberV3
+    | SourceBundleV3
+    | FeatureDependencySlotV3
+    | FeatureDefinitionV3
+    | FeatureSchemaV3
+    | ProviderAdapterPolicyV3
+    | ObservationSelectionPolicyV3
 )
 
 
@@ -540,21 +589,335 @@ def validate_manifest_graph(
             stack.append((dependency, False))
 
 
-def validate_record_protocol_graph(
+def validate_manifest_evidence_graph(
+    manifest: ImmutableManifestV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Validate manifest lineage plus every inspectable source/feature root.
+
+    ``validate_manifest_graph`` intentionally remains the manifest-only layer.
+    This stricter boundary resolves the content roots that SOURCE and PROTOCOL
+    historically carried as opaque hashes.  Governance-ledger registration and
+    all certified record validation use this function.
+    """
+
+    validate_manifest_graph(manifest, registry)
+    seen: set[str] = set()
+    stack = [manifest]
+    while stack:
+        item = stack.pop()
+        if item.manifest_id in seen:
+            continue
+        seen.add(item.manifest_id)
+        if item.manifest_type is ManifestType.SOURCE:
+            validate_source_manifest_evidence_graph(
+                source=item,
+                registry=registry,
+                evidence_registry=evidence_registry,
+            )
+        elif item.manifest_type is ManifestType.PROTOCOL:
+            validate_protocol_manifest_evidence_graph(
+                protocol=item,
+                registry=registry,
+                evidence_registry=evidence_registry,
+            )
+        stack.extend(_manifest_dependencies(item, registry))
+
+
+def validate_source_manifest_evidence_graph(
+    *,
+    source: ImmutableManifestV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Resolve one SOURCE content root to an exact source-bundle graph."""
+
+    if source.manifest_type is not ManifestType.SOURCE:
+        raise CanonicalizationError("source evidence requires a SOURCE manifest")
+    bundle = _resolve_evidence(
+        evidence_registry,
+        source.payload["source_content_root"],
+        SourceBundleV3,
+    )
+    member_registry = {
+        identity: item
+        for identity, item in evidence_registry.items()
+        if isinstance(item, SourceBundleMemberV3)
+    }
+    bundle_registry = {
+        identity: item
+        for identity, item in evidence_registry.items()
+        if isinstance(item, SourceBundleV3)
+    }
+    parent_source_id = source.payload["parent_source_manifest_id"]
+    if parent_source_id is not None:
+        parent_source = _resolve_manifest(
+            registry,
+            parent_source_id,
+            ManifestType.SOURCE,
+        )
+        _resolve_evidence(
+            evidence_registry,
+            parent_source.payload["source_content_root"],
+            SourceBundleV3,
+        )
+    validate_source_bundle_graph(bundle, member_registry, bundle_registry)
+
+    physical_policy = evidence_registry.get(bundle.source_contract_id)
+    if physical_policy is not None:
+        if not isinstance(physical_policy, ProviderAdapterPolicyV3):
+            raise CanonicalizationError(
+                "physical source contract resolves to an invalid adapter policy"
+            )
+        physical_bindings = {
+            "source_schema_id": physical_policy.source_schema_id,
+            "calendar_manifest_id": physical_policy.calendar_manifest_id,
+            "first_seen_policy_id": physical_policy.availability_policy_id,
+            "revision_policy_id": physical_policy.revision_policy_id,
+        }
+        for field, expected in physical_bindings.items():
+            if getattr(bundle, field) != expected:
+                raise CanonicalizationError(
+                    f"physical source bundle {field} differs from adapter policy"
+                )
+        for member_id in bundle.source_member_ids:
+            member = member_registry[member_id]
+            expected_scope = (
+                physical_policy.source_id,
+                physical_policy.asset_id,
+                physical_policy.venue_id,
+                physical_policy.concrete_contract_id,
+                physical_policy.timeframe_id,
+                physical_policy.source_schema_id,
+                physical_policy.availability_policy_id,
+                physical_policy.revision_policy_id,
+                physical_policy.calendar_manifest_id,
+            )
+            actual_scope = (
+                member.source_id,
+                member.asset_id,
+                member.venue_id,
+                member.contract_id,
+                member.timeframe_id,
+                member.source_schema_id,
+                member.availability_policy_id,
+                member.revision_policy_id,
+                member.calendar_manifest_id,
+            )
+            if actual_scope != expected_scope:
+                raise CanonicalizationError(
+                    "physical source member scope differs from adapter policy"
+                )
+
+    payload = source.payload
+    exact_bindings = {
+        "source_dataset_id": payload["source_dataset_id"],
+        "source_contract_id": payload["source_contract_id"],
+        "source_schema_id": payload["source_schema_id"],
+        "calendar_manifest_id": payload["calendar_manifest_id"],
+        "universe_manifest_id": payload["universe_manifest_id"],
+        "first_seen_policy_id": payload["first_seen_policy_id"],
+        "revision_policy_id": payload["revision_policy_id"],
+        "vintage_class": payload["vintage_class"],
+    }
+    for field, expected in exact_bindings.items():
+        actual = getattr(bundle, field)
+        if hasattr(actual, "value"):
+            actual = actual.value
+        if actual != expected:
+            raise CanonicalizationError(
+                f"SOURCE {field} differs from its source bundle"
+            )
+    if bundle.knowledge_cutoff_ts != utc_datetime(
+        payload["knowledge_cutoff_ts"], field="knowledge_cutoff_ts"
+    ):
+        raise CanonicalizationError(
+            "SOURCE knowledge_cutoff_ts differs from its source bundle"
+        )
+    expected_parent_bundle_id = (
+        None
+        if parent_source_id is None
+        else _resolve_manifest(
+            registry,
+            parent_source_id,
+            ManifestType.SOURCE,
+        ).payload["source_content_root"]
+    )
+    if bundle.parent_source_bundle_id != expected_parent_bundle_id:
+        raise CanonicalizationError(
+            "SOURCE parent lineage differs from its source bundle"
+        )
+
+
+def validate_protocol_manifest_evidence_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Resolve a PROTOCOL feature-schema root and its exact definition DAG."""
+
+    if protocol.manifest_type is not ManifestType.PROTOCOL:
+        raise CanonicalizationError("feature evidence requires a PROTOCOL manifest")
+    calendar = _resolve_evidence(
+        evidence_registry,
+        protocol.payload["calendar_manifest_id"],
+        CalendarScheduleSnapshotV3,
+    )
+    artifact = _resolve_evidence(
+        evidence_registry,
+        calendar.calendar_source_artifact_id,
+        CalendarSourceArtifactV3,
+    )
+    validate_calendar_schedule_artifact_v3(calendar, artifact)
+    action_protocol = _resolve_evidence(
+        evidence_registry,
+        protocol.payload["action_protocol_id"],
+        ActionProtocolV3,
+    )
+    if artifact.authority not in action_protocol.allowed_calendar_authorities:
+        raise CanonicalizationError(
+            "calendar source authority is not allowed by the action protocol"
+        )
+    protocol_frozen_at = utc_datetime(
+        protocol.payload["protocol_frozen_at"], field="protocol_frozen_at"
+    )
+    if calendar.frozen_at > protocol_frozen_at:
+        raise CanonicalizationError(
+            "calendar snapshot was frozen after the experiment protocol"
+        )
+    if action_protocol.frozen_at > protocol_frozen_at:
+        raise CanonicalizationError(
+            "action protocol was frozen after the experiment protocol"
+        )
+    source = _resolve_manifest(
+        registry,
+        protocol.payload["source_manifest_id"],
+        ManifestType.SOURCE,
+    )
+    validate_source_manifest_evidence_graph(
+        source=source,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
+    schema = _resolve_evidence(
+        evidence_registry,
+        protocol.payload["feature_schema_id"],
+        FeatureSchemaV3,
+    )
+    slots = {
+        slot_id: _resolve_evidence(
+            evidence_registry,
+            slot_id,
+            FeatureDependencySlotV3,
+        )
+        for slot_id in schema.dependency_slot_ids
+    }
+    physical_policy = evidence_registry.get(source.payload["source_contract_id"])
+    if isinstance(physical_policy, ProviderAdapterPolicyV3):
+        selection_policies = [
+            item
+            for item in evidence_registry.values()
+            if isinstance(item, ObservationSelectionPolicyV3)
+        ]
+        for slot in slots.values():
+            if slot.evidence_kind is not EvidenceKind.OBSERVATION:
+                continue
+            if slot.cardinality_scope is not CardinalityScope.PER_SOURCE_MEMBER:
+                raise CanonicalizationError(
+                    "physical observation slots currently require per-source-member cardinality"
+                )
+            matching = [
+                item
+                for item in selection_policies
+                if item.dependency_slot_id == slot.dependency_slot_id
+            ]
+            if len(matching) != 1:
+                raise CanonicalizationError(
+                    "physical observation slot requires exactly one selection policy"
+                )
+            selection = matching[0]
+            if selection.selection_mode is not slot.selection_mode:
+                raise CanonicalizationError(
+                    "physical selection policy mode differs from dependency slot"
+                )
+            if selection.maximum_age_seconds != slot.maximum_age_seconds:
+                raise CanonicalizationError(
+                    "physical selection policy age differs from dependency slot"
+                )
+            if selection.interval_seconds != physical_policy.base_interval_seconds:
+                raise CanonicalizationError(
+                    "physical selection interval differs from adapter policy"
+                )
+            if (
+                selection.maximum_prefix_age_seconds
+                != physical_policy.stale_after_seconds
+            ):
+                raise CanonicalizationError(
+                    "physical prefix age differs from adapter freshness policy"
+                )
+            if selection.frozen_at > protocol_frozen_at:
+                raise CanonicalizationError(
+                    "physical selection policy was frozen after the protocol"
+                )
+    definitions = {
+        definition_id: _resolve_evidence(
+            evidence_registry,
+            definition_id,
+            FeatureDefinitionV3,
+        )
+        for definition_id in schema.feature_definition_ids
+    }
+    source_bundle = _resolve_evidence(
+        evidence_registry,
+        source.payload["source_content_root"],
+        SourceBundleV3,
+    )
+    member_registry = {
+        identity: item
+        for identity, item in evidence_registry.items()
+        if isinstance(item, SourceBundleMemberV3)
+    }
+    bundle_registry = {
+        identity: item
+        for identity, item in evidence_registry.items()
+        if isinstance(item, SourceBundleV3)
+    }
+    validate_feature_schema_graph(
+        schema,
+        slots,
+        definitions,
+        source_bundle,
+        member_registry,
+        bundle_registry,
+    )
+    if schema.source_contract_id != source.payload["source_contract_id"]:
+        raise CanonicalizationError(
+            "feature schema source_contract_id differs from protocol source"
+        )
+    if schema.source_schema_id != source.payload["source_schema_id"]:
+        raise CanonicalizationError(
+            "feature schema source_schema_id differs from protocol source"
+        )
+    if schema.frozen_at > utc_datetime(
+        protocol.payload["protocol_frozen_at"], field="protocol_frozen_at"
+    ):
+        raise CanonicalizationError("feature schema was frozen after the protocol")
+
+
+def validate_information_protocol_graph(
     *,
     protocol: ImmutableManifestV3,
     information_set: InformationSetV3,
-    eligibility: EligibilityDecisionV3,
-    event: DecisionEventV3,
     registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
 ) -> None:
-    """Bind a validated causal record graph to one frozen protocol manifest."""
+    """Bind one information set to its source lineage and frozen protocol."""
 
     if protocol.manifest_type is not ManifestType.PROTOCOL:
         raise CanonicalizationError("record graph requires a PROTOCOL manifest")
-    validate_manifest_graph(protocol, registry)
-    eligibility.validate_against(information_set)
-    event.validate_against(information_set, eligibility)
+    validate_manifest_evidence_graph(protocol, registry, evidence_registry)
 
     payload = protocol.payload
     if information_set.protocol_manifest_id != protocol.manifest_id:
@@ -567,6 +930,11 @@ def validate_record_protocol_graph(
         ManifestType.SOURCE,
     )
     validate_manifest_graph(source, registry)
+    validate_source_manifest_evidence_graph(
+        source=source,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
     _require_source_descendant(
         source,
         ancestor_id=payload["source_manifest_id"],
@@ -594,12 +962,639 @@ def validate_record_protocol_graph(
             raise CanonicalizationError(
                 f"information-set {field} differs from its frozen protocol"
             )
+    _validate_information_evidence_graph(
+        protocol=protocol,
+        information_set=information_set,
+        source=source,
+        evidence_registry=evidence_registry,
+    )
 
+
+def _validate_information_evidence_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    information_set: InformationSetV3,
+    source: ImmutableManifestV3,
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Enforce exact source membership and finite feature-slot cardinality."""
+
+    bundle = _resolve_evidence(
+        evidence_registry,
+        source.payload["source_content_root"],
+        SourceBundleV3,
+    )
+    members = {
+        member_id: _resolve_evidence(
+            evidence_registry,
+            member_id,
+            SourceBundleMemberV3,
+        )
+        for member_id in bundle.source_member_ids
+    }
+    schema = _resolve_evidence(
+        evidence_registry,
+        information_set.feature_schema_id,
+        FeatureSchemaV3,
+    )
+    slots = {
+        slot_id: _resolve_evidence(
+            evidence_registry,
+            slot_id,
+            FeatureDependencySlotV3,
+        )
+        for slot_id in schema.dependency_slot_ids
+    }
+    for definition_id in schema.feature_definition_ids:
+        _resolve_evidence(
+            evidence_registry,
+            definition_id,
+            FeatureDefinitionV3,
+        )
+
+    counts = dict.fromkeys(slots, 0)
+    source_member_counts = {slot_id: {} for slot_id in slots}
+    revision_keys: set[tuple[str, str, str]] = set()
+    observation_keys: set[tuple[str, str, datetime, datetime, datetime]] = set()
+    member_observation_revisions: dict[
+        tuple[str, datetime, datetime, datetime], str
+    ] = {}
+    revision_coordinates: dict[tuple[str, str], tuple[object, ...]] = {}
+    revision_field_values: dict[tuple[str, str, tuple[str, ...]], str] = {}
+    for dependency in information_set.dependencies:
+        slot = slots.get(dependency.dependency_slot_id)
+        if slot is None:
+            raise CanonicalizationError(
+                "information dependency references an undeclared slot"
+            )
+        if slot.evidence_kind is not EvidenceKind.OBSERVATION:
+            raise CanonicalizationError(
+                "observation dependency is bound to a non-observation slot"
+            )
+        member = members.get(dependency.source_member_id)
+        if member is None:
+            raise CanonicalizationError(
+                "information dependency references a foreign source member"
+            )
+        if member.source_role is not SourceRole.DECISION_INPUT:
+            raise CanonicalizationError(
+                "pre-decision dependency uses a forbidden source role"
+            )
+        if member.row_count == 0:
+            raise CanonicalizationError(
+                "realized observation cannot use an empty source member"
+            )
+        if member.source_member_key not in slot.source_member_keys:
+            raise CanonicalizationError(
+                "information dependency source member cannot satisfy its slot"
+            )
+        if dependency.source_id != member.source_id:
+            raise CanonicalizationError(
+                "information dependency source_id differs from its source member"
+            )
+        if dependency.source_field_ids != slot.source_field_ids:
+            raise CanonicalizationError(
+                "information dependency source fields differ from its slot"
+            )
+        if not set(dependency.source_field_ids).issubset(member.source_field_ids):
+            raise CanonicalizationError(
+                "information dependency requests fields absent from its source member"
+            )
+        if dependency.feature_available_ts > member.knowledge_cutoff_ts:
+            raise CanonicalizationError(
+                "information dependency postdates its source-member snapshot"
+            )
+        if dependency.source_event_ts > dependency.ingested_first_seen_ts:
+            raise CanonicalizationError(
+                "information dependency source_event_ts exceeds ingested_first_seen_ts"
+            )
+        if member.event_start_ts is not None and (
+            dependency.source_event_ts < member.event_start_ts
+            or dependency.source_event_ts > member.event_end_ts
+        ):
+            raise CanonicalizationError(
+                "information dependency lies outside source-member coverage"
+            )
+        if (
+            slot.maximum_age_seconds is not None
+            and (
+                information_set.observation_cutoff_ts - dependency.bar_close_ts
+            ).total_seconds()
+            > slot.maximum_age_seconds
+        ):
+            raise CanonicalizationError(
+                "information dependency exceeds its slot maximum age"
+            )
+        revision_key = (
+            dependency.dependency_slot_id,
+            dependency.source_member_id,
+            dependency.observation_revision_id,
+        )
+        if revision_key in revision_keys:
+            raise CanonicalizationError(
+                "information dependencies duplicate a slot observation revision"
+            )
+        revision_keys.add(revision_key)
+        observation_key = (
+            dependency.dependency_slot_id,
+            dependency.source_member_id,
+            dependency.source_event_ts,
+            dependency.bar_open_ts,
+            dependency.bar_close_ts,
+        )
+        if observation_key in observation_keys:
+            raise CanonicalizationError(
+                "information dependencies select multiple revisions of one "
+                "slot observation"
+            )
+        observation_keys.add(observation_key)
+        member_observation_key = (
+            dependency.source_member_id,
+            dependency.source_event_ts,
+            dependency.bar_open_ts,
+            dependency.bar_close_ts,
+        )
+        prior_revision = member_observation_revisions.get(member_observation_key)
+        if (
+            prior_revision is not None
+            and prior_revision != dependency.observation_revision_id
+        ):
+            raise CanonicalizationError(
+                "information dependencies select conflicting revisions of one "
+                "source-member observation"
+            )
+        member_observation_revisions[member_observation_key] = (
+            dependency.observation_revision_id
+        )
+        revision_coordinate_key = (
+            dependency.source_member_id,
+            dependency.observation_revision_id,
+        )
+        coordinates = (
+            dependency.name,
+            dependency.source_event_ts,
+            dependency.bar_open_ts,
+            dependency.bar_close_ts,
+            dependency.source_publish_ts,
+            dependency.ingested_first_seen_ts,
+            dependency.revision_received_ts,
+        )
+        prior_coordinates = revision_coordinates.get(revision_coordinate_key)
+        if prior_coordinates is not None and prior_coordinates != coordinates:
+            raise CanonicalizationError(
+                "one source observation revision has conflicting coordinates"
+            )
+        revision_coordinates[revision_coordinate_key] = coordinates
+        revision_field_key = (
+            dependency.source_member_id,
+            dependency.observation_revision_id,
+            dependency.source_field_ids,
+        )
+        prior_value_digest = revision_field_values.get(revision_field_key)
+        if (
+            prior_value_digest is not None
+            and prior_value_digest != dependency.value_digest
+        ):
+            raise CanonicalizationError(
+                "one source observation revision and field set has conflicting "
+                "value digests"
+            )
+        revision_field_values[revision_field_key] = dependency.value_digest
+        counts[dependency.dependency_slot_id] += 1
+        member_counts = source_member_counts[dependency.dependency_slot_id]
+        member_counts[member.source_member_key] = (
+            member_counts.get(member.source_member_key, 0) + 1
+        )
+
+    realized_rows_by_member = dict.fromkeys(members, 0)
+    for member_id, _, _, _ in member_observation_revisions:
+        realized_rows_by_member[member_id] += 1
+    for member_id, realized_rows in realized_rows_by_member.items():
+        if realized_rows > members[member_id].row_count:
+            raise CanonicalizationError(
+                "information dependencies exceed source-member row_count"
+            )
+
+    checkpoint_keys: set[tuple[str, str]] = set()
+    for dependency in information_set.state_dependencies:
+        slot = slots.get(dependency.dependency_slot_id)
+        if slot is None:
+            raise CanonicalizationError(
+                "state dependency references an undeclared slot"
+            )
+        if slot.evidence_kind is not EvidenceKind.STATE_CHECKPOINT:
+            raise CanonicalizationError("state dependency is bound to a non-state slot")
+        if dependency.state_schema_id != slot.state_schema_id:
+            raise CanonicalizationError("state dependency schema differs from its slot")
+        if (
+            slot.maximum_age_seconds is not None
+            and (
+                information_set.observation_cutoff_ts - dependency.state_cutoff_ts
+            ).total_seconds()
+            > slot.maximum_age_seconds
+        ):
+            raise CanonicalizationError("state dependency exceeds its slot maximum age")
+        checkpoint_key = (
+            dependency.dependency_slot_id,
+            dependency.state_checkpoint_id,
+        )
+        if checkpoint_key in checkpoint_keys:
+            raise CanonicalizationError(
+                "state dependencies duplicate a slot checkpoint"
+            )
+        checkpoint_keys.add(checkpoint_key)
+        counts[dependency.dependency_slot_id] += 1
+
+    protocol_payload = protocol.payload
+    for slot_id, slot in slots.items():
+        if slot.evidence_kind is EvidenceKind.PROTOCOL_CONSTANT:
+            missing = [
+                field
+                for field in slot.protocol_field_names
+                if field not in protocol_payload
+            ]
+            if missing:
+                raise CanonicalizationError(
+                    f"protocol constant slot references unknown fields: {missing}"
+                )
+            counts[slot_id] = len(slot.protocol_field_names)
+        if (
+            slot.evidence_kind is EvidenceKind.OBSERVATION
+            and slot.cardinality_scope is CardinalityScope.PER_SOURCE_MEMBER
+        ):
+            for member_key in slot.source_member_keys:
+                member_count = source_member_counts[slot_id].get(member_key, 0)
+                if member_count > slot.maximum_count or (
+                    member_count < slot.minimum_count
+                    and slot.missing_input_policy is MissingInputPolicy.FAIL
+                ):
+                    raise CanonicalizationError(
+                        f"dependency slot {slot_id} source member {member_key} "
+                        f"cardinality {member_count} is outside "
+                        f"[{slot.minimum_count}, {slot.maximum_count}]"
+                    )
+        else:
+            count = counts[slot_id]
+            if count > slot.maximum_count or (
+                count < slot.minimum_count
+                and slot.missing_input_policy is MissingInputPolicy.FAIL
+            ):
+                raise CanonicalizationError(
+                    f"dependency slot {slot_id} cardinality {count} is outside "
+                    f"[{slot.minimum_count}, {slot.maximum_count}]"
+                )
+
+
+def validate_candidate_protocol_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    information_set: InformationSetV3,
+    candidate: PrimarySignalCandidateV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Bind one pre-eligibility candidate to causal evidence and policies."""
+
+    validate_information_protocol_graph(
+        protocol=protocol,
+        information_set=information_set,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
+    candidate.validate_against(information_set)
+    payload = protocol.payload
+    if candidate.entry_scenario in {
+        EntryScenario.FORWARD_MARKET_ORDER,
+        EntryScenario.LIVE_MARKET_ORDER,
+    }:
+        if (
+            information_set.vintage_class is not VintageClass.LIVE_FIRST_SEEN_CERTIFIED
+            or not information_set.point_in_time_certified
+        ):
+            raise CanonicalizationError(
+                "forward/live candidate requires certified live first-seen evidence"
+            )
+        if (
+            utc_datetime(payload["protocol_frozen_at"], field="protocol_frozen_at")
+            > information_set.observation_cutoff_ts
+        ):
+            raise CanonicalizationError(
+                "forward/live candidate uses a protocol frozen after its observation "
+                "cutoff"
+            )
     policy_bindings = {
-        "eligibility_policy_id": (
-            eligibility.eligibility_policy_id,
-            payload["eligibility_policy_id"],
+        "primary_signal_policy_id": candidate.primary_signal_policy_id,
+        "action_protocol_id": candidate.action_protocol_id,
+        "label_protocol_id": candidate.label_protocol_id,
+        "barrier_policy_id": candidate.barrier_policy_id,
+        "cost_scenario_id": candidate.cost_scenario_id,
+    }
+    for field, actual in policy_bindings.items():
+        if actual != payload[field]:
+            raise CanonicalizationError(
+                f"candidate {field} differs from its frozen protocol"
+            )
+
+
+def validate_action_resolution_candidate_graph(
+    *,
+    information_set: InformationSetV3,
+    candidate: PrimarySignalCandidateV3,
+    action_resolution: ActionResolutionV3,
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Recompute and bind the scheduled action proof carried by a candidate."""
+
+    calendar = _resolve_evidence(
+        evidence_registry,
+        action_resolution.calendar_snapshot_id,
+        CalendarScheduleSnapshotV3,
+    )
+    calendar_artifact = _resolve_evidence(
+        evidence_registry,
+        calendar.calendar_source_artifact_id,
+        CalendarSourceArtifactV3,
+    )
+    action_protocol = _resolve_evidence(
+        evidence_registry,
+        action_resolution.action_protocol_id,
+        ActionProtocolV3,
+    )
+    mapping = _resolve_evidence(
+        evidence_registry,
+        action_resolution.instrument_mapping_id,
+        InstrumentMappingV3,
+    )
+    action_resolution.validate_against(
+        information_set=information_set,
+        calendar_artifact=calendar_artifact,
+        calendar=calendar,
+        protocol=action_protocol,
+        mapping=mapping,
+    )
+    if action_resolution.status is not ActionResolutionStatus.RESOLVED:
+        raise CanonicalizationError(
+            "only a RESOLVED action may create a primary-signal candidate"
+        )
+    expected = {
+        "action_protocol_id": action_resolution.action_protocol_id,
+        "action_resolution_id": action_resolution.action_resolution_id,
+        "action_resolution_record_hash": action_resolution.record_hash,
+        "asset_id": action_resolution.asset_id,
+        "venue_id": action_resolution.venue_id,
+        "contract_id": action_resolution.source_contract_id,
+        "timeframe_id": action_resolution.timeframe_id,
+        "primary_signal_id": action_resolution.primary_signal_id,
+        "primary_signal_version": action_resolution.primary_signal_version,
+        "primary_signal_policy_id": action_resolution.primary_signal_policy_id,
+        "signal_ts": action_resolution.signal_ts,
+        "side": action_resolution.side,
+        "candidate_available_ts": action_resolution.resolved_at,
+        "earliest_order_submission_ts": (
+            action_resolution.earliest_order_submission_ts
         ),
+        "earliest_entry_ts": action_resolution.earliest_entry_ts,
+        "entry_expiry_ts": action_resolution.entry_expiry_ts,
+        "entry_scenario": action_resolution.entry_scenario,
+        "executable_contract_id": action_resolution.executable_contract_id,
+    }
+    for field, expected_value in expected.items():
+        if getattr(candidate, field) != expected_value:
+            raise CanonicalizationError(
+                f"candidate {field} differs from its action resolution"
+            )
+
+
+def _missing_dependency_slot_ids(
+    *,
+    information_set: InformationSetV3,
+    slots: Mapping[str, FeatureDependencySlotV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> frozenset[str]:
+    """Return non-FAIL slots whose declared evidence is absent or incomplete."""
+
+    total_counts = dict.fromkeys(slots, 0)
+    member_counts: dict[str, dict[str, int]] = {slot_id: {} for slot_id in slots}
+    for dependency in information_set.dependencies:
+        total_counts[dependency.dependency_slot_id] += 1
+        member = _resolve_evidence(
+            evidence_registry,
+            dependency.source_member_id,
+            SourceBundleMemberV3,
+        )
+        counts = member_counts[dependency.dependency_slot_id]
+        counts[member.source_member_key] = counts.get(member.source_member_key, 0) + 1
+    for dependency in information_set.state_dependencies:
+        total_counts[dependency.dependency_slot_id] += 1
+
+    missing: set[str] = set()
+    for slot_id, slot in slots.items():
+        if (
+            slot.evidence_kind is EvidenceKind.PROTOCOL_CONSTANT
+            or slot.missing_input_policy is MissingInputPolicy.FAIL
+        ):
+            continue
+        if (
+            slot.evidence_kind is EvidenceKind.OBSERVATION
+            and slot.cardinality_scope is CardinalityScope.PER_SOURCE_MEMBER
+        ):
+            realized = tuple(
+                member_counts[slot_id].get(member_key, 0)
+                for member_key in slot.source_member_keys
+            )
+            is_missing = any(count < slot.minimum_count for count in realized)
+        else:
+            count = total_counts[slot_id]
+            is_missing = count < slot.minimum_count
+        if is_missing:
+            missing.add(slot_id)
+    return frozenset(missing)
+
+
+def _feature_slot_ancestry(
+    definitions: list[FeatureDefinitionV3],
+) -> dict[str, frozenset[str]]:
+    """Resolve direct and inherited dependency slots for ordered features."""
+
+    ancestry: dict[str, frozenset[str]] = {}
+    for definition in definitions:
+        slots = set(definition.input_dependency_slot_ids)
+        for parent_id in definition.derived_feature_ids:
+            slots.update(ancestry[parent_id])
+        ancestry[definition.feature_definition_id] = frozenset(slots)
+    return ancestry
+
+
+def validate_feature_materialization_protocol_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    information_set: InformationSetV3,
+    candidate: PrimarySignalCandidateV3,
+    feature_materialization: CandidateFeatureMaterializationV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Bind an exact ordered candidate vector to its inspectable schema."""
+
+    validate_candidate_protocol_graph(
+        protocol=protocol,
+        information_set=information_set,
+        candidate=candidate,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
+    feature_materialization.validate_against(information_set, candidate)
+    schema = _resolve_evidence(
+        evidence_registry,
+        feature_materialization.feature_schema_id,
+        FeatureSchemaV3,
+    )
+    definitions = [
+        _resolve_evidence(
+            evidence_registry,
+            definition_id,
+            FeatureDefinitionV3,
+        )
+        for definition_id in schema.feature_definition_ids
+    ]
+    if feature_materialization.feature_count != len(definitions):
+        raise CanonicalizationError(
+            "candidate feature count differs from its feature schema"
+        )
+    slots = {
+        slot_id: _resolve_evidence(
+            evidence_registry,
+            slot_id,
+            FeatureDependencySlotV3,
+        )
+        for slot_id in schema.dependency_slot_ids
+    }
+    missing_slots = _missing_dependency_slot_ids(
+        information_set=information_set,
+        slots=slots,
+        evidence_registry=evidence_registry,
+    )
+    slot_ancestry = _feature_slot_ancestry(definitions)
+    for value, definition in zip(
+        feature_materialization.feature_values,
+        definitions,
+        strict=True,
+    ):
+        if definition.feature_role is FeatureRole.MISSINGNESS_INDICATOR:
+            indicator_slot_id = definition.input_dependency_slot_ids[0]
+            expected_indicator = 1.0 if indicator_slot_id in missing_slots else 0.0
+            if decode_float64_be_hex_null_v1(value) != expected_indicator:
+                raise CanonicalizationError(
+                    f"missingness indicator {definition.feature_name} must equal "
+                    f"{expected_indicator:.1f}"
+                )
+            continue
+        feature_missing_slots = slot_ancestry[
+            definition.feature_definition_id
+        ].intersection(missing_slots)
+        if feature_missing_slots and value is not None:
+            raise CanonicalizationError(
+                f"feature {definition.feature_name} must be null when dependency "
+                "evidence is missing"
+            )
+        if not feature_missing_slots and value is None and not definition.nullable:
+            raise CanonicalizationError(
+                f"non-nullable feature {definition.feature_name} is missing"
+            )
+
+
+def validate_eligibility_protocol_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    information_set: InformationSetV3,
+    candidate: PrimarySignalCandidateV3,
+    feature_materialization: CandidateFeatureMaterializationV3,
+    eligibility: EligibilityDecisionV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Bind one eligibility decision to exact evidence, proposal, and vector."""
+
+    validate_feature_materialization_protocol_graph(
+        protocol=protocol,
+        information_set=information_set,
+        candidate=candidate,
+        feature_materialization=feature_materialization,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
+    eligibility.validate_against(
+        information_set,
+        candidate,
+        feature_materialization,
+    )
+    if eligibility.eligibility_policy_id != protocol.payload["eligibility_policy_id"]:
+        raise CanonicalizationError(
+            "record eligibility_policy_id differs from its frozen protocol"
+        )
+    schema = _resolve_evidence(
+        evidence_registry,
+        information_set.feature_schema_id,
+        FeatureSchemaV3,
+    )
+    slots = {
+        slot_id: _resolve_evidence(
+            evidence_registry,
+            slot_id,
+            FeatureDependencySlotV3,
+        )
+        for slot_id in schema.dependency_slot_ids
+    }
+    missing_slots = _missing_dependency_slot_ids(
+        information_set=information_set,
+        slots=slots,
+        evidence_registry=evidence_registry,
+    )
+    missing_abstain_slots = {
+        slot_id
+        for slot_id in missing_slots
+        if slots[slot_id].missing_input_policy is MissingInputPolicy.ABSTAIN
+    }
+    if (
+        missing_abstain_slots
+        and eligibility.verdict is not EligibilityVerdict.ABSTAIN_DATA
+    ):
+        raise CanonicalizationError(
+            "missing ABSTAIN dependency evidence requires ABSTAIN_DATA verdict"
+        )
+
+
+def validate_record_protocol_graph(
+    *,
+    protocol: ImmutableManifestV3,
+    information_set: InformationSetV3,
+    candidate: PrimarySignalCandidateV3,
+    feature_materialization: CandidateFeatureMaterializationV3,
+    eligibility: EligibilityDecisionV3,
+    event: DecisionEventV3,
+    registry: Mapping[str, ImmutableManifestV3],
+    evidence_registry: Mapping[str, EvidenceRecordV3],
+) -> None:
+    """Bind a validated causal record graph to one frozen protocol manifest."""
+
+    validate_eligibility_protocol_graph(
+        protocol=protocol,
+        information_set=information_set,
+        candidate=candidate,
+        feature_materialization=feature_materialization,
+        eligibility=eligibility,
+        registry=registry,
+        evidence_registry=evidence_registry,
+    )
+    event.validate_against(
+        information_set,
+        candidate,
+        feature_materialization,
+        eligibility,
+    )
+
+    payload = protocol.payload
+    policy_bindings = {
         "primary_signal_policy_id": (
             event.primary_signal_policy_id,
             payload["primary_signal_policy_id"],
@@ -908,6 +1903,48 @@ def _resolve_manifest(
     return item
 
 
+def _resolve_evidence(
+    registry: Mapping[str, EvidenceRecordV3],
+    identity_id: str,
+    expected_type: type[Any],
+) -> Any:
+    identity = canonical_hash(identity_id, field="evidence_identity_id")
+    item = registry.get(identity)
+    if item is None:
+        raise CanonicalizationError(
+            f"missing referenced {expected_type.__name__} evidence"
+        )
+    if type(item) is not expected_type:
+        raise CanonicalizationError(
+            f"referenced evidence must have type {expected_type.__name__}"
+        )
+    actual_identity = _evidence_identity(item)
+    if actual_identity != identity:
+        raise CanonicalizationError(
+            "evidence registry key does not match canonical content ID"
+        )
+    return item
+
+
+def _evidence_identity(item: EvidenceRecordV3) -> str:
+    field = {
+        CalendarSourceArtifactV3: "calendar_source_artifact_id",
+        CalendarScheduleSnapshotV3: "calendar_snapshot_id",
+        ActionProtocolV3: "action_protocol_id",
+        InstrumentMappingV3: "instrument_mapping_id",
+        SourceBundleMemberV3: "source_member_id",
+        SourceBundleV3: "source_bundle_id",
+        FeatureDependencySlotV3: "dependency_slot_id",
+        FeatureDefinitionV3: "feature_definition_id",
+        FeatureSchemaV3: "feature_schema_id",
+        ProviderAdapterPolicyV3: "adapter_policy_id",
+        ObservationSelectionPolicyV3: "observation_selection_policy_id",
+    }.get(type(item))
+    if field is not None:
+        return canonical_hash(getattr(item, field), field=field)
+    raise CanonicalizationError("unsupported evidence contract")
+
+
 def _validate_source_parent(
     child: ImmutableManifestV3,
     parent: ImmutableManifestV3,
@@ -927,14 +1964,11 @@ def _validate_source_parent(
             raise CanonicalizationError(f"source lineage changes frozen {field}")
     parent_vintage = parent_payload["vintage_class"]
     child_vintage = child_payload["vintage_class"]
-    if not (
-        child_vintage == parent_vintage
-        or (
-            parent_vintage == "NOMINAL_CURRENT_REVISION"
-            and child_vintage == "LIVE_FIRST_SEEN_CERTIFIED"
+    if child_vintage != parent_vintage:
+        raise CanonicalizationError(
+            "source lineage cannot change vintage_class; prospective live evidence "
+            "requires a separate root lineage"
         )
-    ):
-        raise CanonicalizationError("source lineage uses an invalid vintage transition")
     if utc_datetime(
         child_payload["knowledge_cutoff_ts"], field="knowledge_cutoff_ts"
     ) <= utc_datetime(
@@ -997,8 +2031,17 @@ __all__ = [
     "MANIFEST_SCHEMA_VERSION",
     "SUPPORTED_EVENT_SCHEMA_VERSION",
     "derive_split_policy_id",
+    "EvidenceRecordV3",
     "ImmutableManifestV3",
     "ManifestType",
+    "validate_candidate_protocol_graph",
+    "validate_action_resolution_candidate_graph",
+    "validate_eligibility_protocol_graph",
+    "validate_feature_materialization_protocol_graph",
+    "validate_information_protocol_graph",
+    "validate_manifest_evidence_graph",
     "validate_manifest_graph",
+    "validate_protocol_manifest_evidence_graph",
     "validate_record_protocol_graph",
+    "validate_source_manifest_evidence_graph",
 ]
