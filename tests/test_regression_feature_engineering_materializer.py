@@ -12,53 +12,77 @@ from regression_feature_engineering.core.math import pct_change_expr, safe_div_e
 from regression_feature_engineering.features.acceptance_persistence import (
     add_acceptance_persistence_features,
     enrich_acceptance_persistence_sources,
+)
+from regression_feature_engineering.features.acceptance_persistence import (
     feature_columns as acceptance_feature_columns,
 )
 from regression_feature_engineering.features.cross_asset_context import (
     add_cross_asset_context_features,
     build_cross_asset_pair_sources,
+)
+from regression_feature_engineering.features.cross_asset_context import (
     feature_columns as cross_asset_feature_columns,
+)
+from regression_feature_engineering.features.interaction_confluence import (
+    add_interaction_confluence_features,
+)
+from regression_feature_engineering.features.interaction_confluence import (
+    feature_columns as interaction_confluence_feature_columns,
 )
 from regression_feature_engineering.features.liquidity_volume_pressure import (
     add_liquidity_volume_pressure_features,
     enrich_liquidity_volume_pressure_sources,
+)
+from regression_feature_engineering.features.liquidity_volume_pressure import (
     feature_columns as liquidity_feature_columns,
-)
-from regression_feature_engineering.features.interaction_confluence import (
-    add_interaction_confluence_features,
-    feature_columns as interaction_confluence_feature_columns,
-)
-from regression_feature_engineering.features.rejection_chop import (
-    add_rejection_chop_features,
-    enrich_rejection_chop_sources,
-    feature_columns as rejection_chop_feature_columns,
 )
 from regression_feature_engineering.features.regime_calendar_state import (
     add_regime_calendar_state_features,
     enrich_regime_calendar_state_sources,
+)
+from regression_feature_engineering.features.regime_calendar_state import (
     feature_columns as regime_calendar_feature_columns,
+)
+from regression_feature_engineering.features.rejection_chop import (
+    add_rejection_chop_features,
+    enrich_rejection_chop_sources,
+)
+from regression_feature_engineering.features.rejection_chop import (
+    feature_columns as rejection_chop_feature_columns,
 )
 from regression_feature_engineering.features.sequence_embedding_layer import (
     add_sequence_embedding_layer_features,
+)
+from regression_feature_engineering.features.sequence_embedding_layer import (
     feature_columns as sequence_embedding_feature_columns,
 )
 from regression_feature_engineering.features.spike_breakout import (
     add_spike_breakout_features,
     enrich_spike_breakout_sources,
+)
+from regression_feature_engineering.features.spike_breakout import (
     feature_columns as spike_breakout_feature_columns,
 )
 from regression_feature_engineering.features.structural_room import (
     add_structural_room_features,
     enrich_structural_room_sources,
+)
+from regression_feature_engineering.features.structural_room import (
     feature_columns as structural_feature_columns,
 )
 from regression_feature_engineering.features.temporal_memory_transforms import (
     TemporalMemoryState,
+)
+from regression_feature_engineering.features.temporal_memory_transforms import (
     feature_columns as temporal_memory_feature_columns,
+)
+from regression_feature_engineering.features.temporal_memory_transforms import (
     selected_source_columns as temporal_memory_source_columns,
 )
 from regression_feature_engineering.features.unsupervised_factor_layer import (
     add_unsupervised_factor_layer_features,
+)
+from regression_feature_engineering.features.unsupervised_factor_layer import (
     feature_columns as unsupervised_factor_feature_columns,
 )
 from regression_feature_engineering.features.volatility_state import (
@@ -88,7 +112,11 @@ def _ts(value: str) -> datetime:
 def test_closed_bar_alignment_waits_until_bar_close() -> None:
     rows = pl.DataFrame(
         {
-            "timestamp": [_ts("2026-01-01T00:14:00"), _ts("2026-01-01T00:15:00"), _ts("2026-01-01T00:29:00")],
+            "timestamp": [
+                _ts("2026-01-01T00:14:00"),
+                _ts("2026-01-01T00:15:00"),
+                _ts("2026-01-01T00:29:00"),
+            ],
             "batch_id": [1, 1, 1],
         }
     )
@@ -142,9 +170,17 @@ def test_volatility_state_features_are_finite_and_causal() -> None:
     cols = feature_columns(timeframes=("15m",), lookbacks=(3,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
-    assert out["rpf_vol_15m_range_to_tb_vol"][0] == pytest.approx(_positive_vol_unit_bnd(((103.0 - 99.0) / 102.0) / 0.01))
-    assert out["rpf_vol_15m_abs_ret_to_tb_vol"][0] == pytest.approx(_positive_vol_unit_bnd(((102.0 - 100.0) / 100.0) / 0.01))
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
+    assert out["rpf_vol_15m_range_to_tb_vol"][0] == pytest.approx(
+        _positive_vol_unit_bnd(((103.0 - 99.0) / 102.0) / 0.01)
+    )
+    assert out["rpf_vol_15m_abs_ret_to_tb_vol"][0] == pytest.approx(
+        _positive_vol_unit_bnd(((102.0 - 100.0) / 100.0) / 0.01)
+    )
     assert round(out["rpf_vol_atr_std_dominance_bnd"][0], 6) == 0.333333
     assert out["rpf_vol_tb_vol_chg_l3"][3] == pytest.approx(0.3)
 
@@ -155,7 +191,16 @@ def test_scale_sensitive_features_are_causally_bounded() -> None:
             "timestamp": [_ts(f"2026-01-01T00:{i:02d}:00") for i in range(8)],
             "batch_id": [1] * 8,
             "close": [100.0] * 8,
-            "tb_volatility_pct": [0.01, 0.010000001, 0.010000002, 0.010000003, 0.010000004, 0.5, 0.01, 0.01],
+            "tb_volatility_pct": [
+                0.01,
+                0.010000001,
+                0.010000002,
+                0.010000003,
+                0.010000004,
+                0.5,
+                0.01,
+                0.01,
+            ],
             "tb_atr_pct_14": [0.012] * 8,
             "tb_realized_vol_120": [0.006] * 8,
             "_rpf_src_15m_open": [100.0] * 8,
@@ -182,7 +227,11 @@ def test_scale_sensitive_features_are_causally_bounded() -> None:
 def test_structural_room_sources_use_prior_bars_only() -> None:
     bars = pl.DataFrame(
         {
-            "timestamp": [_ts("2026-01-01T00:00:00"), _ts("2026-01-01T00:15:00"), _ts("2026-01-01T00:30:00")],
+            "timestamp": [
+                _ts("2026-01-01T00:00:00"),
+                _ts("2026-01-01T00:15:00"),
+                _ts("2026-01-01T00:30:00"),
+            ],
             "open": [100.0, 100.0, 100.0],
             "high": [110.0, 120.0, 150.0],
             "low": [90.0, 80.0, 70.0],
@@ -214,13 +263,23 @@ def test_structural_room_features_are_finite_and_directional() -> None:
     cols = structural_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
-    assert out["rpf_room_15m_up_to_high_l2_vol"][0] == pytest.approx(_positive_vol_unit_bnd(10.0))
-    assert out["rpf_room_15m_down_to_low_l2_vol"][0] == pytest.approx(_positive_vol_unit_bnd(10.0))
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
+    assert out["rpf_room_15m_up_to_high_l2_vol"][0] == pytest.approx(
+        _positive_vol_unit_bnd(10.0)
+    )
+    assert out["rpf_room_15m_down_to_low_l2_vol"][0] == pytest.approx(
+        _positive_vol_unit_bnd(10.0)
+    )
     assert out["rpf_room_15m_room_balance_l2_vol"][0] == pytest.approx(0.0)
     assert out["rpf_room_15m_up_room_share_l2_bnd"][0] == pytest.approx(0.5)
     assert out["rpf_room_15m_donchian_pos_l2_bnd"][0] == pytest.approx(0.5)
-    assert out["rpf_room_15m_value_dist_l2_vol"][0] == pytest.approx(_signed_vol_unit_bnd(5.0))
+    assert out["rpf_room_15m_value_dist_l2_vol"][0] == pytest.approx(
+        _signed_vol_unit_bnd(5.0)
+    )
 
 
 def test_acceptance_sources_use_closed_bar_history() -> None:
@@ -242,7 +301,9 @@ def test_acceptance_sources_use_closed_bar_history() -> None:
 
     out = enrich_acceptance_persistence_sources(bars, lookbacks=(2,))
 
-    prior_value = (((102.0 + 99.0 + 101.0) / 3.0) + ((103.0 + 100.0 + 102.0) / 3.0)) / 2.0
+    prior_value = (
+        ((102.0 + 99.0 + 101.0) / 3.0) + ((103.0 + 100.0 + 102.0) / 3.0)
+    ) / 2.0
     assert out["_rpf_accept_value_l2"].to_list()[2] == pytest.approx(prior_value)
     assert out["_rpf_accept_close_loc_avg_l2"].to_list()[2] == pytest.approx(2.0 / 3.0)
     assert out["_rpf_accept_body_persist_l2"].to_list()[2] > 0
@@ -277,7 +338,11 @@ def test_acceptance_features_are_finite_and_directional() -> None:
     cols = acceptance_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_accept_15m_value_dist_l2_vol"][0] == pytest.approx(
         _signed_vol_unit_bnd(((105.0 - 100.0) / 105.0) / 0.01)
     )
@@ -308,7 +373,10 @@ def test_rejection_chop_sources_detect_wicks_and_failed_breaks() -> None:
     assert "_rpf_chop_lower_reject_l2" in out.columns
     assert out["_rpf_chop_failed_up_break_l2"].to_list()[2] == pytest.approx(0.5)
     assert out["_rpf_chop_failed_down_break_l2"].to_list()[3] == pytest.approx(0.5)
-    assert out["_rpf_chop_upper_reject_l2"].to_list()[2] > out["_rpf_chop_lower_reject_l2"].to_list()[2]
+    assert (
+        out["_rpf_chop_upper_reject_l2"].to_list()[2]
+        > out["_rpf_chop_lower_reject_l2"].to_list()[2]
+    )
 
 
 def test_rejection_chop_features_are_finite_and_bounded() -> None:
@@ -333,7 +401,11 @@ def test_rejection_chop_features_are_finite_and_bounded() -> None:
     cols = rejection_chop_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_chop_15m_upper_reject_l2_bnd"][0] == pytest.approx(0.7)
     assert out["rpf_chop_15m_failed_break_balance_l2_bnd"][0] == pytest.approx(0.25)
 
@@ -359,7 +431,10 @@ def test_spike_breakout_sources_use_prior_channels_and_volume_impulse() -> None:
 
     assert out["_rpf_spike_prior_high_l2"].to_list()[2] == pytest.approx(102.0)
     assert out["_rpf_spike_prior_low_l2"].to_list()[2] == pytest.approx(99.0)
-    assert out["_rpf_spike_up_impulse_l2"].to_list()[3] > out["_rpf_spike_down_impulse_l2"].to_list()[3]
+    assert (
+        out["_rpf_spike_up_impulse_l2"].to_list()[3]
+        > out["_rpf_spike_down_impulse_l2"].to_list()[3]
+    )
     assert out["_rpf_spike_up_volume_impulse_l2"].to_list()[3] > 0.0
     assert out["_rpf_spike_tail_asym_l2"].to_list()[3] > 0.0
 
@@ -390,7 +465,11 @@ def test_spike_breakout_features_are_finite_and_directional() -> None:
     cols = spike_breakout_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_spike_15m_up_breakout_l2_vol"][0] == pytest.approx(
         _positive_vol_unit_bnd(((105.0 - 104.0) / 105.0) / 0.01)
     )
@@ -453,11 +532,17 @@ def test_liquidity_features_are_finite_and_bounded() -> None:
         }
     )
 
-    out = add_liquidity_volume_pressure_features(rows, timeframes=("15m",), lookbacks=(2,))
+    out = add_liquidity_volume_pressure_features(
+        rows, timeframes=("15m",), lookbacks=(2,)
+    )
     cols = liquidity_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_liq_15m_volume_z_l2"][0] == pytest.approx(8.0)
     assert out["rpf_liq_15m_volume_pressure_balance_l2_bnd"][0] == pytest.approx(0.6)
     assert out["rpf_liq_15m_money_flow_balance_l2_bnd"][0] == pytest.approx(-0.3)
@@ -495,10 +580,26 @@ def test_regime_sources_use_metadata_and_closed_bar_history() -> None:
     assert out["_rpf_regime_market_open"].to_list() == [1.0, 1.0, 1.0, 1.0]
     assert out["_rpf_regime_gap_fill"].to_list()[2] == pytest.approx(1.0)
     assert out["_rpf_regime_session_open"].to_list()[0] == pytest.approx(1.0)
-    assert out["_rpf_regime_session_close"].to_list()[3] == pytest.approx(1.0)
+    assert out["_rpf_regime_weekly_open"].to_list()[0] == pytest.approx(1.0)
+    assert "_rpf_regime_session_progress" not in out.columns
+    assert "_rpf_regime_minutes_to_close" not in out.columns
+    assert "_rpf_regime_session_close" not in out.columns
+    assert "_rpf_regime_weekly_close" not in out.columns
     assert out["_rpf_regime_trend_eff_l2"].to_list()[3] > 0.0
     assert out["_rpf_regime_bull_trend_l2"].to_list()[3] == pytest.approx(1.0)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in out.columns if col.startswith("_rpf_regime_")])).to_series().all()
+    assert (
+        out.select(
+            pl.all_horizontal(
+                [
+                    pl.col(col).is_finite()
+                    for col in out.columns
+                    if col.startswith("_rpf_regime_")
+                ]
+            )
+        )
+        .to_series()
+        .all()
+    )
 
 
 def test_regime_calendar_features_are_known_finite_and_bounded() -> None:
@@ -510,12 +611,8 @@ def test_regime_calendar_features_are_known_finite_and_bounded() -> None:
             "_rpf_src_15m__rpf_regime_synthetic_no_trade": [0.0],
             "_rpf_src_15m__rpf_regime_gap_fill": [0.0],
             "_rpf_src_15m__rpf_regime_minutes_since_prev_real_bar": [0.1],
-            "_rpf_src_15m__rpf_regime_session_progress": [0.5],
-            "_rpf_src_15m__rpf_regime_minutes_to_close": [0.2],
             "_rpf_src_15m__rpf_regime_session_open": [0.0],
-            "_rpf_src_15m__rpf_regime_session_close": [0.0],
             "_rpf_src_15m__rpf_regime_weekly_open": [0.0],
-            "_rpf_src_15m__rpf_regime_weekly_close": [0.0],
             "_rpf_src_15m__rpf_regime_vol_rel_l2": [0.7],
             "_rpf_src_15m__rpf_regime_vol_expanding_l2": [1.0],
             "_rpf_src_15m__rpf_regime_trend_eff_l2": [0.8],
@@ -531,7 +628,20 @@ def test_regime_calendar_features_are_known_finite_and_bounded() -> None:
     cols = regime_calendar_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert all(
+        retired not in cols
+        for retired in (
+            "rpf_regime_15m_session_progress_bnd",
+            "rpf_regime_15m_minutes_to_close_bnd",
+            "rpf_regime_15m_session_close_bnd",
+            "rpf_regime_15m_weekly_close_bnd",
+        )
+    )
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_regime_utc_is_weekend_bnd"][0] == pytest.approx(1.0)
     assert out["rpf_regime_15m_bull_trend_l2_bnd"][0] == pytest.approx(1.0)
     assert out["rpf_regime_15m_trend_alignment_l2_bnd"][0] == pytest.approx(0.9)
@@ -564,9 +674,15 @@ def test_interaction_confluence_features_combine_causal_components() -> None:
     cols = interaction_confluence_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_conf_15m_up_squeeze_break_l2_bnd"][0] == pytest.approx(0.64)
-    assert out["rpf_conf_15m_down_squeeze_break_l2_bnd"][0] == pytest.approx(0.2666666667)
+    assert out["rpf_conf_15m_down_squeeze_break_l2_bnd"][0] == pytest.approx(
+        0.2666666667
+    )
     assert out["rpf_conf_15m_up_trend_accept_l2_bnd"][0] == pytest.approx(0.475)
     assert out["rpf_conf_15m_down_trend_accept_l2_bnd"][0] == pytest.approx(0.0)
     assert out["rpf_conf_15m_up_volume_impulse_l2_bnd"][0] == pytest.approx(0.18)
@@ -605,17 +721,36 @@ def test_cross_asset_pair_sources_use_exact_timestamp_matches() -> None:
         }
     )
 
-    out = build_cross_asset_pair_sources(target, context, context_asset="ETHUSDT", lookbacks=(2,))
+    out = build_cross_asset_pair_sources(
+        target, context, context_asset="ETHUSDT", lookbacks=(2,)
+    )
 
-    assert out["timestamp"].to_list() == [_ts("2026-01-01T00:00:00"), _ts("2026-01-01T00:15:00")]
+    assert out["timestamp"].to_list() == [
+        _ts("2026-01-01T00:00:00"),
+        _ts("2026-01-01T00:15:00"),
+    ]
     assert "_rpf_xasset_ret_spread_l2" in out.columns
     assert out["_rpf_xasset_ret_spread_l2"].to_list()[1] > 0.0
     assert out["_rpf_xasset_context_pressure_l2"].to_list()[1] < 0.0
     assert out["_rpf_xasset_common_direction_l2"].to_list()[1] < 0.0
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in out.columns if col.startswith("_rpf_xasset_")])).to_series().all()
+    assert (
+        out.select(
+            pl.all_horizontal(
+                [
+                    pl.col(col).is_finite()
+                    for col in out.columns
+                    if col.startswith("_rpf_xasset_")
+                ]
+            )
+        )
+        .to_series()
+        .all()
+    )
 
 
-def test_cross_asset_context_features_are_finite_and_prefixed_by_context_asset() -> None:
+def test_cross_asset_context_features_are_finite_and_prefixed_by_context_asset() -> (
+    None
+):
     rows = pl.DataFrame(
         {
             "timestamp": [_ts("2026-01-01T00:30:00")],
@@ -631,17 +766,31 @@ def test_cross_asset_context_features_are_finite_and_prefixed_by_context_asset()
         }
     )
 
-    out = add_cross_asset_context_features(rows, context_asset="ETHUSDT", timeframes=("15m",), lookbacks=(2,))
-    cols = cross_asset_feature_columns(context_assets=("ETHUSDT",), timeframes=("15m",), lookbacks=(2,))
+    out = add_cross_asset_context_features(
+        rows, context_asset="ETHUSDT", timeframes=("15m",), lookbacks=(2,)
+    )
+    cols = cross_asset_feature_columns(
+        context_assets=("ETHUSDT",), timeframes=("15m",), lookbacks=(2,)
+    )
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_xasset_ethusdt_15m_ret_spread_l2_bnd"][0] == pytest.approx(0.8)
-    assert out["rpf_xasset_ethusdt_15m_context_pressure_l2_bnd"][0] == pytest.approx(-0.5)
-    assert out["rpf_xasset_ethusdt_15m_context_range_share_l2_bnd"][0] == pytest.approx(1.0)
+    assert out["rpf_xasset_ethusdt_15m_context_pressure_l2_bnd"][0] == pytest.approx(
+        -0.5
+    )
+    assert out["rpf_xasset_ethusdt_15m_context_range_share_l2_bnd"][0] == pytest.approx(
+        1.0
+    )
 
 
-def test_unsupervised_factor_layer_features_are_bounded_and_causal_component_derived() -> None:
+def test_unsupervised_factor_layer_features_are_bounded_and_causal_component_derived() -> (
+    None
+):
     rows = pl.DataFrame(
         {
             "timestamp": [_ts("2026-01-01T00:30:00")],
@@ -683,7 +832,11 @@ def test_unsupervised_factor_layer_features_are_bounded_and_causal_component_der
     cols = unsupervised_factor_feature_columns(timeframes=("15m",), lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_factor_15m_direction_l2_bnd"][0] > 0.0
     assert 0.0 <= out["rpf_factor_15m_path_width_l2_bnd"][0] <= 1.0
     assert 0.0 <= out["rpf_factor_15m_anomaly_l2_bnd"][0] <= 1.0
@@ -707,11 +860,17 @@ def test_sequence_embedding_layer_summarizes_factor_stack() -> None:
         }
     )
 
-    out = add_sequence_embedding_layer_features(rows, timeframes=("15m", "1h"), lookbacks=(2,))
+    out = add_sequence_embedding_layer_features(
+        rows, timeframes=("15m", "1h"), lookbacks=(2,)
+    )
     cols = sequence_embedding_feature_columns(lookbacks=(2,))
 
     assert set(cols).issubset(out.columns)
-    assert out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols])).to_series().all()
+    assert (
+        out.select(pl.all_horizontal([pl.col(col).is_finite() for col in cols]))
+        .to_series()
+        .all()
+    )
     assert out["rpf_seq_direction_mean_l2_bnd"][0] == pytest.approx(0.6)
     assert out["rpf_seq_direction_slope_l2_bnd"][0] == pytest.approx(0.4)
     assert out["rpf_seq_width_mean_l2_bnd"][0] == pytest.approx(0.5)
@@ -719,7 +878,10 @@ def test_sequence_embedding_layer_summarizes_factor_stack() -> None:
 
 def test_materializer_writes_manifest_and_feature_catalog(tmp_path: Path) -> None:
     project = tmp_path
-    label_dir = project / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    label_dir = (
+        project
+        / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    )
     canonical_dir = project / "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/15m"
     label_dir.mkdir(parents=True)
     canonical_dir.mkdir(parents=True)
@@ -775,21 +937,15 @@ def test_materializer_writes_manifest_and_feature_catalog(tmp_path: Path) -> Non
     )[0]
 
     assert result.rows == 2
-    assert result.feature_count == len(feature_columns(timeframes=("15m",), lookbacks=(3,))) + len(
-        structural_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
+    assert result.feature_count == len(
+        feature_columns(timeframes=("15m",), lookbacks=(3,))
+    ) + len(structural_feature_columns(timeframes=("15m",), lookbacks=(2,))) + len(
         acceptance_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
-        rejection_chop_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
+    ) + len(rejection_chop_feature_columns(timeframes=("15m",), lookbacks=(2,))) + len(
         spike_breakout_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
-        liquidity_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
+    ) + len(liquidity_feature_columns(timeframes=("15m",), lookbacks=(2,))) + len(
         regime_calendar_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    ) + len(
-        interaction_confluence_feature_columns(timeframes=("15m",), lookbacks=(2,))
-    )
+    ) + len(interaction_confluence_feature_columns(timeframes=("15m",), lookbacks=(2,)))
     assert result.duplicate_count == 0
     assert result.null_feature_count == 0
 
@@ -810,6 +966,13 @@ def test_materializer_writes_manifest_and_feature_catalog(tmp_path: Path) -> Non
         "interaction_confluence",
     ]
     assert len(catalog) == result.feature_count
+    catalog_names = {entry["name"] for entry in catalog}
+    assert {
+        "rpf_regime_15m_session_progress_bnd",
+        "rpf_regime_15m_minutes_to_close_bnd",
+        "rpf_regime_15m_session_close_bnd",
+        "rpf_regime_15m_weekly_close_bnd",
+    }.isdisjoint(catalog_names)
     assert "rpf_vol_atr_std_dominance_bnd" in written.columns
     assert "rpf_room_15m_donchian_pos_l2_bnd" in written.columns
     assert "rpf_accept_15m_trend_eff_l2_bnd" in written.columns
@@ -823,7 +986,10 @@ def test_materializer_writes_manifest_and_feature_catalog(tmp_path: Path) -> Non
 
 def test_materializer_writes_cross_asset_context_features(tmp_path: Path) -> None:
     project = tmp_path
-    label_dir = project / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    label_dir = (
+        project
+        / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    )
     btc_canonical_dir = project / "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/15m"
     eth_canonical_dir = project / "data/htf_multiasset/ethusdt/htf_canonical_ohlcv/15m"
     label_dir.mkdir(parents=True)
@@ -840,8 +1006,12 @@ def test_materializer_writes_cross_asset_context_features(tmp_path: Path) -> Non
             "tb_realized_vol_120": [0.006, 0.006],
         }
     )
-    labels.filter(pl.col("batch_id") == 1).write_parquet(label_dir / "batch_0001.parquet")
-    labels.filter(pl.col("batch_id") == 2).write_parquet(label_dir / "batch_0002.parquet")
+    labels.filter(pl.col("batch_id") == 1).write_parquet(
+        label_dir / "batch_0001.parquet"
+    )
+    labels.filter(pl.col("batch_id") == 2).write_parquet(
+        label_dir / "batch_0002.parquet"
+    )
 
     btc_bars = pl.DataFrame(
         {
@@ -882,8 +1052,12 @@ def test_materializer_writes_cross_asset_context_features(tmp_path: Path) -> Non
     written = pl.read_parquet(result.output_dir / "batch_0002.parquet")
 
     assert result.rows == 2
-    assert result.feature_count == len(feature_columns(timeframes=("15m",), lookbacks=(3,))) + len(
-        cross_asset_feature_columns(context_assets=("ETHUSDT",), timeframes=("15m",), lookbacks=(2,))
+    assert result.feature_count == len(
+        feature_columns(timeframes=("15m",), lookbacks=(3,))
+    ) + len(
+        cross_asset_feature_columns(
+            context_assets=("ETHUSDT",), timeframes=("15m",), lookbacks=(2,)
+        )
     )
     assert result.duplicate_count == 0
     assert result.null_feature_count == 0
@@ -896,14 +1070,21 @@ def test_materializer_writes_cross_asset_context_features(tmp_path: Path) -> Non
 
 def test_materializer_writes_temporal_memory_features(tmp_path: Path) -> None:
     project = tmp_path
-    label_dir = project / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    label_dir = (
+        project
+        / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    )
     canonical_dir = project / "data/htf_multiasset/btcusdt/htf_canonical_ohlcv/15m"
     label_dir.mkdir(parents=True)
     canonical_dir.mkdir(parents=True)
 
     labels = pl.DataFrame(
         {
-            "timestamp": [_ts("2026-01-01T00:15:00"), _ts("2026-01-01T00:16:00"), _ts("2026-01-01T00:17:00")],
+            "timestamp": [
+                _ts("2026-01-01T00:15:00"),
+                _ts("2026-01-01T00:16:00"),
+                _ts("2026-01-01T00:17:00"),
+            ],
             "batch_id": [1, 1, 2],
             "close": [101.0, 101.5, 102.0],
             "tb_volatility_pct": [0.01, 0.011, 0.012],
@@ -911,8 +1092,12 @@ def test_materializer_writes_temporal_memory_features(tmp_path: Path) -> None:
             "tb_realized_vol_120": [0.006, 0.006, 0.007],
         }
     )
-    labels.filter(pl.col("batch_id") == 1).write_parquet(label_dir / "batch_0001.parquet")
-    labels.filter(pl.col("batch_id") == 2).write_parquet(label_dir / "batch_0002.parquet")
+    labels.filter(pl.col("batch_id") == 1).write_parquet(
+        label_dir / "batch_0001.parquet"
+    )
+    labels.filter(pl.col("batch_id") == 2).write_parquet(
+        label_dir / "batch_0002.parquet"
+    )
 
     bars = pl.DataFrame(
         {
@@ -930,7 +1115,11 @@ def test_materializer_writes_temporal_memory_features(tmp_path: Path) -> None:
         project_root=project,
         assets=("BTCUSDT",),
         roots=("8h/B",),
-        families=("foundation_alignment", "volatility_state", "temporal_memory_transforms"),
+        families=(
+            "foundation_alignment",
+            "volatility_state",
+            "temporal_memory_transforms",
+        ),
         timeframes=("15m",),
         lookbacks=(3,),
         memory_lags=(1,),
@@ -941,7 +1130,9 @@ def test_materializer_writes_temporal_memory_features(tmp_path: Path) -> None:
     )[0]
 
     manifest = json.loads((result.output_dir / "manifest.json").read_text())
-    memory_cols = [col for col in manifest["feature_columns"] if col.startswith("rpf_mem_")]
+    memory_cols = [
+        col for col in manifest["feature_columns"] if col.startswith("rpf_mem_")
+    ]
     expected_sources = temporal_memory_source_columns(
         tuple(feature_columns(timeframes=("15m",), lookbacks=(3,))),
         timeframes=("15m",),
@@ -983,11 +1174,15 @@ def test_temporal_memory_state_is_prior_row_and_chunk_safe() -> None:
     first = state.transform_frame(pl.DataFrame({source: [1.0, 2.0]}))
     second = state.transform_frame(pl.DataFrame({source: [3.0, 4.0]}))
 
-    assert first[f"rpf_mem_vol_atr_std_dominance_bnd_lag1"].to_list() == [0.0, 1.0]
-    assert second[f"rpf_mem_vol_atr_std_dominance_bnd_lag1"].to_list() == [2.0, 3.0]
-    assert second[f"rpf_mem_vol_atr_std_dominance_bnd_diff1"].to_list() == [1.0, 1.0]
-    assert second[f"rpf_mem_vol_atr_std_dominance_bnd_rankpos3_bnd"].to_list()[0] == pytest.approx(1.0)
-    assert second[f"rpf_mem_vol_atr_std_dominance_bnd_ewm2"].to_list()[0] == pytest.approx(1.6666666667)
+    assert first["rpf_mem_vol_atr_std_dominance_bnd_lag1"].to_list() == [0.0, 1.0]
+    assert second["rpf_mem_vol_atr_std_dominance_bnd_lag1"].to_list() == [2.0, 3.0]
+    assert second["rpf_mem_vol_atr_std_dominance_bnd_diff1"].to_list() == [1.0, 1.0]
+    assert second["rpf_mem_vol_atr_std_dominance_bnd_rankpos3_bnd"].to_list()[
+        0
+    ] == pytest.approx(1.0)
+    assert second["rpf_mem_vol_atr_std_dominance_bnd_ewm2"].to_list()[
+        0
+    ] == pytest.approx(1.6666666667)
 
 
 def test_temporal_memory_source_selection_is_curated() -> None:

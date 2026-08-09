@@ -3,7 +3,19 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 import polars as pl
+from polars.testing import assert_frame_equal
 
+from regression_feature_engineering.core.alignment import source_prefix
+from regression_feature_engineering.features.regime_calendar_state import (
+    add_regime_calendar_state_features,
+    enrich_regime_calendar_state_sources,
+)
+from regression_feature_engineering.features.regime_calendar_state import (
+    feature_columns as regime_calendar_feature_columns,
+)
+from regression_feature_engineering.features.regime_calendar_state import (
+    source_columns as regime_calendar_source_columns,
+)
 from scripts.feature_engineering.htf_trading_calendar import (
     CALENDAR_CRYPTO_24_7,
     CALENDAR_FUTURES_SESSION_OBSERVED,
@@ -81,6 +93,84 @@ def test_session_calendar_does_not_fill_maintenance_break_or_weekend() -> None:
     assert canonical.filter(pl.col("timestamp") == monday_open + timedelta(minutes=1))[
         "is_open_session_gap_fill"
     ].to_list() == [True]
+
+
+def test_regime_model_inputs_are_invariant_to_future_session_rows() -> None:
+    """Observed session ends may change with the suffix; model inputs must not."""
+
+    start = datetime(2021, 1, 4, 14, 0, tzinfo=timezone.utc)
+    raw = _bars([start + timedelta(minutes=i) for i in range(6)], base=250.0)
+    prefix_rows = 3
+    prefix_canonical, _ = canonicalize_ohlcv(
+        raw.head(prefix_rows),
+        asset_id="ES",
+        calendar_id=CALENDAR_FUTURES_SESSION_OBSERVED,
+        timeframe="1m",
+    )
+    full_canonical, _ = canonicalize_ohlcv(
+        raw,
+        asset_id="ES",
+        calendar_id=CALENDAR_FUTURES_SESSION_OBSERVED,
+        timeframe="1m",
+    )
+
+    prefix_tail = prefix_canonical.row(-1, named=True)
+    full_prefix_tail = full_canonical.row(prefix_rows - 1, named=True)
+    assert (
+        prefix_tail["session_minutes_to_close"]
+        != full_prefix_tail["session_minutes_to_close"]
+    )
+    assert prefix_tail["is_session_close_bar"] is True
+    assert full_prefix_tail["is_session_close_bar"] is False
+    assert prefix_tail["is_weekly_close_bar"] is True
+    assert full_prefix_tail["is_weekly_close_bar"] is False
+
+    legacy_prefix_progress = prefix_tail["session_bar_pos"] / (
+        prefix_tail["session_bar_pos"] + prefix_tail["session_minutes_to_close"] + 1
+    )
+    legacy_full_progress = full_prefix_tail["session_bar_pos"] / (
+        full_prefix_tail["session_bar_pos"]
+        + full_prefix_tail["session_minutes_to_close"]
+        + 1
+    )
+    assert legacy_prefix_progress != legacy_full_progress
+
+    lookbacks = (2,)
+    source_cols = regime_calendar_source_columns(lookbacks=lookbacks)
+    feature_cols = regime_calendar_feature_columns(
+        timeframes=("15m",), lookbacks=lookbacks
+    )
+    retired_suffixes = (
+        "session_progress",
+        "minutes_to_close",
+        "session_close",
+        "weekly_close",
+    )
+    assert all(
+        not any(column.endswith(suffix) for column in source_cols)
+        for suffix in retired_suffixes
+    )
+    assert all(
+        not any(f"_{suffix}_bnd" in column for column in feature_cols)
+        for suffix in retired_suffixes
+    )
+
+    def model_inputs(canonical: pl.DataFrame) -> pl.DataFrame:
+        enriched = enrich_regime_calendar_state_sources(canonical, lookbacks=lookbacks)
+        prefix = source_prefix("15m")
+        aligned = enriched.select(["timestamp", *source_cols]).rename(
+            {column: f"{prefix}{column}" for column in source_cols}
+        )
+        return add_regime_calendar_state_features(
+            aligned,
+            timeframes=("15m",),
+            lookbacks=lookbacks,
+        ).select(["timestamp", *feature_cols])
+
+    assert_frame_equal(
+        model_inputs(prefix_canonical),
+        model_inputs(full_canonical).head(prefix_rows),
+    )
 
 
 def test_canonical_15m_aggregation_preserves_fill_flags() -> None:

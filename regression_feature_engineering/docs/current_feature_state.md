@@ -7,11 +7,20 @@ actually built, what works technically, and what has not improved prediction.
 
 ## Current Status
 
-Status: technically valid feature artifacts exist, but the current
+Status: technically valid research artifacts exist within their recorded
+engineering checks, but the current
 `regression_path_features_v1` feature set is **not predictively promoted**.
+Any root, catalog, diagnostic, or trained artifact containing retired
+future-dependent calendar fields is quarantined and must be rebuilt.
 
-Current active next step: use the adaptive ranked-signal router instead of
-hard-coding one branch per side:
+Current program-level next step: finish the remaining Stage 1 activation,
+live/scale, label, and split gates before resuming feature/model promotion.
+The fresh-genesis V4.1/V4.2 projection includes the causal completed-1m
+selector, deterministic health, and a projection-clock-owned local
+`DECISION_INPUT` gate. It is not live authority: `EXECUTION_BAR` is
+ABSTAIN-only until the atomic H1/H2/order-intent bridge. The adaptive
+ranked-signal router remains the latest historical modeling branch, not the
+current production-migration step:
 
 ```bash
 python -m regression_feature_engineering.walkforward.rank_signal_router
@@ -5757,3 +5766,131 @@ git diff --check
 Older regime diagnostic runs before this correction remain historical evidence
 only. Rerun the notebook regime stage before drawing any new conclusion about
 HMM/CUSUM gating quality.
+
+## 2026-07-14 RPF feature-system disposition
+
+The current RPF feature materializations remain informative research inputs,
+but the legacy 2,530-feature benchmark panel is not a production feature
+contract and will not be migrated wholesale into the redesigned trading
+system. Its multi-asset surface is too heterogeneous, noisy, redundant, and
+scope-dependent: the large BTCUSDT benchmark and the 29-feature core manifests
+do not describe one invariant live model input space.
+
+The durable decision is:
+
+- preserve the existing catalogs, formulas, provenance, and prior experiment
+  results as a discovery inventory;
+- stop treating “all manifest RPF features” as the clean production default;
+- classify legacy features into causal families before model work resumes;
+- build a new small invariant panel from families that are reproducible in
+  replay and live inference for their claimed assets/timeframes;
+- add one family at a time only after availability, missingness, redundancy,
+  drift, cross-scope stability, and leakage-free OOS economic ablation;
+- retain an individual legacy feature only when it contributes incremental,
+  repeated later-fold value after costs; otherwise redesign or remove it.
+
+This is not a claim that all RPF information is useless. It is a rejection of
+the old high-dimensional packaging and default-selection policy. Detailed
+feature-family triage belongs to Stage 3, after the causal event, source,
+calendar, label, and split contracts are complete.
+
+### V3.2 downstream action boundary
+
+The redesigned trading contract now implements the logical calendar/action
+sub-gate in `riskyieldmm/trading/calendar_actions.py`. A candidate must follow a
+content-addressed `ActionResolutionV3` derived from one immutable calendar
+source artifact, compiled half-open schedule snapshot, frozen action protocol,
+point-in-time executable-instrument mapping, InformationSet, and signal intent.
+The first rule is intentionally limited to the first complete scheduled base
+bar strictly after the computation/submission clock. Resolution can also
+abstain with a typed reason and then cannot produce a candidate.
+Only a declared official-venue artifact with a venue-matching authority name
+can enter that logical schedule gate. This integrity-binds declared metadata
+and hashes; external host/parser attestation remains work for the physical
+provider adapter. The pure resolver consumes exact records, and the ledger
+applies deterministic as-of selection to both resolved and abstained results.
+When a schedule-valid window exists, it uses the latest known calendar covering
+submission and the complete window and the latest known mapping covering that
+window when one exists. Without a valid window it uses the latest known
+same-scope inputs, preferring a calendar covering submission. If no mapping
+covers an existing window, the latest known same-scope blocker wins; it cannot
+be bypassed by an older executable mapping. Future/non-overlapping revisions
+do not rewrite an applicable historical result.
+
+`MAPPING_NOT_KNOWN` remains a pure-resolver diagnostic for a caller-supplied
+future mapping. The ledger rejects that noncausal reference. Other governed
+abstentions may cite a same-scope mapping known by the cutoff: a non-executable
+blocker yields `MAPPING_NOT_EXECUTABLE`, while a known mapping outside the first
+valid window yields `MAPPING_WINDOW_MISSING`. An explicit mapping-absence
+evidence contract is a later schema requirement if the complete no-record
+state must be canonicalized.
+
+This does not promote the RPF calendar features or legacy
+`futures_session_observed` rows into trading authority. They remain descriptive
+research inputs: observed gaps and synthetic carry-forward rows cannot prove
+that a venue was open, a candle was complete, or an instrument was executable.
+The generic V3.2 resolver likewise proves only a scheduled action window, not a
+physical row, current venue/instrument status, feed health, order acceptance,
+or fill.
+
+Before any RPF family can be evaluated as a tradable feature panel, Stage 1
+must supply completed-bar and first-seen evidence,
+exact/latest/trailing row-inclusion and continuity proofs, and prospectively
+journaled status/feed-health evidence. The continuous futures inputs (`6E.v.0`,
+`6J.v.0`, `GC.v.0`, `CL.v.0`, `ES.v.0`, and `NQ.v.0`) also need point-in-time
+mapping to concrete listed contracts. The reciprocally transformed USDJPY
+research series remains unsupported for execution until side, price, tick,
+quantity, barrier, cost, and fill transforms are independently specified and
+tested. Feature-family triage remains downstream of these causal gates.
+
+### V3.3 physical-evidence reference checkpoint
+
+`riskyieldmm/trading/physical_market_data.py` and the governance-ledger
+integration now implement a narrow, fixture-backed Bybit BTCUSDT/ETHUSDT 1m
+reference path: exact raw capture, allowlisted adapter/parser release,
+`confirm=true` completion, immutable derivations/revisions, exhaustive
+one-message/one-disposition classification, deterministic blocker recovery,
+active instrument status and bounded health, finite-prefix
+exact/latest/trailing proofs, InformationSet equality, and a physical
+PASS/ABSTAIN gate before a governed candidate. Ledger tests also reject
+double classification, disposition/prefix omission, cutoff tampering,
+unregistered or substituted proof sets, a candidate before its physical gate,
+and unverified timeframe aggregation.
+
+This is **not** a live-ready adapter or V3.3 acceptance completion:
+
+- the parser hash is a release allowlist, not executable/build attestation;
+- same-fixture parser identity is not operational replay/live parity;
+- Bybit end-inclusivity is a golden-fixture adapter inference;
+- the ledger rebuilds a full-history reference registry and carries cumulative
+  segment/disposition/revision prefix ID arrays rather than using typed indexes,
+  constant-size cutoffs, and bounded commitments;
+- duplicate, control, malformed/provider-error, status-absence, lag/clock, and
+  conflict outcomes are represented and fail closed, but the classifier is not
+  yet driven by a crash-safe continuous collector;
+- physical gating is opt-in, so a forward-paper/live outer gate must forbid
+  the legacy V3.2 bypass at candidate, order, and fill boundaries;
+- `ActionProtocolV3` supports only `NEXT_SCHEDULED_BASE_BAR_OPEN`; opaque legacy
+  forward/live behavior must not be treated as already activated through V3.3.
+
+The fresh-genesis V4.1/V4.2 local correctness slices now implement the
+continuous per-scope RFC 9162 disposition commitment, real typed
+observation/provenance projection, dual-cutoff exact/latest/trailing
+completed-1m SQL selection, independent canonical replay, ordered result
+commitments bounded at 256, deterministic reviewed health transitions,
+no-message staleness ticks, exact `InformationSet` persistence, and a
+projection-clock-owned `DECISION_INPUT` gate with full historical replay.
+Registered primary/status roles, capture membership/lineage, raw classifier and
+normalization replay, monotone receipt/classifier clocks, and same-partition
+ACK/recovery are enforced on admission and replay. Caller health cannot mint
+`HEALTHY`, callers cannot backdate gate time, and `EXECUTION_BAR` always
+persists `ABSTAIN` until its atomic bridge.
+
+The next P0 engineering slice is not another indicator or model. It is the
+persisted outbound subscription intent and exact transport correlation; a
+crash-safe live writer; actual V4 manifest/governance validation; an atomic
+H1/H2 plus exact order-intent/outbox bridge; and a non-bypassable Analyst
+candidate/order/fill boundary that disables legacy V3 activation. It also needs
+10k/100k restart/duration soaks, deterministic 1m-to-HTF aggregation, and
+operational replay/live parity. Until those gates pass, BTCUSDT and ETHUSDT are
+fixture scopes, not authorized live assets.

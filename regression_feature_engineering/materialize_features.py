@@ -5,13 +5,16 @@ It reads existing local artifacts and writes only
 `regression_path_features_v1` outputs.
 """
 
+# The direct-script entry point bootstraps the repository path before local
+# imports, so those imports are intentionally below executable setup.
+# ruff: noqa: E402
+
 from __future__ import annotations
 
 import argparse
 import gc
 import hashlib
 import json
-import shutil
 import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
@@ -27,11 +30,8 @@ if str(_REPO_BOOTSTRAP_ROOT) not in sys.path:
 from regression_feature_engineering.core.alignment import (  # noqa: E402
     DEFAULT_TIMEFRAMES,
     OHLCV_COLUMNS,
-    align_prefix,
-    alignment_diagnostics,
     join_all_closed_bar_context,
     normalize_timeframes,
-    source_prefix,
 )
 from regression_feature_engineering.core.config import load_config  # noqa: E402
 from regression_feature_engineering.core.paths import (  # noqa: E402
@@ -49,7 +49,11 @@ from regression_feature_engineering.features.acceptance_persistence import (  # 
     DEFAULT_ACCEPT_LOOKBACKS,
     add_acceptance_persistence_features,
     enrich_acceptance_persistence_sources,
+)
+from regression_feature_engineering.features.acceptance_persistence import (
     feature_columns as acceptance_feature_columns,
+)
+from regression_feature_engineering.features.acceptance_persistence import (
     source_columns as acceptance_source_columns,
 )
 from regression_feature_engineering.features.cross_asset_context import (  # noqa: E402
@@ -57,52 +61,80 @@ from regression_feature_engineering.features.cross_asset_context import (  # noq
     DEFAULT_XASSET_LOOKBACKS,
     add_cross_asset_context_features,
     build_cross_asset_pair_sources,
+)
+from regression_feature_engineering.features.cross_asset_context import (
     feature_columns as cross_asset_feature_columns,
+)
+from regression_feature_engineering.features.cross_asset_context import (
     source_columns as cross_asset_source_columns,
+)
+from regression_feature_engineering.features.interaction_confluence import (  # noqa: E402
+    DEFAULT_CONFLUENCE_LOOKBACKS,
+    add_interaction_confluence_features,
+)
+from regression_feature_engineering.features.interaction_confluence import (
+    feature_columns as interaction_confluence_feature_columns,
 )
 from regression_feature_engineering.features.liquidity_volume_pressure import (  # noqa: E402
     DEFAULT_LIQ_LOOKBACKS,
     add_liquidity_volume_pressure_features,
     enrich_liquidity_volume_pressure_sources,
+)
+from regression_feature_engineering.features.liquidity_volume_pressure import (
     feature_columns as liquidity_feature_columns,
+)
+from regression_feature_engineering.features.liquidity_volume_pressure import (
     source_columns as liquidity_source_columns,
-)
-from regression_feature_engineering.features.interaction_confluence import (  # noqa: E402
-    DEFAULT_CONFLUENCE_LOOKBACKS,
-    add_interaction_confluence_features,
-    feature_columns as interaction_confluence_feature_columns,
-)
-from regression_feature_engineering.features.rejection_chop import (  # noqa: E402
-    DEFAULT_CHOP_LOOKBACKS,
-    add_rejection_chop_features,
-    enrich_rejection_chop_sources,
-    feature_columns as rejection_chop_feature_columns,
-    source_columns as rejection_chop_source_columns,
 )
 from regression_feature_engineering.features.regime_calendar_state import (  # noqa: E402
     DEFAULT_REGIME_LOOKBACKS,
     add_regime_calendar_state_features,
     enrich_regime_calendar_state_sources,
+)
+from regression_feature_engineering.features.regime_calendar_state import (
     feature_columns as regime_calendar_feature_columns,
+)
+from regression_feature_engineering.features.regime_calendar_state import (
     source_columns as regime_calendar_source_columns,
+)
+from regression_feature_engineering.features.rejection_chop import (  # noqa: E402
+    DEFAULT_CHOP_LOOKBACKS,
+    add_rejection_chop_features,
+    enrich_rejection_chop_sources,
+)
+from regression_feature_engineering.features.rejection_chop import (
+    feature_columns as rejection_chop_feature_columns,
+)
+from regression_feature_engineering.features.rejection_chop import (
+    source_columns as rejection_chop_source_columns,
 )
 from regression_feature_engineering.features.sequence_embedding_layer import (  # noqa: E402
     DEFAULT_SEQUENCE_LOOKBACKS,
     add_sequence_embedding_layer_features,
+)
+from regression_feature_engineering.features.sequence_embedding_layer import (
     feature_columns as sequence_embedding_feature_columns,
 )
 from regression_feature_engineering.features.spike_breakout import (  # noqa: E402
     DEFAULT_SPIKE_LOOKBACKS,
     add_spike_breakout_features,
     enrich_spike_breakout_sources,
+)
+from regression_feature_engineering.features.spike_breakout import (
     feature_columns as spike_breakout_feature_columns,
+)
+from regression_feature_engineering.features.spike_breakout import (
     source_columns as spike_breakout_source_columns,
 )
 from regression_feature_engineering.features.structural_room import (  # noqa: E402
     DEFAULT_ROOM_LOOKBACKS,
     add_structural_room_features,
     enrich_structural_room_sources,
+)
+from regression_feature_engineering.features.structural_room import (
     feature_columns as structural_room_feature_columns,
+)
+from regression_feature_engineering.features.structural_room import (
     source_columns as structural_room_source_columns,
 )
 from regression_feature_engineering.features.temporal_memory_transforms import (  # noqa: E402
@@ -111,28 +143,39 @@ from regression_feature_engineering.features.temporal_memory_transforms import (
     DEFAULT_MEMORY_LAGS,
     DEFAULT_MEMORY_RANK_WINDOWS,
     TemporalMemoryState,
-    feature_columns as temporal_memory_feature_columns,
     parse_positive_ints,
+)
+from regression_feature_engineering.features.temporal_memory_transforms import (
+    feature_columns as temporal_memory_feature_columns,
+)
+from regression_feature_engineering.features.temporal_memory_transforms import (
     selected_source_columns as temporal_memory_source_columns,
 )
 from regression_feature_engineering.features.unsupervised_factor_layer import (  # noqa: E402
     DEFAULT_FACTOR_LOOKBACKS,
     add_unsupervised_factor_layer_features,
+)
+from regression_feature_engineering.features.unsupervised_factor_layer import (
     feature_columns as unsupervised_factor_feature_columns,
+)
+from regression_feature_engineering.features.unsupervised_factor_layer import (
     required_component_families as unsupervised_factor_required_families,
 )
 from regression_feature_engineering.features.volatility_state import (  # noqa: E402
     DEFAULT_VOL_LOOKBACKS,
     add_volatility_state_features,
+)
+from regression_feature_engineering.features.volatility_state import (
     feature_columns as volatility_feature_columns,
 )
-from scripts.feature_engineering.htf_asset_registry import normalize_htf_asset_id  # noqa: E402
+from scripts.feature_engineering.htf_asset_registry import (
+    normalize_htf_asset_id,  # noqa: E402
+)
 from scripts.htf_backtest.catboost.stage1_multiasset_dataset import (  # noqa: E402
     STAGE1_MULTIASSET_ROOT_LAYOUTS,
     parse_stage1_target_assets,
 )
 from scripts.project_paths import ensure_project_root_on_path  # noqa: E402
-
 
 PROJECT_ROOT = ensure_project_root_on_path(Path(__file__))
 DEFAULT_FAMILIES = ("foundation_alignment", "volatility_state")
@@ -183,8 +226,12 @@ def parse_families(raw: str | tuple[str, ...] | list[str] | None) -> tuple[str, 
         selected = tuple(str(part).strip() for part in raw if str(part).strip())
     unknown = [family for family in selected if family not in known]
     if unknown:
-        raise ValueError(f"Unknown feature family/families {unknown}; known={sorted(known)}")
-    unsupported = [family for family in selected if family not in IMPLEMENTED_MATERIALIZER_FAMILIES]
+        raise ValueError(
+            f"Unknown feature family/families {unknown}; known={sorted(known)}"
+        )
+    unsupported = [
+        family for family in selected if family not in IMPLEMENTED_MATERIALIZER_FAMILIES
+    ]
     if unsupported:
         raise ValueError(
             "Feature family/families are planned but not implemented in the materializer yet: "
@@ -207,7 +254,9 @@ def parse_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int,
     return values
 
 
-def parse_room_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_room_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse structural-room positive integer lookback windows."""
 
     if raw is None:
@@ -221,7 +270,9 @@ def parse_room_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple
     return values
 
 
-def parse_accept_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_accept_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse acceptance/persistence positive integer lookback windows."""
 
     if raw is None:
@@ -235,7 +286,9 @@ def parse_accept_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tup
     return values
 
 
-def parse_chop_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_chop_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse rejection/chop positive integer lookback windows."""
 
     if raw is None:
@@ -249,7 +302,9 @@ def parse_chop_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple
     return values
 
 
-def parse_spike_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_spike_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse spike/breakout positive integer lookback windows."""
 
     if raw is None:
@@ -263,7 +318,9 @@ def parse_spike_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tupl
     return values
 
 
-def parse_liq_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_liq_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse liquidity/volume-pressure positive integer lookback windows."""
 
     if raw is None:
@@ -273,11 +330,15 @@ def parse_liq_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[
     else:
         values = tuple(int(value) for value in raw)
     if not values or any(value <= 0 for value in values):
-        raise ValueError("Liquidity/volume-pressure lookbacks must be positive integers")
+        raise ValueError(
+            "Liquidity/volume-pressure lookbacks must be positive integers"
+        )
     return values
 
 
-def parse_regime_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_regime_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse regime/calendar positive integer lookback windows."""
 
     if raw is None:
@@ -291,7 +352,9 @@ def parse_regime_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tup
     return values
 
 
-def parse_confluence_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_confluence_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse interaction/confluence positive integer lookback windows."""
 
     if raw is None:
@@ -305,7 +368,9 @@ def parse_confluence_lookbacks(raw: str | tuple[int, ...] | list[int] | None) ->
     return values
 
 
-def parse_xasset_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_xasset_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse cross-asset positive integer lookback windows."""
 
     if raw is None:
@@ -319,7 +384,9 @@ def parse_xasset_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tup
     return values
 
 
-def parse_factor_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_factor_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse unsupervised/factor positive integer lookback parameters."""
 
     if raw is None:
@@ -333,7 +400,9 @@ def parse_factor_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tup
     return tuple(dict.fromkeys(values))
 
 
-def parse_sequence_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_sequence_lookbacks(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse sequence embedding positive integer lookback parameters."""
 
     if raw is None:
@@ -347,7 +416,9 @@ def parse_sequence_lookbacks(raw: str | tuple[int, ...] | list[int] | None) -> t
     return tuple(dict.fromkeys(values))
 
 
-def parse_xasset_context_assets(raw: str | tuple[str, ...] | list[str] | None, *, target_asset: str) -> tuple[str, ...]:
+def parse_xasset_context_assets(
+    raw: str | tuple[str, ...] | list[str] | None, *, target_asset: str
+) -> tuple[str, ...]:
     """Resolve cross-asset context peers for one target asset."""
 
     target_asset = normalize_htf_asset_id(target_asset)
@@ -369,22 +440,34 @@ def parse_memory_lags(raw: str | tuple[int, ...] | list[int] | None) -> tuple[in
     return parse_positive_ints(raw, default=DEFAULT_MEMORY_LAGS, name="Memory lags")
 
 
-def parse_memory_ewm_spans(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_memory_ewm_spans(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse temporal-memory EWM span parameters."""
 
-    return parse_positive_ints(raw, default=DEFAULT_MEMORY_EWM_SPANS, name="Memory EWM spans")
+    return parse_positive_ints(
+        raw, default=DEFAULT_MEMORY_EWM_SPANS, name="Memory EWM spans"
+    )
 
 
-def parse_memory_rank_windows(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_memory_rank_windows(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse temporal-memory rank-position windows."""
 
-    return parse_positive_ints(raw, default=DEFAULT_MEMORY_RANK_WINDOWS, name="Memory rank windows")
+    return parse_positive_ints(
+        raw, default=DEFAULT_MEMORY_RANK_WINDOWS, name="Memory rank windows"
+    )
 
 
-def parse_memory_diff_lags(raw: str | tuple[int, ...] | list[int] | None) -> tuple[int, ...]:
+def parse_memory_diff_lags(
+    raw: str | tuple[int, ...] | list[int] | None,
+) -> tuple[int, ...]:
     """Parse temporal-memory difference lag parameters."""
 
-    return parse_positive_ints(raw, default=DEFAULT_MEMORY_DIFF_LAGS, name="Memory diff lags")
+    return parse_positive_ints(
+        raw, default=DEFAULT_MEMORY_DIFF_LAGS, name="Memory diff lags"
+    )
 
 
 def materialize_regression_feature_roots(
@@ -440,7 +523,9 @@ def materialize_regression_feature_roots(
     for asset_id in assets:
         asset_id = normalize_htf_asset_id(asset_id)
         for root_key in roots:
-            context_assets = parse_xasset_context_assets(xasset_context_assets, target_asset=asset_id)
+            context_assets = parse_xasset_context_assets(
+                xasset_context_assets, target_asset=asset_id
+            )
             summaries.append(
                 _materialize_one(
                     data_root=data_root,
@@ -509,29 +594,47 @@ def _materialize_one(
         raise FileNotFoundError(f"No regression label batches found in {label_dir}")
 
     rows = _read_label_rows(label_paths, asset_id=asset_id, root_id=layout.root_id)
-    bars_by_timeframe = _read_canonical_bars(data_root=data_root, asset_id=asset_id, timeframes=timeframes)
+    bars_by_timeframe = _read_canonical_bars(
+        data_root=data_root, asset_id=asset_id, timeframes=timeframes
+    )
 
     feature_columns: list[str] = []
     catalog: list[dict[str, Any]] = []
     if "volatility_state" in families:
-        feature_columns.extend(volatility_feature_columns(timeframes=timeframes, lookbacks=lookbacks))
+        feature_columns.extend(
+            volatility_feature_columns(timeframes=timeframes, lookbacks=lookbacks)
+        )
         catalog.extend(_volatility_catalog(timeframes=timeframes, lookbacks=lookbacks))
     if "structural_room" in families:
         structural_bars = {
             timeframe: enrich_structural_room_sources(bars, lookbacks=room_lookbacks)
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(structural_room_feature_columns(timeframes=timeframes, lookbacks=room_lookbacks))
-        catalog.extend(_structural_room_catalog(timeframes=timeframes, lookbacks=room_lookbacks))
+        feature_columns.extend(
+            structural_room_feature_columns(
+                timeframes=timeframes, lookbacks=room_lookbacks
+            )
+        )
+        catalog.extend(
+            _structural_room_catalog(timeframes=timeframes, lookbacks=room_lookbacks)
+        )
     else:
         structural_bars = {}
     if "acceptance_persistence" in families:
         acceptance_bars = {
-            timeframe: enrich_acceptance_persistence_sources(bars, lookbacks=accept_lookbacks)
+            timeframe: enrich_acceptance_persistence_sources(
+                bars, lookbacks=accept_lookbacks
+            )
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(acceptance_feature_columns(timeframes=timeframes, lookbacks=accept_lookbacks))
-        catalog.extend(_acceptance_catalog(timeframes=timeframes, lookbacks=accept_lookbacks))
+        feature_columns.extend(
+            acceptance_feature_columns(
+                timeframes=timeframes, lookbacks=accept_lookbacks
+            )
+        )
+        catalog.extend(
+            _acceptance_catalog(timeframes=timeframes, lookbacks=accept_lookbacks)
+        )
     else:
         acceptance_bars = {}
     if "rejection_chop" in families:
@@ -539,8 +642,14 @@ def _materialize_one(
             timeframe: enrich_rejection_chop_sources(bars, lookbacks=chop_lookbacks)
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(rejection_chop_feature_columns(timeframes=timeframes, lookbacks=chop_lookbacks))
-        catalog.extend(_rejection_chop_catalog(timeframes=timeframes, lookbacks=chop_lookbacks))
+        feature_columns.extend(
+            rejection_chop_feature_columns(
+                timeframes=timeframes, lookbacks=chop_lookbacks
+            )
+        )
+        catalog.extend(
+            _rejection_chop_catalog(timeframes=timeframes, lookbacks=chop_lookbacks)
+        )
     else:
         chop_bars = {}
     if "spike_breakout" in families:
@@ -548,26 +657,46 @@ def _materialize_one(
             timeframe: enrich_spike_breakout_sources(bars, lookbacks=spike_lookbacks)
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(spike_breakout_feature_columns(timeframes=timeframes, lookbacks=spike_lookbacks))
-        catalog.extend(_spike_breakout_catalog(timeframes=timeframes, lookbacks=spike_lookbacks))
+        feature_columns.extend(
+            spike_breakout_feature_columns(
+                timeframes=timeframes, lookbacks=spike_lookbacks
+            )
+        )
+        catalog.extend(
+            _spike_breakout_catalog(timeframes=timeframes, lookbacks=spike_lookbacks)
+        )
     else:
         spike_bars = {}
     if "liquidity_volume_pressure" in families:
         liquidity_bars = {
-            timeframe: enrich_liquidity_volume_pressure_sources(bars, lookbacks=liq_lookbacks)
+            timeframe: enrich_liquidity_volume_pressure_sources(
+                bars, lookbacks=liq_lookbacks
+            )
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(liquidity_feature_columns(timeframes=timeframes, lookbacks=liq_lookbacks))
-        catalog.extend(_liquidity_volume_catalog(timeframes=timeframes, lookbacks=liq_lookbacks))
+        feature_columns.extend(
+            liquidity_feature_columns(timeframes=timeframes, lookbacks=liq_lookbacks)
+        )
+        catalog.extend(
+            _liquidity_volume_catalog(timeframes=timeframes, lookbacks=liq_lookbacks)
+        )
     else:
         liquidity_bars = {}
     if "regime_calendar_state" in families:
         regime_bars = {
-            timeframe: enrich_regime_calendar_state_sources(bars, lookbacks=regime_lookbacks)
+            timeframe: enrich_regime_calendar_state_sources(
+                bars, lookbacks=regime_lookbacks
+            )
             for timeframe, bars in bars_by_timeframe.items()
         }
-        feature_columns.extend(regime_calendar_feature_columns(timeframes=timeframes, lookbacks=regime_lookbacks))
-        catalog.extend(_regime_calendar_catalog(timeframes=timeframes, lookbacks=regime_lookbacks))
+        feature_columns.extend(
+            regime_calendar_feature_columns(
+                timeframes=timeframes, lookbacks=regime_lookbacks
+            )
+        )
+        catalog.extend(
+            _regime_calendar_catalog(timeframes=timeframes, lookbacks=regime_lookbacks)
+        )
     else:
         regime_bars = {}
 
@@ -589,8 +718,16 @@ def _materialize_one(
                 "interaction_confluence requires these causal component families: "
                 f"{missing_base}. Request all component families before Phase 10."
             )
-        feature_columns.extend(interaction_confluence_feature_columns(timeframes=timeframes, lookbacks=confluence_lookbacks))
-        catalog.extend(_interaction_confluence_catalog(timeframes=timeframes, lookbacks=confluence_lookbacks))
+        feature_columns.extend(
+            interaction_confluence_feature_columns(
+                timeframes=timeframes, lookbacks=confluence_lookbacks
+            )
+        )
+        catalog.extend(
+            _interaction_confluence_catalog(
+                timeframes=timeframes, lookbacks=confluence_lookbacks
+            )
+        )
 
     if "cross_asset_context" in families:
         if not xasset_context_assets:
@@ -663,20 +800,40 @@ def _materialize_one(
         memory_state = None
 
     if "unsupervised_factor_layer" in families:
-        missing_base = [family for family in unsupervised_factor_required_families() if family not in families]
+        missing_base = [
+            family
+            for family in unsupervised_factor_required_families()
+            if family not in families
+        ]
         if missing_base:
             raise ValueError(
                 "unsupervised_factor_layer requires these causal component families: "
                 f"{missing_base}. Request all deterministic component families before Phase 12."
             )
-        feature_columns.extend(unsupervised_factor_feature_columns(timeframes=timeframes, lookbacks=factor_lookbacks))
-        catalog.extend(_unsupervised_factor_catalog(timeframes=timeframes, lookbacks=factor_lookbacks))
+        feature_columns.extend(
+            unsupervised_factor_feature_columns(
+                timeframes=timeframes, lookbacks=factor_lookbacks
+            )
+        )
+        catalog.extend(
+            _unsupervised_factor_catalog(
+                timeframes=timeframes, lookbacks=factor_lookbacks
+            )
+        )
 
     if "sequence_embedding_layer" in families:
         if "unsupervised_factor_layer" not in families:
-            raise ValueError("sequence_embedding_layer requires unsupervised_factor_layer in the same materialization run.")
-        feature_columns.extend(sequence_embedding_feature_columns(lookbacks=sequence_lookbacks))
-        catalog.extend(_sequence_embedding_catalog(timeframes=timeframes, lookbacks=sequence_lookbacks))
+            raise ValueError(
+                "sequence_embedding_layer requires unsupervised_factor_layer in the same materialization run."
+            )
+        feature_columns.extend(
+            sequence_embedding_feature_columns(lookbacks=sequence_lookbacks)
+        )
+        catalog.extend(
+            _sequence_embedding_catalog(
+                timeframes=timeframes, lookbacks=sequence_lookbacks
+            )
+        )
 
     if not dry_run:
         _prepare_output_root(output_dir)
@@ -686,7 +843,9 @@ def _materialize_one(
     null_feature_count = 0
     diagnostic_columns: tuple[str, ...] = ()
     output_schema: dict[str, pl.DataType] | None = None
-    max_vol_overlap = max(lookbacks) if "volatility_state" in families and lookbacks else 0
+    max_vol_overlap = (
+        max(lookbacks) if "volatility_state" in families and lookbacks else 0
+    )
     for chunk in _batch_chunks(rows, batch_chunk_size=batch_chunk_size):
         output = _build_feature_chunk(
             rows=rows,
@@ -734,10 +893,20 @@ def _materialize_one(
         if output_schema is None:
             output_schema = output.schema
         row_count += output.height
-        duplicate_count += int(output.select(["timestamp", "batch_id"]).height - output.select(["timestamp", "batch_id"]).unique().height)
+        duplicate_count += int(
+            output.select(["timestamp", "batch_id"]).height
+            - output.select(["timestamp", "batch_id"]).unique().height
+        )
         if feature_columns:
             null_feature_count += int(
-                output.select(pl.sum_horizontal([pl.col(col).is_null().cast(pl.Int64) for col in feature_columns]).sum()).item()
+                output.select(
+                    pl.sum_horizontal(
+                        [
+                            pl.col(col).is_null().cast(pl.Int64)
+                            for col in feature_columns
+                        ]
+                    ).sum()
+                ).item()
             )
         if not dry_run:
             _write_batch_files(output, output_dir)
@@ -766,7 +935,10 @@ def _materialize_one(
             diagnostic_columns=diagnostic_columns,
             catalog=catalog,
             output_schema=output_schema,
-            source_paths=[*label_paths, *[canonical_ohlcv_path(data_root, asset_id, tf) for tf in timeframes]],
+            source_paths=[
+                *label_paths,
+                *[canonical_ohlcv_path(data_root, asset_id, tf) for tf in timeframes],
+            ],
         )
     return summary
 
@@ -783,7 +955,9 @@ def _read_label_rows(paths: list[Path], *, asset_id: str, root_id: str) -> pl.Da
     schema = pl.read_parquet(paths[0], n_rows=0).schema
     missing = required - set(schema)
     if missing:
-        raise ValueError(f"Regression label rows missing source columns: {sorted(missing)}")
+        raise ValueError(
+            f"Regression label rows missing source columns: {sorted(missing)}"
+        )
     return (
         pl.read_parquet([str(path) for path in paths])
         .select(
@@ -836,7 +1010,9 @@ def _read_cross_asset_pair_bars(
     out: dict[str, dict[str, pl.DataFrame]] = {}
     for context_asset in context_assets:
         context_asset = normalize_htf_asset_id(context_asset)
-        context_bars = _read_canonical_bars(data_root=data_root, asset_id=context_asset, timeframes=timeframes)
+        context_bars = _read_canonical_bars(
+            data_root=data_root, asset_id=context_asset, timeframes=timeframes
+        )
         out[context_asset] = {
             timeframe: build_cross_asset_pair_sources(
                 target_bars_by_timeframe[timeframe],
@@ -850,7 +1026,9 @@ def _read_cross_asset_pair_bars(
     return out
 
 
-def _batch_chunks(rows: pl.DataFrame, *, batch_chunk_size: int) -> list[tuple[int, int]]:
+def _batch_chunks(
+    rows: pl.DataFrame, *, batch_chunk_size: int
+) -> list[tuple[int, int]]:
     """Return row-index chunks containing whole `batch_id` groups."""
 
     if rows.height == 0:
@@ -908,7 +1086,9 @@ def _build_feature_chunk(
         timeframes=timeframes,
         include_source_ohlcv=False,
     )
-    output = diagnostic_frame.select([*IDENTITY_COLUMNS, *_diagnostic_columns(diagnostic_frame)])
+    output = diagnostic_frame.select(
+        [*IDENTITY_COLUMNS, *_diagnostic_columns(diagnostic_frame)]
+    )
     del diagnostic_frame
 
     if "volatility_state" in families:
@@ -922,9 +1102,15 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=OHLCV_COLUMNS,
         )
-        aligned = add_volatility_state_features(aligned, timeframes=timeframes, lookbacks=lookbacks)
-        family_columns = volatility_feature_columns(timeframes=timeframes, lookbacks=lookbacks)
-        output = output.hstack(aligned.select(family_columns).slice(output_offset, chunk_len))
+        aligned = add_volatility_state_features(
+            aligned, timeframes=timeframes, lookbacks=lookbacks
+        )
+        family_columns = volatility_feature_columns(
+            timeframes=timeframes, lookbacks=lookbacks
+        )
+        output = output.hstack(
+            aligned.select(family_columns).slice(output_offset, chunk_len)
+        )
         del aligned
         del context_rows
 
@@ -936,13 +1122,25 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=structural_room_source_columns(lookbacks=room_lookbacks),
         )
-        aligned = add_structural_room_features(aligned, timeframes=timeframes, lookbacks=room_lookbacks)
-        family_columns = structural_room_feature_columns(timeframes=timeframes, lookbacks=room_lookbacks)
+        aligned = add_structural_room_features(
+            aligned, timeframes=timeframes, lookbacks=room_lookbacks
+        )
+        family_columns = structural_room_feature_columns(
+            timeframes=timeframes, lookbacks=room_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
     if "acceptance_persistence" in families:
-        acceptance_source = tuple(dict.fromkeys(("open", "close", *acceptance_source_columns(lookbacks=accept_lookbacks))))
+        acceptance_source = tuple(
+            dict.fromkeys(
+                (
+                    "open",
+                    "close",
+                    *acceptance_source_columns(lookbacks=accept_lookbacks),
+                )
+            )
+        )
         aligned = join_all_closed_bar_context(
             chunk_rows,
             acceptance_bars,
@@ -950,8 +1148,12 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=acceptance_source,
         )
-        aligned = add_acceptance_persistence_features(aligned, timeframes=timeframes, lookbacks=accept_lookbacks)
-        family_columns = acceptance_feature_columns(timeframes=timeframes, lookbacks=accept_lookbacks)
+        aligned = add_acceptance_persistence_features(
+            aligned, timeframes=timeframes, lookbacks=accept_lookbacks
+        )
+        family_columns = acceptance_feature_columns(
+            timeframes=timeframes, lookbacks=accept_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
@@ -963,8 +1165,12 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=rejection_chop_source_columns(lookbacks=chop_lookbacks),
         )
-        aligned = add_rejection_chop_features(aligned, timeframes=timeframes, lookbacks=chop_lookbacks)
-        family_columns = rejection_chop_feature_columns(timeframes=timeframes, lookbacks=chop_lookbacks)
+        aligned = add_rejection_chop_features(
+            aligned, timeframes=timeframes, lookbacks=chop_lookbacks
+        )
+        family_columns = rejection_chop_feature_columns(
+            timeframes=timeframes, lookbacks=chop_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
@@ -976,8 +1182,12 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=spike_breakout_source_columns(lookbacks=spike_lookbacks),
         )
-        aligned = add_spike_breakout_features(aligned, timeframes=timeframes, lookbacks=spike_lookbacks)
-        family_columns = spike_breakout_feature_columns(timeframes=timeframes, lookbacks=spike_lookbacks)
+        aligned = add_spike_breakout_features(
+            aligned, timeframes=timeframes, lookbacks=spike_lookbacks
+        )
+        family_columns = spike_breakout_feature_columns(
+            timeframes=timeframes, lookbacks=spike_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
@@ -989,8 +1199,12 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=liquidity_source_columns(lookbacks=liq_lookbacks),
         )
-        aligned = add_liquidity_volume_pressure_features(aligned, timeframes=timeframes, lookbacks=liq_lookbacks)
-        family_columns = liquidity_feature_columns(timeframes=timeframes, lookbacks=liq_lookbacks)
+        aligned = add_liquidity_volume_pressure_features(
+            aligned, timeframes=timeframes, lookbacks=liq_lookbacks
+        )
+        family_columns = liquidity_feature_columns(
+            timeframes=timeframes, lookbacks=liq_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
@@ -1002,8 +1216,12 @@ def _build_feature_chunk(
             include_source_ohlcv=True,
             source_columns=regime_calendar_source_columns(lookbacks=regime_lookbacks),
         )
-        aligned = add_regime_calendar_state_features(aligned, timeframes=timeframes, lookbacks=regime_lookbacks)
-        family_columns = regime_calendar_feature_columns(timeframes=timeframes, lookbacks=regime_lookbacks)
+        aligned = add_regime_calendar_state_features(
+            aligned, timeframes=timeframes, lookbacks=regime_lookbacks
+        )
+        family_columns = regime_calendar_feature_columns(
+            timeframes=timeframes, lookbacks=regime_lookbacks
+        )
         output = output.hstack(aligned.select(family_columns))
         del aligned
 
@@ -1017,7 +1235,9 @@ def _build_feature_chunk(
     if "cross_asset_context" in families:
         for context_asset in xasset_context_assets:
             if context_asset not in xasset_pair_bars:
-                raise KeyError(f"Missing cross-asset pair bars for context asset {context_asset}")
+                raise KeyError(
+                    f"Missing cross-asset pair bars for context asset {context_asset}"
+                )
             aligned = join_all_closed_bar_context(
                 chunk_rows,
                 xasset_pair_bars[context_asset],
@@ -1047,11 +1267,17 @@ def _diagnostic_columns(df: pl.DataFrame) -> list[str]:
         col
         for col in df.columns
         if col.startswith("rpf_align_")
-        and (col.endswith("_bar_open_ts") or col.endswith("_bar_close_ts") or col.endswith("_has_closed_bar"))
+        and (
+            col.endswith("_bar_open_ts")
+            or col.endswith("_bar_close_ts")
+            or col.endswith("_has_closed_bar")
+        )
     ]
 
 
-def _volatility_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _volatility_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     definitions: list[FeatureDefinition] = [
         FeatureDefinition(
             name="rpf_vol_atr_std_dominance_bnd",
@@ -1109,21 +1335,55 @@ def _volatility_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ..
     return [asdict(item) for item in definitions]
 
 
-def _structural_room_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _structural_room_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("up_to_high", ("up_extreme", "upside_room"), "bounded_positive_volatility_units"),
-                ("down_to_low", ("down_extreme", "downside_room"), "bounded_positive_volatility_units"),
+                (
+                    "up_to_high",
+                    ("up_extreme", "upside_room"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "down_to_low",
+                    ("down_extreme", "downside_room"),
+                    "bounded_positive_volatility_units",
+                ),
                 ("asym", ("up_down_asymmetry",), "bounded_signed"),
-                ("up_room_share", ("up_down_asymmetry", "upside_room_share"), "bounded_0_1"),
-                ("room_balance", ("up_down_asymmetry", "signed_room_balance"), "bounded_signed_volatility_units"),
+                (
+                    "up_room_share",
+                    ("up_down_asymmetry", "upside_room_share"),
+                    "bounded_0_1",
+                ),
+                (
+                    "room_balance",
+                    ("up_down_asymmetry", "signed_room_balance"),
+                    "bounded_signed_volatility_units",
+                ),
                 ("donchian_pos", ("price_location",), "bounded_0_1"),
-                ("breakout_above", ("up_extreme", "prior_high_breakout"), "bounded_positive_volatility_units"),
-                ("breakdown_below", ("down_extreme", "prior_low_breakdown"), "bounded_positive_volatility_units"),
-                ("break_balance", ("up_down_asymmetry", "signed_breakout_balance"), "bounded_signed_volatility_units"),
-                ("value_dist", ("price_location", "value_distance"), "bounded_signed_volatility_units"),
+                (
+                    "breakout_above",
+                    ("up_extreme", "prior_high_breakout"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "breakdown_below",
+                    ("down_extreme", "prior_low_breakdown"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "break_balance",
+                    ("up_down_asymmetry", "signed_breakout_balance"),
+                    "bounded_signed_volatility_units",
+                ),
+                (
+                    "value_dist",
+                    ("price_location", "value_distance"),
+                    "bounded_signed_volatility_units",
+                ),
             ):
                 name = (
                     f"rpf_room_{timeframe}_{suffix}_l{lookback}_vol"
@@ -1144,22 +1404,60 @@ def _structural_room_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[in
     return [asdict(item) for item in definitions]
 
 
-def _acceptance_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _acceptance_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("close_loc_avg", ("up_mean_high", "down_mean_low", "close_location"), "bounded_0_1"),
+                (
+                    "close_loc_avg",
+                    ("up_mean_high", "down_mean_low", "close_location"),
+                    "bounded_0_1",
+                ),
                 ("close_loc_balance", ("directional_acceptance",), "bounded_signed"),
-                ("body_persist", ("directional_pressure", "body_persistence"), "bounded_signed"),
-                ("return_persist", ("directional_pressure", "return_persistence"), "bounded_signed"),
-                ("above_value_share", ("up_mean_high", "accepted_above_value"), "bounded_0_1"),
-                ("below_value_share", ("down_mean_low", "accepted_below_value"), "bounded_0_1"),
+                (
+                    "body_persist",
+                    ("directional_pressure", "body_persistence"),
+                    "bounded_signed",
+                ),
+                (
+                    "return_persist",
+                    ("directional_pressure", "return_persistence"),
+                    "bounded_signed",
+                ),
+                (
+                    "above_value_share",
+                    ("up_mean_high", "accepted_above_value"),
+                    "bounded_0_1",
+                ),
+                (
+                    "below_value_share",
+                    ("down_mean_low", "accepted_below_value"),
+                    "bounded_0_1",
+                ),
                 ("value_accept_balance", ("directional_acceptance",), "bounded_signed"),
-                ("value_dist", ("value_distance", "acceptance_context"), "bounded_signed_volatility_units"),
-                ("trend_eff", ("up_mean_high", "down_mean_low", "path_persistence"), "bounded_signed"),
-                ("up_pullback_shallow", ("up_mean_high", "shallow_pullback"), "bounded_0_1"),
-                ("down_pullback_shallow", ("down_mean_low", "shallow_pullback"), "bounded_0_1"),
+                (
+                    "value_dist",
+                    ("value_distance", "acceptance_context"),
+                    "bounded_signed_volatility_units",
+                ),
+                (
+                    "trend_eff",
+                    ("up_mean_high", "down_mean_low", "path_persistence"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_pullback_shallow",
+                    ("up_mean_high", "shallow_pullback"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_pullback_shallow",
+                    ("down_mean_low", "shallow_pullback"),
+                    "bounded_0_1",
+                ),
             ):
                 name = (
                     f"rpf_accept_{timeframe}_{suffix}_l{lookback}_vol"
@@ -1178,9 +1476,18 @@ def _acceptance_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ..
                     )
                 )
     for name, intent in (
-        ("rpf_accept_tf_bull_agreement_share_bnd", ("up_mean_high", "higher_timeframe_alignment")),
-        ("rpf_accept_tf_bear_agreement_share_bnd", ("down_mean_low", "higher_timeframe_alignment")),
-        ("rpf_accept_tf_direction_agreement_bnd", ("directional_acceptance", "higher_timeframe_alignment")),
+        (
+            "rpf_accept_tf_bull_agreement_share_bnd",
+            ("up_mean_high", "higher_timeframe_alignment"),
+        ),
+        (
+            "rpf_accept_tf_bear_agreement_share_bnd",
+            ("down_mean_low", "higher_timeframe_alignment"),
+        ),
+        (
+            "rpf_accept_tf_direction_agreement_bnd",
+            ("directional_acceptance", "higher_timeframe_alignment"),
+        ),
     ):
         definitions.append(
             FeatureDefinition(
@@ -1196,23 +1503,57 @@ def _acceptance_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ..
     return [asdict(item) for item in definitions]
 
 
-def _rejection_chop_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _rejection_chop_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for rejection/chop features."""
 
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("upper_reject", ("up_extreme", "up_mean_high", "upper_wick_rejection"), "bounded_0_1"),
-                ("lower_reject", ("down_extreme", "down_mean_low", "lower_wick_rejection"), "bounded_0_1"),
-                ("reject_balance", ("directional_rejection_balance",), "bounded_signed"),
+                (
+                    "upper_reject",
+                    ("up_extreme", "up_mean_high", "upper_wick_rejection"),
+                    "bounded_0_1",
+                ),
+                (
+                    "lower_reject",
+                    ("down_extreme", "down_mean_low", "lower_wick_rejection"),
+                    "bounded_0_1",
+                ),
+                (
+                    "reject_balance",
+                    ("directional_rejection_balance",),
+                    "bounded_signed",
+                ),
                 ("two_sided", ("all_targets", "two_sided_chop"), "bounded_0_1"),
-                ("reversal_rate", ("all_targets", "path_reversal_frequency"), "bounded_0_1"),
-                ("path_eff", ("up_mean_high", "down_mean_low", "path_efficiency"), "bounded_0_1"),
+                (
+                    "reversal_rate",
+                    ("all_targets", "path_reversal_frequency"),
+                    "bounded_0_1",
+                ),
+                (
+                    "path_eff",
+                    ("up_mean_high", "down_mean_low", "path_efficiency"),
+                    "bounded_0_1",
+                ),
                 ("path_chop", ("all_targets", "inefficient_path_chop"), "bounded_0_1"),
-                ("failed_up_break", ("up_extreme", "failed_upside_breakout"), "bounded_0_1"),
-                ("failed_down_break", ("down_extreme", "failed_downside_breakdown"), "bounded_0_1"),
-                ("failed_break_balance", ("directional_failed_break_balance",), "bounded_signed"),
+                (
+                    "failed_up_break",
+                    ("up_extreme", "failed_upside_breakout"),
+                    "bounded_0_1",
+                ),
+                (
+                    "failed_down_break",
+                    ("down_extreme", "failed_downside_breakdown"),
+                    "bounded_0_1",
+                ),
+                (
+                    "failed_break_balance",
+                    ("directional_failed_break_balance",),
+                    "bounded_signed",
+                ),
             ):
                 definitions.append(
                     FeatureDefinition(
@@ -1228,29 +1569,83 @@ def _rejection_chop_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int
     return [asdict(item) for item in definitions]
 
 
-def _spike_breakout_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _spike_breakout_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for spike/breakout features."""
 
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("up_break_prox", ("up_extreme", "upside_breakout_proximity"), "bounded_positive_volatility_units"),
-                ("down_break_prox", ("down_extreme", "downside_breakdown_proximity"), "bounded_positive_volatility_units"),
-                ("break_prox_balance", ("up_down_asymmetry", "breakout_proximity_balance"), "bounded_signed_volatility_units"),
-                ("up_breakout", ("up_extreme", "active_upside_breakout"), "bounded_positive_volatility_units"),
-                ("down_breakdown", ("down_extreme", "active_downside_breakdown"), "bounded_positive_volatility_units"),
-                ("breakout_balance", ("up_down_asymmetry", "active_breakout_balance"), "bounded_signed_volatility_units"),
+                (
+                    "up_break_prox",
+                    ("up_extreme", "upside_breakout_proximity"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "down_break_prox",
+                    ("down_extreme", "downside_breakdown_proximity"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "break_prox_balance",
+                    ("up_down_asymmetry", "breakout_proximity_balance"),
+                    "bounded_signed_volatility_units",
+                ),
+                (
+                    "up_breakout",
+                    ("up_extreme", "active_upside_breakout"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "down_breakdown",
+                    ("down_extreme", "active_downside_breakdown"),
+                    "bounded_positive_volatility_units",
+                ),
+                (
+                    "breakout_balance",
+                    ("up_down_asymmetry", "active_breakout_balance"),
+                    "bounded_signed_volatility_units",
+                ),
                 ("squeeze", ("all_targets", "volatility_compression"), "bounded_0_1"),
-                ("release", ("up_extreme", "down_extreme", "range_release"), "bounded_0_1"),
-                ("squeeze_release", ("up_extreme", "down_extreme", "compression_release"), "bounded_0_1"),
+                (
+                    "release",
+                    ("up_extreme", "down_extreme", "range_release"),
+                    "bounded_0_1",
+                ),
+                (
+                    "squeeze_release",
+                    ("up_extreme", "down_extreme", "compression_release"),
+                    "bounded_0_1",
+                ),
                 ("up_impulse", ("up_extreme", "upside_impulse"), "bounded_0_1"),
                 ("down_impulse", ("down_extreme", "downside_impulse"), "bounded_0_1"),
-                ("impulse_balance", ("up_down_asymmetry", "one_sided_impulse"), "bounded_signed"),
-                ("up_volume_impulse", ("up_extreme", "volume_confirmed_upside_impulse"), "bounded_0_1"),
-                ("down_volume_impulse", ("down_extreme", "volume_confirmed_downside_impulse"), "bounded_0_1"),
-                ("volume_impulse_balance", ("up_down_asymmetry", "volume_confirmed_impulse_balance"), "bounded_signed"),
-                ("tail_asym", ("up_down_asymmetry", "tail_risk_asymmetry"), "bounded_signed"),
+                (
+                    "impulse_balance",
+                    ("up_down_asymmetry", "one_sided_impulse"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_volume_impulse",
+                    ("up_extreme", "volume_confirmed_upside_impulse"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_volume_impulse",
+                    ("down_extreme", "volume_confirmed_downside_impulse"),
+                    "bounded_0_1",
+                ),
+                (
+                    "volume_impulse_balance",
+                    ("up_down_asymmetry", "volume_confirmed_impulse_balance"),
+                    "bounded_signed",
+                ),
+                (
+                    "tail_asym",
+                    ("up_down_asymmetry", "tail_risk_asymmetry"),
+                    "bounded_signed",
+                ),
             ):
                 name = (
                     f"rpf_spike_{timeframe}_{suffix}_l{lookback}_vol"
@@ -1279,22 +1674,60 @@ def _spike_breakout_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int
     return [asdict(item) for item in definitions]
 
 
-def _liquidity_volume_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _liquidity_volume_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for liquidity/volume-pressure features."""
 
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("volume_z", ("participation", "volume_unusualness"), "rolling_past_zscore_clipped"),
-                ("dollar_volume_rel", ("liquidity_state", "turnover_proxy"), "bounded_relative_median_ratio"),
-                ("volume_wakeup", ("volume_wakeup", "compression_release_confirmation"), "bounded_confluence"),
-                ("up_volume_share", ("up_mean_high", "up_extreme", "buy_pressure_share"), "bounded_0_1"),
-                ("down_volume_share", ("down_mean_low", "down_extreme", "sell_pressure_share"), "bounded_0_1"),
-                ("volume_pressure_balance", ("directional_volume_pressure",), "bounded_signed"),
-                ("obv_slope", ("directional_volume_pressure", "obv_proxy"), "bounded_signed"),
-                ("money_flow_balance", ("acceptance", "money_flow_proxy"), "bounded_signed"),
-                ("zero_volume_share", ("session_asset_behavior", "synthetic_or_no_trade_context"), "bounded_0_1"),
+                (
+                    "volume_z",
+                    ("participation", "volume_unusualness"),
+                    "rolling_past_zscore_clipped",
+                ),
+                (
+                    "dollar_volume_rel",
+                    ("liquidity_state", "turnover_proxy"),
+                    "bounded_relative_median_ratio",
+                ),
+                (
+                    "volume_wakeup",
+                    ("volume_wakeup", "compression_release_confirmation"),
+                    "bounded_confluence",
+                ),
+                (
+                    "up_volume_share",
+                    ("up_mean_high", "up_extreme", "buy_pressure_share"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_volume_share",
+                    ("down_mean_low", "down_extreme", "sell_pressure_share"),
+                    "bounded_0_1",
+                ),
+                (
+                    "volume_pressure_balance",
+                    ("directional_volume_pressure",),
+                    "bounded_signed",
+                ),
+                (
+                    "obv_slope",
+                    ("directional_volume_pressure", "obv_proxy"),
+                    "bounded_signed",
+                ),
+                (
+                    "money_flow_balance",
+                    ("acceptance", "money_flow_proxy"),
+                    "bounded_signed",
+                ),
+                (
+                    "zero_volume_share",
+                    ("session_asset_behavior", "synthetic_or_no_trade_context"),
+                    "bounded_0_1",
+                ),
             ):
                 name = (
                     f"rpf_liq_{timeframe}_{suffix}_l{lookback}"
@@ -1315,7 +1748,9 @@ def _liquidity_volume_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[i
     return [asdict(item) for item in definitions]
 
 
-def _regime_calendar_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _regime_calendar_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for regime/calendar features."""
 
     definitions: list[FeatureDefinition] = [
@@ -1358,7 +1793,10 @@ def _regime_calendar_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[in
         FeatureDefinition(
             name="rpf_regime_utc_is_weekend_bnd",
             family="regime_calendar_state",
-            target_intent=("known_calendar_state", "crypto_weekend_or_session_gap_context"),
+            target_intent=(
+                "known_calendar_state",
+                "crypto_weekend_or_session_gap_context",
+            ),
             source_timeframes=("1m",),
             source_columns=("timestamp",),
             availability="known_at_prediction_time",
@@ -1368,15 +1806,19 @@ def _regime_calendar_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[in
     for timeframe in timeframes:
         for suffix, intent, normalization in (
             ("market_open", ("session_state", "market_open"), "binary_flag"),
-            ("synthetic_no_trade", ("session_state", "synthetic_no_trade"), "binary_flag"),
+            (
+                "synthetic_no_trade",
+                ("session_state", "synthetic_no_trade"),
+                "binary_flag",
+            ),
             ("gap_fill", ("session_state", "gap_fill"), "binary_flag"),
-            ("minutes_since_prev_real_bar", ("session_state", "gap_or_stale_context"), "bounded_ratio"),
-            ("session_progress", ("session_state", "session_progress"), "bounded_ratio"),
-            ("minutes_to_close", ("session_state", "closing_proximity"), "bounded_ratio"),
+            (
+                "minutes_since_prev_real_bar",
+                ("session_state", "gap_or_stale_context"),
+                "bounded_ratio",
+            ),
             ("session_open", ("session_state", "open_bar"), "binary_flag"),
-            ("session_close", ("session_state", "close_bar"), "binary_flag"),
             ("weekly_open", ("calendar_state", "weekly_open"), "binary_flag"),
-            ("weekly_close", ("calendar_state", "weekly_close"), "binary_flag"),
         ):
             definitions.append(
                 FeatureDefinition(
@@ -1391,14 +1833,42 @@ def _regime_calendar_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[in
             )
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("vol_rel", ("volatility_regime", "range_expansion"), "bounded_relative_ratio"),
-                ("vol_expanding", ("volatility_regime", "expansion_flag"), "binary_flag"),
-                ("trend_eff", ("trend_range_regime", "trend_efficiency"), "bounded_signed"),
-                ("trend_sign", ("trend_range_regime", "directional_persistence"), "bounded_signed"),
-                ("trend_alignment", ("trend_range_regime", "signed_alignment"), "bounded_signed"),
+                (
+                    "vol_rel",
+                    ("volatility_regime", "range_expansion"),
+                    "bounded_relative_ratio",
+                ),
+                (
+                    "vol_expanding",
+                    ("volatility_regime", "expansion_flag"),
+                    "binary_flag",
+                ),
+                (
+                    "trend_eff",
+                    ("trend_range_regime", "trend_efficiency"),
+                    "bounded_signed",
+                ),
+                (
+                    "trend_sign",
+                    ("trend_range_regime", "directional_persistence"),
+                    "bounded_signed",
+                ),
+                (
+                    "trend_alignment",
+                    ("trend_range_regime", "signed_alignment"),
+                    "bounded_signed",
+                ),
                 ("range_chop", ("trend_range_regime", "range_or_chop"), "bounded_0_1"),
-                ("bull_trend", ("trend_range_regime", "bullish_trend_flag"), "binary_flag"),
-                ("bear_trend", ("trend_range_regime", "bearish_trend_flag"), "binary_flag"),
+                (
+                    "bull_trend",
+                    ("trend_range_regime", "bullish_trend_flag"),
+                    "binary_flag",
+                ),
+                (
+                    "bear_trend",
+                    ("trend_range_regime", "bearish_trend_flag"),
+                    "binary_flag",
+                ),
             ):
                 definitions.append(
                     FeatureDefinition(
@@ -1406,7 +1876,13 @@ def _regime_calendar_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[in
                         family="regime_calendar_state",
                         target_intent=tuple(intent),
                         source_timeframes=(timeframe,),
-                        source_columns=("open", "high", "low", "close", "canonical_session_metadata"),
+                        source_columns=(
+                            "open",
+                            "high",
+                            "low",
+                            "close",
+                            "canonical_session_metadata",
+                        ),
                         availability="closed_bar_asof_only",
                         normalization=normalization,
                     )
@@ -1443,7 +1919,11 @@ def _temporal_memory_catalog(
             for suffix, intent, normalization in (
                 ("", ("ewm_state",), "same_as_source_smoothed"),
                 ("_slope", ("ewm_slope", "state_change"), "same_as_source_delta"),
-                ("_resid", ("ewm_residual", "recent_deviation"), "same_as_source_delta"),
+                (
+                    "_resid",
+                    ("ewm_residual", "recent_deviation"),
+                    "same_as_source_delta",
+                ),
             ):
                 definitions.append(
                     FeatureDefinition(
@@ -1487,28 +1967,90 @@ def _temporal_memory_catalog(
     return [asdict(item) for item in definitions]
 
 
-def _interaction_confluence_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _interaction_confluence_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for interaction/confluence features."""
 
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("up_squeeze_break", ("up_extreme", "compression_breakout_confluence"), "bounded_0_1"),
-                ("down_squeeze_break", ("down_extreme", "compression_breakdown_confluence"), "bounded_0_1"),
-                ("squeeze_break_balance", ("up_down_asymmetry", "compression_break_balance"), "bounded_signed"),
-                ("up_trend_accept", ("up_mean_high", "trend_acceptance_confluence"), "bounded_0_1"),
-                ("down_trend_accept", ("down_mean_low", "trend_acceptance_confluence"), "bounded_0_1"),
-                ("trend_accept_balance", ("up_down_asymmetry", "trend_acceptance_balance"), "bounded_signed"),
-                ("up_volume_impulse", ("up_extreme", "volume_confirmed_impulse"), "bounded_0_1"),
-                ("down_volume_impulse", ("down_extreme", "volume_confirmed_impulse"), "bounded_0_1"),
-                ("volume_impulse_balance", ("up_down_asymmetry", "volume_impulse_balance"), "bounded_signed"),
-                ("up_clean_persist", ("up_mean_high", "chop_filtered_persistence"), "bounded_0_1"),
-                ("down_clean_persist", ("down_mean_low", "chop_filtered_persistence"), "bounded_0_1"),
-                ("clean_persist_balance", ("up_down_asymmetry", "clean_persistence_balance"), "bounded_signed"),
-                ("up_room_pressure", ("up_extreme", "upside_room_with_pressure"), "bounded_0_1"),
-                ("down_room_pressure", ("down_extreme", "downside_room_with_pressure"), "bounded_0_1"),
-                ("room_pressure_balance", ("up_down_asymmetry", "room_pressure_balance"), "bounded_signed"),
+                (
+                    "up_squeeze_break",
+                    ("up_extreme", "compression_breakout_confluence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_squeeze_break",
+                    ("down_extreme", "compression_breakdown_confluence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "squeeze_break_balance",
+                    ("up_down_asymmetry", "compression_break_balance"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_trend_accept",
+                    ("up_mean_high", "trend_acceptance_confluence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_trend_accept",
+                    ("down_mean_low", "trend_acceptance_confluence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "trend_accept_balance",
+                    ("up_down_asymmetry", "trend_acceptance_balance"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_volume_impulse",
+                    ("up_extreme", "volume_confirmed_impulse"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_volume_impulse",
+                    ("down_extreme", "volume_confirmed_impulse"),
+                    "bounded_0_1",
+                ),
+                (
+                    "volume_impulse_balance",
+                    ("up_down_asymmetry", "volume_impulse_balance"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_clean_persist",
+                    ("up_mean_high", "chop_filtered_persistence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_clean_persist",
+                    ("down_mean_low", "chop_filtered_persistence"),
+                    "bounded_0_1",
+                ),
+                (
+                    "clean_persist_balance",
+                    ("up_down_asymmetry", "clean_persistence_balance"),
+                    "bounded_signed",
+                ),
+                (
+                    "up_room_pressure",
+                    ("up_extreme", "upside_room_with_pressure"),
+                    "bounded_0_1",
+                ),
+                (
+                    "down_room_pressure",
+                    ("down_extreme", "downside_room_with_pressure"),
+                    "bounded_0_1",
+                ),
+                (
+                    "room_pressure_balance",
+                    ("up_down_asymmetry", "room_pressure_balance"),
+                    "bounded_signed",
+                ),
             ):
                 definitions.append(
                     FeatureDefinition(
@@ -1538,14 +2080,46 @@ def _cross_asset_catalog(
         for timeframe in timeframes:
             for lookback in lookbacks:
                 for suffix, intent, normalization in (
-                    ("ret_spread", ("relative_pressure", "return_spread"), "bounded_signed"),
-                    ("rel_strength", ("relative_strength", "relative_movement_size"), "bounded_signed"),
-                    ("range_spread", ("relative_volatility", "range_spread"), "bounded_signed"),
-                    ("corr", ("common_risk_state", "rolling_correlation"), "bounded_signed"),
-                    ("context_pressure", ("context_directional_pressure",), "bounded_signed"),
-                    ("common_direction", ("common_direction_agreement",), "bounded_signed"),
-                    ("context_range_share", ("context_volatility_share",), "bounded_0_1"),
-                    ("volume_rel_spread", ("relative_participation",), "bounded_signed"),
+                    (
+                        "ret_spread",
+                        ("relative_pressure", "return_spread"),
+                        "bounded_signed",
+                    ),
+                    (
+                        "rel_strength",
+                        ("relative_strength", "relative_movement_size"),
+                        "bounded_signed",
+                    ),
+                    (
+                        "range_spread",
+                        ("relative_volatility", "range_spread"),
+                        "bounded_signed",
+                    ),
+                    (
+                        "corr",
+                        ("common_risk_state", "rolling_correlation"),
+                        "bounded_signed",
+                    ),
+                    (
+                        "context_pressure",
+                        ("context_directional_pressure",),
+                        "bounded_signed",
+                    ),
+                    (
+                        "common_direction",
+                        ("common_direction_agreement",),
+                        "bounded_signed",
+                    ),
+                    (
+                        "context_range_share",
+                        ("context_volatility_share",),
+                        "bounded_0_1",
+                    ),
+                    (
+                        "volume_rel_spread",
+                        ("relative_participation",),
+                        "bounded_signed",
+                    ),
                 ):
                     definitions.append(
                         FeatureDefinition(
@@ -1553,7 +2127,10 @@ def _cross_asset_catalog(
                             family="cross_asset_context",
                             target_intent=tuple(intent),
                             source_timeframes=(timeframe,),
-                            source_columns=(f"{context_asset}_canonical_ohlcv", "target_canonical_ohlcv"),
+                            source_columns=(
+                                f"{context_asset}_canonical_ohlcv",
+                                "target_canonical_ohlcv",
+                            ),
                             availability="exact_timestamp_pair_bar_then_closed_bar_asof",
                             normalization=normalization,
                         )
@@ -1561,21 +2138,47 @@ def _cross_asset_catalog(
     return [asdict(item) for item in definitions]
 
 
-def _unsupervised_factor_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _unsupervised_factor_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for deterministic factor-proxy features."""
 
     definitions: list[FeatureDefinition] = []
     for timeframe in timeframes:
         for lookback in lookbacks:
             for suffix, intent, normalization in (
-                ("path_width", ("path_regime", "total_path_width_proxy"), "bounded_0_1"),
-                ("direction", ("up_down_asymmetry", "directional_pressure_factor"), "bounded_signed"),
-                ("persistence", ("up_mean_high", "down_mean_low", "persistence_factor"), "bounded_signed"),
-                ("shock", ("up_extreme", "down_extreme", "shock_or_release_factor"), "bounded_0_1"),
+                (
+                    "path_width",
+                    ("path_regime", "total_path_width_proxy"),
+                    "bounded_0_1",
+                ),
+                (
+                    "direction",
+                    ("up_down_asymmetry", "directional_pressure_factor"),
+                    "bounded_signed",
+                ),
+                (
+                    "persistence",
+                    ("up_mean_high", "down_mean_low", "persistence_factor"),
+                    "bounded_signed",
+                ),
+                (
+                    "shock",
+                    ("up_extreme", "down_extreme", "shock_or_release_factor"),
+                    "bounded_0_1",
+                ),
                 ("rejection", ("rejection", "failed_break_factor"), "bounded_signed"),
-                ("context", ("relative_pressure", "cross_asset_factor"), "bounded_signed"),
+                (
+                    "context",
+                    ("relative_pressure", "cross_asset_factor"),
+                    "bounded_signed",
+                ),
                 ("anomaly", ("path_regime", "unusual_state_proxy"), "bounded_0_1"),
-                ("clean_direction", ("directional_pressure", "chop_filtered_factor"), "bounded_signed"),
+                (
+                    "clean_direction",
+                    ("directional_pressure", "chop_filtered_factor"),
+                    "bounded_signed",
+                ),
             ):
                 definitions.append(
                     FeatureDefinition(
@@ -1591,22 +2194,56 @@ def _unsupervised_factor_catalog(*, timeframes: tuple[str, ...], lookbacks: tupl
     return [asdict(item) for item in definitions]
 
 
-def _sequence_embedding_catalog(*, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]) -> list[dict[str, Any]]:
+def _sequence_embedding_catalog(
+    *, timeframes: tuple[str, ...], lookbacks: tuple[int, ...]
+) -> list[dict[str, Any]]:
     """Build catalog entries for deterministic sequence-shape features."""
 
     definitions: list[FeatureDefinition] = []
     for lookback in lookbacks:
         for suffix, intent, normalization in (
-            ("direction_mean", ("sequence_shape", "multi_timeframe_direction"), "bounded_signed"),
-            ("direction_slope", ("sequence_shape", "short_long_direction_slope"), "bounded_signed"),
-            ("direction_dispersion", ("sequence_shape", "direction_disagreement"), "bounded_0_1"),
-            ("direction_consensus", ("sequence_shape", "direction_consensus"), "bounded_signed"),
+            (
+                "direction_mean",
+                ("sequence_shape", "multi_timeframe_direction"),
+                "bounded_signed",
+            ),
+            (
+                "direction_slope",
+                ("sequence_shape", "short_long_direction_slope"),
+                "bounded_signed",
+            ),
+            (
+                "direction_dispersion",
+                ("sequence_shape", "direction_disagreement"),
+                "bounded_0_1",
+            ),
+            (
+                "direction_consensus",
+                ("sequence_shape", "direction_consensus"),
+                "bounded_signed",
+            ),
             ("width_mean", ("sequence_shape", "multi_timeframe_width"), "bounded_0_1"),
-            ("width_slope", ("sequence_shape", "short_long_width_slope"), "bounded_signed"),
-            ("width_dispersion", ("sequence_shape", "width_disagreement"), "bounded_0_1"),
+            (
+                "width_slope",
+                ("sequence_shape", "short_long_width_slope"),
+                "bounded_signed",
+            ),
+            (
+                "width_dispersion",
+                ("sequence_shape", "width_disagreement"),
+                "bounded_0_1",
+            ),
             ("shock_mean", ("sequence_shape", "multi_timeframe_shock"), "bounded_0_1"),
-            ("persistence_mean", ("sequence_shape", "multi_timeframe_persistence"), "bounded_signed"),
-            ("clean_direction", ("sequence_shape", "clean_direction_stack"), "bounded_signed"),
+            (
+                "persistence_mean",
+                ("sequence_shape", "multi_timeframe_persistence"),
+                "bounded_signed",
+            ),
+            (
+                "clean_direction",
+                ("sequence_shape", "clean_direction_stack"),
+                "bounded_signed",
+            ),
         ):
             definitions.append(
                 FeatureDefinition(
@@ -1669,7 +2306,9 @@ def _write_output_metadata(
 ) -> None:
     """Write manifest/catalog after all batch files are written."""
 
-    schema_repr = json.dumps({name: str(dtype) for name, dtype in output_schema.items()}, sort_keys=True)
+    schema_repr = json.dumps(
+        {name: str(dtype) for name, dtype in output_schema.items()}, sort_keys=True
+    )
     source_repr = json.dumps([str(path) for path in source_paths], sort_keys=True)
     manifest = {
         "feature_set": FEATURE_SET,
@@ -1690,8 +2329,12 @@ def _write_output_metadata(
         "source_paths": [str(path) for path in source_paths],
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
-    (output_dir / "manifest.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    (output_dir / "feature_catalog.json").write_text(json.dumps(catalog, indent=2, sort_keys=True) + "\n")
+    (output_dir / "manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    )
+    (output_dir / "feature_catalog.json").write_text(
+        json.dumps(catalog, indent=2, sort_keys=True) + "\n"
+    )
 
 
 def _write_batch_files(output: pl.DataFrame, output_dir: Path) -> None:
@@ -1705,36 +2348,89 @@ def _write_batch_files(output: pl.DataFrame, output_dir: Path) -> None:
         end = start + 1
         while end < row_count and int(batch_ids[end]) == key:
             end += 1
-        output.slice(start, end - start).write_parquet(output_dir / f"batch_{key:04d}.parquet")
+        output.slice(start, end - start).write_parquet(
+            output_dir / f"batch_{key:04d}.parquet"
+        )
         start = end
 
 
 def _parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Materialize regression path features.")
+    parser = argparse.ArgumentParser(
+        description="Materialize regression path features."
+    )
     parser.add_argument("--assets", default="BTCUSDT")
-    parser.add_argument("--roots", nargs="*", default=["8h/B"], choices=sorted(STAGE1_MULTIASSET_ROOT_LAYOUTS))
+    parser.add_argument(
+        "--roots",
+        nargs="*",
+        default=["8h/B"],
+        choices=sorted(STAGE1_MULTIASSET_ROOT_LAYOUTS),
+    )
     parser.add_argument("--families", default=",".join(DEFAULT_FAMILIES))
     parser.add_argument("--timeframes", default=",".join(DEFAULT_TIMEFRAMES))
-    parser.add_argument("--vol-lookbacks", default=",".join(str(value) for value in DEFAULT_VOL_LOOKBACKS))
-    parser.add_argument("--room-lookbacks", default=",".join(str(value) for value in DEFAULT_ROOM_LOOKBACKS))
-    parser.add_argument("--accept-lookbacks", default=",".join(str(value) for value in DEFAULT_ACCEPT_LOOKBACKS))
-    parser.add_argument("--chop-lookbacks", default=",".join(str(value) for value in DEFAULT_CHOP_LOOKBACKS))
-    parser.add_argument("--spike-lookbacks", default=",".join(str(value) for value in DEFAULT_SPIKE_LOOKBACKS))
-    parser.add_argument("--liq-lookbacks", default=",".join(str(value) for value in DEFAULT_LIQ_LOOKBACKS))
-    parser.add_argument("--regime-lookbacks", default=",".join(str(value) for value in DEFAULT_REGIME_LOOKBACKS))
-    parser.add_argument("--confluence-lookbacks", default=",".join(str(value) for value in DEFAULT_CONFLUENCE_LOOKBACKS))
-    parser.add_argument("--xasset-lookbacks", default=",".join(str(value) for value in DEFAULT_XASSET_LOOKBACKS))
-    parser.add_argument("--factor-lookbacks", default=",".join(str(value) for value in DEFAULT_FACTOR_LOOKBACKS))
-    parser.add_argument("--sequence-lookbacks", default=",".join(str(value) for value in DEFAULT_SEQUENCE_LOOKBACKS))
+    parser.add_argument(
+        "--vol-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_VOL_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--room-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_ROOM_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--accept-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_ACCEPT_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--chop-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_CHOP_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--spike-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_SPIKE_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--liq-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_LIQ_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--regime-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_REGIME_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--confluence-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_CONFLUENCE_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--xasset-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_XASSET_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--factor-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_FACTOR_LOOKBACKS),
+    )
+    parser.add_argument(
+        "--sequence-lookbacks",
+        default=",".join(str(value) for value in DEFAULT_SEQUENCE_LOOKBACKS),
+    )
     parser.add_argument(
         "--xasset-context-assets",
         default="auto",
         help="Comma-separated cross-asset peers, empty for none, or auto for default peer map.",
     )
-    parser.add_argument("--memory-lags", default=",".join(str(value) for value in DEFAULT_MEMORY_LAGS))
-    parser.add_argument("--memory-ewm-spans", default=",".join(str(value) for value in DEFAULT_MEMORY_EWM_SPANS))
-    parser.add_argument("--memory-rank-windows", default=",".join(str(value) for value in DEFAULT_MEMORY_RANK_WINDOWS))
-    parser.add_argument("--memory-diff-lags", default=",".join(str(value) for value in DEFAULT_MEMORY_DIFF_LAGS))
+    parser.add_argument(
+        "--memory-lags", default=",".join(str(value) for value in DEFAULT_MEMORY_LAGS)
+    )
+    parser.add_argument(
+        "--memory-ewm-spans",
+        default=",".join(str(value) for value in DEFAULT_MEMORY_EWM_SPANS),
+    )
+    parser.add_argument(
+        "--memory-rank-windows",
+        default=",".join(str(value) for value in DEFAULT_MEMORY_RANK_WINDOWS),
+    )
+    parser.add_argument(
+        "--memory-diff-lags",
+        default=",".join(str(value) for value in DEFAULT_MEMORY_DIFF_LAGS),
+    )
     parser.add_argument("--batch-limit", type=int, default=None)
     parser.add_argument("--batch-chunk-size", type=int, default=64)
     parser.add_argument("--dry-run", action="store_true")

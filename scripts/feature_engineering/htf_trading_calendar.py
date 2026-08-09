@@ -365,6 +365,11 @@ def canonicalize_ohlcv(
             .alias("session_bar_pos"),
         ]
     )
+    # These close-distance/close-label fields describe the completed offline
+    # observed segment. They inspect its suffix (and weekly close also inspects
+    # the next row), so they are aggregation/audit metadata, not causal model
+    # inputs. A future authoritative cutoff-known calendar may replace them for
+    # feature use; regime_calendar_state deliberately excludes them today.
     canonical = canonical.with_columns(
         (pl.col("timestamp").max().over("session_id_num") - pl.col("timestamp"))
         .dt.total_minutes()

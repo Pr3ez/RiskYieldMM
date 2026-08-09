@@ -19,6 +19,15 @@ engineering-valid-not-promoted. The registry in
 phase order, source inputs, availability rules, output prefixes, and target
 intent.
 
+Program-order correction (2026-07-14): feature/model promotion is paused behind
+the Stage 1 causal source, physical-evidence, label, and split gates. In
+addition, `session_progress`, `minutes_to_close`, `session_close`, and
+`weekly_close` were future-dependent model inputs and have been removed. Every
+historical root, catalog, diagnostic, or trained artifact containing one of
+those fields is quarantined and must be rebuilt before it can support any new
+claim. The old `39`-per-timeframe and `209`-all-timeframe regime counts below
+are historical results, not the corrected contract.
+
 ## Scope
 
 Applies to `distance_horizon_vol_v2` regression targets, starting with
@@ -41,6 +50,27 @@ Applies to `distance_horizon_vol_v2` regression targets, starting with
 
 This document does not choose final formulas, thresholds, lookback windows,
 feature selection thresholds, or CatBoost parameters.
+
+It also does not promote the V3.3 physical-market reference implementation.
+That path currently validates a narrow Bybit fixture through the governance
+ledger, but remains opt-in and uses cumulative prefix arrays plus a
+full-history reference registry. The fresh-genesis V4.1 correctness slice now
+implements the continuous per-scope RFC 9162 commitment, real typed
+observation/provenance projection, dual-cutoff exact/latest/trailing
+completed-1m selection, independent canonical replay, bounded ordered result
+commitment, and full historical verification. V4.2 now also derives reviewed
+health transitions from the causal prefix, persists exact InformationSets,
+and replays a projection-clock-owned `DECISION_INPUT` gate; callers cannot
+supply `HEALTHY` or backdate gate time. Registered primary/status roles,
+capture membership/lineage, raw classifier/normalization replay, monotone
+receipt/classifier clocks, and same-partition ACK/recovery are enforced.
+`EXECUTION_BAR` is ABSTAIN-only until one atomic H1/H2/order-intent/outbox
+bridge exists. Before this TODO resumes as a production feature program, the
+system still needs 10k/100k scale/restart soaks; persisted outbound subscription
+intent and transport correlation; a crash-safe live writer; actual V4
+manifest/governance validation; a non-bypassable Analyst boundary that disables
+legacy V3 activation; operational replay/live parity; and deterministic HTF
+derivation.
 
 ## Implementation Principles
 
@@ -66,17 +96,18 @@ feature selection thresholds, or CatBoost parameters.
 | 6 | `rejection_chop` | engineering_validated_not_promoted | `rpf_chop_` | rejection, chop, two-sided path risk | BTCUSDT `8h/B` rebuilt and prefix-validations clean; modest purpose-aligned signal, not predictively promoted |
 | 7 | `spike_breakout` | engineering_validated_not_promoted | `rpf_spike_` | up/down extreme tail reach | BTCUSDT `8h/B` rebuilt and prefix-validations clean; stronger extreme-width signal, not predictively promoted |
 | 8 | `liquidity_volume_pressure` | engineering_validated_not_promoted | `rpf_liq_` | participation and impulse confirmation | BTCUSDT `8h/B` rebuilt and prefix-validations clean; modest volume/participation signal, not predictively promoted |
-| 9 | `regime_calendar_state` | engineering_validated_not_promoted | `rpf_regime_` | volatility/trend/session/calendar regimes | BTCUSDT `8h/B` rebuilt and prefix-validations clean; useful calendar/session context, not predictively promoted |
+| 9 | `regime_calendar_state` | corrected_requires_artifact_rebuild | `rpf_regime_` | volatility/trend/session/calendar regimes | four future-dependent fields removed; old 39/209-count roots and downstream artifacts containing them quarantined; corrected 35/185 contract requires regeneration |
 | 10 | `interaction_confluence` | engineering_validated_not_promoted | `rpf_conf_` | validated signal interactions and confluence | BTCUSDT `8h/B` rebuilt and prefix-validations clean; path-width and directional-spread signal, not predictively promoted |
 | 11 | `cross_asset_context` | engineering_validated_not_promoted | `rpf_xasset_` | relative pressure and common risk state | BTCUSDT `8h/B` rebuilt and prefix-validations clean; modest BTC/ETH context signal, not predictively promoted |
 | 12 | `unsupervised_factor_layer` | engineering_validated_not_promoted | `rpf_factor_` | deterministic factor/anomaly context | BTCUSDT `8h/B` materialized; all factor timeframe-prefix validations passed |
 | 13 | `sequence_embedding_layer` | engineering_validated_not_promoted | `rpf_seq_` | deterministic multi-timeframe sequence shape | BTCUSDT `8h/B` materialized; sequence-prefix validation passed |
 
-## Current Post-Build Modeling TODO
+## Deferred Post-Build Modeling TODO
 
-Feature-family implementation has reached a complete deterministic v1 surface
-for `BTCUSDT 8h/B`. The active next task is not another formula family. It is
-model evaluation and gating:
+The legacy feature-family implementation reached a broad deterministic v1
+surface for `BTCUSDT 8h/B`, but it is neither the target production schema nor
+a clean current artifact set after the calendar correction. Once Stage 1 and
+the required rebuild are complete, model evaluation and gating should:
 
 1. Keep both binary direction targets:
 
@@ -604,8 +635,8 @@ Tasks:
 
 - add volatility-regime flags from causal volatility state;
 - add trend/range regime flags from efficiency, chop, and structural features;
-- add session progress, minutes to close/open, opening range position, and
-  prior-session range where canonical metadata exists;
+- use only prefix-causal observed-session metadata until an authoritative,
+  point-in-time calendar supplies scheduled close information;
 - add cyclic hour/day encodings that are known at prediction time;
 - keep crypto/session behavior explicit because not all assets trade seven days
   a week.
@@ -615,9 +646,8 @@ Implemented formulas:
 - UTC hour sine/cosine and day-of-week sine/cosine from prediction timestamp;
 - UTC weekend flag from prediction timestamp;
 - latest closed-bar market-open, synthetic no-trade, gap-fill, session-open,
-  session-close, weekly-open, and weekly-close metadata;
-- bounded minutes-since-previous-real-bar and minutes-to-close;
-- bounded session progress from closed canonical session metadata;
+  and weekly-open metadata;
+- bounded minutes-since-previous-real-bar;
 - closed-bar volatility-relative and volatility-expanding flags;
 - closed-bar trend efficiency, trend sign, signed trend alignment,
   range/chop score, bullish trend flag, and bearish trend flag.
@@ -629,7 +659,33 @@ Validation:
 - ablate regime gates separately from their underlying continuous features;
 - validate session assets and crypto separately before full-core rollout.
 
+Causal correction (2026-07-14):
+
+- `session_minutes_to_close` and `is_session_close_bar` are derived from the
+  maximum timestamp of the completed observed segment, while
+  `is_weekly_close_bar` also inspects the next row. Consequently the former
+  `session_progress`, `minutes_to_close`, `session_close`, and `weekly_close`
+  regime features were future-row dependent.
+- Those four fields are now excluded from the regime source contract,
+  model-facing feature list, feature catalog, and optional metadata defaults.
+  Canonicalization retains the raw descriptive fields only for offline
+  aggregation and audit. With the default three lookbacks, the corrected
+  contract has `35` columns for one timeframe and `185` across all six
+  timeframes, versus the historical `39` and `209` counts below.
+- They may return as model inputs only after an authoritative calendar record
+  known by the prediction cutoff supplies the applicable session boundary.
+  A truncation-invariance test now changes the future session suffix and proves
+  every retained regime model input for the unchanged prefix remains identical.
+- Previously materialized feature roots and diagnostics containing any of the
+  four retired names are historical artifacts and must not be used as current
+  leakage-free model inputs; rebuild them before renewed evaluation.
+
 First implementation status:
+
+> Historical evidence only: the counts, materializations, correlations, and
+> validation paths in this subsection predate the four-field causal correction
+> unless an entry explicitly says otherwise. They must be regenerated from the
+> corrected `35`/`185` regime contract before renewed model evaluation.
 
 - Focused unit/materializer tests cover known timestamp calendar features,
   closed-bar session metadata usage, trend/range regime sources, bounded

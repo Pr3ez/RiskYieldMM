@@ -10,16 +10,12 @@ import polars as pl
 import pytest
 
 import regression_feature_engineering.walkforward.optimize as optimize_module
-from regression_feature_engineering.walkforward.classify import (
-    TARGET_BINARY_DOWN_2X_UP,
-    TARGET_BINARY_DOWN_2X_UP_ALIAS,
-    TARGET_BINARY_UP_2X_DOWN,
-    TARGET_BINARY_UP_2X_DOWN_ALIAS,
-    binary_metrics,
-    binary_target_expr,
-    canonical_binary_target_col,
-    classification_objective,
-    select_decision_threshold,
+from regression_feature_engineering.walkforward.ablation import select_ablation_features
+from regression_feature_engineering.walkforward.classification.cli import (
+    best_trial,
+    model_updates_from_best,
+    policy_from_best,
+    split_tuning_holdout_windows,
 )
 from regression_feature_engineering.walkforward.classification.metrics import (
     DECISION_POLICY_BATCH_TOPK_OFFLINE,
@@ -35,26 +31,41 @@ from regression_feature_engineering.walkforward.classification.metrics import (
     window_stability_constraints_reason,
     window_stability_metrics,
 )
-from regression_feature_engineering.walkforward.decision_bank import (
-    SIDE_DOWN,
-    SeparateBankConfig,
-    build_classifier_outcome_inventory,
-    build_separate_bank_plan,
-    summarize_separate_bank_plan,
+from regression_feature_engineering.walkforward.classification.runner import (
+    SELECTOR_REFIT_VALIDATION_MASK,
+    apply_policy_feature_transform,
+    fixed_selected_policy_result,
+    selected_feature_overlap,
+    should_force_bad_objective,
 )
-from regression_feature_engineering.walkforward.evidence_panel import (
-    PANEL_HYBRID_DIRECTION_BINARY,
-    build_evidence_table,
-    select_panel,
+from regression_feature_engineering.walkforward.classification.sequence import (
+    SEQUENCE_CAUSAL_CNN_V1,
+    SequenceEmbeddingConfig,
+    append_causal_sequence_embeddings,
+    causal_sequence_tensor,
 )
-from regression_feature_engineering.walkforward.ema_gate import evaluate_timeframe_buffer, metrics_from_frame
-from regression_feature_engineering.walkforward.ema_regime import (
-    EMARegimeWindowConfig,
-    build_ema_regime_windows,
-    filter_ema_prediction_windows,
+from regression_feature_engineering.walkforward.classify import (
+    TARGET_BINARY_DOWN_2X_UP,
+    TARGET_BINARY_DOWN_2X_UP_ALIAS,
+    TARGET_BINARY_UP_2X_DOWN,
+    TARGET_BINARY_UP_2X_DOWN_ALIAS,
+    binary_metrics,
+    binary_target_expr,
+    canonical_binary_target_col,
+    classification_objective,
+    select_decision_threshold,
 )
-from regression_feature_engineering.walkforward.ablation import select_ablation_features
-from regression_feature_engineering.walkforward.config import CleanWalkForwardConfig, merge_config
+from regression_feature_engineering.walkforward.cnn_feature_diagnostic import (
+    feature_family,
+    feature_timeframe,
+    oriented_topk_lift,
+    rank_auc,
+    select_cnn_panel,
+)
+from regression_feature_engineering.walkforward.config import (
+    CleanWalkForwardConfig,
+    merge_config,
+)
 from regression_feature_engineering.walkforward.data import (
     build_batch_index,
     build_label_window_index,
@@ -62,9 +73,41 @@ from regression_feature_engineering.walkforward.data import (
     load_rpf_manifest,
     resolve_context,
 )
-from regression_feature_engineering.walkforward.metrics import objective_score, regression_metrics
-from regression_feature_engineering.walkforward.model import CatBoostConfig, build_catboost_params
-from regression_feature_engineering.walkforward.optimize import STAGES, run_optuna_stage, run_readiness, suggest_stage_config
+from regression_feature_engineering.walkforward.decision_bank import (
+    SIDE_DOWN,
+    SeparateBankConfig,
+    build_classifier_outcome_inventory,
+    build_separate_bank_plan,
+    summarize_separate_bank_plan,
+)
+from regression_feature_engineering.walkforward.ema_gate import (
+    evaluate_timeframe_buffer,
+    metrics_from_frame,
+)
+from regression_feature_engineering.walkforward.ema_regime import (
+    EMARegimeWindowConfig,
+    build_ema_regime_windows,
+    filter_ema_prediction_windows,
+)
+from regression_feature_engineering.walkforward.evidence_panel import (
+    PANEL_HYBRID_DIRECTION_BINARY,
+    build_evidence_table,
+    select_panel,
+)
+from regression_feature_engineering.walkforward.metrics import (
+    objective_score,
+    regression_metrics,
+)
+from regression_feature_engineering.walkforward.model import (
+    CatBoostConfig,
+    build_catboost_params,
+)
+from regression_feature_engineering.walkforward.optimize import (
+    STAGES,
+    run_optuna_stage,
+    run_readiness,
+    suggest_stage_config,
+)
 from regression_feature_engineering.walkforward.panel_select import build_candidate_pool
 from regression_feature_engineering.walkforward.policy import (
     ALL_MANIFEST_FEATURES,
@@ -86,45 +129,25 @@ from regression_feature_engineering.walkforward.regime_gate import (
     metrics_from_binary_prediction,
     train_gate_thresholds,
 )
-from regression_feature_engineering.walkforward.classification.runner import (
-    SELECTOR_REFIT_VALIDATION_MASK,
-    apply_policy_feature_transform,
-    fixed_selected_policy_result,
-    selected_feature_overlap,
-    should_force_bad_objective,
-)
-from regression_feature_engineering.walkforward.classification.sequence import (
-    SEQUENCE_CAUSAL_CNN_V1,
-    SequenceEmbeddingConfig,
-    append_causal_sequence_embeddings,
-    causal_sequence_tensor,
-)
-from regression_feature_engineering.walkforward.classification.cli import (
-    best_trial,
-    model_updates_from_best,
-    policy_from_best,
-    split_tuning_holdout_windows,
-)
-from regression_feature_engineering.walkforward.cnn_feature_diagnostic import (
-    feature_family,
-    feature_timeframe,
-    oriented_topk_lift,
-    rank_auc,
-    select_cnn_panel,
-)
 from regression_feature_engineering.walkforward.signal_bank import (
     HYBRID_RECENT_SIGNAL_BANK,
     SIGNAL_BANK,
     SignalBankConfig,
     build_signal_bank_windows,
 )
-from regression_feature_engineering.walkforward.windows import RPFWindow, build_windows, read_windows, write_windows
-
+from regression_feature_engineering.walkforward.windows import (
+    RPFWindow,
+    build_windows,
+    read_windows,
+    write_windows,
+)
 
 TARGET = "target_reg_direction_extreme_up_share_hvol_v2"
 
 
-def test_cnn_feature_diagnostic_helpers_identify_family_timeframe_and_rank_signal() -> None:
+def test_cnn_feature_diagnostic_helpers_identify_family_timeframe_and_rank_signal() -> (
+    None
+):
     assert feature_family("rpf_spike_15m_up_break_prox_l16_vol") == "spike_breakout"
     assert feature_family("rpf_room_1h_donchian_pos_l16_bnd") == "structural_room"
     assert feature_timeframe("rpf_mem_room_4h_donchian_pos_l16_bnd_lag1") == "4h"
@@ -145,7 +168,12 @@ def test_cnn_feature_panel_selection_respects_family_and_timeframe_limits() -> N
                 "rpf_room_1h_a",
                 "rpf_room_4h_a",
             ],
-            "family": ["spike_breakout", "spike_breakout", "structural_room", "structural_room"],
+            "family": [
+                "spike_breakout",
+                "spike_breakout",
+                "structural_room",
+                "structural_room",
+            ],
             "timeframe": ["15m", "15m", "1h", "4h"],
             "cnn_candidate_score": [0.9, 0.8, 0.7, 0.6],
             "nonconstant_batch_rate": [1.0, 1.0, 1.0, 0.1],
@@ -208,12 +236,21 @@ def test_causal_cnn_embeddings_can_use_separate_sequence_panel() -> None:
 
 
 def _ts(batch: int, row: int) -> datetime:
-    return datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(hours=batch * 8, minutes=row)
+    return datetime(2026, 1, 1, tzinfo=timezone.utc) + timedelta(
+        hours=batch * 8, minutes=row
+    )
 
 
-def _write_fixture(project: Path, *, batches: int = 5, rows: int = 4, label_overlap: bool = False) -> None:
-    feature_root = project / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m"
-    label_root = project / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+def _write_fixture(
+    project: Path, *, batches: int = 5, rows: int = 4, label_overlap: bool = False
+) -> None:
+    feature_root = (
+        project / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m"
+    )
+    label_root = (
+        project
+        / "data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m"
+    )
     feature_root.mkdir(parents=True)
     label_root.mkdir(parents=True)
     feature_cols = ("rpf_signal", "rpf_noise")
@@ -254,7 +291,8 @@ def _write_fixture(project: Path, *, batches: int = 5, rows: int = 4, label_over
                 "target_reg_distance_valid_v2": [True] * rows,
                 TARGET: target,
                 "label_window_start": [_ts(batch, rows)] * rows,
-                "label_window_end": [_ts(batch + 1 if label_overlap else batch, rows)] * rows,
+                "label_window_end": [_ts(batch + 1 if label_overlap else batch, rows)]
+                * rows,
                 "label_window_batch_id": [batch + 1 if label_overlap else batch] * rows,
                 "target_reg_distance_horizon_minutes_v2": [240.0] * rows,
             }
@@ -320,14 +358,39 @@ def _ema_regime_inventory() -> pl.DataFrame:
     return pl.DataFrame(rows)
 
 
-def test_manifest_loader_uses_feature_columns_and_excludes_diagnostics(tmp_path: Path) -> None:
+def test_manifest_loader_uses_feature_columns_and_excludes_diagnostics(
+    tmp_path: Path,
+) -> None:
     _write_fixture(tmp_path)
     manifest = load_rpf_manifest(
-        tmp_path / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m/manifest.json"
+        tmp_path
+        / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m/manifest.json"
     )
 
     assert manifest.feature_columns == ("rpf_signal", "rpf_noise")
     assert not any(col.startswith("rpf_align_") for col in manifest.feature_columns)
+
+
+def test_manifest_loader_rejects_retired_future_derived_session_features(
+    tmp_path: Path,
+) -> None:
+    manifest_path = tmp_path / "manifest.json"
+    manifest_path.write_text(
+        json.dumps(
+            {
+                "feature_columns": [
+                    "rpf_signal",
+                    "rpf_regime_15m_session_progress_bnd",
+                    "rpf_regime_1h_minutes_to_close_bnd",
+                    "rpf_regime_4h_session_close_bnd",
+                    "rpf_regime_1d_weekly_close_bnd",
+                ]
+            }
+        )
+    )
+
+    with pytest.raises(ValueError, match="retired future-derived observed-session"):
+        load_rpf_manifest(manifest_path)
 
 
 def test_load_panel_features_validates_current_feature_universe(tmp_path: Path) -> None:
@@ -337,12 +400,16 @@ def test_load_panel_features_validates_current_feature_universe(tmp_path: Path) 
     assert load_panel_features(panel, ("rpf_a", "rpf_b", "rpf_c")) == ("rpf_a", "rpf_b")
 
     missing_panel = tmp_path / "bad_panel.json"
-    missing_panel.write_text(json.dumps({"selected_features": ["rpf_a", "rpf_missing"]}))
+    missing_panel.write_text(
+        json.dumps({"selected_features": ["rpf_a", "rpf_missing"]})
+    )
     with pytest.raises(ValueError, match="outside current feature universe"):
         load_panel_features(missing_panel, ("rpf_a", "rpf_b"))
 
 
-def test_evidence_panel_combines_diagnostics_and_binary_selected_history(tmp_path: Path) -> None:
+def test_evidence_panel_combines_diagnostics_and_binary_selected_history(
+    tmp_path: Path,
+) -> None:
     diagnostics = tmp_path / "diag" / "rpf_feature_diagnostic_inventory"
     diagnostics.mkdir(parents=True)
     selected_root = tmp_path / "selected"
@@ -356,7 +423,12 @@ def test_evidence_panel_combines_diagnostics_and_binary_selected_history(tmp_pat
     )
     pl.DataFrame(
         {
-            "family": ["acceptance_persistence", "interaction_confluence", "structural_room", "volatility_state"],
+            "family": [
+                "acceptance_persistence",
+                "interaction_confluence",
+                "structural_room",
+                "volatility_state",
+            ],
             "timeframe": ["12h", "1h", "8h", "global"],
             "feature": list(features),
             "target": [
@@ -374,7 +446,12 @@ def test_evidence_panel_combines_diagnostics_and_binary_selected_history(tmp_pat
     ).write_parquet(diagnostics / "manifest_feature_correlation_best.parquet")
     pl.DataFrame(
         {
-            "family": ["acceptance_persistence", "interaction_confluence", "structural_room", "volatility_state"],
+            "family": [
+                "acceptance_persistence",
+                "interaction_confluence",
+                "structural_room",
+                "volatility_state",
+            ],
             "timeframe": ["12h", "1h", "8h", "global"],
             "feature": list(features),
             "target": [
@@ -456,27 +533,38 @@ def test_evidence_panel_is_side_aware_for_down_target(tmp_path: Path) -> None:
         manifest_features=features,
         target_col="target_cls_extreme_down_ge_2x_up_hvol_v2",
     )
-    ranked = evidence.sort("hybrid_direction_binary_score", descending=True)["feature"].to_list()
+    ranked = evidence.sort("hybrid_direction_binary_score", descending=True)[
+        "feature"
+    ].to_list()
 
     assert ranked[0] == "rpf_conf_1h_down_volume_impulse_l48_bnd"
-    assert evidence.filter(pl.col("feature") == "rpf_conf_1h_down_volume_impulse_l48_bnd")[
-        "direction_side_spearman"
-    ].item() > 0.0
-    assert evidence.filter(pl.col("feature") == "rpf_conf_1h_up_volume_impulse_l48_bnd")[
-        "opposite_side_token_score"
-    ].item() == pytest.approx(1.0)
+    assert (
+        evidence.filter(pl.col("feature") == "rpf_conf_1h_down_volume_impulse_l48_bnd")[
+            "direction_side_spearman"
+        ].item()
+        > 0.0
+    )
+    assert evidence.filter(
+        pl.col("feature") == "rpf_conf_1h_up_volume_impulse_l48_bnd"
+    )["opposite_side_token_score"].item() == pytest.approx(1.0)
 
 
 def test_feature_label_join_is_exact_on_timestamp_batch(tmp_path: Path) -> None:
     _write_fixture(tmp_path)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
     joined = load_joined_batches(context, [1])
 
     assert joined.height == 4
-    assert {"timestamp", "batch_id", TARGET, "rpf_signal", "rpf_noise"}.issubset(joined.columns)
+    assert {"timestamp", "batch_id", TARGET, "rpf_signal", "rpf_noise"}.issubset(
+        joined.columns
+    )
 
 
-def test_sparse_windows_use_available_positions_not_numeric_continuity(tmp_path: Path) -> None:
+def test_sparse_windows_use_available_positions_not_numeric_continuity(
+    tmp_path: Path,
+) -> None:
     index = pl.DataFrame(
         {
             "rpf_available_pos": [0, 1, 2],
@@ -496,10 +584,17 @@ def test_sparse_windows_use_available_positions_not_numeric_continuity(tmp_path:
 
 def test_batch_index_ignores_extra_feature_columns(tmp_path: Path) -> None:
     _write_fixture(tmp_path)
-    path = tmp_path / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m/batch_0002.parquet"
-    frame = pl.read_parquet(path).with_columns(pl.lit(1.0).alias("unexpected_extra_feature"))
+    path = (
+        tmp_path
+        / "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m/batch_0002.parquet"
+    )
+    frame = pl.read_parquet(path).with_columns(
+        pl.lit(1.0).alias("unexpected_extra_feature")
+    )
     frame.write_parquet(path)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
 
     index = build_batch_index(context)
 
@@ -509,13 +604,22 @@ def test_batch_index_ignores_extra_feature_columns(tmp_path: Path) -> None:
 
 def test_frozen_windows_roundtrip(tmp_path: Path) -> None:
     _write_fixture(tmp_path)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
-    windows = build_windows(build_batch_index(context), lookback_batches=2, val_batches=1, n_steps=1)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
+    windows = build_windows(
+        build_batch_index(context), lookback_batches=2, val_batches=1, n_steps=1
+    )
     path = write_windows(tmp_path / "frozen_windows.parquet", windows)
 
     assert read_windows(path) == windows
     frame = pl.read_parquet(path)
-    assert {"train_start_ts", "val_start_ts", "pred_start_ts", "train_valid_row_count"}.issubset(frame.columns)
+    assert {
+        "train_start_ts",
+        "val_start_ts",
+        "pred_start_ts",
+        "train_valid_row_count",
+    }.issubset(frame.columns)
 
 
 def test_feature_selection_uses_train_signal_only() -> None:
@@ -561,7 +665,10 @@ def test_all_manifest_policy_uses_every_feature_without_clip_bounds() -> None:
 
     assert result.selected_features == ("rpf_signal", "rpf_noise")
     assert result.clip_bounds == {}
-    assert result.detail["final_status"].to_list() == ["selected_all_manifest", "selected_all_manifest"]
+    assert result.detail["final_status"].to_list() == [
+        "selected_all_manifest",
+        "selected_all_manifest",
+    ]
 
 
 def test_frozen_panel_policy_uses_panel_features_only(tmp_path: Path) -> None:
@@ -579,12 +686,17 @@ def test_frozen_panel_policy_uses_panel_features_only(tmp_path: Path) -> None:
         frame,
         target_col=TARGET,
         feature_columns=("rpf_signal", "rpf_noise"),
-        config=FeaturePolicyConfig(policy=FROZEN_PANEL, frozen_panel_path=str(panel_path)),
+        config=FeaturePolicyConfig(
+            policy=FROZEN_PANEL, frozen_panel_path=str(panel_path)
+        ),
     )
 
     assert result.selected_features == ("rpf_signal",)
     assert result.clip_bounds == {}
-    assert result.detail.filter(pl.col("feature") == "rpf_noise")["drop_reason"].item() == "not_in_frozen_panel"
+    assert (
+        result.detail.filter(pl.col("feature") == "rpf_noise")["drop_reason"].item()
+        == "not_in_frozen_panel"
+    )
 
 
 def test_elasticnet_logistic_policy_selects_train_predictive_features() -> None:
@@ -615,9 +727,14 @@ def test_elasticnet_logistic_policy_selects_train_predictive_features() -> None:
         ),
     )
 
-    assert "rpf_signal" in result.selected_features or "rpf_signal_copy" in result.selected_features
+    assert (
+        "rpf_signal" in result.selected_features
+        or "rpf_signal_copy" in result.selected_features
+    )
     assert len(result.selected_features) <= 2
-    constant = result.detail.filter(pl.col("feature") == "rpf_constant").row(0, named=True)
+    constant = result.detail.filter(pl.col("feature") == "rpf_constant").row(
+        0, named=True
+    )
     assert constant["drop_reason"] == "constant_or_invalid_scale"
 
 
@@ -648,16 +765,28 @@ def test_elasticnet_policy_scaler_feeds_selected_features_to_catboost() -> None:
     )
     selected = result.selected_features
     X_train = frame.select(selected).to_numpy().astype("float64")
-    X_val = pl.DataFrame({"rpf_signal": [100.0, 120.0], "rpf_noise": [0.0, 0.0]}).select(selected).to_numpy().astype("float64")
-    X_pred = pl.DataFrame({"rpf_signal": [110.0], "rpf_noise": [0.0]}).select(selected).to_numpy().astype("float64")
+    X_val = (
+        pl.DataFrame({"rpf_signal": [100.0, 120.0], "rpf_noise": [0.0, 0.0]})
+        .select(selected)
+        .to_numpy()
+        .astype("float64")
+    )
+    X_pred = (
+        pl.DataFrame({"rpf_signal": [110.0], "rpf_noise": [0.0]})
+        .select(selected)
+        .to_numpy()
+        .astype("float64")
+    )
 
-    X_train_scaled, X_val_scaled, X_pred_scaled, diagnostics = apply_policy_feature_transform(
-        policy=policy,
-        policy_result=result,
-        selected=selected,
-        X_train=X_train,
-        X_val=X_val,
-        X_pred=X_pred,
+    X_train_scaled, X_val_scaled, X_pred_scaled, diagnostics = (
+        apply_policy_feature_transform(
+            policy=policy,
+            policy_result=result,
+            selected=selected,
+            X_train=X_train,
+            X_val=X_val,
+            X_pred=X_pred,
+        )
     )
 
     assert diagnostics["feature_transform_policy"] == "elasticnet_train_standardize"
@@ -714,10 +843,16 @@ def test_validation_mask_refit_keeps_selected_features_and_train_val_scaler() ->
 
     assert SELECTOR_REFIT_VALIDATION_MASK == "validation_mask"
     assert prediction_result.selected_features == selected
-    assert selected_feature_overlap(selected, prediction_result.selected_features)["jaccard"] == pytest.approx(1.0)
-    stat = prediction_result.detail.filter(pl.col("feature") == selected[0]).row(0, named=True)
+    assert selected_feature_overlap(selected, prediction_result.selected_features)[
+        "jaccard"
+    ] == pytest.approx(1.0)
+    stat = prediction_result.detail.filter(pl.col("feature") == selected[0]).row(
+        0, named=True
+    )
     assert stat["feature_mean_train"] == pytest.approx(train_val[selected[0]].mean())
-    assert stat["feature_std_train"] == pytest.approx(train_val[selected[0]].std(ddof=0))
+    assert stat["feature_std_train"] == pytest.approx(
+        train_val[selected[0]].std(ddof=0)
+    )
 
 
 def test_elasticnet_policy_train_only_prefilter_limits_candidates() -> None:
@@ -750,7 +885,10 @@ def test_elasticnet_policy_train_only_prefilter_limits_candidates() -> None:
     )
 
     assert result.selected_features == ("rpf_strong",)
-    assert result.detail.filter(pl.col("feature") == "rpf_weak")["drop_reason"].item() == "below_elasticnet_prefilter"
+    assert (
+        result.detail.filter(pl.col("feature") == "rpf_weak")["drop_reason"].item()
+        == "below_elasticnet_prefilter"
+    )
 
 
 def test_causal_sequence_tensor_uses_only_past_and_current_rows() -> None:
@@ -897,7 +1035,9 @@ def test_classification_best_trial_ignores_rejected_threshold_constraints() -> N
     assert best_trial(trials)["trial_number"] == 1
 
 
-def test_classification_best_trial_uses_stable_quality_score_even_when_stability_rejected() -> None:
+def test_classification_best_trial_uses_stable_quality_score_even_when_stability_rejected() -> (
+    None
+):
     trials = [
         {
             "trial_number": 0,
@@ -919,7 +1059,9 @@ def test_classification_best_trial_uses_stable_quality_score_even_when_stability
 
 
 def test_panel_candidate_pool_uses_existing_diagnostic_scores(tmp_path: Path) -> None:
-    report_root = tmp_path / "test_output/regression_feature_engineering_btcusdt_8h_b_screen"
+    report_root = (
+        tmp_path / "test_output/regression_feature_engineering_btcusdt_8h_b_screen"
+    )
     report_dir = report_root / "family_btcusdt_8h_b"
     report_dir.mkdir(parents=True)
     pl.DataFrame(
@@ -1013,7 +1155,9 @@ def test_regime_gate_quantile_targets_use_train_thresholds() -> None:
         }
     )
 
-    two_sided = add_gate_target(later, gate_target=GATE_TWO_SIDED, thresholds=thresholds)
+    two_sided = add_gate_target(
+        later, gate_target=GATE_TWO_SIDED, thresholds=thresholds
+    )
     low_edge = add_gate_target(later, gate_target=GATE_LOW_EDGE, thresholds=thresholds)
 
     assert thresholds["up_high"] == pytest.approx(3.25)
@@ -1108,7 +1252,9 @@ def test_gated_metrics_match_direct_confusion_matrix(tmp_path: Path) -> None:
 
 
 def test_metrics_from_binary_prediction() -> None:
-    metrics = metrics_from_binary_prediction(np.array([0, 0, 1, 1]), np.array([1, 0, 1, 0]))
+    metrics = metrics_from_binary_prediction(
+        np.array([0, 0, 1, 1]), np.array([1, 0, 1, 0])
+    )
 
     assert metrics["tp"] == 1
     assert metrics["tn"] == 1
@@ -1285,12 +1431,15 @@ def test_hybrid_signal_bank_adds_recent_mature_batches() -> None:
     assert audit[0]["max_val_label_window_batch_id"] <= 18
 
 
-def test_classifier_outcome_inventory_splits_trust_and_reject_batches(tmp_path: Path) -> None:
+def test_classifier_outcome_inventory_splits_trust_and_reject_batches(
+    tmp_path: Path,
+) -> None:
     score_path = tmp_path / "prediction_scores.parquet"
     pl.DataFrame(
         {
             "trial_number": [1] * 8,
-            "timestamp": [_ts(1, idx) for idx in range(4)] + [_ts(2, idx) for idx in range(4)],
+            "timestamp": [_ts(1, idx) for idx in range(4)]
+            + [_ts(2, idx) for idx in range(4)],
             "batch_id": [1] * 4 + [2] * 4,
             "pred_batch_id": [1] * 4 + [2] * 4,
             "target": [1, 1, 0, 0, 0, 0, 0, 1],
@@ -1299,7 +1448,9 @@ def test_classifier_outcome_inventory_splits_trust_and_reject_batches(tmp_path: 
         }
     ).write_parquet(score_path)
 
-    inventory = build_classifier_outcome_inventory(score_path, classifier_trial_number=1, classifier_threshold=0.5)
+    inventory = build_classifier_outcome_inventory(
+        score_path, classifier_trial_number=1, classifier_threshold=0.5
+    )
     rows = {int(row["batch_id"]): row for row in inventory.to_dicts()}
 
     assert rows[1]["classifier_active_rows"] == 2
@@ -1467,10 +1618,22 @@ def test_binary_target_aliases_match_canonical_rules() -> None:
         ]
     )
 
-    assert canonical_binary_target_col(TARGET_BINARY_UP_2X_DOWN_ALIAS) == TARGET_BINARY_UP_2X_DOWN
-    assert canonical_binary_target_col(TARGET_BINARY_DOWN_2X_UP_ALIAS) == TARGET_BINARY_DOWN_2X_UP
-    assert out[TARGET_BINARY_UP_2X_DOWN].to_list() == out[TARGET_BINARY_UP_2X_DOWN_ALIAS].to_list()
-    assert out[TARGET_BINARY_DOWN_2X_UP].to_list() == out[TARGET_BINARY_DOWN_2X_UP_ALIAS].to_list()
+    assert (
+        canonical_binary_target_col(TARGET_BINARY_UP_2X_DOWN_ALIAS)
+        == TARGET_BINARY_UP_2X_DOWN
+    )
+    assert (
+        canonical_binary_target_col(TARGET_BINARY_DOWN_2X_UP_ALIAS)
+        == TARGET_BINARY_DOWN_2X_UP
+    )
+    assert (
+        out[TARGET_BINARY_UP_2X_DOWN].to_list()
+        == out[TARGET_BINARY_UP_2X_DOWN_ALIAS].to_list()
+    )
+    assert (
+        out[TARGET_BINARY_DOWN_2X_UP].to_list()
+        == out[TARGET_BINARY_DOWN_2X_UP_ALIAS].to_list()
+    )
 
 
 def test_pr_auc_mcc_and_precision_lift_for_clean_ranking() -> None:
@@ -1512,34 +1675,30 @@ def test_validation_threshold_sweep_selects_low_cost_threshold() -> None:
 def test_signal_predictions_supports_live_safe_and_offline_decision_policies() -> None:
     prob = np.array([0.9, 0.8, 0.7, 0.1])
 
-    assert signal_predictions(prob, threshold=0.5, max_signals=0).tolist() == [1, 1, 1, 0]
-    assert (
-        signal_predictions(
-            prob,
-            threshold=0.5,
-            max_signals=2,
-            decision_policy=DECISION_POLICY_THRESHOLD_ONLY,
-        ).tolist()
-        == [1, 1, 1, 0]
-    )
-    assert (
-        signal_predictions(
-            np.array([0.6, 0.9, 0.8, 0.1]),
-            threshold=0.5,
-            max_signals=2,
-            decision_policy=DECISION_POLICY_CAUSAL_SIGNAL_BUDGET,
-        ).tolist()
-        == [1, 1, 0, 0]
-    )
-    assert (
-        signal_predictions(
-            np.array([0.6, 0.9, 0.8, 0.1]),
-            threshold=0.5,
-            max_signals=2,
-            decision_policy=DECISION_POLICY_BATCH_TOPK_OFFLINE,
-        ).tolist()
-        == [0, 1, 1, 0]
-    )
+    assert signal_predictions(prob, threshold=0.5, max_signals=0).tolist() == [
+        1,
+        1,
+        1,
+        0,
+    ]
+    assert signal_predictions(
+        prob,
+        threshold=0.5,
+        max_signals=2,
+        decision_policy=DECISION_POLICY_THRESHOLD_ONLY,
+    ).tolist() == [1, 1, 1, 0]
+    assert signal_predictions(
+        np.array([0.6, 0.9, 0.8, 0.1]),
+        threshold=0.5,
+        max_signals=2,
+        decision_policy=DECISION_POLICY_CAUSAL_SIGNAL_BUDGET,
+    ).tolist() == [1, 1, 0, 0]
+    assert signal_predictions(
+        np.array([0.6, 0.9, 0.8, 0.1]),
+        threshold=0.5,
+        max_signals=2,
+        decision_policy=DECISION_POLICY_BATCH_TOPK_OFFLINE,
+    ).tolist() == [0, 1, 1, 0]
     assert normalize_max_signals_grid((20, 0, 5, 5, -1)) == (0, 5, 20)
 
 
@@ -1603,8 +1762,12 @@ def test_cli_signal_cap_validation_rejects_threshold_only_caps() -> None:
     with pytest.raises(ValueError, match="threshold_only ignores caps"):
         validate_decision_policy_signal_grid(DECISION_POLICY_THRESHOLD_ONLY, (0, 5, 10))
 
-    assert validate_decision_policy_signal_grid(DECISION_POLICY_THRESHOLD_ONLY, (0,)) == (0,)
-    assert validate_decision_policy_signal_grid(DECISION_POLICY_CAUSAL_SIGNAL_BUDGET, (10, 0, 5)) == (
+    assert validate_decision_policy_signal_grid(
+        DECISION_POLICY_THRESHOLD_ONLY, (0,)
+    ) == (0,)
+    assert validate_decision_policy_signal_grid(
+        DECISION_POLICY_CAUSAL_SIGNAL_BUDGET, (10, 0, 5)
+    ) == (
         0,
         5,
         10,
@@ -1637,15 +1800,33 @@ def test_stable_prediction_quality_threshold_sweep_uses_stable_score() -> None:
 
 
 def test_classification_objective_supports_minimize_and_maximize() -> None:
-    metrics = {"logloss": 0.4, "decision_cost_per_row": 0.2, "precision": 0.8, "precision_lift": 1.4, "pr_auc": 0.7, "mcc": 0.2}
+    metrics = {
+        "logloss": 0.4,
+        "decision_cost_per_row": 0.2,
+        "precision": 0.8,
+        "precision_lift": 1.4,
+        "pr_auc": 0.7,
+        "mcc": 0.2,
+    }
 
     assert classification_objective(metrics, "validation_logloss") == ("minimize", 0.4)
-    assert classification_objective(metrics, "validation_decision_cost") == ("minimize", 0.2)
-    assert classification_objective(metrics, "validation_precision") == ("maximize", 0.8)
-    assert classification_objective(metrics, "validation_precision_lift") == ("maximize", 1.4)
+    assert classification_objective(metrics, "validation_decision_cost") == (
+        "minimize",
+        0.2,
+    )
+    assert classification_objective(metrics, "validation_precision") == (
+        "maximize",
+        0.8,
+    )
+    assert classification_objective(metrics, "validation_precision_lift") == (
+        "maximize",
+        1.4,
+    )
     assert classification_objective(metrics, "validation_pr_auc") == ("maximize", 0.7)
     assert classification_objective(metrics, "validation_mcc") == ("maximize", 0.2)
-    assert classification_objective(metrics, "stable_prediction_quality")[0] == "maximize"
+    assert (
+        classification_objective(metrics, "stable_prediction_quality")[0] == "maximize"
+    )
     assert classification_objective(metrics, "stable_signal_quality")[0] == "maximize"
 
 
@@ -1682,8 +1863,15 @@ def test_stable_prediction_quality_rewards_signal_and_penalizes_collapse() -> No
         "high_cost_window_rate": 0.5,
     }
 
-    good = stable_prediction_quality_score(good_metrics, stable, threshold_pass_rate=1.0, selected_feature_count_mean=80)
-    bad = stable_prediction_quality_score(collapsed_metrics, collapsed, threshold_pass_rate=0.5, selected_feature_count_mean=320)
+    good = stable_prediction_quality_score(
+        good_metrics, stable, threshold_pass_rate=1.0, selected_feature_count_mean=80
+    )
+    bad = stable_prediction_quality_score(
+        collapsed_metrics,
+        collapsed,
+        threshold_pass_rate=0.5,
+        selected_feature_count_mean=320,
+    )
 
     assert good["score"] > bad["score"]
     assert bad["zero_positive_window_rate"] == 1.0
@@ -1986,8 +2174,13 @@ def test_feature_family_ablation_masks_manifest_features() -> None:
 
     assert select_ablation_features(features, "all") == features
     assert select_ablation_features(features, "only_volatility_state") == ("rpf_vol_a",)
-    assert select_ablation_features(features, "group_volatility_state+structural_room") == ("rpf_vol_a", "rpf_room_a")
-    assert select_ablation_features(features, "minus_volatility_state") == ("rpf_room_a", "rpf_accept_a")
+    assert select_ablation_features(
+        features, "group_volatility_state+structural_room"
+    ) == ("rpf_vol_a", "rpf_room_a")
+    assert select_ablation_features(features, "minus_volatility_state") == (
+        "rpf_room_a",
+        "rpf_accept_a",
+    )
 
 
 def test_catboost_param_builder_rejects_invalid_sampling_combo() -> None:
@@ -2042,10 +2235,24 @@ def test_finite_categorical_stages_use_grid_sampler() -> None:
         od_wait_choices="100",
     )
 
-    assert type(optimize_module._sampler_for_stage(optuna, "geometry", args)).__name__ == "GridSampler"
-    assert type(optimize_module._sampler_for_stage(optuna, "baseline_probe", args)).__name__ == "GridSampler"
-    assert type(optimize_module._sampler_for_stage(optuna, "core_model", args)).__name__ == "GridSampler"
-    assert type(optimize_module._sampler_for_stage(optuna, "confirmation", args)).__name__ == "TPESampler"
+    assert (
+        type(optimize_module._sampler_for_stage(optuna, "geometry", args)).__name__
+        == "GridSampler"
+    )
+    assert (
+        type(
+            optimize_module._sampler_for_stage(optuna, "baseline_probe", args)
+        ).__name__
+        == "GridSampler"
+    )
+    assert (
+        type(optimize_module._sampler_for_stage(optuna, "core_model", args)).__name__
+        == "GridSampler"
+    )
+    assert (
+        type(optimize_module._sampler_for_stage(optuna, "confirmation", args)).__name__
+        == "TPESampler"
+    )
 
 
 def test_trial_config_columns_are_flat_for_audit() -> None:
@@ -2054,7 +2261,12 @@ def test_trial_config_columns_are_flat_for_audit() -> None:
         lookback_batches=180,
         val_batches=12,
         feature_ablation="all",
-        model={"iterations": 800, "depth": 4, "learning_rate": 0.01, "l2_leaf_reg": 200},
+        model={
+            "iterations": 800,
+            "depth": 4,
+            "learning_rate": 0.01,
+            "l2_leaf_reg": 200,
+        },
     )
 
     row = optimize_module._trial_config_columns(config)
@@ -2101,10 +2313,14 @@ def test_stale_base_run_feature_policy_is_overridden_by_current_config() -> None
 
 def test_readiness_stage_writes_expected_artifacts(tmp_path: Path) -> None:
     _write_fixture(tmp_path)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
     config = merge_config(CleanWalkForwardConfig(), policy={"min_selected_features": 1})
     run_root = tmp_path / "out"
-    args = SimpleNamespace(lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1)
+    args = SimpleNamespace(
+        lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1
+    )
 
     run_readiness(context, config, run_root, run_root / "events.jsonl", args)
 
@@ -2124,40 +2340,63 @@ def test_readiness_stage_writes_expected_artifacts(tmp_path: Path) -> None:
 
 def test_readiness_detects_label_window_overlap(tmp_path: Path) -> None:
     _write_fixture(tmp_path, batches=5, rows=4, label_overlap=True)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
     config = merge_config(CleanWalkForwardConfig(), policy={"min_selected_features": 1})
-    args = SimpleNamespace(lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1)
+    args = SimpleNamespace(
+        lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1
+    )
 
     with pytest.raises(ValueError, match="label-window safety failed"):
-        run_readiness(context, config, tmp_path / "out", tmp_path / "out" / "events.jsonl", args)
+        run_readiness(
+            context, config, tmp_path / "out", tmp_path / "out" / "events.jsonl", args
+        )
 
 
 def test_label_window_safety_passes_self_contained_windows(tmp_path: Path) -> None:
     _write_fixture(tmp_path, batches=5, rows=4)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
-    windows = build_windows(build_batch_index(context), lookback_batches=2, val_batches=1, n_steps=1)
-    summary, rows = optimize_module._label_window_safety(windows, build_label_window_index(context), embargo_batches=0)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
+    windows = build_windows(
+        build_batch_index(context), lookback_batches=2, val_batches=1, n_steps=1
+    )
+    summary, rows = optimize_module._label_window_safety(
+        windows, build_label_window_index(context), embargo_batches=0
+    )
 
     assert summary["status"] == "pass"
     assert summary["violation_count"] == 0
     assert rows[0]["label_window_violation"] is False
 
 
-def test_baseline_probe_stage_writes_artifacts_without_stage1_merged_root(tmp_path: Path) -> None:
+def test_baseline_probe_stage_writes_artifacts_without_stage1_merged_root(
+    tmp_path: Path,
+) -> None:
     pytest.importorskip("optuna")
     pytest.importorskip("catboost")
     _write_fixture(tmp_path, batches=5, rows=4)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
     config = merge_config(
         CleanWalkForwardConfig(min_prediction_unique=0),
         lookback_batches=2,
         val_batches=1,
         n_steps=1,
-        policy={"policy": TARGET_SPECIFIC_V2, "max_features": 1, "min_selected_features": 1, "min_abs_spearman": 0.01},
+        policy={
+            "policy": TARGET_SPECIFIC_V2,
+            "max_features": 1,
+            "min_selected_features": 1,
+            "min_abs_spearman": 0.01,
+        },
         model={"iterations": 5, "depth": 2, "early_stopping_rounds": 2, "od_wait": 2},
     )
     base_run = tmp_path / "readiness"
-    args_ready = SimpleNamespace(lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1)
+    args_ready = SimpleNamespace(
+        lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1
+    )
     run_readiness(context, config, base_run, base_run / "events.jsonl", args_ready)
     args = SimpleNamespace(
         stage="baseline_probe",
@@ -2206,10 +2445,19 @@ def test_non_geometry_stage_reuses_frozen_windows_without_batch_index_scan(
 ) -> None:
     pytest.importorskip("optuna")
     _write_fixture(tmp_path, batches=5, rows=4)
-    context = resolve_context(project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET)
-    config = merge_config(CleanWalkForwardConfig(min_prediction_unique=0), lookback_batches=2, val_batches=1, n_steps=1)
+    context = resolve_context(
+        project_root=tmp_path, asset="BTCUSDT", root="8h/B", target_col=TARGET
+    )
+    config = merge_config(
+        CleanWalkForwardConfig(min_prediction_unique=0),
+        lookback_batches=2,
+        val_batches=1,
+        n_steps=1,
+    )
     base_run = tmp_path / "readiness"
-    args_ready = SimpleNamespace(lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1)
+    args_ready = SimpleNamespace(
+        lookback_batches=2, val_batches=1, embargo_batches=0, n_steps=1
+    )
     run_readiness(context, config, base_run, base_run / "events.jsonl", args_ready)
 
     def explode_batch_index(*_args: object, **_kwargs: object) -> pl.DataFrame:
@@ -2263,7 +2511,13 @@ def test_non_geometry_stage_reuses_frozen_windows_without_batch_index_scan(
         od_wait_choices="2",
     )
 
-    run_optuna_stage(context, config, tmp_path / "baseline", tmp_path / "baseline" / "events.jsonl", args)
+    run_optuna_stage(
+        context,
+        config,
+        tmp_path / "baseline",
+        tmp_path / "baseline" / "events.jsonl",
+        args,
+    )
 
     assert (tmp_path / "baseline" / "trials.parquet").exists()
     assert (tmp_path / "baseline" / "window_metrics.parquet").exists()
