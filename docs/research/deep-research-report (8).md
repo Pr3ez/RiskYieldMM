@@ -35,7 +35,7 @@ The real objective is therefore:
 
 Stock-price movements are dominated by information that was not known before the movement happened: news, order flow, macroeconomic surprises, earnings releases and changes in investor expectations.
 
-Research on machine learning in asset pricing describes returns as having a low signal-to-noise ratio, with unpredictable news obscuring the smaller predictable component. It also found that relatively shallow neural networks and tree models could outperform deeper architectures, partly because financial datasets have less independent information than image or language datasets. 
+Research on machine learning in asset pricing describes returns as having a low signal-to-noise ratio, with unpredictable news obscuring the smaller predictable component. It also found that relatively shallow neural networks and tree models could outperform deeper architectures, partly because financial datasets have less independent information than image or language datasets.
 
 A useful simplification is:
 
@@ -209,7 +209,7 @@ For example:
 
 [
 r_{t,H}
-=======
+=
 
 \frac{P^{exit}*{t+H}}{P^{entry}*{t+1}} - 1
 ]
@@ -836,7 +836,7 @@ Regime model:
     market-state context
 ```
 
-Research comparing ML models for stock return prediction found useful gains from nonlinear interactions in trees and neural networks, but also found shallow networks more effective than deeper models in that particular low-signal asset-pricing setting. 
+Research comparing ML models for stock return prediction found useful gains from nonlinear interactions in trees and neural networks, but also found shallow networks more effective than deeper models in that particular low-signal asset-pricing setting.
 
 The ensemble should combine models only when their errors are meaningfully different. Combining five nearly identical boosted-tree models provides less diversification than combining models with different inductive biases.
 

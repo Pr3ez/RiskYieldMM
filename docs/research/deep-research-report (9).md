@@ -406,7 +406,7 @@ s^{alpha}_{i,t} = f_{\text{rank}}(X_{i,t})
 \]
 
 \[
-p^{path}_{i,e,t} = 
+p^{path}_{i,e,t} =
 \big(
 P(TP\text{-first}),
 P(SL\text{-first}),
@@ -426,7 +426,7 @@ P(\text{net utility}>0 \mid s^{alpha}, p^{path}, \hat{S}^{fill}, \widehat{MAE}, 
 
 \[
 \text{Trade if } p^{meta}_{i,e,t}>\tau_{\text{meta}}
-\ \text{and}\ 
+\quad\text{and}\quad
 U_{i,e,t}>0
 \]
 
@@ -464,7 +464,7 @@ If performance only exists in the unstressed baseline, the strategy is not ready
 At the portfolio layer, a default production objective should look like:
 
 \[
-\max_w \ 
+\max_w\quad
 w^\top \hat{\mu}
 -
 \lambda_r\, w^\top \hat{\Sigma} w
