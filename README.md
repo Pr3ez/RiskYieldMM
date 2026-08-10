@@ -1295,18 +1295,42 @@ map.
 
 ### Current trading-system redesign Stage 1 checkpoint
 
-<!-- STAGE1_ACTIVE_GATE: S1-A3 -->
+<!-- STAGE1_ACTIVE_GATE: S1-A4 -->
 
 The mutable execution pointer is now
 [`docs/research/stage1_execution_control_2026-08-08.md`](docs/research/stage1_execution_control_2026-08-08.md).
 It is the sole mutable source for gate state, dependencies, WIP limits, and
-resume commands. `S1-A1` and the dual 475-case `S1-A2` feasibility preflight
-are accepted. The single active gate is `S1-A3`: freeze the final two-component
-V2 authority and mechanically derived F1/F2 limits, then repeat preflights A,
-B, and their comparator against that authority. The next bounded action is
-`A3-T`, the fail-first finalization-manifest test packet. The dated narrative
-below remains historical checkpoint evidence and must not be used to infer
-that a later gate passed.
+resume commands. `S1-A1`, the dual 475-case `S1-A2` feasibility preflight, and
+the final two-component V2/F2 authority `S1-A3` are accepted. The single active
+gate is `S1-A4`: constructive maximum verifier/producer evidence. The
+independent case-435 attainability analysis originally placed verifier expansion
+`A4-P6-V` on hold: even a deliberately enlarged legal-domain upper bound is
+260,909 octets, 1,234 below frozen P2.U 262,143, while P3 requires equality.
+The independent profile-scope audit closes `A4-P6-C435-A`: it proves that 407
+generic programs covering 474 internal scope cases use the same structural-only
+P2 shortcut, while only case 69 has an application-aware exact P2. The complete
+case-435 dependency graph and conditional-factorization proof now close
+`A4-P6-C435-B`; unconditional field independence is rejected. The independent
+C1 solver/checker now prove the exact 257,887-octet upper bound without claiming
+an attainer. A separate C2 constructor and checker now accept a complete
+257,887-octet P1-legal attainer while explicitly making no exactness claim. A
+separate C3 join and independent checker bind the frozen channel/problem
+identities and prove the exact 257,887-octet maximum. The accepted D transition
+now binds four ordered exact-delta seed/manifest/boundary/target authorities,
+changes only effective case 435, and makes independent verifier expansion
+`A4-P6-V` executable. Its frozen implementation design is now realized through
+accepted `A4-P6-V0`: one verifier preserves predecessor case 5, accepts the
+successor delta chain under immutable F0, and rejects tampered authorities
+before candidate access. `A4-P6-V1`, intrinsic cases 24/54, is the next bounded action. The
+six-case fail-first target infrastructure `A4-P6-T` remains accepted;
+producer and runner changes wait for later bounded sub-gates. `A4-V`
+reproduces the exact 29-octet
+maximum, case event-stream digest, and all 18 resource measurements; `A4-P`
+emits its exact 1,333-byte candidate independently. The frozen A4-T module now
+has only the parent-runner missing-path failure. The rejected-V1
+structural bootstrap remains explicitly excluded. The dated
+narrative below remains historical checkpoint evidence and must not be used to
+infer that a later gate passed.
 
 As of 2026-08-02, V4.9F-A1 remains the latest complete accepted transport
 checkpoint, and the A2-M Raw V6 observed-local authoritative-manifest and Raw
@@ -1349,9 +1373,24 @@ the complete seed-plus-boundary matrix passes 121 tests. Preflight A is now
 accepted as a single-implementation candidate after 6 focused tests. The
 independently authored preflight B and the isolated comparator are also
 accepted; all 475 cases and all 18 metrics agree exactly. That closes `S1-A2`.
-The active P0 is now `S1-A3`; immutable final V2 authority and limits must be
-frozen and the dual preflight repeated before a replacement pilot is
-authorized.
+The final V2 authority is now frozen by a canonical 18-record/36-limit
+manifest after fresh dual-preflight agreement and a 182-test acceptance
+matrix, closing `S1-A3`. The active P0 is `S1-A4`; a new V2-only independent
+verifier/producer boundary is accepted under contract ID
+`bdc7363ae28dfe9a1c1dc132808cb1bd4a06c409201cd49b31e394893142a7ed`.
+The fail-first verifier/producer target (`A4-T`), bounded case-5 independent
+verifier (`A4-V`), separate case-5 producer (`A4-P`), and independent six-case
+qualification target infrastructure (`A4-P6-T`) are accepted. The later
+case-435 falsification held verifier expansion (`A4-P6-V`) until the accepted D
+transition. The correction
+architecture and full 407-program/474-scope-case census close
+`A4-P6-C435-A`. The dependency closure then accepts `A4-P6-C435-B`;
+exact upper-bound channel `A4-P6-C435-C1` and independent legal-attainer
+channel `A4-P6-C435-C2` each derive 257,887 octets without joining their claims.
+The separate equality join `A4-P6-C435-C3` accepts the exact maximum, and the
+versioned authority transition `A4-P6-C435-D` is accepted. `A4-P6-V` is next;
+its V0 successor resolver/read barrier is accepted, V1 cases 24/54 are the sole active implementation packet,
+and producer/runner expansion remain held.
 The remaining Step-2 gates are 474 legal maximum attainers,
 separate runtime-work accounting/certification, production differential
 adapters, and final Raw V7 compatibility. The corrected Step-3 lifecycle
@@ -1399,7 +1438,22 @@ Other high-signal documents:
 - [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md) - independently authored flat-ledger counter acceptance over the same 475 cases and 18 metrics
 - [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md) - isolated parent-owned resource enforcement and exact A/B comparison acceptance
 - [`docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md) - combined `S1-A2` acceptance after exact agreement on all cases/metrics and fresh regression
-- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) - active `S1-A3` two-component authority design; `A3-T` fail-first finalization-manifest tests are next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) - selected two-component `S1-A3` authority design
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md) - accepted canonical final manifest, all 36 F2 limits, standalone finalizer, exact rerun, and activation of `S1-A4/A4-B0`
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md) - accepted `A4-B0` V2-only verifier/producer/pilot boundary, six-case pilot set, F2 resource authority, hostile boundary checks, and explicit rejected-V1 exclusion; its `A4-T` successor is now accepted
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md) - accepted `A4-T` independent schema/source/CLI/functional target with 50 passing checks, 11 expected skips, exactly three missing-path failures, and `A4-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md) - accepted bounded `A4-V` standalone verifier with exact case-5 legality/bound/attainment/identity/resource reconstruction, 12 focused hostile tests, two remaining missing-role failures, and `A4-P` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md) - accepted bounded `A4-P` standalone producer with exact 1,333-byte case-5 candidate, 20 deterministic/adversarial/interoperability tests, one remaining parent-runner failure, and the then-next `A4-P6` qualification
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md) - accepted `A4-P6-T` independent six-case target with case-5 positive control, exact F2/identity/hostile checks, six intended fail-first boundaries, frozen runner convention, and `A4-P6-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md) - records the later case-435 NO-GO: enlarged-domain upper bound 260,909 is 1,234 octets below frozen P2.U, so P3 equality is infeasible and `A4-P6-C435` is next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md) - accepts `A4-P6-C435-A`: complete 408-program/475-scope-case strategy census, 407-program/474-case correction surface, fail-closed three-channel exactness contract, and `A4-P6-C435-B` dependency closure next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md) - accepts `A4-P6-C435-B`: complete schema/rule/operator graph, nested conditional factorization, and 182 singleton plus one three-field A1 component; its C1 successor is now accepted
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C1`: proof-carrying finite-domain solver plus separate direct legal-branch verifier derive the exact 257,887-octet upper bound; its non-attainment boundary remains frozen
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C2`: independent constructor and separate full-P1 replay checker prove a 257,887-octet legal retained witness while leaving exactness join `A4-P6-C435-C3` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C3`: identity-bound join and independent checker prove the exact 257,887-octet maximum, preserve verifier hold, and make versioned authority transition `A4-P6-C435-D` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md) - accepts `A4-P6-C435-D`: four ordered exact-delta authorities replace only effective case 435, preserve predecessor evidence and immutable F2 ceilings, reject hostile re-sealed drift, and make independent verifier expansion `A4-P6-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md) - freezes the dual-mode successor verifier, exact context/P1/P2/P3/local-minimality/F2 obligations, hostile acceptance matrix, and ordered V0-V4 implementation packets; V0 is now accepted and V1 is next while the formal expansion remains incomplete
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md) - accepts `A4-P6-V0`: exact predecessor/successor authority dispatch, full read-before-candidate barrier, deterministic successor-bound case-5 control, immutable F0 footprint, cross-mode/tamper rejection, and `A4-P6-V1` next
 - [`Archive/README.md`](Archive/README.md) - legacy implementation/archive index
 
 ## Technology Stack

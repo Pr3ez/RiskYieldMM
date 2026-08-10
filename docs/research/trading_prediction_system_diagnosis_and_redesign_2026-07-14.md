@@ -991,18 +991,47 @@ Each stage is a gate. Later complexity is not a substitute for failure at an
 earlier dependency, but independent workstreams may proceed in parallel after
 their explicitly named prerequisite contracts are accepted.
 
-### Current execution pointer — 2026-08-09 dual preflight accepted
+### Current execution pointer — 2026-08-10 case-435 authority transition
 
-<!-- STAGE1_ACTIVE_GATE: S1-A3 -->
+<!-- STAGE1_ACTIVE_GATE: S1-A4 -->
 
 The sole mutable status authority is
 [`stage1_execution_control_2026-08-08.md`](stage1_execution_control_2026-08-08.md).
-`S1-A1` and `S1-A2` are accepted. `S1-A3` is active: freeze the final
-two-component V2 authority and mechanically derived F1/F2 limits, then repeat
-preflights A, B, and the comparator. `A3-T` fail-first finalization-manifest
-tests are the next bounded action. The detailed chronology below is retained
-as evidence and design rationale; any older sentence naming an active P0 is
-superseded by this paragraph and the control ledger.
+`S1-A1`, `S1-A2`, and the final two-component V2/F2 authority `S1-A3` are
+accepted. `S1-A4` is active for constructive maximum evidence. The independent
+case-435 analyzer proved that even an enlarged legal domain reaches at most
+260,909 canonical octets, 1,234 below frozen P2.U 262,143; P3 equality is
+therefore unsatisfiable and verifier expansion `A4-P6-V` was placed on hold. The
+follow-up census closes `A4-P6-C435-A`: all 408 profile programs require exact
+P1/P3 equality, but 407 programs covering 474 of 475 internal scope cases use
+the structural-only P2 shortcut. Only analytic control case 69 has an
+application-aware exact P2. The selected correction separates a proved legal
+upper bound, an independently constructed legal attainer, and an identity-bound
+equality join; it forbids promoting an unattained superset bound. The next
+dependency audit now closes `A4-P6-C435-B`: it seals 32 reachable types, 133
+value schemas, 26 rules/754 expression nodes, nine complex operators, and the
+complete 185-field graph. It rejects unconditional field independence and
+proves only a nested decomposition: root/selector/sequence/context separator,
+then 182 singleton fields plus one coupled three-field A1 component. The
+proof-carrying C1 solver and separate direct legal-branch checker now accept an
+exact application-aware upper bound of 257,887 canonical octets. They enumerate
+2,971 legal reduced field candidates and 9,051 legal A1 tuples and explicitly
+leave `independent_attainer_accepted` false. A separate C2 longest-first
+constructor and independently implemented checker now accept a complete
+257,887-octet P1-legal retained witness while explicitly leaving
+`exactness_claimed` false. A separate C3 join and independent checker now bind
+the frozen channel certificates to the same problem and schedule authority and
+prove the exact maximum is 257,887 octets. The accepted D transition now binds
+four acyclic exact-delta seed/manifest/boundary/target authorities, replaces
+only effective case 435, preserves 474 cases and 407 programs by exact
+predecessor resolution, and keeps the old F2 values as immutable ceilings with
+successor resource requalification required. The next bounded action is
+independent verifier expansion `A4-P6-V`; producer and runner expansion remain
+held. `A4-P6-T` remains accepted predecessor fail-first infrastructure. The
+rejected-V1 structural
+bootstrap remains excluded. The detailed chronology below is
+retained as evidence and design rationale; any older sentence naming an active
+P0 is superseded by this paragraph and the control ledger.
 
 The active Stage 1 transport sub-track is **V4.9F-A2-M Raw V8 Step-2
 constructive maxima, work accounting, production-adapter, and compatibility
@@ -1517,8 +1546,28 @@ non-guarantees.
 [`stage1_execution_control_2026-08-08.md`](stage1_execution_control_2026-08-08.md)
 is the mutable gate ledger for the remaining work. The versioned seed
 correction closes `S1-A1`; independent preflights A and B plus their exact
-comparator close `S1-A2`; `S1-A3` is active for the final two-component V2
-authority, mechanically derived F1/F2 limits, and repeated dual preflight. It
+comparator close `S1-A2`; the standalone finalizer, canonical manifest, 36
+mechanically derived F2 limits, and fresh regression close `S1-A3`. `S1-A4` is
+active for the independent verifier, separate producer, replacement six-case
+pilot, and complete 475-case constructive result. `A4-B0` has frozen that
+V2-only boundary and `A4-T` has frozen the independent fail-first target;
+bounded `A4-V` now independently accepts the exact 29-octet case-5 attainer
+and its full resource/event evidence. Bounded `A4-P` independently emits the
+exact case-5 candidate under the frozen authority and filesystem contract.
+`A4-P6-T` accepts the independent six-case qualification target; verifier
+expansion `A4-P6-V` was next at that checkpoint. The subsequent independent
+case-435 attainability falsification places it on hold: its enlarged-domain
+ceiling is 260,909 octets, 1,234 below frozen P2.U. The complete scope census
+and three-channel correction design close `A4-P6-C435-A`; the complete graph
+and nested conditional-factorization proof close `A4-P6-C435-B`. The separate
+C1 solver/checker accept the exact 257,887-octet upper bound without an attainer,
+and the separate C2 constructor/checker accept a 257,887-octet legal attainer
+without an exactness claim. The separate C3 join/checker accept the exact
+257,887-octet maximum, and the four-authority exact-delta D transition is
+accepted. Independent verifier expansion `A4-P6-V` has now accepted its first
+ordered implementation packet, `A4-P6-V0` successor authority resolution/read
+barrier. `A4-P6-V1` intrinsic cases 24/54 are next; no new case algorithm is
+accepted yet. The control ledger
 separates the `S1-R0` offline-research milestone
 from the complete `S1-X` live-activation exit, and defines bounded acceptance,
 replan, WIP, and resume rules. This roadmap remains the program specification;
@@ -1526,8 +1575,8 @@ dated amendments do not override the control document's current state.
 
 | Item | Specification |
 |---|---|
-| Required code changes | **Implemented through bounded V4.9F-A1 plus locally accepted A2-M Raw V6 and Raw V7, with a historical Raw V8 Step-2 runtime surface and the Raw V8 initializer technically GO:** signed local manifest authority; durable pre-effect attempt/exactly-one-terminal lifecycle; exact failed-prefix replay; synchronous cancellation/interruption evidence; startup orphan recovery; strict provisional four-member replay; explicit unsigned-suffix trust disclosure; the private V8 four-operation/185-field/66-counter records; and the crash-safe empty V8 profile initializer. `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and `POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` remain mandatory and `passed` remains false. **Immediate next A2-M P0:** V1 maximum proof is rejected by immutable coordinate/node/depth cap contradictions; the replacement compact-proof V2 correction, exact-delta V4 successor inventory, and deterministic V2 seed are accepted without changing the registry, any of the 408 V3 profile objects/IDs, or the 474-row universe. Complete two independent counting-only all-475-case feasibility preflights covering 474 maxima plus local shutdown; only then freeze immutable final V2 limits, implement the independent verifier/generator, run the replacement pilot, and prove the 474 maxima plus separate local-shutdown result. Next complete separate work accounting/certification, production adapters, and Raw V7/final-tree compatibility; then re-audit and implement the corrected Step 3 target-span ownership, retained-intent replay, finite ingress/shutdown work, receipt grammar, result lineage, and remaining projection lifecycle through step 12. **Later A2-M order:** physical normalization and fixture-level oracles; independent finalizer; campaign isolation; atomic publication; full matched neutrality/overhead and frozen workloads; calibration, confirmation, thresholds, then A2-E. Remaining Stage 1 work also includes durable saturation/BACKPRESSURE and bounded causal parser turns; independently qualified runtime-currentness and incremental actor designs; multi-session fairness; effective systemd/chronyd/VM authority; provider/certificate, crash, storage-fault and long no-trading campaigns; measured immutable deployment and external anchors; atomic H1/H2/order-intent/outbox; non-bypassable governance/order/fill authority; heartbeat/disconnect status; deterministic HTF/futures mapping; independent labels and interval-aware splits; cross-lineage promotion; stale/synthetic-row exclusion; quarantined-artifact rebuild; and legacy migration. |
-| Required tests | **Accepted predecessor Raw V7 evidence:** every one of 27 audit rows is Direct; 242/242 direct cases and the frozen 39-file/558-case adjacent matrix passed on its accepted post-format tree, with exact inventories, static/public-surface audits, compilation/lint, and leftover/worktree review. The shared constructor safety correction requires that exact inventory to be rerun on the final tree. **Historical Raw V8 Step-2 evidence:** the then-current independent golden replay, 185-field/85-null-attempt and operation/checkpoint truth tables, generated boundary witnesses, process isolation, and 12 targeted Raw V7 compatibility cases remain predecessor evidence, not current target-bound acceptance. **Current Step-2 accepted sub-gates:** exact 52-node graph/path coverage; scalar, DFA, and Unicode conformance; typed rule/application structure; registry-bound value validation; all 41 generic plus 11 complex operators; all 42 rules with recursive literal closure; schema-valid generic true/false witnesses; a 44-case complex true/business-false/evaluation-failure witness; all eight applications and two resolvers with a 57-case no-skip oracle; 27 additional application-boundary adversaries; 375 combined component tests; a canonical V3 inventory with 408 scope profiles accepted by a 45-case focused inventory/security suite; the deterministic 31-test V1 feasibility rejection; two independent READY reviews plus final hash verification for the compact-proof V2 correction; and the exact-delta V4 inventory accepted after 33 focused adversaries, independent consumer review, and a final 134-case predecessor/V4/security/consumer matrix. **Current Step-2 test gap:** both all-475-case counting preflights; V2 recurrence/exhaustive/batched equivalence, legal-attainer, equal-maxima publication, cap/file-security and independent-producer tests; constructive per-type/result/observation byte maxima; separate complete runtime-work accounting/certification; production differential adapters; and final Raw V7 compatibility. **Initializer evidence:** 38 focused projection cases plus independent replacement/alias/lease probes, lint, and compilation. The dated Raw V6 228-test and earlier 2,441-passed/32-skipped repository results remain predecessor context, not current full-suite claims. **Known focused gaps:** V8 target-span/finite-grammar correction, projection lifecycle, marker/probe/runtime-adapter and full-field integration, collector/artifact/replay, and whole-V8 acceptance; physical normalization and fixture-level then matched neutrality; independently derived correctness finalization; campaign isolation; and atomic durable publication. **Required before Stage 1 exit:** complete A2-M neutrality/overhead and layer-availability evidence; immutable calibration plus independent confirmation; measured 10k/100k correctness, crash/restart/scaling, 30-day two-asset and 100-scope capacity/fairness campaigns; durable saturation/parser/actor evidence; real provider and certificate conformance; privileged clock/deployment validation; governance/order/fill attacks; atomic H1/H2/intent/outbox tests; complete heartbeat/disconnect/recovery status; independent labels and interval-overlap tests; HTF/futures boundary tests; and operational raw replay/live parity. |
+| Required code changes | **Implemented through bounded V4.9F-A1 plus locally accepted A2-M Raw V6 and Raw V7, with a historical Raw V8 Step-2 runtime surface and the Raw V8 initializer technically GO:** signed local manifest authority; durable pre-effect attempt/exactly-one-terminal lifecycle; exact failed-prefix replay; synchronous cancellation/interruption evidence; startup orphan recovery; strict provisional four-member replay; explicit unsigned-suffix trust disclosure; the private V8 four-operation/185-field/66-counter records; and the crash-safe empty V8 profile initializer. `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and `POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` remain mandatory and `passed` remains false. **Immediate next A2-M P0:** V1 maximum proof is rejected by immutable coordinate/node/depth cap contradictions; the replacement compact-proof V2 correction, exact-delta V4 successor inventory, corrected V2 seed, dual all-475-case preflights, final V2/F2 authority, V2-only constructive boundary, and bounded case-5 verifier/producer are accepted without changing the registry, any of the 408 V3 profile objects/IDs, or the 474-row universe. The six-case target infrastructure is accepted, but case 435 falsifies its frozen structural-P2/P3 equality. The `A4-P6-C435-A` census/design, `B` dependency closure, exact 257,887-octet `C1` upper certificate, independent 257,887-octet `C2` legal attainer, identity-bound `C3` exactness join, four-authority exact-delta `D` transition, and dual-mode verifier resolver/read barrier `A4-P6-V0` are accepted. Next implement `A4-P6-V1` intrinsic cases 24/54, then V2 case 69, V3 case 435, V4 case 475/F2 consolidation, independent verifier acceptance, the separate producer, runner, replacement pilot, and 474 maxima plus separate local-shutdown result. Next complete separate work accounting/certification, production adapters, and Raw V7/final-tree compatibility; then re-audit and implement the corrected Step 3 target-span ownership, retained-intent replay, finite ingress/shutdown work, receipt grammar, result lineage, and remaining projection lifecycle through step 12. **Later A2-M order:** physical normalization and fixture-level oracles; independent finalizer; campaign isolation; atomic publication; full matched neutrality/overhead and frozen workloads; calibration, confirmation, thresholds, then A2-E. Remaining Stage 1 work also includes durable saturation/BACKPRESSURE and bounded causal parser turns; independently qualified runtime-currentness and incremental actor designs; multi-session fairness; effective systemd/chronyd/VM authority; provider/certificate, crash, storage-fault and long no-trading campaigns; measured immutable deployment and external anchors; atomic H1/H2/order-intent/outbox; non-bypassable governance/order/fill authority; heartbeat/disconnect status; deterministic HTF/futures mapping; independent labels and interval-aware splits; cross-lineage promotion; stale/synthetic-row exclusion; quarantined-artifact rebuild; and legacy migration. |
+| Required tests | **Accepted predecessor Raw V7 evidence:** every one of 27 audit rows is Direct; 242/242 direct cases and the frozen 39-file/558-case adjacent matrix passed on its accepted post-format tree, with exact inventories, static/public-surface audits, compilation/lint, and leftover/worktree review. The shared constructor safety correction requires that exact inventory to be rerun on the final tree. **Historical Raw V8 Step-2 evidence:** the then-current independent golden replay, 185-field/85-null-attempt and operation/checkpoint truth tables, generated boundary witnesses, process isolation, and 12 targeted Raw V7 compatibility cases remain predecessor evidence, not current target-bound acceptance. **Current Step-2 accepted sub-gates:** exact 52-node graph/path coverage; scalar, DFA, and Unicode conformance; typed rule/application structure; registry-bound value validation; all 41 generic plus 11 complex operators; all 42 rules with recursive literal closure; schema-valid generic true/false witnesses; a 44-case complex true/business-false/evaluation-failure witness; all eight applications and two resolvers with a 57-case no-skip oracle; 27 additional application-boundary adversaries; 375 combined component tests; a canonical V3 inventory with 408 scope profiles accepted by a 45-case focused inventory/security suite; the deterministic 31-test V1 feasibility rejection; two independent READY reviews plus final hash verification for the compact-proof V2 correction; the exact-delta V4 inventory accepted after 33 focused adversaries and a final 134-case predecessor/V4/security/consumer matrix; two independent all-475-case counting preflights and comparator; final V2/F2 freeze; V2 constructive boundary; bounded case-5 verifier/producer; six-case fail-first infrastructure; 17 exact-upper certificate tests; 17 independent-attainer/full-P1 tests; 16 exactness-join tests; and 26 authority-transition tests covering deterministic independent replay, reversible exact delta, transitive physical/semantic binding, F2 non-relabeling, and hostile re-sealed mutations. **Current Step-2 test gap:** corrected six-case verifier/producer/runner evidence; complete 475-case constructive maxima; separate complete runtime-work accounting/certification; production differential adapters; and final Raw V7 compatibility. **Initializer evidence:** 38 focused projection cases plus independent replacement/alias/lease probes, lint, and compilation. The dated Raw V6 228-test and earlier 2,441-passed/32-skipped repository results remain predecessor context, not current full-suite claims. **Known focused gaps:** V8 target-span/finite-grammar correction, projection lifecycle, marker/probe/runtime-adapter and full-field integration, collector/artifact/replay, and whole-V8 acceptance; physical normalization and fixture-level then matched neutrality; independently derived correctness finalization; campaign isolation; and atomic durable publication. **Required before Stage 1 exit:** complete A2-M neutrality/overhead and layer-availability evidence; immutable calibration plus independent confirmation; measured 10k/100k correctness, crash/restart/scaling, 30-day two-asset and 100-scope capacity/fairness campaigns; durable saturation/parser/actor evidence; real provider and certificate conformance; privileged clock/deployment validation; governance/order/fill attacks; atomic H1/H2/intent/outbox tests; complete heartbeat/disconnect/recovery status; independent labels and interval-overlap tests; HTF/futures boundary tests; and operational raw replay/live parity. |
 | Expected output | Versioned event ledger and split manifest for every supported scope; data/label audit with cluster counts; versioned A2-M bundle and durable publisher; frozen campaign manifests and raw bundles; separately regenerable analysis with explicit limitations/nonclaims |
 | Acceptance criteria | No constructible or replayable correctness PASS without independently derived roots/results; declared and observed provenance are distinct; selected physical-output and boundary evidence is immutable and replayable under its frozen profile; no sampling failure is omitted; no threshold is selected before independent confirmation; zero known clock/eligibility violations or caller-controlled authority clocks; no raw `CONTROL_SUBSCRIPTION_ACK` independently restores health; no pre-binding bar enters recovery; no terminated or superseded session authorizes H1; zero `EXECUTION_BAR PASS` before the exact intent/outbox is atomically present; independent labels agree on sampled events; every feature dependency has availability metadata |
 | Dependencies | For the active A2-M work: qualified host/storage authority, authoritative source/runtime/environment collector inputs, stable marker and attempt/terminal interfaces, and campaign isolation or a separately frozen external-isolation mechanism. For the data-contract work: provider completed-bar/status/feed-health sources, point-in-time concrete futures mappings and product schedules, and a first-seen journal for future evidence |
@@ -2480,16 +2529,52 @@ answers. Its 13 boundary/hostile tests pass; the complete amended matrix passes
 `d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b`.
 Independently authored preflight B reproduced that exact semantic payload, and
 the isolated comparator accepted exact agreement over all 475 cases and all 18
-metrics under F0. `S1-A2` is accepted; `S1-A3` final authority/limit freeze and
-repeat preflight is the next bounded packet. See the
+metrics under F0. `S1-A2` is accepted. The current source tuple was explicitly
+reconciled, and the standalone finalizer, canonical 18-record/36-limit
+manifest, exact rerun, and 182-test regression accept `S1-A3`. `S1-A4` is now
+active; `A4-B0` has frozen the V2-only verifier/producer/pilot boundary and
+`A4-T` has accepted the independent implementation target. Bounded `A4-V`
+independently derives and verifies the exact case-5 maximum, identities, event
+stream, and all 18 resource measurements; bounded `A4-P` independently emits
+its exact candidate and passes black-box verifier interoperability. `A4-P6-T`
+accepts the six-case fail-first target infrastructure. The subsequent
+[`case-435 attainability falsification`](v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md)
+proves its frozen P3 equality infeasible and originally placed `A4-P6-V` on hold. The
+follow-up scope audit accepts `A4-P6-C435-A`, and the complete dependency graph
+plus conditional-factorization proof accepts `A4-P6-C435-B`. The C1
+solver/checker accept the exact 257,887-octet upper bound without claiming an
+attainer; the separate C2 constructor/checker accept a 257,887-octet P1-legal
+attainer without claiming exactness. The separate C3 join/checker prove the
+exact 257,887-octet maximum; the accepted D transition binds the corrected
+four-authority delta chain and releases `A4-P6-V`. The frozen verifier design
+now has accepted V0 successor resolution/read-barrier evidence; V1 intrinsic
+cases 24/54 are next while cases 69/435/475, producer, and runner remain held.
+See the
 [`S1-A2 boundary freeze`](v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md)
 and the
 [`A2-A acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md),
 [`A2-B acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md),
 [`comparator acceptance`](v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md),
 [`combined acceptance`](v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md),
+[`source-identity amendment`](v4_9f_a2_raw_v8_step2_v2_preflight_source_identity_amendment_2026-08-09.md),
+[`S1-A3 design correction`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md),
+[`A4-B0 constructive boundary freeze`](v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md),
+[`A4-T fail-first acceptance`](v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md),
+[`A4-V independent verifier acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md),
+[`A4-P separate producer acceptance`](v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md),
+[`A4-P6-T six-case target acceptance`](v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md),
+the
+[`case-435 attainability falsification`](v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md),
+[`profile-attainability scope and correction design`](v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md),
+[`case-435 dependency-closure acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md),
+[`case-435 exact-upper acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md),
+[`case-435 independent-attainer acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md),
+[`case-435 exactness-join acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md),
+[`case-435 authority-transition acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md),
+[`independent-verifier expansion design`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md),
+[`independent-verifier V0 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md),
 and
-[`S1-A3 design correction`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md).
+[`S1-A3 final-freeze acceptance`](v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md).
 
 **Stage 1 is NOT exited.** The public live factory stays closed. Production
 queue/fairness policy, privileged systemd/chronyd/VM integration, provider and

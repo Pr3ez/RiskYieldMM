@@ -244,17 +244,21 @@ Ruff/compile/diff checks, and exact manifest regeneration.
 | Sub-gate | State | Exit condition |
 |---|---|---|
 | `A3-B0` final-bundle design correction | `SELECTED` | This document; legacy in-place patch explicitly rejected |
-| `A3-T` fail-first manifest/finalizer tests | `NEXT` | Closed schema, derivation, drift, resource, atomicity, and hostile cases fail for the right reason |
-| `A3-I` finalizer implementation | `WAITING` | No local imports; derives F1/F2; exact check/write; private cleanup |
-| `A3-F` final manifest freeze | `WAITING` | Canonical bytes and ID frozen; no accepted predecessor changed |
-| `A3-R` final rerun and acceptance | `WAITING` | Comparator/A reproduction, F2 fit, full regression, and read-only acceptance |
+| `A3-T` fail-first manifest/finalizer tests | `ACCEPTED` | Closed schema, derivation, drift, resource, atomicity, and hostile cases fail for the right reason |
+| `A3-I` finalizer implementation | `ACCEPTED` | No local imports; derives F1/F2; exact check/write; private cleanup |
+| `A3-F` final manifest freeze | `ACCEPTED` | Canonical bytes and ID frozen; no accepted predecessor changed |
+| `A3-R` final rerun and acceptance | `ACCEPTED` | Comparator/A reproduction, F2 fit, full regression, and read-only acceptance |
 
-Only `S1-A3` is an active mutable top-level gate. These rows are its ordered
-internal work, not parallel implementation gates.
+These rows were the ordered internal work of `S1-A3`, not parallel
+implementation gates. The accepted result and exact identities are frozen by
+the
+[`S1-A3 final-freeze acceptance`](v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md).
+`S1-A4` is now the sole active mutable top-level gate.
 
 ## 9. Nonclaims
 
-This design correction does not yet implement or accept the finalizer or
-manifest. It does not accept S1-A3, F2, a verifier, producer, pilot,
-constructive maximum, Raw V8 Step 2/3, transport-wide A2-M/A2-E, Stage 1,
-offline Stage 2, paper/live trading, safety, predictive edge, or profitability.
+At design time this correction did not implement or accept the finalizer or
+manifest; the later acceptance linked above now accepts S1-A3 and F2. Neither
+document accepts a verifier, producer, pilot, constructive maximum, Raw V8
+Step 2/3, transport-wide A2-M/A2-E, Stage 1, offline Stage 2, paper/live
+trading, safety, predictive edge, or profitability.

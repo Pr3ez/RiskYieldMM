@@ -1,0 +1,36 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "case435_exact_maximum_octets": 257887,
+  "exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+  "f2_limit_authority": {
+    "case435_successor_resource_requalification": "REQUIRED_DURING_A4_P6_V_BEFORE_CASE_ACCEPTANCE",
+    "excess_policy": "CONTROLLED_NO_GO_WITH_NO_LIMIT_CHANGE",
+    "limit_record_count": 18,
+    "limits_are_byte_exact_predecessor_ceilings": true,
+    "limits_may_not_be_raised_or_repaired_by_case435": true,
+    "ordered_f2_limit_records_sha256": "0535f351fb1a668e4bba2f864232052b2187efd4317869fb749f28d2e7da9b1e"
+  },
+  "manifest_delta_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_exact_manifest_delta.v1",
+  "manifest_status": "CASE435_EXACT_DELTA_BOUND_VERIFIER_RESOURCE_REQUALIFICATION_REQUIRED",
+  "next_subgate": "A4-P6-C435-D-BOUNDARY",
+  "predecessor_evidence_scope": {
+    "comparison_applies_to_predecessor_seed_only": true,
+    "comparison_payload_id": "8fca05661cbf728468b442466f613b7840b9c462cb2fd55302d34569fe243256",
+    "comparison_reuse_as_successor_preflight_forbidden": true,
+    "semantic_payload_id": "d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b"
+  },
+  "predecessor_finalization_manifest_authority": {
+    "finalization_manifest_id": "edde204e98ed1caeeb8ae270487d85e39a2168e0a3692ce1d8748d2d8e7fd858",
+    "raw_octets": 15560,
+    "raw_sha256": "0136fba014287605336193f782b4885f16e0163000d36429ceb0dfaf0cea52e0",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_finalization_manifest_v49f.json"
+  },
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "successor_manifest_id": "6aed1139c158f8685bcb226697a2efe57af3c42f57831173bd7b3ea169025d9c",
+  "successor_seed_delta_authority": {
+    "raw_octets": 22976,
+    "raw_sha256": "5ce6b2156389ff0aecad7272a564308662a6ec3a77c4b94bfcae7ce32739c3da",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_seed_delta_v49f.json",
+    "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+  }
+}

@@ -1,17 +1,33 @@
 # Research Reports
 
-> **Current Stage 1 execution pointer (updated 2026-08-09):** use
+> **Current Stage 1 execution pointer (updated 2026-08-10):** use
 > [`stage1_execution_control_2026-08-08.md`](stage1_execution_control_2026-08-08.md)
 > for the live gate ledger, active work packet, dependencies, WIP rules, and
 > resume commands. Dated status paragraphs below remain checkpoint evidence but
 > do not override that control document. The corrected `S1-A1` seed closure is
-> accepted; the dual-preflight `S1-A2` is accepted; the single active gate is
-> the final V2 authority freeze `S1-A3`, with `A3-T` fail-first manifest tests
-> next;
+> accepted; the dual-preflight `S1-A2` and final V2/F2 freeze `S1-A3` are
+> accepted; the single active gate is constructive maximum evidence `S1-A4`.
+> Its `A4-B0` boundary, `A4-T` fail-first target, bounded case-5 `A4-V`
+> independent verifier, separate case-5 producer `A4-P`, and independent
+> six-case qualification target infrastructure `A4-P6-T` are accepted. The
+> case-435 attainability falsification originally placed verifier expansion
+> `A4-P6-V` on hold. The complete profile-scope census/correction architecture and
+> case-435 dependency closure accept `A4-P6-C435-A` and `B`. The separate C1
+> solver/checker accept the exact 257,887-octet upper bound without claiming an
+> attainer. The independent C2 constructor and separate full-P1 checker accept
+> a 257,887-octet legal attainer while making no exactness claim. The separate
+> C3 join/checker prove the exact 257,887-octet maximum. The accepted D
+> transition now binds four ordered exact-delta seed/manifest/boundary/target
+> authorities, changes only case 435, and releases `A4-P6-V`. Its frozen
+> implementation design is now realized through accepted `A4-P6-V0`: one
+> verifier preserves predecessor case 5, resolves the successor chain, and
+> rejects tampered authority bytes before candidate access. `A4-P6-V1`
+> intrinsic cases 24/54 are the sole active packet; cases 69/435/475, producer,
+> and runner expansion remain held.
 > Stage 1, offline Stage 2, and paper/live activation remain blocked at this
 > snapshot.
 
-<!-- STAGE1_ACTIVE_GATE: S1-A3 -->
+<!-- STAGE1_ACTIVE_GATE: S1-A4 -->
 
 These reports are dated research/context documents. Use the root
 [`README.md`](../../README.md) for product and HTF orientation, the
@@ -52,8 +68,36 @@ the accepted
 [`S1-A2 comparator`](v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md),
 the combined
 [`S1-A2 dual-preflight acceptance`](v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md),
-and the active
+its current-byte
+[`S1-A2 source-identity amendment`](v4_9f_a2_raw_v8_step2_v2_preflight_source_identity_amendment_2026-08-09.md),
+the selected
 [`S1-A3 final-freeze design correction`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md),
+its accepted
+[`S1-A3 final-freeze result`](v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md),
+the accepted
+[`A4-B0 V2 constructive boundary`](v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md),
+the accepted
+[`A4-T implementation fail-first target`](v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md),
+the accepted
+[`A4-V bounded independent verifier`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md),
+the accepted
+[`A4-P separate producer`](v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md),
+the accepted
+[`A4-P6-T six-case qualification target`](v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md),
+the subsequent
+[`case-435 attainability falsification`](v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md),
+the accepted
+[`profile-attainability scope and correction design`](v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md),
+the accepted
+[`case-435 dependency closure`](v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md),
+the accepted
+[`case-435 exact upper`](v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md),
+the accepted
+[`case-435 independent attainer`](v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md),
+the accepted
+[`case-435 exactness join`](v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md),
+the accepted
+[`case-435 exact-delta authority transition`](v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md),
 the corrected
 [`Raw V8 Step-3 protocol`](v4_9f_a2_raw_v8_step3_projection_lifecycle_protocol_freeze_2026-07-25.md),
 its normative active
@@ -66,7 +110,7 @@ current-status pointer.
 
 ## Current trading-system redesign Stage 1 status
 
-As of 2026-08-02, V4.9F-A1 remains the latest complete accepted transport
+As of 2026-08-10, V4.9F-A1 remains the latest complete accepted transport
 checkpoint, and the A2-M Raw V6 observed-local manifest-authority and Raw V7
 failed-prefix/cancellation lifecycle sub-gates are locally accepted. Raw V7
 closed all 27 audit rows with 242 direct and 558 frozen adjacent cases on the
@@ -102,13 +146,31 @@ event-metadata amendment, is accepted under a 108-test focused seed/security
 matrix. The refrozen shared boundary adds 13 passing contract tests. Preflights
 A and B and their isolated comparator are accepted; the independent
 implementations agree exactly over all 475 verifier-owned scope cases and all
-18 metrics. `S1-A2` is therefore closed. The active P0 is `S1-A3`: freeze the
-final two-component V2 authority and mechanically derived F1/F2 limits, then
-repeat both preflights and the comparator. Only then may a replacement pilot
-begin. Constructive byte maxima, separate work
-accounting/certification, production differential adapters, and final
-compatibility remain. A2-M and Raw V8 as a whole remain incomplete and
-unaccepted. The Step-3 empty-profile initializer
+18 metrics. `S1-A2` is therefore closed. The canonical finalization manifest,
+standalone finalizer, all 36 mechanically derived F2 limits, exact rerun, and
+182-test matrix close `S1-A3`. The active P0 is `S1-A4`; `A4-B0` has replaced
+the rejected-V1 bootstrap with an accepted V2-only verifier/producer/pilot
+boundary, `A4-T` has accepted the independent schema/source/CLI/functional
+target, and bounded `A4-V` independently proves the exact 29-octet case-5
+attainer plus its full event/resource evidence. Bounded `A4-P` independently
+emits the exact 1,333-byte candidate accepted by that verifier. `A4-P6-T`
+accepts the independent six-case fail-first authority and exact implementation
+boundary. The independent case-435 analysis proves that the frozen P3 equality
+cannot reach structural P2.U: even its enlarged legal-domain upper bound is
+260,909 octets, 1,234 below 262,143. The
+scope census/correction architecture and case-435 dependency closure are
+accepted as `A4-P6-C435-A` and `B`. The C1 solver and separate certificate
+checker now accept an exact upper bound of 257,887 octets while explicitly
+leaving attainment unaccepted. The separate C2 constructor/checker now accept
+a 257,887-octet P1-legal retained witness while explicitly leaving exactness
+unclaimed. The identity-bound C3 join/checker accept their shared problem
+identity and equal 257,887-octet values as the exact maximum. The accepted
+exact-delta D transition preserves the old authorities, replaces only effective
+case 435, and releases independent verifier expansion `A4-P6-V`; its V0
+successor resolver/read barrier is accepted and V1 cases 24/54 are next. Remaining constructive byte maxima,
+separate work accounting/certification, production differential
+adapters, and final compatibility remain. A2-M and Raw V8 as a whole remain
+incomplete and unaccepted. The Step-3 empty-profile initializer
 has independent technical GO, while lifecycle work waits for the remaining
 Step-2 maxima, accounting, adapter, and compatibility gates and then the
 target-span correction.
@@ -198,7 +260,23 @@ or rejected against repository evidence.
 | [`v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md) | Accepted independently authored A2-B flat-ledger counter over the same 475 cases and 18 metrics. |
 | [`v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md) | Accepted isolated comparator with parent-owned process/resource evidence and exact A/B agreement. |
 | [`v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md) | Combined `S1-A2` acceptance: all 475 cases and 18 metrics agree exactly under F0, with frozen commands, results, identities, and fresh regression. |
-| [`v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) | Active `S1-A3` design for unchanged semantic seed plus canonical finalization manifest and mechanically derived F1/F2 limits. `A3-T` fail-first tests are next. |
+| [`v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) | Selected `S1-A3` design for unchanged semantic seed plus canonical finalization manifest and mechanically derived F1/F2 limits. |
+| [`v4_9f_a2_raw_v8_step2_v2_preflight_source_identity_amendment_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_preflight_source_identity_amendment_2026-08-09.md) | Reconciles the committed preflight-A source/test bytes before S1-A3, proves unchanged 475-case/18-metric semantics, freezes the replacement comparison seal, and adds machine-checked source drift control. |
+| [`v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md) | Accepts `S1-A3`: standalone finalizer, canonical two-component manifest, exact source/evidence seals, all 36 mechanical F2 limits, fresh 182-test regression, and activation of `S1-A4/A4-B0`. |
+| [`v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md) | Accepts `A4-B0`: V2-only closed verifier/producer/pilot schemas, exact two-component S1-A3 authority mapping, mechanically derived F2 resource catalog, six fixed pilot cases, hostile boundary tests, and explicit rejected-V1 exclusion. Its `A4-T` successor is now accepted. |
+| [`v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md) | Accepts `A4-T`: independent candidate/result/receipt/pilot schemas, source and CLI isolation, legal case-5 verifier/producer functional targets, hostile candidates, 50 passing checks, 11 implementation-dependent skips, exactly three missing-path failures, and `A4-V` next. |
+| [`v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md) | Accepts bounded `A4-V`: standalone authority-first verifier, exact case-5 legality/P2/P3 reconstruction, byte-identical 18-metric event evidence, identity/canonical publication checks, 12 focused hostile tests, and `A4-P` next. Cases 24/54/69/435/475 remain later gates. |
+| [`v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md) | Accepts bounded `A4-P`: standalone authority-pinned case-5 producer, exact 1,333-byte candidate, black-box verifier interoperability, 20 deterministic/adversarial tests, and the then-next `A4-P6` qualification. The parent runner and remaining five pilot cases remain unimplemented. |
+| [`v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md) | Accepts `A4-P6-T`: independent six-case authority/oracle target, case-5 positive control, exact F2 and hostile checks, six intended implementation failures with no unexpected failures, frozen runner convention, and `A4-P6-V` next. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md`](v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md) | Records the later case-435 NO-GO: an independent enlarged-domain ceiling of 260,909 octets leaves a 1,234-octet gap to frozen P2.U, making P3 equality unsatisfiable; `A4-P6-V` is held and `A4-P6-C435` is next. |
+| [`v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md) | Accepts `A4-P6-C435-A`: independently freezes all 408 programs/475 internal scope cases, identifies 407 programs/474 cases requiring application-aware correction, and selects separate proved-upper, independent-attainer, and identity-bound exactness channels; `A4-P6-C435-B` is next. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md) | Accepts `A4-P6-C435-B`: seals 32 types, 133 schemas, 26 rules/754 nodes, nine complex operators, deterministic identities, exact composition, and the nested separator plus 182 singleton/one A1 conditional factorization; its C1 successor is now accepted. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md) | Accepts `A4-P6-C435-C1`: a proof-carrying finite-domain solver and separate direct legal-branch checker derive the exact 257,887-octet upper bound, reject hostile resealed mutations, and preserve the non-attainment boundary. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md) | Accepts `A4-P6-C435-C2`: an independent longest-first constructor and separately implemented full-P1 replay checker prove a 257,887-octet legal retained witness, reject circular C1 imports and hostile mutations, and leave exactness join `A4-P6-C435-C3` next. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md) | Accepts `A4-P6-C435-C3`: a minimal identity-bound join and independent checker prove the exact 257,887-octet maximum from frozen C1/C2 channels, reject hostile re-sealed substitutions, keep verifier expansion held, and make `A4-P6-C435-D` next. |
+| [`v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md) | Accepts `A4-P6-C435-D`: four acyclic exact-delta authorities bind the C3 exact cell to a corrected case-435 program/plan/target, preserve all predecessor bytes plus 474 unaffected cases/407 programs, retain immutable F2 ceilings with verifier requalification required, and make `A4-P6-V` next. |
+| [`v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md) | Freezes `A4-P6-V` implementation: exact predecessor/successor authority-mode dispatch, closed context forms, case-specific P1/P2/P3 or local-minimality obligations, immutable F2 metering, hostile acceptance matrix, and ordered V0/V1/V2/V3/V4/acceptance packets; V0 is now accepted and V1 is next. |
+| [`v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md) | Accepts `A4-P6-V0`: one standard-library-only verifier dispatches exact predecessor/successor modes, loads 38 successor authorities before candidate access within immutable F0, preserves case 5, rejects cross-mode/tampered inputs, and makes V1 cases 24/54 next while case-435 F2 execution remains unclaimed. |
 | [`v4_9f_a2_raw_v8_step3_projection_lifecycle_protocol_freeze_2026-07-25.md`](v4_9f_a2_raw_v8_step3_projection_lifecycle_protocol_freeze_2026-07-25.md) | Active corrected Step-3 child protocol. It freezes the new schema boundary, initialization, candidate/attempt/terminal/closure truth, marker/probe failure semantics, identities, recovery, bounds, and acceptance matrix. Its status remains NO-GO while target-span ownership and finite operation grammar are corrected and independently re-audited. |
 | [`v4_9f_a2_raw_v8_step3_target_and_lifecycle_correction_2026-07-26.md`](v4_9f_a2_raw_v8_step3_target_and_lifecycle_correction_2026-07-26.md) | Normative active NO-GO correction candidate for store-wide span ownership, one-shot mutation authority, operation DFAs, V2 causal specs/results, finite target budgets, fixed checkpoint cardinality, marker/probe truth, immutable finalization, and exact recovery. It must pass independent review before parent/code regeneration. |
 | [`v4_9f_a2_raw_v8_initializer_technical_acceptance_2026-07-26.md`](v4_9f_a2_raw_v8_initializer_technical_acceptance_2026-07-26.md) | Narrow technical GO for the crash-safe private empty-profile initializer: atomic schema/metadata, fresh-connection COMMIT replay, non-destructive failure handling, protected V8 path/lease/inode/alias rules, concurrency adversaries, and focused 38-test evidence. It does not accept Step 3, Raw V8, A2-M, or Stage 1. |

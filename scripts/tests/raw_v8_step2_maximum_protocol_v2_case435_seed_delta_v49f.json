@@ -1,0 +1,490 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "exactness_theorem_authority": {
+    "attainer_certificate_id": "1d801ba5b81a5e5ed27adfba2ff718fa24a7bd27e3cbf87ce5b603f653502dba",
+    "case_position": 435,
+    "correction_contract_id": "e95d6f101942c0f1171616f0b05cf8978991fda639fc63a355765dd73b18c37b",
+    "correction_subgate": "A4-P6-C435-C3",
+    "exact_cell_kind": "EXACT_ATTAINED_MAXIMUM",
+    "exact_maximum_octets": 257887,
+    "exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+    "independently_measured_legal_attainer_octets": 257887,
+    "maximum_constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+    "ordered_source_authority_records": [
+      {
+        "raw_octets": 63596,
+        "raw_sha256": "fd151f412d8c51eec3de454b91bf34ab1c705d2d81dbb1a37504ac06efa74f6c",
+        "repository_relative_path": "scripts/tests/solve_raw_v8_step2_maximum_protocol_v2_case435_upper_v49f.py",
+        "source_position": 1,
+        "source_role": "CASE435_UPPER_SOLVER"
+      },
+      {
+        "raw_octets": 46246,
+        "raw_sha256": "e19a00db0f989f3f3740e3314f179307362246efd5a69cea78d50e122fb6877d",
+        "repository_relative_path": "scripts/tests/check_raw_v8_step2_maximum_protocol_v2_case435_upper_certificate_v49f.py",
+        "source_position": 2,
+        "source_role": "CASE435_UPPER_CHECKER"
+      },
+      {
+        "raw_octets": 55880,
+        "raw_sha256": "ff0ca26e259f7ecbec8e2dde76eb6a4c6ec5974629ab5fc536f2d05b74e73f11",
+        "repository_relative_path": "scripts/tests/construct_raw_v8_step2_maximum_protocol_v2_case435_attainer_v49f.py",
+        "source_position": 3,
+        "source_role": "CASE435_ATTAINER_CONSTRUCTOR"
+      },
+      {
+        "raw_octets": 31130,
+        "raw_sha256": "fb89bd4d242f38e49d43ac06648b67415f7ed6c16007107d8454a6f7dfad4058",
+        "repository_relative_path": "scripts/tests/check_raw_v8_step2_maximum_protocol_v2_case435_attainer_certificate_v49f.py",
+        "source_position": 4,
+        "source_role": "CASE435_ATTAINER_CHECKER"
+      },
+      {
+        "raw_octets": 16018,
+        "raw_sha256": "236adccb8d80adcf16f834e6766e5b1085ed2664fa777a46e049f920eb1110e4",
+        "repository_relative_path": "scripts/tests/join_raw_v8_step2_maximum_protocol_v2_case435_exactness_v49f.py",
+        "source_position": 5,
+        "source_role": "CASE435_EXACTNESS_JOIN"
+      },
+      {
+        "raw_octets": 16594,
+        "raw_sha256": "18cbe51ed71f3ef7b06f251f0e83178d9529af5e4360559b91363a4b76996226",
+        "repository_relative_path": "scripts/tests/check_raw_v8_step2_maximum_protocol_v2_case435_exactness_certificate_v49f.py",
+        "source_position": 6,
+        "source_role": "CASE435_EXACTNESS_CHECKER"
+      },
+      {
+        "raw_octets": 11081,
+        "raw_sha256": "fdda11a22e29797e8878c8321d7d724a30e44cd73d1ffde2ab6857efbef17cc2",
+        "repository_relative_path": "tests/test_raw_v8_step2_maximum_protocol_v2_case435_exactness_join_v49f.py",
+        "source_position": 7,
+        "source_role": "CASE435_EXACTNESS_TEST"
+      },
+      {
+        "raw_octets": 8576,
+        "raw_sha256": "ce2e5afd4b3627a8012f659f331e4688f6b81131032da4fdf131e3ad63e57af2",
+        "repository_relative_path": "docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md",
+        "source_position": 8,
+        "source_role": "CASE435_EXACTNESS_ACCEPTANCE"
+      }
+    ],
+    "predecessor_logical_count_plan_id": "9f8cd8303e3a9360986f0294210dda931e827af6eed4ec76b0c084e54f722c4a",
+    "predecessor_profile_conditioning_program_id": "0e4a94fb5b99c464e7db1ef0fc0525b9408683a004a5ea034fcfbf5c427eb4e8",
+    "profile_position": 369,
+    "proved_legal_upper_bound_octets": 257887,
+    "upper_certificate_id": "c01bba7c5f5f19c12957493c7a0989dc3ddbc42306c0f059ee922c18341e62b4"
+  },
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "no_unrelated_drift_proof": {
+    "authorized_override_json_pointers": [
+      "/logical_plan_recipe_catalog/ordered_profile_conditioning_program_records/368",
+      "/logical_plan_recipe_catalog/ordered_logical_count_plan_records/434",
+      "/logical_plan_recipe_catalog/ordered_case_plan_bindings/434"
+    ],
+    "case_universe_record_count": 475,
+    "case_universe_records_sha256": "4fc765f0e73e2573d472155b2cb4f2147dfb7e5788176ae0a532b6b9951a237d",
+    "inherited_recipe_member_names": [
+      "case_plan_binding_schema",
+      "catalog_version",
+      "logical_plan_instantiation_rule",
+      "logical_plan_schema",
+      "logical_step_schema",
+      "ordered_logical_plan_templates",
+      "ordered_plan_recipe_records",
+      "p2_cross_application_deletion_policy",
+      "profile_conditioned_cell_contract",
+      "profile_conditioning_program_schema"
+    ],
+    "inherited_recipe_members_sha256": "fb1562357b102421543c3ca903286a3e5170095e39ef293dd2382305fa91a6f1",
+    "unaffected_case_plan_binding_count": 474,
+    "unaffected_case_plan_binding_records_sha256": "7023882b834f8755e119201f16c87bab0cb75f783c2f69dd294f61129041e13e",
+    "unaffected_case_plan_count": 474,
+    "unaffected_case_plan_records_sha256": "d1d1d55614918f518fbd2bc1183268345eab9af5dd6996aec7ac31a0ef411c96",
+    "unaffected_profile_program_count": 407,
+    "unaffected_profile_program_records_sha256": "b8065136b9b1fa60930c7f2fa68902f9e63385a29cd725df89cafd803e340df7"
+  },
+  "predecessor_seed_authority": {
+    "raw_octets": 13419905,
+    "raw_sha256": "a75a2f352e8513b7ff0043693a0c65ebbf4bc6f06859354789af69e1162b0e4f",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_seed_catalog_v49f.json",
+    "seed_catalog_id": "ac22151fa74702ac1488924f01161eaa38574545e6272a290db6b0bbd288ae5f"
+  },
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "resolution_contract": {
+    "base_fallback_case_count": 474,
+    "ordered_override_case_positions": [
+      435
+    ],
+    "override_cardinality": 1,
+    "resolution_rule": "CASE_435_MUST_RESOLVE_TO_SUCCESSOR_RECORDS_OTHER_CASES_MUST_RESOLVE_BYTE_EXACTLY_TO_PREDECESSOR",
+    "resolution_version": "riskyieldmm.raw_v8_step2_external_schema_v2.single_case_exact_delta_resolution.v1",
+    "shadowed_predecessor_case435_use_policy": "REJECT",
+    "structural_superset_as_exact_maximum_policy": "REJECT",
+    "unknown_duplicate_or_extra_override_policy": "REJECT"
+  },
+  "seed_delta_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_exact_seed_delta.v1",
+  "successor_case435_case_plan_binding": {
+    "case_position": 435,
+    "logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "logical_count_plan_position": 435
+  },
+  "successor_case435_logical_count_plan": {
+    "case_binding": {
+      "alternative_name": null,
+      "binding_version": "riskyieldmm.raw_v8_step2_external_schema_v2.maximum_row_count_binding.v1",
+      "constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+      "row_kind": "CHECKPOINT_ROOT_COORDINATE",
+      "row_position": 435,
+      "type_name": "TargetObservationV2"
+    },
+    "case_kind": "MAXIMUM_PUBLICATION_ROW",
+    "case_position": 435,
+    "local_analytic_catalog_id": null,
+    "logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "logical_count_plan_version": "riskyieldmm.raw_v8_step2_external_schema_v2.logical_count_plan.v4",
+    "logical_plan_template_id": "9862ddfbd22ebc4f025a7259d53e5fed7d6cd253b1f047ee5cdcd93d3b05da98",
+    "logical_root_reference": {
+      "root_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+      "root_kind": "PROFILE_CONDITIONING_PROGRAM"
+    },
+    "ordered_safe_relaxation_rule_ids": [],
+    "profile_conditioning_program_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+    "recurrence_catalog_id": "743ab1fdf8f15da1b38331dc23fcf79dd4a89c2767013afba421107deeeecbcd",
+    "root_step_position": 158,
+    "scope_summary": {
+      "application_invocation_count": 137,
+      "application_schedule_operation_position": 5,
+      "constructed_context_occurrence_count": 67,
+      "context_record_reference_count": 71,
+      "cross_rule_evaluation_count": 12531,
+      "direct_cross_expression_node_count": 125431,
+      "internal_scope_case_count": 1,
+      "observation_count": 67,
+      "p2_cross_application_deletion_policy_id": null,
+      "schedule_authority_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+      "schedule_authority_kind": "PROFILE_CONDITIONING_PROGRAM",
+      "scope_summary_version": "riskyieldmm.raw_v8_step2_external_schema_v2.compact_scope_summary.v1",
+      "synthetic_axis_count": 0
+    },
+    "upper_bound_mode": "EXACT_LEGAL_DOMAIN"
+  },
+  "successor_case435_profile_conditioning_program": {
+    "application_schedule_operation": {
+      "application_invocation_count": 137,
+      "child_operation_position": 4,
+      "cross_rule_evaluation_count": 12531,
+      "direct_cross_expression_node_count": 125431,
+      "execution_mode": "EXACT_CROSS_RULE_APPLICATION_V1",
+      "opcode": "APPLICATION_SCHEDULE_COUNT",
+      "operation_position": 5,
+      "ordered_schedule_segment_records": [
+        {
+          "application_invocation_count_per_scope_case": 137,
+          "cross_rule_evaluation_count_per_scope_case": 12531,
+          "direct_cross_expression_node_count_per_scope_case": 125431,
+          "observation_count": 67,
+          "ordered_application_instruction_records": [
+            {
+              "application_invocation_count_per_scope_case": 1,
+              "application_name": "APPLY/SELECTOR_MARKER_CONTRACT_V1",
+              "cross_rule_evaluation_count_per_scope_case": 1,
+              "instruction_position": 1,
+              "invocation_ordinal_program": "SINGLE_ZERO_NULL_BOUND_V1",
+              "rule_application_id": "30f3a8688435dff87bc5ff329e7a9dd6bbbf40c71de5dd746a4cb1e9008b3ee5",
+              "rule_id": "RULE/CROSS/SELECTOR_MARKER_CONTRACT_V1"
+            },
+            {
+              "application_invocation_count_per_scope_case": 67,
+              "application_name": "APPLY/V2_OBSERVATION_AGGREGATE_REGISTRY_V1",
+              "cross_rule_evaluation_count_per_scope_case": 67,
+              "instruction_position": 2,
+              "invocation_ordinal_program": "ZERO_BASED_OBSERVATION_RANGE_V1",
+              "rule_application_id": "0fff77cbc03f9fcf019e8352875d9b7f49a3ab8a0ed374e9d5b9bb2f7f9a38fb",
+              "rule_id": "RULE/CROSS/V2_OBSERVATION_AGGREGATE_REGISTRY_V1"
+            },
+            {
+              "application_invocation_count_per_scope_case": 67,
+              "application_name": "APPLY/V2_OBSERVATION_FIELDS_REGISTRY_V1",
+              "cross_rule_evaluation_count_per_scope_case": 12395,
+              "instruction_position": 3,
+              "invocation_ordinal_program": "ZERO_BASED_OBSERVATION_RANGE_V1",
+              "rule_application_id": "87b0ee70e1eab470868e357facd3bb6eb203ce4ed8363cbd6fa30a6ee86c8d63",
+              "rule_id": "RULE/CROSS/V2_OBSERVATION_FIELD_REGISTRY_V1"
+            },
+            {
+              "application_invocation_count_per_scope_case": 1,
+              "application_name": "APPLY/V2_ROOT_OBSERVATION_MEMBERSHIP_V1",
+              "cross_rule_evaluation_count_per_scope_case": 67,
+              "instruction_position": 4,
+              "invocation_ordinal_program": "SINGLE_ZERO_NULL_BOUND_V1",
+              "rule_application_id": "0737d82dae748ff1bf3b19230be2196973c7d6d0fa6c97ef834e9517e09e5f0a",
+              "rule_id": "RULE/CROSS/V2_ROOT_OBSERVATION_MEMBERSHIP_V1"
+            },
+            {
+              "application_invocation_count_per_scope_case": 1,
+              "application_name": "APPLY/V2_ROOT_SELECTOR_LIFECYCLE_V1",
+              "cross_rule_evaluation_count_per_scope_case": 1,
+              "instruction_position": 5,
+              "invocation_ordinal_program": "SINGLE_ZERO_NULL_BOUND_V1",
+              "rule_application_id": "86a3acbf53805768a1a462fe28c75a7e7192487f71579ba021aa03d7992a9a42",
+              "rule_id": "RULE/CROSS/V2_ROOT_SELECTOR_LIFECYCLE_V1"
+            }
+          ],
+          "root_family_position": 1,
+          "scope_case_multiplicity": 1,
+          "segment_position": 1,
+          "selector_present": true
+        }
+      ]
+    },
+    "case_position": 435,
+    "conditioning_strategy": "APPLICATION_AWARE_EXACT_UPPER_ATTAINMENT_JOIN_V1",
+    "conditioning_transfer_program": {
+      "cell_contract_id": "22b08631a90cfcda5461171f4287c359f78de037cd3aa7cfe76c81331338cbb2",
+      "p1_p3_attainment_program": {
+        "failure_policy": "UNRESOLVED_EMPTY_INVALID_OR_LIMIT_EXCEEDED_NO_GO",
+        "ordered_instruction_records": [
+          {
+            "instruction_position": 1,
+            "opcode": "IMPORT_P2_BOUND_CELL_V1",
+            "ordered_input_instruction_positions": [],
+            "output_type": "P2_BOUND_CELL",
+            "parameters": {
+              "p2_root_instruction_position": 3
+            }
+          },
+          {
+            "instruction_position": 2,
+            "opcode": "LOAD_RETAINED_WITNESS_CONTEXT_V1",
+            "ordered_input_instruction_positions": [],
+            "output_type": "RETAINED_WITNESS_CONTEXT",
+            "parameters": {
+              "constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+              "measured_type_name": "TargetObservationV2"
+            }
+          },
+          {
+            "instruction_position": 3,
+            "opcode": "LOAD_FIXED_AUTHORITY_SET_V1",
+            "ordered_input_instruction_positions": [],
+            "output_type": "FIXED_AUTHORITY_SET",
+            "parameters": {
+              "ordered_fixed_authority_operation_positions": [
+                1,
+                2,
+                3
+              ]
+            }
+          },
+          {
+            "instruction_position": 4,
+            "opcode": "MATCH_EXACT_PROFILE_SCOPE_CASE_V1",
+            "ordered_input_instruction_positions": [
+              2,
+              3
+            ],
+            "output_type": "SELECTED_EXACT_SCOPE_CASE",
+            "parameters": {
+              "scope_root_operation_position": 4
+            }
+          },
+          {
+            "instruction_position": 5,
+            "opcode": "RECONSTRUCT_EXACT_APPLICATION_SCHEDULE_V1",
+            "ordered_input_instruction_positions": [
+              4,
+              3
+            ],
+            "output_type": "EXACT_APPLICATION_SCHEDULE",
+            "parameters": {
+              "application_schedule_operation_position": 5
+            }
+          },
+          {
+            "instruction_position": 6,
+            "opcode": "EXECUTE_PINNED_APPLICATION_RULE_AST_ON_RETAINED_BYTES_V1",
+            "ordered_input_instruction_positions": [
+              2,
+              3,
+              5
+            ],
+            "output_type": "P1_LEGALITY_RESULT",
+            "parameters": {
+              "application_schedule_operation_position": 5,
+              "execution_mode": "EXACT_CROSS_RULE_APPLICATION_V1"
+            }
+          },
+          {
+            "instruction_position": 7,
+            "opcode": "MEASURE_RETAINED_WITNESS_CANONICAL_OCTETS_V1",
+            "ordered_input_instruction_positions": [
+              2
+            ],
+            "output_type": "MEASURED_CANONICAL_OCTETS",
+            "parameters": {
+              "measured_type_name": "TargetObservationV2"
+            }
+          },
+          {
+            "instruction_position": 8,
+            "opcode": "REQUIRE_P1_AND_P3_EQUALITY_V1",
+            "ordered_input_instruction_positions": [
+              1,
+              6,
+              7
+            ],
+            "output_type": "PROFILE_MAXIMUM_ACCEPTANCE_RESULT",
+            "parameters": {
+              "acceptance_rule": "P1_TRUE_AND_MEASURED_CANONICAL_OCTETS_EQUALS_P2_UPPER"
+            }
+          }
+        ],
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.profile_p1_p3_attainment_program.v1",
+        "root_instruction_position": 8
+      },
+      "p2_upper_bound_program": {
+        "cross_application_deletion_applied": false,
+        "exact_attainability_claimed": true,
+        "failure_policy": "UNRESOLVED_EMPTY_INVALID_OR_LIMIT_EXCEEDED_NO_GO",
+        "ordered_instruction_records": [
+          {
+            "instruction_position": 1,
+            "opcode": "IMPORT_ACCEPTED_CASE_EXACTNESS_JOIN_CELL_V1",
+            "ordered_input_instruction_positions": [],
+            "output_type": "P2_EXACT_ATTAINED_CELL",
+            "parameters": {
+              "case_position": 435,
+              "exact_cell": {
+                "attaining_witness_canonical_octets": 257887,
+                "cell_kind": "EXACT_ATTAINED_MAXIMUM",
+                "cell_status": "C3_EXACTNESS_JOIN_ACCEPTED",
+                "certified_lower_bound_octets": 257887,
+                "certified_upper_bound_octets": 257887,
+                "proof_source_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f"
+              },
+              "exact_maximum_octets": 257887,
+              "exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+              "maximum_constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540"
+            }
+          },
+          {
+            "instruction_position": 2,
+            "opcode": "LOAD_STRUCTURAL_TEMPLATE_SUPERSET_CELL_V1",
+            "ordered_input_instruction_positions": [],
+            "output_type": "P2_SUPERSET_BOUND_CELL",
+            "parameters": {
+              "logical_plan_template_id": "9862ddfbd22ebc4f025a7259d53e5fed7d6cd253b1f047ee5cdcd93d3b05da98",
+              "predecessor_structural_upper_bound_octets": 262143,
+              "template_root_step_position": 158
+            }
+          },
+          {
+            "instruction_position": 3,
+            "opcode": "REQUIRE_EXACT_CELL_WITHIN_STRUCTURAL_CEILING_V1",
+            "ordered_input_instruction_positions": [
+              1,
+              2
+            ],
+            "output_type": "P2_EXACT_ATTAINED_CELL",
+            "parameters": {
+              "acceptance_rule": "EXACT_CELL_LOWER_EQUALS_UPPER_EQUALS_ATTAINER_AND_EXACT_UPPER_LE_STRUCTURAL_CEILING"
+            }
+          }
+        ],
+        "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case_exactness_join_p2_program.v1",
+        "root_instruction_position": 3,
+        "safe_relaxation_applied": false,
+        "upper_bound_source": "ACCEPTED_CASE_EXACTNESS_JOIN_V1"
+      },
+      "program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.profile_conditioning_dual_channel_program.v2"
+    },
+    "constraint_scope": "FROZEN_ROOT_APPLICATION",
+    "logical_plan_template_id": "9862ddfbd22ebc4f025a7259d53e5fed7d6cd253b1f047ee5cdcd93d3b05da98",
+    "maximum_constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+    "measured_type_name": "TargetObservationV2",
+    "operation_kind": "INGRESS",
+    "ordered_fixed_authority_operations": [
+      {
+        "expected_authority_id": "ae01f3a8e53163eefdc77bb4a863710dc851aec22738719639a3c21fe683a618",
+        "fixed_canonical_octets": 331034,
+        "fixed_canonical_sha256": "1d68328b6b2245f21fcda85a396918dd664bf7c2b71bd1547c92235c0a2a2222",
+        "identity_member_name": "target_field_registry_id",
+        "inventory_json_pointer": "/target_field_registry",
+        "opcode": "FIXED_VALUE",
+        "operation_position": 1
+      },
+      {
+        "expected_authority_id": "1e529cc6ced2f3a67cafca3ec2af5146322c73b89f9cd4385cbd7b72949132b4",
+        "fixed_canonical_octets": 3019,
+        "fixed_canonical_sha256": "50991c2d137f2af437bc1d54b7dfd355ee7106dafd88febc849d8febd534addb",
+        "identity_member_name": "marker_contract_id",
+        "inventory_json_pointer": "/marker_contract",
+        "opcode": "FIXED_VALUE",
+        "operation_position": 2
+      },
+      {
+        "expected_authority_id": "6cc3c8c09a08675ecbddddb4131dabbdd24ea3e879bc467fe56e3089834ff2f9",
+        "fixed_canonical_octets": 32770,
+        "fixed_canonical_sha256": "d0a41e476ebaee6e9d68ab16a3f2dd1ffdfaf7661175da38e0cbe48e7aa0c2f9",
+        "identity_member_name": "checkpoint_selector_id",
+        "inventory_json_pointer": "/checkpoint_selector_catalog/3/selector",
+        "opcode": "FIXED_VALUE",
+        "operation_position": 3
+      }
+    ],
+    "profile_conditioning_program_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+    "profile_conditioning_program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.profile_conditioning_program.v2",
+    "profile_inventory_json_pointer": "/operation_contracts/maximum_constraint_scope_profile_catalog/368",
+    "profile_kind": "CHECKPOINT_ROOT_COORDINATE",
+    "profile_position": 369,
+    "program_position": 369,
+    "scope_root_operation": {
+      "measured_template_root_step_position": 158,
+      "opcode": "SCOPE_ROOT",
+      "operation_position": 4,
+      "ordered_fixed_authority_operation_positions": [
+        1,
+        2,
+        3
+      ],
+      "ordered_scope_case_records": [
+        {
+          "measured_sequence_ordinal": 64,
+          "mode_attempt_pair_position": 1,
+          "observation_role_position": 1,
+          "root_family_position": 1,
+          "scope_case_position": 1
+        }
+      ],
+      "profile_canonical_octets": 1849,
+      "profile_canonical_sha256": "a2b5799ab9a1572698ed256e884b325ba1f325f79a694f8851415d236fcc467f",
+      "scope_transfer_kind": "ROOT_APPLICATION"
+    },
+    "template_root_step_position": 158
+  },
+  "successor_program_schema_contract": {
+    "conditioning_transfer_program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.profile_conditioning_dual_channel_program.v2",
+    "exact_cell_invariant": "LOWER_EQUALS_UPPER_EQUALS_ATTAINING_WITNESS_AND_EXACT_UPPER_DOES_NOT_EXCEED_STRUCTURAL_CEILING",
+    "ordered_p2_opcode_records": [
+      {
+        "opcode": "IMPORT_ACCEPTED_CASE_EXACTNESS_JOIN_CELL_V1",
+        "opcode_position": 1,
+        "output_type": "P2_EXACT_ATTAINED_CELL"
+      },
+      {
+        "opcode": "LOAD_STRUCTURAL_TEMPLATE_SUPERSET_CELL_V1",
+        "opcode_position": 2,
+        "output_type": "P2_SUPERSET_BOUND_CELL"
+      },
+      {
+        "opcode": "REQUIRE_EXACT_CELL_WITHIN_STRUCTURAL_CEILING_V1",
+        "opcode_position": 3,
+        "output_type": "P2_EXACT_ATTAINED_CELL"
+      }
+    ],
+    "p1_p3_program_policy": "PRESERVE_PREDECESSOR_EXACT_APPLICATION_REPLAY_AND_BIND_TO_SUCCESSOR_P2_ROOT",
+    "p2_program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case_exactness_join_p2_program.v1",
+    "profile_conditioning_program_version": "riskyieldmm.raw_v8_step2_external_schema_v2.profile_conditioning_program.v2"
+  },
+  "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+}

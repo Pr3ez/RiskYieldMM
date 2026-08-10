@@ -1,0 +1,95 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "case435_exact_expectation": {
+    "acceptance_rule": "P1_LEGAL_AND_C3_SOUND_EXACT_UPPER_AND_P3_EXACT_ATTAINMENT",
+    "case_position": 435,
+    "certified_upper_bound_octets": 257887,
+    "exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+    "maximum_constraint_scope_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+    "ordered_safe_relaxation_rule_ids": [],
+    "profile_position": 369,
+    "required_legal_attainer_octets": 257887,
+    "successor_logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "successor_profile_conditioning_program_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+    "upper_bound_mode": "EXACT_LEGAL_DOMAIN"
+  },
+  "ordered_pilot_case_records": [
+    {
+      "case_kind": "MAXIMUM_PUBLICATION_ROW",
+      "case_position": 5,
+      "coverage_tag": "SMALL_BOOLEAN_EXHAUSTIVE_CANONICAL_LENGTH",
+      "logical_count_plan_id": "d8149e3965dbdb9ed708860af0599463eafcfe2d428404ec7dea9aa20873cbe0",
+      "pilot_position": 1
+    },
+    {
+      "case_kind": "MAXIMUM_PUBLICATION_ROW",
+      "case_position": 24,
+      "coverage_tag": "OWNER_MEMBER_TAGGED_UNION_AND_OWNER_CODEC",
+      "logical_count_plan_id": "428ff735837b841e66103d64cbcd4af7ceaf88d009c38229ad5e4cde0ab30d67",
+      "pilot_position": 2
+    },
+    {
+      "case_kind": "MAXIMUM_PUBLICATION_ROW",
+      "case_position": 54,
+      "coverage_tag": "RAW_STRING_ARRAY_CARDINALITY_ORDERING_AND_ESCAPING",
+      "logical_count_plan_id": "4eeedde2c223693e62a2b89a2016b43f9954496771189616ad68ac8cf21e6da1",
+      "pilot_position": 3
+    },
+    {
+      "case_kind": "MAXIMUM_PUBLICATION_ROW",
+      "case_position": 69,
+      "coverage_tag": "LOCAL_SHUTDOWN_OUTER_RESULT_EXACT_APPLICATION_AND_CODEC",
+      "logical_count_plan_id": "b991ffb7f0ea927d854228bcc52524e39fee7e88080d9171753b03cc59589fcb",
+      "pilot_position": 4
+    },
+    {
+      "case_kind": "MAXIMUM_PUBLICATION_ROW",
+      "case_position": 435,
+      "coverage_tag": "MAX64_ROOT_FULL67_CONTEXT_137_APPLICATIONS_EXACT_257887",
+      "logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+      "pilot_position": 5
+    },
+    {
+      "case_kind": "LOCAL_SHUTDOWN_UNREPRESENTABLE_MINIMALITY",
+      "case_position": 475,
+      "coverage_tag": "LOCAL_SHUTDOWN_EXACT_MINIMALITY_AND_SINGLE_MASK_REJECTION",
+      "logical_count_plan_id": "2d46a1b71c9466fd3268b93dbc3e4a62a4855dd0324f4cfecfbb60d4589bbbc0",
+      "pilot_position": 6
+    }
+  ],
+  "predecessor_six_case_target_authority": {
+    "raw_octets": 60279,
+    "raw_sha256": "12c1ff23ca6a7b58ddcda205ae017af15d7eef5be799ca7385231777c443a886",
+    "repository_relative_path": "tests/test_raw_v8_step2_maximum_protocol_v2_six_case_qualification_fail_first_v49f.py"
+  },
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "qualification_contract": {
+    "all_six_case_acceptance_rule": "ALL_SIX_CASES_PASS_TWICE_BYTE_IDENTICALLY_UNDER_IMMUTABLE_F2",
+    "next_subgate": "A4-P6-V",
+    "no_case_result_or_profitability_claimed": true,
+    "producer_expansion_state": "WAITING",
+    "runner_state": "WAITING",
+    "target_status": "CORRECTED_AUTHORITY_FROZEN_IMPLEMENTATIONS_NOT_YET_QUALIFIED",
+    "verifier_expansion_state": "NEXT"
+  },
+  "successor_boundary_delta_authority": {
+    "raw_octets": 4806,
+    "raw_sha256": "208d0cd50eb0bbfe206148dbf58df862f8adc857e382623e91e4e10d942c936c",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_boundary_delta_v49f.json",
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d"
+  },
+  "successor_manifest_delta_authority": {
+    "raw_octets": 2192,
+    "raw_sha256": "daa55d18aa8adfcef9b8a6ea2c6fa734f7922888a902eb863c6307c0fc13bacf",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_manifest_delta_v49f.json",
+    "successor_manifest_id": "6aed1139c158f8685bcb226697a2efe57af3c42f57831173bd7b3ea169025d9c"
+  },
+  "successor_seed_delta_authority": {
+    "raw_octets": 22976,
+    "raw_sha256": "5ce6b2156389ff0aecad7272a564308662a6ec3a77c4b94bfcae7ce32739c3da",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_seed_delta_v49f.json",
+    "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+  },
+  "successor_six_case_target_id": "a000285d1bedd88306786ea33e1be9cc7d2a8459fe75b20c045f7174d52cc072",
+  "target_delta_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_exact_six_case_target_delta.v1"
+}
