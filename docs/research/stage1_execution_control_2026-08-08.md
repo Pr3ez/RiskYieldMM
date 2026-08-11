@@ -1,6 +1,6 @@
 # Stage 1 execution control
 
-**Control date:** 2026-08-10
+**Control date:** 2026-08-11
 **Formal Stage 1 state:** `NO-GO`
 **Active implementation gate:** `S1-A4` — constructive maximum verifier,
 separate producer, pilot, and complete 475-case result evidence
@@ -17,31 +17,85 @@ specific checkpoint proved.
 
 | Question | Current answer |
 |---|---|
-| What is accepted? | Foundations `S1-F1` through `S1-F4`, corrected V2 seed `S1-A1`, independent dual feasibility preflight `S1-A2`, final two-component V2/F2 authority `S1-A3`, and `S1-A4` sub-gates `A4-B0`, `A4-T`, bounded case-5 verifier `A4-V`, separate case-5 producer `A4-P`, independent six-case qualification target infrastructure `A4-P6-T`, correction-design/census `A4-P6-C435-A`, case-435 dependency closure `A4-P6-C435-B`, exact upper-bound channel `A4-P6-C435-C1`, independent legal-attainer channel `A4-P6-C435-C2`, identity-bound exactness join `A4-P6-C435-C3`, exact-delta authority transition `A4-P6-C435-D`, and verifier resolver/read barrier `A4-P6-V0`; the effective corrected case-435 maximum is 257,887 canonical octets |
-| What is active? | `S1-A4` only; its bounded implementation sub-gate is `A4-P6-V` |
-| What is the next bounded action? | `A4-P6-V1`: implement retained-byte intrinsic validation for cases 24 and 54 under the accepted V0 resolver, while leaving cases 69, 435, and 475, all producer expansion, and the runner fail-closed |
+| What is accepted? | Foundations `S1-F1` through `S1-F4`, corrected V2 seed `S1-A1`, independent dual feasibility preflight `S1-A2`, final two-component V2/F2 authority `S1-A3`, and `S1-A4` sub-gates through the all-case contract `A4-R475-T`, foundation-only verifier `A4-R475-V0`, intrinsic-template attainability falsification `A4-R475-V1-F-A`, complete 66-case dependency/successor-interface contract `A4-R475-V1-C1`, pre-execution dual-source/schema freeze `A4-R475-V1-C2-S`, and independently reconstructed legal-upper channel `A4-R475-V1-C2-U`; no exact maximum is accepted |
+| What is active? | `S1-A4` only; its complete-result umbrella is `A4-R475`, its correction umbrella is `A4-R475-V1-C`, and its single executable packet is `A4-R475-V1-C2-A` |
+| What is the next bounded action? | `A4-R475-V1-C2-A`: execute only the already frozen P1-attainer source, construct and fully validate one legal witness per case, and publish its fixed root plus three shards without executing or reading the upper source or C2-U result |
 | What closes `S1-A4`? | Independent verifier and separate producer accepted; six-case pilot passes without limit tuning; all 474 maximum-row results plus local case 475 are constructively proven and independently verified |
 | What follows? | `S1-A5` work accounting, production differential adapters, final Raw V7 compatibility, and independent Raw V8 Step-2 acceptance; separately, `S1-D1` can later reach offline-only readiness `S1-R0` |
 | What remains blocked? | Offline Stage 2 until `S1-R0`; paper/live activation until complete exit `S1-X` |
 
-Resume from `A4-P6-V1` inside formal gate `A4-P6-V`; do not reopen accepted `S1-A1`/`S1-A2`/`S1-A3`, the
+Resume from `A4-R475-V1-C2-A`; do not reopen accepted `S1-A1`/`S1-A2`/`S1-A3`, the
 accepted `A4-B0` boundary, accepted `A4-T` fail-first test, or accepted bounded
 `A4-V` verifier, `A4-P` producer, `A4-P6-T` six-case target, accepted
-`A4-P6-V0` resolver/read barrier, or accepted
-`C435-A`/`C435-B`/`C435-C1`/`C435-C2`/`C435-C3`/`C435-D` correction contracts unless a pinned source, identity,
+`A4-P6-V0` resolver/read barrier, accepted `A4-P6-V1` intrinsic cases,
+accepted `A4-P6-V2` exact-profile case 69, accepted `A4-P6-V3-T`
+packed-context transport, accepted `A4-P6-V3` exact case 435, accepted
+`A4-P6-V4` local-minimality case 475, accepted `A4-P6-V-A` verifier review,
+formal `A4-P6-V`, accepted `A4-P6-P` producer expansion, accepted `A4-P6-R`
+parent runner, accepted `A4-P6-E` release adjudication, accepted `A4-R475-T`
+all-case campaign contract, accepted foundation-only `A4-R475-V0`, accepted
+intrinsic attainability falsification `A4-R475-V1-F-A`, or accepted
+intrinsic dependency/successor-interface contract `A4-R475-V1-C1`, accepted
+pre-execution dual-source/schema freeze `A4-R475-V1-C2-S`, accepted
+legal-upper channel `A4-R475-V1-C2-U`, or accepted
+`C435-A`/`C435-B`/`C435-C1`/`C435-C2`/`C435-C3`/`C435-D`
+correction contracts unless a pinned source, identity,
 result, or invariant actually drifts. Do not reuse the
 rejected V1 structural self-test as V2 constructive evidence. Case 435 now
 provides a concrete invariant conflict: an independently enlarged legal-domain
 upper bound is 260,909 octets, 1,234 below frozen P2.U 262,143, while P3
 requires equality. C1 has now replaced that deliberately loose falsifying
 ceiling with an independently recomputed exact upper bound of 257,887 octets.
-`A4-P6-V` is released for implementation against the accepted D delta chain;
-V0 is accepted but the formal V gate is not. C1 and C2 remain separately non-exact channels; only
+`A4-P6-V` is accepted after the independent V-A review; its V0–V4 packets are
+historical accepted components. C1 and C2 remain separately non-exact channels; only
 their accepted C3 identity-bound join proves the exact maximum. D preserves the
 predecessor F2 values as immutable ceilings but does not relabel their old
 preflight as successor evidence. V0 has requalified its 38-file / 28,752,433-
-octet successor authority-read footprint under F0; V3 must still requalify the
-actual case-435 execution under every immutable F2 ceiling or fail closed.
+octet successor authority-read footprint under F0. The V3 audit then proved
+that the inherited flat case-435 closure would require 106 input files and
+therefore could never satisfy immutable F0 `INPUT_FILE_COUNT = 64`. Accepted
+`A4-P6-V3-T` adds one versioned compact context-pack transport authority: the
+corrected path uses 41 files with 23 slots of headroom and changes no
+seed/manifest/plan/exactness/F0/F2 value. V3 requalifies the actual case-435
+execution under every immutable F2 ceiling with exact resource vector
+`[1, 35384, 158, 1002, 347899, 4, 158, 106269, 789225, 879955, 1480733,
+10, 12531, 137, 17, 137, 38451, 37195]`.
+V1 independently accepts exact 523,738-octet case 24 and 3,145,728-octet
+case 54 attainers. V2 independently derives and attains the exact 2,581-octet
+case-69 result/spec intersection while preserving case 5 and V1. V4 now
+accepts the 524,380-octet local masked-domain attainer at the unique minimal
+one-field mutation and reproduces its exact immutable-F2 vector. V-A then
+reconstructs the exact 39-file authority/F0/F2 and seven-record identity
+ledger, replays 128 pinned verifier tests into a byte-identical report, and
+preserves the exact one-/six-failure producer/runner boundary. `A4-P6-P` then
+accepts 12 deterministic producer runs and 12 independent verifier runs over
+all six cases and preserves both predecessor expected-red boundaries. The
+subsequent `A4-P6-R` acceptance binds 12 producer and 12 verifier child runs in
+two byte-identical parent transactions, proves read-only check behavior,
+candidate immutability, rollback, and exact 18-metric full-run F2
+reconciliation, and moves the single mutable pointer to `A4-P6-E`.
+The subsequent `A4-P6-E` acceptance independently replays the complete
+A4-P6-R reviewer twice, reconstructs the six-case and 18-metric ledgers, and
+releases `A4-R475` for versioned implementation. It also proves that the
+unchanged binaries remain six-case-only: 469 non-pilot cases require a new
+frozen role/campaign surface, and pilot F2 headroom is not a full-campaign
+capacity claim. `A4-R475-T` now closes the complete 475-case/five-family
+ledger, versioned role paths, sequential single-writer checkpoint/restart
+contract, immutable all-case F0/F2 reconciliation, and root-last publication
+semantics. The accepted V0 verifier foundation reconstructs all 475 case
+bindings and the complete pinned typed runtime while accepting zero
+constructive cases and forbidding candidate/output access. Only the producer
+and runner role paths remain intentionally fail-first. Accepted
+`A4-R475-V1-F-A` subsequently proves 26 intrinsic P2 endpoints unattainable;
+case 8 is independently exact and attained at 928 versus P2 524,288. Accepted
+`A4-R475-V1-C1` now freezes all 66 cases, 1,647 steps, and 1,806 per-case
+unique dependencies without accepting an exact maximum. Accepted
+`A4-R475-V1-C2-S` seals both complete channel sources and both closed output
+schemas under freeze ID `d6e17e63…`. Accepted `A4-R475-V1-C2-U` now adds one
+independently reconstructed 66-case legal-domain upper result under
+`b57d8d49…`; it reads no attainer path and claims no exact maximum. The single
+mutable pointer is therefore the already frozen P1-attainer execution
+`A4-R475-V1-C2-A`, not join or direct verifier work.
 
 ## 1. Why Stage 1 stalled
 
@@ -592,6 +646,716 @@ The machine-readable state below is checked by
     "verifier_test_raw_octets": 13463,
     "verifier_test_raw_sha256": "49d116d91f78fb65c4b7449adc00075565b5824ea761b77f04dce06309045511"
   },
+  "s1_a4_verifier_expansion_v1_snapshot": {
+    "acceptance_doc_raw_octets": 10538,
+    "acceptance_doc_raw_sha256": "ce969027f0a3051509dc6bffd769079be14daf3e665b5a029f555790a927d1a0",
+    "acceptance_state": "EXACT_INTRINSIC_CASES_24_AND_54_ACCEPTED",
+    "accepted_case_positions": [5, 24, 54],
+    "authority_mode_order": ["PREDECESSOR_CONSTRUCTIVE_BOUNDARY_V1", "SUCCESSOR_CASE435_EXACT_DELTA_V1"],
+    "case24_candidate_raw_octets": 596722,
+    "case24_context_object_count": 1,
+    "case24_context_raw_octets": 524287,
+    "case24_file_headroom": 24,
+    "case24_maximum_canonical_octets": 523738,
+    "case24_octet_headroom": 37196516,
+    "case24_plan_id": "428ff735837b841e66103d64cbcd4af7ceaf88d009c38229ad5e4cde0ab30d67",
+    "case24_resource_vector": [1, 2101277, 39, 459, 4202945, 5, 39, 26493, 340068, 362505, 488331, 1, 0, 0, 6, 32, 36304, 9469],
+    "case24_stream_sha256": "bf6a4886b3bc7110a61a5170e2b03f5de402a08e5bd78eccafb54b719d99cbcd",
+    "case24_total_input_file_count": 40,
+    "case24_total_input_octets": 29912348,
+    "case54_candidate_raw_octets": 3151660,
+    "case54_context_object_count": 0,
+    "case54_context_raw_octets": 0,
+    "case54_file_headroom": 25,
+    "case54_maximum_canonical_octets": 3145728,
+    "case54_octet_headroom": 35165865,
+    "case54_plan_id": "4eeedde2c223693e62a2b89a2016b43f9954496771189616ad68ac8cf21e6da1",
+    "case54_resource_vector": [1, 515, 5, 9, 1031, 1, 5, 3415, 9775, 12712, 41372, 1, 0, 0, 4, 9, 3937, 1589],
+    "case54_stream_sha256": "9a9b153f3fee7073849416c8ccc3f419bda471b1c541165b20f49989cb6b379f",
+    "case54_total_input_file_count": 39,
+    "case54_total_input_octets": 31942999,
+    "case435_resource_requalification_state": "WAITING_FOR_A4_P6_V3_EXECUTION",
+    "core_matrix_passed": 414,
+    "correction_subgate": "A4-P6-V1",
+    "differential_passed": 7,
+    "differential_test_raw_octets": 4357,
+    "differential_test_raw_sha256": "44a8935a1760cb3eb5ca0697c2642e011b66f986bcb6b321d3e4b91102c6deb1",
+    "f0_input_file_count_limit": 64,
+    "f0_total_pinned_input_octets_limit": 67108864,
+    "focused_passed": 19,
+    "next_subgate": "A4-P6-V2",
+    "ordered_remaining_case_positions": [69, 435, 475],
+    "predecessor_case5_state": "PRESERVED",
+    "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+    "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+    "source_isolation_state": "STATIC_SUBSET_NO_DYNAMIC_CODE_EXECUTION",
+    "source_marker": "INDEPENDENT_V2_CONSTRUCTIVE_VERIFIER_V1",
+    "successor_authority_file_count": 38,
+    "successor_authority_file_headroom": 26,
+    "successor_authority_octets": 28791339,
+    "successor_authority_octet_headroom": 38317525,
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+    "successor_f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "typed_rule_runtime_raw_octets": 249268,
+    "typed_rule_runtime_raw_sha256": "47aa90d897e8dbae5e244b7c04cbd82dfe036b0292d36ef0f5552c868627ab22",
+    "verifier_raw_octets": 166120,
+    "verifier_raw_sha256": "3a4cbab8ef3263d39ccf7caa174f82ffd8747f4c0e3229fef57cfae2507be333",
+    "verifier_test_raw_octets": 25633,
+    "verifier_test_raw_sha256": "94d25b649310d4eef96f76e125e468e4028fc334b445fcc6bb47970d8c3b9bff"
+  },
+  "s1_a4_verifier_expansion_v2_snapshot": {
+    "acceptance_doc_raw_octets": 9446,
+    "acceptance_doc_raw_sha256": "0c1466e0caf9f8da7809c4fdce4937967a58ecc28e3d8eace3379c18ac100d6c",
+    "acceptance_state": "EXACT_PROFILE_CASE_69_ACCEPTED",
+    "accepted_case_positions": [5, 24, 54, 69],
+    "analytic_authority_tamper_state": "DIRECT_SHADOW_REPOSITORY_REJECTION_PROVED",
+    "authority_mode_order": ["PREDECESSOR_CONSTRUCTIVE_BOUNDARY_V1", "SUCCESSOR_CASE435_EXACT_DELTA_V1"],
+    "case69_analytic_catalog_id": "759b3fbd70f3a36c0a6309ec35c4f5cd8efda7cf01d23bcd5e52e290ff29f0e0",
+    "case69_application_id": "770d99b0001802ceb6bdc044b9b55ce3cfd319754e9b9716c10d0b3d2e214f18",
+    "case69_candidate_raw_octets": 6136,
+    "case69_context_object_count": 0,
+    "case69_context_raw_octets": 0,
+    "case69_file_headroom": 25,
+    "case69_maximum_canonical_octets": 2581,
+    "case69_octet_headroom": 38277373,
+    "case69_plan_id": "b991ffb7f0ea927d854228bcc52524e39fee7e88080d9171753b03cc59589fcb",
+    "case69_profile_id": "92a80f3b2dc5d4b9a6284adfb6819823de7e2546d4141b2b12c5c7c9afff21f4",
+    "case69_program_id": "6912414e364c4117822c7ad0d24d1436d46f29e945ed076140785f5c0c9fc442",
+    "case69_resource_vector": [1, 2101890, 157, 829, 4204335, 7, 157, 105752, 673168, 763519, 1380238, 6, 1, 1, 14, 32, 50016, 36961],
+    "case69_spec_id": "f88cf223f28a146b08b5ffbb3b5ce419fb7ce473563edb27900983d6583a2d21",
+    "case69_stream_sha256": "7965e977eca8aa43ce84c97391a1ae4c51dfd2f79fa20e80ea7b6110ea5c808f",
+    "case69_total_input_file_count": 39,
+    "case69_total_input_octets": 28831491,
+    "case69_witness_sha256": "af8bf018a32ac4444cd00cfc6b3cb64c732654398a5904f0295ec77307d718f4",
+    "case435_resource_requalification_state": "WAITING_FOR_A4_P6_V3_EXECUTION",
+    "core_matrix_passed": 440,
+    "correction_subgate": "A4-P6-V2",
+    "differential_passed": 5,
+    "differential_test_raw_octets": 4737,
+    "differential_test_raw_sha256": "520c81cd76d074cfd40298483553d78566abf9da247192db54014f761e8baff9",
+    "f0_input_file_count_limit": 64,
+    "f0_total_pinned_input_octets_limit": 67108864,
+    "focused_passed": 17,
+    "next_subgate": "A4-P6-V3",
+    "ordered_remaining_case_positions": [435, 475],
+    "predecessor_v0_v1_state": "PRESERVED",
+    "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+    "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+    "source_isolation_state": "STATIC_SUBSET_NO_DYNAMIC_CODE_EXECUTION",
+    "source_marker": "INDEPENDENT_V2_CONSTRUCTIVE_VERIFIER_V1",
+    "successor_authority_file_count": 38,
+    "successor_authority_file_headroom": 26,
+    "successor_authority_octets": 28825355,
+    "successor_authority_octet_headroom": 38283509,
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+    "successor_f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "typed_rule_runtime_raw_octets": 249268,
+    "typed_rule_runtime_raw_sha256": "47aa90d897e8dbae5e244b7c04cbd82dfe036b0292d36ef0f5552c868627ab22",
+    "verifier_raw_octets": 200136,
+    "verifier_raw_sha256": "ede2a1d01e51fa7fa8687f2f5ae029cdbc8bc98b129d815e5697f4600d42d2ce",
+    "verifier_test_raw_octets": 26421,
+    "verifier_test_raw_sha256": "80d29d39a777c653240c34a0f078ac02a919f6798e3b149e86057fb8e24f7bb5"
+  },
+  "s1_a4_case435_context_pack_snapshot": {
+    "acceptance_doc_raw_octets": 8674,
+    "acceptance_doc_raw_sha256": "57ab36f5bbcd8583e3e98fba7f30876dfcb5d716c6ced3b6e386696676141646",
+    "acceptance_state": "PACKED_CONTEXT_TRANSPORT_ACCEPTED_CASE435_STILL_UNSUPPORTED",
+    "accepted_case_positions": [5, 24, 54, 69],
+    "authority_mode_order": ["PREDECESSOR_CONSTRUCTIVE_BOUNDARY_V1", "SUCCESSOR_CASE435_EXACT_DELTA_V1", "SUCCESSOR_CASE435_PACKED_CONTEXT_BOUNDARY_V1"],
+    "case435_context_pack_boundary_delta_id": "c8448f57dcdc3e4f1f3239043ed4977013efbd99c750cb2e2e857025f5ac0acd",
+    "case435_resource_requalification_state": "WAITING_FOR_A4_P6_V3_EXECUTION",
+    "checker_raw_octets": 18464,
+    "checker_raw_sha256": "6eae49c048f06eae352269ea277a1e450cbaac6bf29811c65742c4fe36e6c408",
+    "corrected_authority_file_count": 39,
+    "correction_subgate": "A4-P6-V3-T",
+    "delta_raw_octets": 6049,
+    "delta_raw_sha256": "985f0d67a545d036f1777a627f01b609d396a39c690ac81c1bacfc4f7563f56b",
+    "exact_maximum_octets": 257887,
+    "f0_input_file_count_limit": 64,
+    "flat_minimum_input_file_count": 106,
+    "focused_passed": 17,
+    "generator_raw_octets": 14831,
+    "generator_raw_sha256": "78f33ab0c7d4e5c3df57ae8ee2b467a77de216039ffe6d5cb16e9e64de8549df",
+    "individual_pack_strict_upper_octets": 16777216,
+    "logical_context_object_count": 67,
+    "next_subgate": "A4-P6-V3",
+    "ordered_remaining_case_positions": [435, 475],
+    "packed_input_file_headroom": 23,
+    "packed_minimum_input_file_count": 41,
+    "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+    "required_context_pack_count": 1,
+    "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+    "successor_f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "test_raw_octets": 9658,
+    "test_raw_sha256": "a81db42f06bb592d47b67513a8bf9b8e99cddb00cc90ead7d7cabe398d46daf4"
+  },
+  "s1_a4_verifier_expansion_v3_snapshot": {
+    "a4_t_filtered_passed": 59,
+    "a4_t_unfiltered_expected_failed": 1,
+    "a4_t_unfiltered_passed": 61,
+    "acceptance_doc_raw_octets": 9850,
+    "acceptance_doc_raw_sha256": "3787f7a76ef8c05d1c2e1d31a48a68b090e0fa54d9fcf159d8ffa14aee9e9d8f",
+    "acceptance_state": "EXACT_PACKED_CONTEXT_CASE_435_ACCEPTED",
+    "accepted_case_positions": [5, 24, 54, 69, 435],
+    "authority_mode_order": ["PREDECESSOR_CONSTRUCTIVE_BOUNDARY_V1", "SUCCESSOR_CASE435_EXACT_DELTA_V1", "SUCCESSOR_CASE435_PACKED_CONTEXT_BOUNDARY_V1"],
+    "case435_attainer_id": "0ac5c1cb7e663b2259264144b4b45e61a0b163e1861d07ec7054072e3829866f",
+    "case435_candidate_id": "3733dcc3ee96435a25e4b432434da6f0e9918f7a72d771625bc31fccbd1ba36a",
+    "case435_candidate_raw_octets": 385701,
+    "case435_candidate_raw_sha256": "3ddf81163d609d2e5e2a87055073c23510162b2b7032f5f013e0fae5165ad289",
+    "case435_context_object_count": 67,
+    "case435_context_pack_id": "a7b2de0d3e3bea1c61971193f25e023f28d0002251109358546a87fa8821a749",
+    "case435_context_pack_raw_octets": 12645617,
+    "case435_context_pack_raw_sha256": "320b696f94e3f32114cf7facf94c9434f815aefeaed4cb979aabd870663e3a99",
+    "case435_cross_rule_evaluation_count": 12531,
+    "case435_direct_expression_node_count": 125431,
+    "case435_exact_maximum_octets": 257887,
+    "case435_exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+    "case435_maximum_attainer_raw_octets": 382271,
+    "case435_maximum_attainer_raw_sha256": "90d09148cbbbaef3e7b22530d4fbcf9086d1c74dd5c96470ef5b40d2a3a98d1f",
+    "case435_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "case435_profile_id": "505dac244288e6fb666919c99567f883c28ed573a898ce2a5dd680744dd57540",
+    "case435_program_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+    "case435_receipt_id": "fd2d341d8bb8c79f72a97926599e8535c5bcb4694d839120f7852030bbfbc7dd",
+    "case435_receipt_raw_octets": 32276,
+    "case435_receipt_raw_sha256": "dee73e8007af742bd116e10d0e7597b108a5a8cefe0cd3901470c2dcf6f33a20",
+    "case435_resource_requalification_state": "ACCEPTED_WITHIN_IMMUTABLE_F2",
+    "case435_resource_report_id": "3a38d19959e0944c8353fde865fb2ae63119d4f289869fcfd601fd239b8b7be9",
+    "case435_resource_vector": [1, 35384, 158, 1002, 347899, 4, 158, 106269, 789225, 879955, 1480733, 10, 12531, 137, 17, 137, 38451, 37195],
+    "case435_stream_sha256": "b35d70426261fc07da100f3d0f9486ccdd03a21e1699ab2008f97d58ecc3fc83",
+    "case435_upper_certificate_id": "7a36dcb15bd3fae4125c51b88010793fa63f7a2c5f03421b343eea0cd9aa0c25",
+    "case435_witness_sha256": "f29bb04a79ff2c1ecff867224f70ae7b45c0d7d9c94960a6c81652d6b7b74bad",
+    "combined_passed": 28,
+    "core_matrix_passed": 487,
+    "correction_subgate": "A4-P6-V3",
+    "differential_passed": 7,
+    "differential_test_raw_octets": 14726,
+    "differential_test_raw_sha256": "dda0f1c5b7ae1fa3dc698679b976952a70627884d245b87bf0bc8d8dc04f89d3",
+    "f0_input_file_count_limit": 64,
+    "f0_total_pinned_input_octets_limit": 67108864,
+    "focused_passed": 21,
+    "next_subgate": "A4-P6-V4",
+    "ordered_application_family_counts": [["APPLY/SELECTOR_MARKER_CONTRACT_V1", 1], ["APPLY/V2_OBSERVATION_AGGREGATE_REGISTRY_V1", 67], ["APPLY/V2_OBSERVATION_FIELDS_REGISTRY_V1", 67], ["APPLY/V2_ROOT_OBSERVATION_MEMBERSHIP_V1", 1], ["APPLY/V2_ROOT_SELECTOR_LIFECYCLE_V1", 1]],
+    "ordered_remaining_case_positions": [475],
+    "p6_filtered_passed": 13,
+    "p6_unfiltered_expected_failed": 6,
+    "p6_unfiltered_passed": 13,
+    "predecessor_context_regression_passed": 72,
+    "predecessor_v0_v1_v2_state": "PRESERVED",
+    "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+    "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+    "source_isolation_state": "STATIC_TYPED_SUBSET_WITH_SEPARATE_GENERIC_RUNTIME_DIFFERENTIAL",
+    "source_marker": "INDEPENDENT_V2_CONSTRUCTIVE_VERIFIER_V1",
+    "successor_authority_file_count": 39,
+    "successor_authority_file_headroom": 25,
+    "successor_authority_octets": 28950040,
+    "successor_authority_octet_headroom": 38158824,
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+    "successor_f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "total_input_file_count": 41,
+    "total_input_file_headroom": 23,
+    "total_input_octets": 41981358,
+    "total_input_octet_headroom": 25127506,
+    "typed_rule_runtime_raw_octets": 249268,
+    "typed_rule_runtime_raw_sha256": "47aa90d897e8dbae5e244b7c04cbd82dfe036b0292d36ef0f5552c868627ab22",
+    "verifier_raw_octets": 318772,
+    "verifier_raw_sha256": "2ddc1ebc9a04fd130d257263cedd90dbc9687466b816b127eb9766b536382423",
+    "verifier_test_raw_octets": 39302,
+    "verifier_test_raw_sha256": "cbadeab9b6c7404d1330858b8deff009f1ab8e67c610818b12f7ebc1ed91ffc7"
+  },
+  "s1_a4_verifier_expansion_v4_snapshot": {
+    "a4_t_filtered_passed": 59,
+    "a4_t_unfiltered_expected_failed": 1,
+    "a4_t_unfiltered_passed": 61,
+    "acceptance_doc_raw_octets": 10580,
+    "acceptance_doc_raw_sha256": "df5c50c3750cd87f8b30468cc9438b72053d4ede45a271a4b178e530dc8b0fa8",
+    "acceptance_state": "LOCAL_MINIMALITY_CASE_475_AND_CONSOLIDATED_F2_ACCEPTED",
+    "accepted_case_positions": [5, 24, 54, 69, 435, 475],
+    "case475_baseline_operation_spec_id": "f88cf223f28a146b08b5ffbb3b5ce419fb7ce473563edb27900983d6583a2d21",
+    "case475_better_objective_exclusion_sha256": "4cf7a46c0488d044368be412db5f837be5b4bd8f5c71907df83271d89d5cceb9",
+    "case475_candidate_id": "ee38407312f872f0d8dc3f5d6b3ebe9990f294ce245b406ba3e33cce243dcb42",
+    "case475_candidate_raw_octets": 614566,
+    "case475_candidate_raw_sha256": "bdf7f8e4213cbf51b70b2dac0bdc97ffd1d55304b37bd3d20b8b9d54ba7977dc",
+    "case475_exact_maximum_octets": 524380,
+    "case475_local_proof_scope_id": "4db3b0d60c9487e2b0913cf54fc05fa88ee5cac9e7aa979b3c97d6d46d1974b1",
+    "case475_local_result_id": "937e7a163426dc7015117004c03b8f8fc3fb3c9ad040c423f97b549974f20e73",
+    "case475_local_result_raw_octets": 604156,
+    "case475_local_result_raw_sha256": "a1e1316c970e60db198d8775eeb89a1e0eb7e4cdda5ddca64f54c666130fb7f8",
+    "case475_minimality_certificate_id": "62c6c97f9af5a8f4924f45a4c4e2d144d93eb17cd84d5b17b0cd06af6eb15792",
+    "case475_mutated_operation_spec_id": "572155284c3b8b0852b406d5cbce662aba7579180f89ee3740a6c86ede66f16a",
+    "case475_plan_id": "2d46a1b71c9466fd3268b93dbc3e4a62a4855dd0324f4cfecfbb60d4589bbbc0",
+    "case475_predecessor_maximum_octets": 524112,
+    "case475_profile_id": "92a80f3b2dc5d4b9a6284adfb6819823de7e2546d4141b2b12c5c7c9afff21f4",
+    "case475_prospective_result_id": "8a22dfcb61a9e083c2edccc7902d0e4e414c8be4d130570a495b1cdecb1a014c",
+    "case475_receipt_id": "eb6fdf156bb1b855a8fb4fadd8ebb10434c053493f91ce8fbcd5c2539ed10f0f",
+    "case475_receipt_raw_octets": 3173,
+    "case475_receipt_raw_sha256": "93b1ab8dc2fdbbd8dadabae5bd5591f8129d0ce2611f6bb1d25e74f46078f5b2",
+    "case475_resource_report_id": "ffbb512dbe46fcc6cb9c94bfff2f21a246a0b4b00a118b60284c82f034b136d8",
+    "case475_resource_vector": [1, 11, 12, 11, 11, 0, 12, 9591, 20047, 28612, 49103, 4, 1, 1, 1, 11, 18156, 672],
+    "case475_stream_sha256": "5f2f61d0f9f09174d3bb17288c02f36d9ec7ec358468d36ed19a2e44958cbbb3",
+    "case475_upper_certificate_id": "bc4594ce40f5ba4d80276ae1eec89c34f2e9eaff8328834093fa1e2cfa4dd118",
+    "case475_winning_absolute_delta": 1947,
+    "case475_winning_member_name": "maximum_terminal_ingress_batches",
+    "case475_winning_mutated_value": 1948,
+    "contract_variance_policy": "CORRECTED_LOCAL_CERTIFICATE_FIELD_PLUS_EXECUTABLE_GENERIC_RESOURCE_REPORT",
+    "core_matrix_passed": 503,
+    "correction_subgate": "A4-P6-V4",
+    "f0_input_file_count_limit": 64,
+    "f0_total_pinned_input_octets_limit": 67108864,
+    "focused_passed": 16,
+    "lower_compatibility_passed": 83,
+    "next_subgate": "A4-P6-V-A",
+    "ordered_remaining_case_positions": [],
+    "p6_filtered_passed": 13,
+    "p6_unfiltered_expected_failed": 6,
+    "p6_unfiltered_passed": 13,
+    "packed_v3_v4_compatibility_passed": 61,
+    "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+    "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+    "source_isolation_state": "STATIC_STANDARD_LIBRARY_ONLY_NO_DYNAMIC_CODE_LOADING",
+    "source_marker": "INDEPENDENT_V2_CONSTRUCTIVE_VERIFIER_V1",
+    "successor_authority_file_count": 39,
+    "successor_authority_file_headroom": 25,
+    "successor_authority_octets": 29004595,
+    "successor_authority_octet_headroom": 38104269,
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+    "successor_f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "total_case475_input_file_count": 40,
+    "total_case475_input_file_headroom": 24,
+    "total_case475_input_octets": 29619161,
+    "total_case475_input_octet_headroom": 37489703,
+    "verifier_raw_octets": 373327,
+    "verifier_raw_sha256": "b1bfb5778b1408c4b2dc45dd008f1089e2405b503b7eee9686820535d5631d25",
+    "verifier_test_raw_octets": 24380,
+    "verifier_test_raw_sha256": "fe5721c92b73b4fd357a0be453581cfbe7a305722c840493d7540ae3f289941b",
+    "worst_case435_input_file_count": 41,
+    "worst_case435_input_octets": 42035913,
+    "worst_case435_input_octet_headroom": 25072951
+  },
+  "s1_a4_verifier_acceptance_snapshot": {
+    "a4_p6_expected_red_failed": 6,
+    "a4_p6_expected_red_passed": 13,
+    "a4_p6_expected_red_skipped": 2,
+    "a4_t_expected_red_failed": 1,
+    "a4_t_expected_red_passed": 61,
+    "a4_t_expected_red_skipped": 2,
+    "acceptance_doc_raw_octets": 9790,
+    "acceptance_doc_raw_sha256": "08d805219f65cd21b77ec5e4c5bde0e4f947ed1f929ac223cd45db6603472082",
+    "acceptance_state": "INDEPENDENT_V0_V4_VERIFIER_ACCEPTED",
+    "accepted_case_positions": [5, 24, 54, 69, 435, 475],
+    "authority_closure_id": "3e173b6c6441e0dfb695e5e118d69bdb151c13299008cb6e1f0efddaec2cbd10",
+    "authority_file_count": 39,
+    "authority_file_headroom": 25,
+    "authority_octets": 29004595,
+    "authority_octet_headroom": 38104269,
+    "candidate_and_context_immutability": "VERIFIED_BY_PINNED_DOUBLE_RUN_AND_HOSTILE_REPLAY",
+    "case_acceptance_record_count": 7,
+    "core_matrix_passed": 542,
+    "correction_subgate": "A4-P6-V-A",
+    "focused_passed": 37,
+    "formal_verifier_gate_state": "ACCEPTED",
+    "next_subgate": "A4-P6-P",
+    "ordered_authority_modes": ["PREDECESSOR_CONSTRUCTIVE_BOUNDARY_V1", "SUCCESSOR_CASE435_EXACT_DELTA_V1", "SUCCESSOR_CASE435_PACKED_CONTEXT_BOUNDARY_V1"],
+    "producer_expansion_state": "RELEASED_FOR_A4_P6_P_IMPLEMENTATION",
+    "report_id": "1e20c2c1312abe6b3924c96e6979f046325a87d635f728007a157831381b1da1",
+    "report_raw_octets": 22564,
+    "report_raw_sha256": "1adbc0b1ac3ca2e9c2ad805de6ba79f6ce1b8ea244d6a11e50c086f438c7c45c",
+    "reviewed_fixture_source_count": 10,
+    "reviewer_raw_octets": 41217,
+    "reviewer_raw_sha256": "d254c9c49c57e2a4207a73d22e2b3ad4a303534249eef4a2373b5c124c2028e9",
+    "runner_state": "HOLD_UNTIL_PRODUCER_EXPANSION_ACCEPTED",
+    "source_isolation_state": "STATIC_STANDARD_LIBRARY_ONLY_NO_DYNAMIC_CODE_LOADING",
+    "source_marker": "INDEPENDENT_V0_V4_VERIFIER_ACCEPTANCE_REVIEWER_V1",
+    "test_raw_octets": 9703,
+    "test_raw_sha256": "d167ce6c98a6d48960cccbb95b94fddb7f5991adf5481408f3ed125aff2c75c7",
+    "verifier_raw_sha256": "b1bfb5778b1408c4b2dc45dd008f1089e2405b503b7eee9686820535d5631d25",
+    "verifier_replay_passed": 128
+  },
+  "s1_a4_producer_expansion_snapshot": {
+    "a4_p6_expected_red_failed": 6,
+    "a4_p6_expected_red_passed": 13,
+    "a4_p6_expected_red_skipped": 2,
+    "a4_t_expected_red_failed": 1,
+    "a4_t_expected_red_passed": 61,
+    "a4_t_expected_red_skipped": 2,
+    "acceptance_doc_raw_octets": 7740,
+    "acceptance_doc_raw_sha256": "0fdabce4ebc3b86da871e2ab1e41405f539272b5d8823b6b7ab27a37c8bb07d3",
+    "acceptance_state": "SEPARATE_PRODUCER_EXPANSION_ACCEPTED",
+    "acceptance_test_raw_octets": 6863,
+    "acceptance_test_raw_sha256": "d61d515f48fc91d68a3d0864729d7bd803da38709dc6af437e320811a7b963f4",
+    "accepted_case_positions": [5, 24, 54, 69, 435, 475],
+    "candidate_immutability": "VERIFIED_BY_TWO_PASS_INDEPENDENT_REPLAY",
+    "correction_subgate": "A4-P6-P",
+    "direct_producer_runs": 12,
+    "direct_verifier_runs": 12,
+    "formal_stage1_state": "NO-GO",
+    "historical_producer_raw_sha256": "9a0f2078419920dfaf89b3d2161381881abb07f375aaba94a960fc77576573ed",
+    "historical_v_a_report_id": "1e20c2c1312abe6b3924c96e6979f046325a87d635f728007a157831381b1da1",
+    "next_subgate": "A4-P6-R",
+    "packed_boundary_id": "c8448f57dcdc3e4f1f3239043ed4977013efbd99c750cb2e2e857025f5ac0acd",
+    "parent_runner_state": "ABSENT_AND_HELD",
+    "producer_raw_octets": 129026,
+    "producer_raw_sha256": "46c67738905488a467cbb66a6de719f4cd4804e7ac68143cb301dc1e9c46d7da",
+    "qualification_passed": 17,
+    "qualification_test_raw_octets": 13119,
+    "qualification_test_raw_sha256": "592780dbb9b211d5b7976be4895e2eb0fc1a0686fa0d81730f9d12a06b2ed7c1",
+    "report_id": "defe27a1fafa0c1b37f9e1cf5498b14bb662cc2724dec9660abdb86f78ef9ed6",
+    "report_raw_octets": 12583,
+    "report_raw_sha256": "2ef2a621df51f5193108a61ed5b639ab48378b9e5fd87daf4cfbd619a9fb20c8",
+    "reviewer_raw_octets": 32070,
+    "reviewer_raw_sha256": "7067aeae07056e09b6ee5bfb1c059744fab55453c3e41431313e6073e345cdb5",
+    "source_isolation_state": "STATIC_STANDARD_LIBRARY_ONLY_NO_REVIEWED_ROLE_IMPORTS",
+    "verifier_raw_octets": 373327,
+    "verifier_raw_sha256": "b1bfb5778b1408c4b2dc45dd008f1089e2405b503b7eee9686820535d5631d25"
+  },
+  "s1_a4_parent_runner_snapshot": {
+    "acceptance_doc_raw_octets": 6864,
+    "acceptance_doc_raw_sha256": "1d3182dbd6991ce3226b03392ce4d063f68460bff00bb9f8bfb432e9fc427d9d",
+    "acceptance_state": "PARENT_PILOT_RUNNER_ACCEPTED",
+    "acceptance_test_raw_octets": 6676,
+    "acceptance_test_raw_sha256": "b223ceefc3837e5d7f90827f281f1457038f681d95a0b46585951e6eebfc24a0",
+    "accepted_case_positions": [5, 24, 54, 69, 435, 475],
+    "all_or_nothing_publication": "VERIFIED_WITH_ROOT_LAST_PUBLICATION_AND_INJECTED_ROLLBACK",
+    "candidate_immutability": "VERIFIED_ACROSS_ALL_SIX_VERIFIER_CHILD_RUNS",
+    "correction_subgate": "A4-P6-R",
+    "direct_parent_transactions": 2,
+    "direct_producer_runs": 12,
+    "direct_verifier_runs": 12,
+    "formal_stage1_state": "NO-GO",
+    "frozen_role_contract_passed": 64,
+    "full_run_f2_values": [6, 4239080, 375, 2318, 8756229, 17, 375, 254204, 1840387, 2057687, 3473350, 22, 12533, 139, 17, 137, 50016, 87245],
+    "historical_producer_report_id": "defe27a1fafa0c1b37f9e1cf5498b14bb662cc2724dec9660abdb86f78ef9ed6",
+    "next_subgate": "A4-P6-E",
+    "producer_raw_sha256": "46c67738905488a467cbb66a6de719f4cd4804e7ac68143cb301dc1e9c46d7da",
+    "qualification_passed": 7,
+    "qualification_test_raw_octets": 17493,
+    "qualification_test_raw_sha256": "431f3ea5f41c87a5635cb2b5b44f24c548ecc4983c8c3acd02a6b5ab2d7a976c",
+    "read_only_check": "VERIFIED_BYTE_AND_MODE_STABLE",
+    "report_id": "ee39ba2ee328f20774ed3c678d6bf9edf4790a68a587c591828813c358f0ca9b",
+    "report_raw_octets": 12969,
+    "report_raw_sha256": "ae315492c9a7fa24968c3132e5e0f9982693175922db845312a74f3e61e0487a",
+    "reviewer_raw_octets": 25387,
+    "reviewer_raw_sha256": "22565dfb4456823377bcea41790888531f0def2d645c7dd4a2d6f272c0bd26eb",
+    "runner_raw_octets": 50461,
+    "runner_raw_sha256": "5f1997b4e689a14cbae0a340fce2f320bb058eb9dd04449897ff3dfdf8de7ad7",
+    "source_isolation_state": "PARENT_ONLY_STANDARD_LIBRARY_FIXED_EXECVE_NO_ACCEPTED_ANSWER_LITERALS",
+    "source_marker": "INDEPENDENT_A4_P6_R_PARENT_PILOT_RUNNER_REVIEWER_V1",
+    "verifier_raw_sha256": "b1bfb5778b1408c4b2dc45dd008f1089e2405b503b7eee9686820535d5631d25"
+  },
+  "s1_a4_pilot_end_to_end_snapshot": {
+    "acceptance_doc_raw_octets": 6115,
+    "acceptance_doc_raw_sha256": "299c899631ea0989c9d6a07ff705348019db34654b7057a47c36aa5558022525",
+    "acceptance_state": "SIX_CASE_END_TO_END_ACCEPTED",
+    "acceptance_test_raw_octets": 8755,
+    "acceptance_test_raw_sha256": "89a34db383a2f3a07ac66f29ac0be2effb49ad38d0007282ff1fd0d29eb13af1",
+    "case_universe_count": 475,
+    "correction_subgate": "A4-P6-E",
+    "current_binaries_all_case_ready": false,
+    "current_pilot_case_count": 6,
+    "design_raw_octets": 7484,
+    "design_raw_sha256": "70314ac6df805d35ef3c7a922208e1aedf7733334cfdaea8c9c7621de1dd2b30",
+    "effective_parent_transactions_replayed": 4,
+    "effective_producer_child_runs_replayed": 24,
+    "effective_verifier_child_runs_replayed": 24,
+    "formal_stage1_state": "NO-GO",
+    "full_run_f2_values": [6, 4239080, 375, 2318, 8756229, 17, 375, 254204, 1840387, 2057687, 3473350, 22, 12533, 139, 17, 137, 50016, 87245],
+    "next_bounded_packet": "A4-R475-T",
+    "next_subgate": "A4-R475",
+    "non_pilot_case_count": 469,
+    "pilot_f2_implies_full_campaign_fit": false,
+    "predecessor_runner_report_id": "ee39ba2ee328f20774ed3c678d6bf9edf4790a68a587c591828813c358f0ca9b",
+    "qualification_rule": "ALL_SIX_CASES_PASS_TWICE_BYTE_IDENTICALLY_UNDER_IMMUTABLE_F2",
+    "release_decision": "RELEASED_FOR_A4_R475_VERSIONED_IMPLEMENTATION",
+    "release_criteria_passed": 8,
+    "report_id": "c94c784f29a57fd8fc345cd49b90b7225e2a5697ff2077c8dd0b4b2115809d11",
+    "report_raw_octets": 16064,
+    "report_raw_sha256": "8aab9f9be12edb028eae154f05c032b0d125865f37cad04e32862857a78b2d7e",
+    "reviewer_raw_octets": 34288,
+    "reviewer_raw_sha256": "a0a456b9689cabf369d0c7d57a2cfbaa7ecb9689518408541f24476e945ccc1c",
+    "reviewer_replays": 2,
+    "source_marker": "INDEPENDENT_A4_P6_E_SIX_CASE_END_TO_END_REVIEWER_V1"
+  },
+  "s1_a4_all_case_contract_snapshot": {
+    "acceptance_doc_raw_octets": 5063,
+    "acceptance_doc_raw_sha256": "33fed444f657c7fe4f52a18a5f11d7b22caf17e596fc375d8ffe8c73c403cbf7",
+    "acceptance_state": "CONTRACT_ONLY_ACCEPTED",
+    "acceptance_test_passed": 9,
+    "acceptance_test_raw_octets": 11312,
+    "acceptance_test_raw_sha256": "ebe423ef1167a7dc146bb65c5dd815161b5f0b870a6493e40f3231f5e8365a4a",
+    "all_case_campaign_executed": false,
+    "case_execution_ledger_id": "67ec002e95bf30764aa1d7e0175ab082d4b4f987a7d96981be75ece794e62566",
+    "case_universe_count": 475,
+    "contract_id": "9be94bf6b53b612d62ac26bc74133f25c1101a0962987a855e65cdcd06418583",
+    "contract_raw_octets": 382710,
+    "contract_raw_sha256": "3ca4ff4d6e581895b813043e7fdeed24c33cf2c828e362ac81de1725e95a84bb",
+    "correction_subgate": "A4-R475-T",
+    "design_raw_octets": 8525,
+    "design_raw_sha256": "19aad73651595448be14ecba575f675958d5c132fd164ce254242f2c0a0cb0e4",
+    "execution_family_counts": {
+      "CORRECTED_APPLICATION_EXACT_PROFILE": 1,
+      "GENERIC_PROFILE_ATTAINMENT": 406,
+      "INTRINSIC_TEMPLATE_ATTAINMENT": 66,
+      "LOCAL_MINIMALITY": 1,
+      "SIGNED_ANALYTIC_EXACT_PROFILE": 1
+    },
+    "f0_record_count": 12,
+    "f2_record_count": 18,
+    "fail_first_test_raw_octets": 870,
+    "fail_first_test_raw_sha256": "201ef30354c61cd87dcb26638d3194209b7cd34cad444ce18b1dd789010a3cfa",
+    "formal_stage1_state": "NO-GO",
+    "generator_raw_octets": 35282,
+    "generator_raw_sha256": "46a350c15cfffae80644e55132a4bbeb3a257b2b76261545f7ee4235835e7bd9",
+    "intentional_missing_role_failures": 3,
+    "local_minimality_case_count": 1,
+    "maximum_publication_case_count": 474,
+    "next_bounded_packet": "A4-R475-V0",
+    "ordered_case_execution_records_sha256": "d3ddf4d97353bde65295764eeed8d0f347c1930d8089dc25f20e91c946578e72",
+    "predecessor_pilot_report_id": "c94c784f29a57fd8fc345cd49b90b7225e2a5697ff2077c8dd0b4b2115809d11",
+    "report_id": "16035e8342cbe5713aa9d619638da13b34d5e7e56707433e66dfb3aa1078f1cd",
+    "report_raw_octets": 3607,
+    "report_raw_sha256": "c6703ae1a6b8262139bba63d5959054b999c43e2ffc7fef0fd854670e303384c",
+    "required_full_run_f2_values": [475, 29189597, 66119, 417528, 170915620, 1735, 66119, 44461267, 329067149, 367039374, 619175993, 4160, 4198492, 46268, 17, 569, 54297, 15585644],
+    "reviewer_raw_octets": 25668,
+    "reviewer_raw_sha256": "9c5c30d7d00da2ca73d1e8f98edbc089b80e366b39bedcb426752fb4d0a86beb",
+    "source_marker": "INDEPENDENT_A4_R475_T_ALL_CASE_CONTRACT_REVIEWER_V1",
+    "versioned_all_case_roles_accepted": false
+  },
+  "s1_a4_all_case_verifier_foundation_snapshot": {
+    "acceptance_doc_raw_octets": 4197,
+    "acceptance_doc_raw_sha256": "6894d1a50e0041654794864cdeec53200c4d5c87f9e69b6c9851ce29ef01b72a",
+    "acceptance_state": "FOUNDATION_ONLY_ACCEPTED",
+    "acceptance_test_passed": 9,
+    "acceptance_test_raw_octets": 7503,
+    "acceptance_test_raw_sha256": "c87ecaaa5b2771560807b165b45c5eb470142dd6c8f654f0c46ee2071c164fb2",
+    "accepted_constructive_case_count": 0,
+    "all_case_campaign_executed": false,
+    "authority_file_count": 18,
+    "authority_file_headroom": 46,
+    "candidate_access_forbidden": true,
+    "case_execution_ledger_id": "67ec002e95bf30764aa1d7e0175ab082d4b4f987a7d96981be75ece794e62566",
+    "case_universe_count": 475,
+    "correction_subgate": "A4-R475-V0",
+    "design_raw_octets": 6656,
+    "design_raw_sha256": "37f4b518144990faa2739a92418e2aa4bb8362de50007da4d832a6843f639afd",
+    "execution_family_counts": {
+      "CORRECTED_APPLICATION_EXACT_PROFILE": 1,
+      "GENERIC_PROFILE_ATTAINMENT": 406,
+      "INTRINSIC_TEMPLATE_ATTAINMENT": 66,
+      "LOCAL_MINIMALITY": 1,
+      "SIGNED_ANALYTIC_EXACT_PROFILE": 1
+    },
+    "fail_first_initial_failures": 1,
+    "fail_first_test_raw_octets": 416,
+    "fail_first_test_raw_sha256": "2d3185a046473b0237d6ea797bf94c01230ae73066f980ba71c2f82fb1de77c7",
+    "formal_stage1_state": "NO-GO",
+    "next_bounded_packet": "A4-R475-V1",
+    "pinned_input_octet_headroom": 50390876,
+    "pinned_input_octets": 16717988,
+    "predecessor_contract_id": "9be94bf6b53b612d62ac26bc74133f25c1101a0962987a855e65cdcd06418583",
+    "remaining_missing_role_failures": 2,
+    "report_id": "127784d23829d3b92179596d5d058d5305c0075208b8a809109e4de49663973f",
+    "report_raw_octets": 3776,
+    "report_raw_sha256": "1a8a5e8500e29d68d45a87aba4955c8041248b42509cf4d675f3ab02a64f8e59",
+    "reviewer_raw_octets": 24299,
+    "reviewer_raw_sha256": "b835f426b9e15cbb4f2dadb7af8bb4a159356275a2f4c30557da1da00b080544",
+    "semantic_test_passed": 12,
+    "semantic_test_raw_octets": 13230,
+    "semantic_test_raw_sha256": "caec936701273cdf603f56c66b3905fbf63f27dec746cafcfdb796d9a48d8025",
+    "source_marker": "INDEPENDENT_A4_R475_V0_FOUNDATION_REVIEWER_V1",
+    "typed_runtime_application_count": 8,
+    "typed_runtime_rule_count": 42,
+    "typed_runtime_sha256": "47aa90d897e8dbae5e244b7c04cbd82dfe036b0292d36ef0f5552c868627ab22",
+    "verifier_raw_octets": 42659,
+    "verifier_raw_sha256": "15adb9fd5c427c1e1e96ff630e13b36d3f385f12eaf68a388a5da7be48dbf5aa",
+    "verifier_source_marker": "INDEPENDENT_V2_ALL_CASE_CONSTRUCTIVE_VERIFIER_V1"
+  },
+  "s1_a4_intrinsic_attainability_snapshot": {
+    "acceptance_doc_raw_octets": 11277,
+    "acceptance_doc_raw_sha256": "2d2d83d6608b5c443590a09c98cf966b8ab6d94d5eea653ddc21a437cd49e764",
+    "acceptance_report_id": "7dfd4073f40f1825356b32c3ed0ca7f291a4a179827882fbbedbdeb96030102e",
+    "acceptance_report_raw_octets": 2137,
+    "acceptance_report_raw_sha256": "a56bd57e795f5c6cda9eed5d8c9512392bff6e0a2637c5fe69fc42508c1ff9ea",
+    "acceptance_state": "FALSIFICATION_ACCEPTED_AUTHORITY_REPAIR_REQUIRED",
+    "acceptance_test_passed": 13,
+    "acceptance_test_raw_octets": 6694,
+    "acceptance_test_raw_sha256": "dec9ff7c55ff53a6ac0a9659be921ec34d528ab659f10e5f76f9e5725ea2827b",
+    "all_case_v1_acceptance_possible_under_frozen_authority": false,
+    "analyzer_raw_octets": 34534,
+    "analyzer_raw_sha256": "5af98367704e9ef695af050637ebb5027aeb516b5f74c971d6781ab7b232f4ff",
+    "attainability_falsification_id": "0b53bd2d79c5f923f1887f7e33f167625fd43753c22345074ae2768dec0d58ad",
+    "case8_exact_legal_maximum_octets": 928,
+    "case8_legal_attainer_sha256": "9156a97a005f9d2264e34054f071a6b15169f88b23be54cb59bc254362888665",
+    "case8_p2_upper_bound_octets": 524288,
+    "case8_unattainable_gap_octets": 523360,
+    "contradiction_case_count": 26,
+    "contradiction_vector_sha256": "3d1c35477e174cde53ab163c516dea9d7132a468bfa7c7954f1ca538317f8e5d",
+    "correction_subgate": "A4-R475-V1-F-A",
+    "focused_passed": 23,
+    "formal_stage1_state": "NO-GO",
+    "intrinsic_case_count": 66,
+    "next_bounded_packet": "A4-R475-V1-C",
+    "not_falsified_by_text_ceiling_case_count": 40,
+    "predecessor_verifier_raw_sha256": "15adb9fd5c427c1e1e96ff630e13b36d3f385f12eaf68a388a5da7be48dbf5aa",
+    "producer_runner_or_campaign_implemented": false,
+    "reviewer_raw_octets": 18415,
+    "reviewer_raw_sha256": "90b484d48637d75985e183fb03d8f976883da7781368c1279c6803ae0be2448c",
+    "semantic_test_passed": 10,
+    "semantic_test_raw_octets": 8925,
+    "semantic_test_raw_sha256": "302a80f00e15527fb58b213e0be78ca91230079f559d183d654d4a448fb4b9c2"
+  },
+  "s1_a4_intrinsic_correction_contract_snapshot": {
+    "acceptance_doc_raw_octets": 10381,
+    "acceptance_doc_raw_sha256": "431b4188e1136bea377459568914e38e4627982183b07e3603d5860a6627d8ff",
+    "acceptance_report_id": "e3cdc9ea250f3b3b296aeb02fc9a51f0aa615655ec8ee37c77a319855907dc84",
+    "acceptance_report_raw_octets": 1931,
+    "acceptance_report_raw_sha256": "061d53c69b003cf528d596c1b736fbae58f23da071055fb7d8f321617f0f2303",
+    "acceptance_state": "CONTRACT_ONLY_ACCEPTED",
+    "acceptance_test_passed": 10,
+    "acceptance_test_raw_octets": 7639,
+    "acceptance_test_raw_sha256": "2234e21d8b2ecb73b1ebfd9872fb6e455a80e3af1a48a53389c1fdd482b5fc7e",
+    "all_66_exact_maxima_accepted": false,
+    "all_case_campaign_released": false,
+    "case_vector_sha256": "d0e9a0a0ae157e598da1dc8130e30bca6189966d4eadc853eb8a1a0db1f9300b",
+    "contract_id": "171e9d47a7733f8448f94af5a16da4ba5258f30ee08cb4c835289a05adcb8cb9",
+    "contract_raw_octets": 5436266,
+    "contract_raw_sha256": "6245595b759cec6cdecd88292f105dac938f5c69ae92f90ae0365bd032180e14",
+    "contradiction_case_count": 26,
+    "correction_subgate": "A4-R475-V1-C1",
+    "dependency_kind_counts": {
+      "ARRAY_BATCH": 91,
+      "ASCII_DFA": 35,
+      "CODEC_COORDINATE_SET": 160,
+      "IDENTITY_CONTRACT": 37,
+      "INTRINSIC_RULE": 87,
+      "TEXT_LANGUAGE": 404,
+      "TYPE_DESCRIPTOR": 163,
+      "UNICODE_IDENTIFIER_PROFILE": 23,
+      "UNICODE_SOURCE": 108,
+      "UNION_BRANCH": 22,
+      "VALUE_SCHEMA": 676
+    },
+    "dual_channel_sources_frozen_before_execution": true,
+    "formal_stage1_state": "NO-GO",
+    "generator_raw_octets": 38248,
+    "generator_raw_sha256": "b9db5b3b84c26ad20764d7e8bea0fc8aef19209c6d177c15356311068fc2ec8f",
+    "intrinsic_case_count": 66,
+    "next_bounded_packet": "A4-R475-V1-C2-S",
+    "not_falsified_nonclaim_case_count": 40,
+    "predecessor_falsification_id": "0b53bd2d79c5f923f1887f7e33f167625fd43753c22345074ae2768dec0d58ad",
+    "reviewer_raw_octets": 29264,
+    "reviewer_raw_sha256": "eae58edadedea7606af692b5d192245a2286137617f7e77545069d6748023303",
+    "semantic_test_passed": 12,
+    "semantic_test_raw_octets": 12744,
+    "semantic_test_raw_sha256": "b238a5b2d50d708c55ccf5ef9c512853a3ab0deca87c8e4a0a1c8c84ea657e2b",
+    "total_case_dependency_records": 1806,
+    "total_step_records": 1647,
+    "verifier_producer_runner_or_campaign_implemented": false
+  },
+  "s1_a4_intrinsic_dual_source_freeze_snapshot": {
+    "acceptance_doc_raw_octets": 8213,
+    "acceptance_doc_raw_sha256": "db0bf563d64d57253c43cabc4eb7f4f32630f8d7fb1ced24e3c04b43f5c4e44f",
+    "acceptance_report_id": "18dcb2b97a13cb0a8912ad3bc152cb0e388740d386207fbad38dbbd19bef7ec5",
+    "acceptance_report_raw_octets": 2268,
+    "acceptance_report_raw_sha256": "62336198ed588159233d5637c44e04b8cbae464a7eb8cc87b574e89f76264c9a",
+    "acceptance_state": "ACCEPTED_PRE_EXECUTION_DUAL_SOURCE_AND_SCHEMA_FREEZE",
+    "acceptance_test_passed": 16,
+    "acceptance_test_raw_octets": 16365,
+    "acceptance_test_raw_sha256": "2ddb55a577be1bc1b6a8edebfe863d47c2cab198e5a48904cf2f303d31cf6767",
+    "all_case_campaign_released": false,
+    "attainer_output_schema_id": "20aa310f1f96823412c7a078c5e3bb09e0c79d87beb919cfd25f8decdf0d18c0",
+    "attainer_output_schema_raw_octets": 5863,
+    "attainer_output_schema_raw_sha256": "8b3f6be202546d86bedfdbe23bc446178b91cb3c35633b321b7dcac25a2ce10e",
+    "attainer_source_raw_octets": 34062,
+    "attainer_source_raw_sha256": "971cac97399c839917a6d87e6726be8547d54e45af9687f2ac85b3d4b6b6e448",
+    "authority_raw_octets": 7639498,
+    "authority_record_count": 4,
+    "channel_core_ast_fingerprints": {
+      "LEGAL_UPPER": "4b2fb1d5463c2d8aa6174652b3e35d6866bb4bb94a0eb046d355f232e3f87f4b",
+      "P1_LEGAL_ATTAINER": "eaf7e544610c0ccf333b75f44c1dea1533fb523f73631f3932a69cf32a830586"
+    },
+    "channel_results_accepted": false,
+    "correction_subgate": "A4-R475-V1-C2-S",
+    "distinct_core_ast_fingerprint_count": 2,
+    "dual_source_freeze_id": "d6e17e638a99449bc806b72cfefb850d6f64ed578dc5314a135b8e71fe5b008e",
+    "exact_maxima_accepted": false,
+    "formal_stage1_state": "NO-GO",
+    "freeze_raw_octets": 9861,
+    "freeze_raw_sha256": "57891c14624ed999e1b370a2478e41c99b23c6d0c471d9493c71c8381c40e3c5",
+    "generator_raw_octets": 21652,
+    "generator_raw_sha256": "3c4f764ed41428791132da5018ce877c4c25b1a3615d352edbaf5fe8d646f121",
+    "intrinsic_exactness_correction_contract_id": "171e9d47a7733f8448f94af5a16da4ba5258f30ee08cb4c835289a05adcb8cb9",
+    "next_bounded_packet": "A4-R475-V1-C2-U",
+    "pre_execution_absent_output_count": 5,
+    "projected_pinned_input_upper_octets": 7969945,
+    "projected_total_output_upper_octets": 38994304,
+    "reviewer_raw_octets": 20106,
+    "reviewer_raw_sha256": "4f0fbb27c1ef79f111f7ef717c51332b27bce3444bc70410a58b6a40910c3647",
+    "source_or_channel_execution_count": 0,
+    "upper_output_schema_id": "7e2af5b6b28d64bd6251f02bb2ae8d9b005f2c05c3321994e4cc8c1e9449326b",
+    "upper_output_schema_raw_octets": 3957,
+    "upper_output_schema_raw_sha256": "ea4cab7ecf94f3a4951efd92f35ec7bf69a81fb6da5e55e1f41e33ef0f2871eb",
+    "upper_source_raw_octets": 24421,
+    "upper_source_raw_sha256": "5ef8441d5ddb14642d2a90f688e5f0cf9e49384a18eb9c91b48e293eab526e8a"
+  },
+  "s1_a4_intrinsic_upper_channel_snapshot": {
+    "acceptance_doc_raw_octets": 8832,
+    "acceptance_doc_raw_sha256": "bb120a4e37b9b30b323bc6c266a5fdcbc0675278fbe64d587b07c826ac94ea1d",
+    "acceptance_report_id": "07ee9289eec657ff4907e00720fe29d449a6087b6ee5d4728a027fd8f5422123",
+    "acceptance_report_raw_octets": 2174,
+    "acceptance_report_raw_sha256": "017c0643028c42d193aa1bd82bee80bf672f39b628b0885ff1d852461b85a228",
+    "acceptance_state": "ACCEPTED_LEGAL_DOMAIN_UPPER_CHANNEL_ONLY",
+    "acceptance_test_passed": 25,
+    "acceptance_test_raw_octets": 13580,
+    "acceptance_test_raw_sha256": "15cc865ac88afff26d6ead67c4f649e41c24f658576aa1f12420435f4b30c97b",
+    "all_case_campaign_released": false,
+    "attainer_channel_consumed": false,
+    "attainer_output_absent_count": 4,
+    "attainer_source_or_output_read_true_case_count": 0,
+    "case_count": 66,
+    "correction_subgate": "A4-R475-V1-C2-U",
+    "derivation_kind_census": {
+      "ASSOCIATIVE_HOMOGENEOUS_RUN_BATCH": 91,
+      "CODEC_INTERSECTION": 160,
+      "EXACT_BOOLEAN": 25,
+      "NULLABLE_BRANCH": 145,
+      "OBJECT_REFERENCE": 47,
+      "RECORD_MEMBER_FOLD": 138,
+      "SAFE_INTEGER_BAND": 247,
+      "TAGGED_UNION_BRANCH": 22,
+      "TEXT_BOUNDED_LANGUAGE": 183,
+      "TEXT_BUILTIN_BOUNDED": 254,
+      "TEXT_FINITE": 335
+    },
+    "exact_maxima_accepted": false,
+    "execution_pinned_input_file_count": 5,
+    "execution_pinned_input_octets": 6944168,
+    "formal_stage1_state": "NO-GO",
+    "intrinsic_exactness_correction_contract_id": "171e9d47a7733f8448f94af5a16da4ba5258f30ee08cb4c835289a05adcb8cb9",
+    "legal_domain_upper_maximum_octets": 524288,
+    "legal_domain_upper_minimum_octets": 29,
+    "legal_domain_upper_vector_sha256": "0791b5d5b97249ba4fac3b187efbe66a5cb85ba7c8ca3839279831fe25e540f5",
+    "next_bounded_packet": "A4-R475-V1-C2-A",
+    "official_output_file_count": 1,
+    "proof_method_case_census": {
+      "ASCII_DFA_DYNAMIC_PROGRAMMING": 21,
+      "CLOSED_BUILTIN_FORMULA": 51,
+      "CODEC_INTERSECTION": 66,
+      "FINITE_ENUMERATION": 58,
+      "PINNED_UNICODE_PROFILE_PROGRAM": 18,
+      "RULE_AWARE_COMPOSITION": 66
+    },
+    "proof_step_count": 1647,
+    "reviewer_raw_octets": 34685,
+    "reviewer_raw_sha256": "e18a472ea4d48e20ad59de62499c0edb17258f7d0799fe9e6b1932fe58e9b510",
+    "source_freeze_id": "d6e17e638a99449bc806b72cfefb850d6f64ed578dc5314a135b8e71fe5b008e",
+    "upper_case_record_id_vector_sha256": "58ce6fe336c5001ab55cd18c1e6640723c6c0b9db3b39c1688c5d604d112cc0b",
+    "upper_output_schema_id": "7e2af5b6b28d64bd6251f02bb2ae8d9b005f2c05c3321994e4cc8c1e9449326b",
+    "upper_result_accepted": true,
+    "upper_result_id": "b57d8d494524ce964330fa2046c4d66f0c8a854b7eaa8fe1abae3bb09e5f8d2d",
+    "upper_result_raw_octets": 65167,
+    "upper_result_raw_sha256": "29f9e1f760ae9ebd71a8a5731bb0767ca36cf6b47b2539e43876c63e816d2790",
+    "upper_source_raw_sha256": "5ef8441d5ddb14642d2a90f688e5f0cf9e49384a18eb9c91b48e293eab526e8a"
+  },
   "seed_snapshot": {
     "catalog_raw_octets": 13419905,
     "catalog_sha256": "a75a2f352e8513b7ff0043693a0c65ebbf4bc6f06859354789af69e1162b0e4f",
@@ -805,8 +1569,9 @@ as a successor preflight; case-435 resource requalification is required in
 fail-first target was modified to hide the conflict. The post-C3 accepted
 checkpoint was superseded first by the post-D matrix (`374 passed in
 1441.77s`) and now by the fresh post-V0 accepted matrix: `384 passed in
-1421.70s (0:23:41)`. Together with the two supported fail-first selections,
-the post-V0 green control surface is `456 passed, 4 skipped, 9 deselected`.
+1421.70s (0:23:41)`, by the post-V1 matrix (`414 passed`), and now by the
+post-V2 matrix (`440 passed`), the post-V3 matrix (`487 passed`), and the
+post-V4 matrix (`503 passed`).
 The intentionally red surfaces remain exact: A4-T reports `61 passed,
 2 skipped, 1 failed` only for the absent parent runner, and A4-P6-T reports
 `13 passed, 2 skipped, 6 failed` only for the five unimplemented cases and
@@ -825,7 +1590,77 @@ successor identities for the case-5 positive control, and rejects cross-mode
 IDs or a tampered delta before candidate access. Its successor authority
 footprint is 38 files / 28,752,433 octets under immutable F0. Case-435
 execution-specific F2 requalification remains waiting for V3. Only V1 is now
-active.
+active at that historical checkpoint. The subsequent
+[`V1 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v1_acceptance_2026-08-10.md)
+adds exact intrinsic cases 24 and 54 without changing either authority mode or
+executing dynamically loaded code. A verifier-owned static typed subset is
+differentially checked against the separately pinned generic runtime. It
+accepts exact 523,738- and 3,145,728-octet attainers, reproduces their frozen
+event streams and 18-metric resource vectors, preserves case 5, and keeps
+cases 69/435/475 fail-closed. The subsequent
+[`V2 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v2_acceptance_2026-08-10.md)
+derives the exact case-69 endpoint from the signed local-shutdown analytic
+program, validates the retained result/spec application, accepts P1/P3 only at
+2,581 canonical octets, reproduces the immutable F2 vector, and keeps cases
+435/475 fail-closed. The subsequent
+[`case-435 packed-context boundary acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_context_pack_boundary_acceptance_2026-08-10.md)
+proves that the inherited 106-file flat closure is impossible under immutable
+F0 and accepts one compact canonical pack without changing logical records,
+outputs, mathematical authorities, or limits. Its 17-test hostile matrix
+passes. The subsequent
+[`V3 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v3_acceptance_2026-08-10.md)
+independently accepts corrected case 435: one 12,645,617-byte pack resolves 67
+complete logical context objects; all five application families and 137 P1
+invocations pass; P2 and P3 agree at 257,887 octets; and the exact 18-metric
+resource vector remains within immutable F2. Its 21 focused tests and seven
+generic-runtime differential cases pass. The subsequent
+[`V4 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v4_acceptance_2026-08-10.md)
+for local case 475 and consolidated F2 accepts the exact one-field mutation at batch
+1,948, the 524,112/524,380 adjacent strict-limit crossing, the complete typed
+prospective result, the exact preflight resource vector, deterministic double
+runs, and 16 focused hostile checks. The separate
+[`V-A acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-10.md)
+now accepts the complete V0–V4 surface after a 128-test
+pinned replay and exact identity/resource reconstruction. The subsequent
+[`A4-P6-P acceptance`](v4_9f_a2_raw_v8_step2_v2_separate_producer_expansion_acceptance_2026-08-10.md)
+accepts deterministic independent production and verification for all six
+pilot cases while preserving predecessor case 5 and both expected-red
+boundaries. The subsequent
+[`A4-P6-R acceptance`](v4_9f_a2_raw_v8_step2_v2_parent_pilot_runner_acceptance_2026-08-10.md)
+accepts the parent-owned all-or-nothing runner after two byte-identical
+six-case transactions, exact full-run F2 reconciliation, read-only check,
+rollback, and source-isolation review. The subsequent
+[`A4-P6-E acceptance`](v4_9f_a2_raw_v8_step2_v2_six_case_end_to_end_acceptance_2026-08-11.md)
+replays that reviewer twice, independently reconstructs the complete pilot
+ledger, and releases `A4-R475` for a versioned all-case implementation.
+The subsequent
+[`A4-R475-T acceptance`](v4_9f_a2_raw_v8_step2_v2_all_case_campaign_contract_acceptance_2026-08-11.md)
+independently reconstructs all 475 effective cases across five execution
+families, freezes distinct versioned role paths, exact immutable all-case
+F0/F2 reconciliation, sequential durable checkpoints and resume, and one
+root-last campaign publication. The subsequent
+[`A4-R475-V0` acceptance](v4_9f_a2_raw_v8_step2_v2_all_case_verifier_foundation_acceptance_2026-08-11.md)
+accepts the new verifier role as a foundation only: it independently resolves
+all 475 effective cases, pins the complete accepted typed-rule runtime, stays
+inside immutable F0 with an 18-file / 16,717,988-octet authority footprint,
+and rejects before candidate/output access. Its focused matrix reports 22
+passes. It accepts zero constructive cases, does not execute the campaign,
+and leaves exactly the producer and runner role checks red. The subsequent
+[`A4-R475-V1-F-A` falsification](v4_9f_a2_raw_v8_step2_v2_intrinsic_template_attainability_falsification_2026-08-11.md)
+is accepted and blocks direct V1 implementation. The subsequent
+[`A4-R475-V1-C1` correction contract](v4_9f_a2_raw_v8_step2_v2_intrinsic_correction_contract_acceptance_2026-08-11.md)
+is accepted after independent reconstruction of all 66 cases, 1,647 steps,
+and 1,806 per-case unique dependencies. The subsequent
+[`A4-R475-V1-C2-S` source freeze](v4_9f_a2_raw_v8_step2_v2_intrinsic_dual_source_freeze_acceptance_2026-08-11.md)
+is accepted after sealing two complete standalone sources, two closed schemas,
+distinct core AST identities, answer-independent F0 projections, and five
+absent future result paths without executing either channel.
+The subsequent
+[`A4-R475-V1-C2-U` acceptance](v4_9f_a2_raw_v8_step2_v2_intrinsic_upper_channel_acceptance_2026-08-11.md)
+accepts one 66-case legal-domain upper result after 25 focused checks, complete
+1,647-step independent reconstruction, and an attainer-free traced replay.
+It claims no attained or exact maximum. `A4-R475-V1-C2-A` is the single active
+executable packet; the current six-case binaries are not all-case ready.
 
 Ordered internal work:
 
@@ -842,17 +1677,33 @@ Ordered internal work:
 | `A4-P6-C435-C2` independent attainer channel | `ACCEPTED` | Separate source constructs the complete 67-observation retained context, passes all 137 pinned P1 applications, and measures a 257,887-octet legal witness without importing the upper solver/checker or stored maximum/witness answer |
 | `A4-P6-C435-C3` exactness join | `ACCEPTED` | Separate join/checker accept only the frozen C1/C2 channel IDs and identical problem/schedule authorities; 257,887 upper equals 257,887 P1-legal attainer; hostile re-sealed substitutions fail |
 | `A4-P6-C435-D` versioned authority transition | `ACCEPTED` | Four ordered exact-delta seed/manifest/boundary/target authorities consume C3, preserve every predecessor identity, change only case 435/program 369, keep F2 ceilings immutable, and reject hostile re-sealed drift |
-| `A4-P6-V` independent verifier expansion | `ACTIVE` | Cases 24, 54, 69, 435, and 475 must pass independently constructed V2 fixtures and hostile mutations against the corrected target without producer or V1-derived answers; case 435 must fit immutable F2 ceilings |
+| `A4-P6-V` independent verifier expansion | `ACCEPTED` | Cases 24, 54, 69, 435, and 475 pass independently constructed V2 fixtures and hostile mutations against the corrected target without producer answers; V-A reconstructs exact identities/resources and replays all pinned verifier tests |
 | `A4-P6-V0` successor resolver/read barrier | `ACCEPTED` | One verifier preserves predecessor case 5, reconstructs the D chain and effective case/plan/program/F2 bindings before candidate access, and rejects cross-mode or tampered authorities under immutable F0 |
-| `A4-P6-V1` intrinsic cases 24/54 | `NEXT / ACTIVE PACKET` | Independently constructed legal attainers pass complete owner/union/raw-string/intrinsic/codec checks and hostile mutations reject |
-| `A4-P6-V2` exact-profile case 69 | `WAITING` | Independent structural/analytic intersection derives 2,581 and exact result/spec P1 plus P3 equality passes |
-| `A4-P6-V3` corrected case 435 | `WAITING` | Exact-delta plan, complete 67-observation context, 137 P1 applications, 257,887 P2/P3 equality, and immutable per-case F2 all pass without C2-certificate trust |
-| `A4-P6-V4` local case 475/consolidated F2 | `WAITING` | Eleven-transition exact minimality and all-five deterministic verifier runs pass under immutable per-case ceilings |
-| `A4-P6-V-A` independent verifier acceptance | `WAITING` | Separate review reconstructs identities, result/resource vectors, isolation, immutability, and the still-red producer/runner boundary |
-| `A4-P6-P` separate producer expansion | `WAITING` | Producer derives and emits exact candidates for the five remaining cases against the accepted independent verifier target |
-| `A4-P6-R` parent pilot runner | `WAITING` | Frozen runner CLI and physical output convention pass without role collapse, candidate mutation, partial publication, or F2 tuning |
-| `A4-P6-E` six-case end-to-end acceptance | `WAITING` | All six cases pass twice with byte-identical closed outputs and full-run F2 compliance |
-| `A4-R475` complete result run | `WAITING` | All 474 maximum rows plus local case 475 accepted under frozen caps |
+| `A4-P6-V1` intrinsic cases 24/54 | `ACCEPTED` | Independently constructed legal attainers pass complete owner/union/raw-string/intrinsic/codec checks, exact resource/event reproduction, static-runtime differential checks, and hostile mutations |
+| `A4-P6-V2` exact-profile case 69 | `ACCEPTED` | Independent structural/analytic intersection derives 2,581; exact result/spec P1 and measured P3 agree; hostile endpoint, context, schedule, P1, and P3 mutations reject |
+| `A4-P6-V3-T` case-435 packed-context transport | `ACCEPTED` | Independent 106-file contradiction proof rejects flat transport; one versioned complete-record pack yields a 41-file corrected input surface without raising F0/F2 or changing logical identities/output |
+| `A4-P6-V3` corrected case 435 | `ACCEPTED` | Packed-context boundary and exact-delta plan resolve; complete 67-observation context, 137 P1 applications, 257,887 P2/P3 equality, and immutable per-case F2 all pass without C2-certificate trust |
+| `A4-P6-V4` local case 475/consolidated F2 | `ACCEPTED` | Eleven-transition exact minimality, concrete adjacent boundary attainers, complete prospective P1/P3, deterministic double runs, and all-five immutable per-case ceilings pass |
+| `A4-P6-V-A` independent verifier acceptance | `ACCEPTED` | Separate review reconstructs identities, result/resource vectors, isolation, immutability, and the producer/runner expected-red boundary as it existed at that historical checkpoint |
+| `A4-P6-P` separate producer expansion | `ACCEPTED` | Producer derives and emits deterministic candidates for all six cases; an independent reviewer binds two byte-identical passes, exact result/resource ledgers, predecessor compatibility, isolation, and unchanged expected-red boundaries |
+| `A4-P6-R` parent pilot runner | `ACCEPTED` | Frozen runner CLI and physical output convention pass without role collapse, candidate mutation, partial publication, or F2 tuning |
+| `A4-P6-E` six-case end-to-end acceptance | `ACCEPTED` | Two isolated A4-P6-R reviewer replays reproduce the frozen report; independent case/F2 reconstruction satisfies the exact qualification rule and releases only versioned all-case implementation |
+| `A4-R475` complete result run | `ACTIVE` | Umbrella gate for a versioned 475-case implementation and run; all 474 maximum rows plus local case 475 must be accepted under frozen caps |
+| `A4-R475-T` all-case campaign contract | `ACCEPTED` | Exact 475-case/five-family ledger, versioned role surfaces, immutable F0/F2 aggregation, sequential single-writer checkpoint/restart, root-last publication, and three-role fail-first boundary independently reconstructed |
+| `A4-R475-V0` all-case verifier foundation | `ACCEPTED` | New isolated verifier resolves all 475 case/plan authorities, pins the complete typed runtime under F0, accepts zero constructive cases, and rejects before candidate/output access |
+| `A4-R475-V1-F-A` intrinsic attainability falsification | `ACCEPTED` | Independent language-aware superset audit falsifies 26/66 P2 endpoints; separate review closes case 8 exact at 928 versus P2 524,288 and enforces campaign `NO-GO` |
+| `A4-R475-V1-C` intrinsic authority correction | `ACTIVE UMBRELLA` | Complete C2-S, C2-U, C2-A, C3, and the versioned successor authority without mutating accepted predecessors |
+| `A4-R475-V1-C1` dependency and successor-interface contract | `ACCEPTED` | All 66 cases, 1,647 postorder steps, 1,806 per-case unique dependencies, 26 contradicted/40 unresolved states, immutable predecessors, dual-channel boundary, and F0 limits independently reconstructed; no exact maximum accepted |
+| `A4-R475-V1-C2-S` pre-execution dual-source freeze | `ACCEPTED` | Two complete sources and two closed schemas are sealed under `d6e17e63…`; core AST identities differ, all five official outputs were absent at freeze time, projected input/output remain under F0, and C2-S itself accepts no result or exactness |
+| `A4-R475-V1-C2-U` legal-upper channel | `ACCEPTED` | The frozen source atomically publishes `b57d8d49…`; a separate recursive/reverse-DP reviewer reconstructs all 66 cases and 1,647 steps, 25 hostile checks pass, attainer outputs remain absent, and no exactness is claimed |
+| `A4-R475-V1-C2-A` P1-legal attainer channel | `ACTIVE` | Execute only the already frozen attainer source and independently construct, P1-validate, measure, and publish one canonical legal attainer per case without reading the upper source or C2-U output |
+| `A4-R475-V1-C3` exactness join and authority delta | `WAITING` | Require identical problem authority plus equal upper/attainer octets for all 66 cases; publish a versioned delta or remain `NO-GO` |
+| `A4-R475-V1` intrinsic-template verifier coverage | `WAITING` | After V1-C acceptance, accept all corrected 66 intrinsic-template cases and preserve byte-exact six-case regressions plus the V0 authority/candidate-access barrier |
+| `A4-R475-V2` generic-profile verifier coverage | `WAITING` | Accept all 406 generic profile-attainment cases only with P1 legality and P3 attainment of the P2 upper bound |
+| `A4-R475-V3` special/all-case verifier acceptance | `WAITING` | Reintegrate cases 69/435/475 and independently accept exactly all 475 verifier positions |
+| `A4-R475-P` all-case producer | `WAITING` | Independently synthesize legal candidates for all five execution families without verifier imports or answer catalogs |
+| `A4-R475-R` resumable campaign runner | `WAITING` | Single-writer case commits, crash-safe resume, exact aggregate reconciliation, read-only check, and root-last publication pass hostile tests |
+| `A4-R475-E` complete execution acceptance | `WAITING` | All 475 cases execute and independently replay under immutable F0/F2 with no partial accepted state |
 | `A4-E` read-only acceptance | `WAITING` | Fresh regression, exact identities, independent review, and leftover audit |
 
 ## 9. Parallel queue without semantic collision
@@ -891,7 +1742,18 @@ pytest -q \
   tests/test_raw_v8_step2_maximum_protocol_v2_constructive_boundary_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_expansion_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_expansion_v1_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_v1_runtime_differential_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_expansion_v2_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_v2_runtime_differential_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_case435_context_pack_boundary_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_expansion_v3_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_v3_runtime_differential_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_independent_verifier_expansion_v4_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_separate_producer_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_parent_pilot_runner_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_parent_pilot_runner_acceptance_v49f.py \
+  tests/test_raw_v8_step2_maximum_protocol_v2_six_case_end_to_end_acceptance_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_case435_attainability_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_profile_attainability_scope_v49f.py \
   tests/test_raw_v8_step2_maximum_protocol_v2_case435_dependency_closure_v49f.py \
@@ -902,18 +1764,16 @@ pytest -q \
   tests/test_stage1_execution_control.py
 
 pytest -q \
-  tests/test_raw_v8_step2_maximum_protocol_v2_implementation_fail_first_v49f.py \
-  -k 'not test_a4_t_requires_frozen_role_implementation'
-
-pytest -q \
-  tests/test_raw_v8_step2_maximum_protocol_v2_six_case_qualification_fail_first_v49f.py \
-  -k 'not test_remaining_pilot_pipeline_is_exact_deterministic_and_candidate_immutable and not test_parent_runner_exists_and_obeys_frozen_isolation_surface'
+  tests/test_raw_v8_step2_maximum_protocol_v2_implementation_fail_first_v49f.py
 ```
 
-On the 2026-08-10 post-V0 checkpoint, the core command above took approximately
-24 minutes and reported exactly `384 passed`; treat long quiet certificate
-reconstruction intervals as expected while the process remains active, rather
-than splitting the acceptance evidence into weaker partial runs.
+On the 2026-08-11 post-E checkpoint, the core command above includes the
+accepted runner, its independent acceptance, and the end-to-end release
+adjudication. It can take more than 35
+minutes; treat long quiet
+certificate reconstruction intervals as expected while the process remains
+active, rather than splitting the acceptance evidence into weaker partial
+runs.
 
 The originally accepted 108-test seed matrix plus the 13 later
 boundary/security tests must remain green. A, B, comparator, finalizer, and
@@ -921,16 +1781,31 @@ manifest must also remain green on their frozen hashes. Any generator,
 grammar, seed, contract, source, result, manifest, or input-identity drift
 reopens S1-A3; it must not be absorbed by S1-A4. Any constructive-boundary,
 pilot-case, downstream-identity, or V1-exclusion drift reopens `A4-B0`.
-The filtered A4-T selection must remain `59 passed, 2 skipped, 3 deselected`.
-After accepted `A4-P`, the unfiltered A4-T file must report exactly `61 passed,
-2 skipped, 1 failed`. The sole failure must name only the absent parent runner;
-it remains ordered fail-first evidence, not an accepted green suite. The
+The unfiltered A4-T file must now report exactly `64 passed`; this is the
+frozen three-role contract transition, not a rewrite of its earlier
+runner-absent checkpoints. The
 predecessor verifier-owned suite must report exactly 12 passes, the V0
-expansion suite exactly 7 passes, and the producer-owned suite exactly 20
-passes. The complete A4-P6-T target must remain exactly `13 passed,
-2 skipped, 6 failed`; its filtered control selection must remain exactly `13
-passed, 2 skipped, 6 deselected`. Its failures may name only the five frozen
-producer-not-qualified case codes and the absent parent runner.
+expansion suite exactly 7 passes, the V1 expansion suite exactly 19 passes,
+the V1 generic-runtime differential exactly 7 passes, and the producer-owned
+suite exactly 20 passes. The V2 expansion suite must report exactly 17 passes
+and its generic-runtime differential exactly 5 passes. V2 must accept only
+successor case 69 in addition to the accepted V0/V1 cases while keeping cases
+435/475 unsupported. The packed-context boundary must remain exactly 17
+passes. The V3 expansion suite must remain exactly 21 passes and its separate
+generic-runtime differential exactly 7 passes. V3 must accept successor case
+435 in addition to the accepted V0/V1/V2 cases while keeping case 475
+unsupported. The V4 expansion suite must remain exactly 16 passes. V4 must
+accept only the packed-successor case-475 path, prove the exact
+524,112/524,380 adjacent boundary crossing and unique one-field minimal
+mutation, reproduce its immutable 18-metric F2 vector, preserve V0-V3, and
+reject candidate, result, proof-claim, authority-mode, or context-root drift.
+The predecessor A4-P6-T target remains historical expected-red evidence under
+the predecessor boundary. It is not the active runner target and must not be
+treated as a current green suite. The packed-successor runner qualification
+must remain exactly `7 passed`, and its independent reviewer must reproduce
+two parent transactions, 12 producer plus 12 verifier child runs, exact
+candidate immutability, byte-identical manifests/closures, and all 18 frozen
+full-run F2 checks.
 The profile-attainability scope suite must remain exactly 10 passes and its
 audit must continue to reject the accepted V1 catalog with exactly 407
 structural-superset programs / 474 scope cases; a changed count is authority
@@ -950,8 +1825,9 @@ suite must remain exactly 26 passes; it must reconstruct successor seed
 `7fad47e8…`, manifest `6aed1139…`, boundary `7d4c06f5…`, and target
 `a000285d…`, prove one changed case/program/plan/binding, preserve 474 cases and
 407 profile programs, and keep F2 requalification required. Its
-`verifier_expansion_state` is `RELEASED_FOR_A4_P6_V_IMPLEMENTATION`; producer
-and runner release remain forbidden.
+`verifier_expansion_state` is `RELEASED_FOR_A4_P6_V_IMPLEMENTATION`; accepted
+historical transitions do not release or weaken the current all-case campaign
+contract gate.
 
 At the end of every session, report only:
 
@@ -971,9 +1847,23 @@ implementation target, bounded case-5 verifier/producer pair, and independent
 six-case qualification target. It also accepts the 407-program/474-scope-case
 attainability census, dependency closure, exact upper channel, and independent
 legal-attainer channel, their identity-bound exactness join, and the versioned
-case-435 exact-delta authority transition. It does not yet accept the expanded
-independent verifier, expanded producer, six-case pilot, parent runner,
-complete 475-case constructive
-closure, Raw V8 Step 2 or Step 3, transport-wide A2-M/A2-E, Stage 1, provider
+case-435 exact-delta authority transition, plus the V0 authority resolver, V1
+exact intrinsic cases 24/54, V2 exact-profile case 69, the packed-context
+transport correction, and V3 exact case 435 with immutable F2
+requalification, plus V4 exact local-minimality case 475 with consolidated
+immutable F2 evidence, the independent V0-V4 verifier review, the formal
+expanded independent verifier, the six-case separate-producer expansion, and
+the parent-owned six-case pilot runner, plus the independent six-case
+end-to-end release adjudication, plus the `A4-R475-T` contract-only all-case
+ledger, lifecycle, and fail-first boundary, plus the zero-case
+`A4-R475-V0` verifier foundation, plus `A4-R475-V1-F-A` intrinsic
+attainability falsification and the contract-only `A4-R475-V1-C1`
+dependency/successor interface, plus the pre-execution `A4-R475-V1-C2-S`
+dual-source/schema freeze and the legal-upper-only `A4-R475-V1-C2-U` result.
+It does not yet accept a `C2-A` channel result, `A4-R475-V1-C3`,
+`A4-R475-V1`, any
+constructive all-case verifier coverage, any complete all-475 role
+implementation, the complete 475-case constructive closure, Raw V8
+Step 2 or Step 3, transport-wide A2-M/A2-E, Stage 1, provider
 behavior, completed-bar authority, paper/live readiness, predictive edge,
 trading safety, or profitability.

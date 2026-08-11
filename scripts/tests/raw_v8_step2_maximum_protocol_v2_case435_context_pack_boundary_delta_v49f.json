@@ -1,0 +1,119 @@
+{
+  "case435_context_pack_boundary_delta_id": "c8448f57dcdc3e4f1f3239043ed4977013efbd99c750cb2e2e857025f5ac0acd",
+  "case_position": 435,
+  "context_pack_contract": {
+    "context_object_ordering_rule": "STRICTLY_INCREASING_MAXIMUM_CONTEXT_OBJECT_ID",
+    "context_pack_identity_domain": "RiskYieldMMStep2Case435ContextPackV1V4_9F_RawV8",
+    "context_pack_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_context_pack.v1",
+    "individual_pack_strict_upper_octets": 16777216,
+    "inline_witness_exclusion_rule": "INLINE_WITNESS_RECORD_IS_NOT_DUPLICATED_IN_CONTEXT_PACK",
+    "logical_closure_rule": "EVERY_AND_ONLY_CONTEXT_OBJECT_REFERENCE_REACHABLE_FROM_SCOPE_WITNESS_CONTEXT_RESOLVES_ONCE",
+    "ordered_candidate_pack_entry_member_names": [
+      "context_pack_position",
+      "context_pack_id",
+      "first_maximum_context_object_id",
+      "last_maximum_context_object_id",
+      "context_object_count",
+      "repository_relative_path",
+      "raw_octet_count",
+      "raw_sha256"
+    ],
+    "ordered_context_object_record_member_names": [
+      "context_object_position",
+      "maximum_context_object_id",
+      "record_type_name",
+      "record_identity_field",
+      "record_identity",
+      "record_canonical_byte_length",
+      "record_canonical_sha256",
+      "record"
+    ],
+    "ordered_pack_member_names": [
+      "context_pack_version",
+      "canonicalization_version",
+      "measurement_schema_version",
+      "maximum_protocol_sha256",
+      "case_position",
+      "pack_position",
+      "ordered_context_object_records",
+      "context_pack_id"
+    ],
+    "physical_encoding": "EXACT_COMPACT_CANONICAL_UTF8_JSON_NO_TRAILING_BYTE",
+    "record_validation_rule": "RECOMPUTE_COMPLETE_TYPED_RECORD_LEGALITY_IDENTITY_CANONICAL_LENGTH_HASH_AND_REFERENCE_BINDING",
+    "repository_relative_path_rule": "context_objects/packs/<first-two-pack-id-characters>/<context-pack-id>.json",
+    "required_context_object_count_for_case435": 67,
+    "required_pack_count_for_case435": 1,
+    "unknown_duplicate_missing_extra_or_overlapping_record_policy": "REJECT"
+  },
+  "correction_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_context_pack_boundary_delta.v1",
+  "f0_contradiction_proof": {
+    "candidate_envelope_file_count": 1,
+    "flat_transport_acceptance_state": "IMPOSSIBLE_UNDER_IMMUTABLE_F0",
+    "inline_witness_count": 1,
+    "input_file_count_ceiling": 64,
+    "logical_context_object_count": 67,
+    "measured_sequence_ordinal": 64,
+    "minimum_flat_input_file_count": 106,
+    "non_inline_observation_context_object_count": 66,
+    "observation_count": 67,
+    "root_context_object_count": 1,
+    "successor_authority_file_count_before_this_delta": 38
+  },
+  "filesystem_and_publication_contract": {
+    "bounded_read_rule": "FSTAT_EXACT_LIMITED_READ_REQUIRE_EOF_FSTAT_RECHECK",
+    "candidate_pack_snapshot_rule": "PIN_PATH_DEVICE_INODE_SIZE_MODE_MTIME_CTIME_AND_BYTES_THEN_RECHECK",
+    "context_object_semantic_id_domain_unchanged": true,
+    "corrected_minimum_input_file_count": 41,
+    "input_file_count_headroom": 23,
+    "input_pack_count": 1,
+    "record_reference_semantic_id_domain_unchanged": true,
+    "symlink_hardlink_fifo_device_socket_policy": "REJECT",
+    "total_pinned_input_octet_ceiling": 67108864,
+    "verified_output_rule": "UNPACK_TO_INHERITED_COMPACT_CONTEXT_OBJECT_FILES_AND_INHERITED_LOGICAL_RECEIPT_ENTRIES"
+  },
+  "packed_context_candidate_contract": {
+    "candidate_identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2Case435PackedContextCandidateV1V4_9F_RawV8",
+    "candidate_kind": "MAXIMUM_WITNESS_PACKED_CONTEXT",
+    "candidate_version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_candidate_envelope.case435_packed_context.v1",
+    "ordered_payload_member_names": [
+      "candidate_kind",
+      "witness_record",
+      "scope_witness_context",
+      "ordered_context_pack_entries"
+    ],
+    "required_case_position": 435,
+    "required_context_kind": "ROOT_APPLICATION",
+    "required_inline_witness_reference_count": 1,
+    "required_logical_context_object_count": 67,
+    "required_measured_sequence_ordinal": 64,
+    "required_observation_reference_count": 67,
+    "unknown_or_extra_member_policy": "REJECT"
+  },
+  "predecessor_successor_boundary_authority": {
+    "raw_octets": 4806,
+    "raw_sha256": "208d0cd50eb0bbfe206148dbf58df862f8adc857e382623e91e4e10d942c936c",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_boundary_delta_v49f.json",
+    "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d"
+  },
+  "scope_and_non_drift_contract": {
+    "authorized_change": "CASE435_CANDIDATE_CONTEXT_PHYSICAL_TRANSPORT_ONLY",
+    "c2_certificate_or_stored_witness_as_verifier_input_forbidden": true,
+    "candidate_transport_for_cases_5_24_54_69_unchanged": true,
+    "case475_transport_unchanged_and_unsupported_during_v3": true,
+    "f0_or_f2_limit_increase_forbidden": true,
+    "next_subgate": "A4-P6-V3",
+    "old_flat_case435_transport_acceptance_policy": "REJECT",
+    "predecessor_and_successor_boundary_bytes_unchanged": true,
+    "seed_manifest_plan_program_exactness_and_f2_values_unchanged": true
+  },
+  "unchanged_effective_authorities": {
+    "case435_exact_maximum_octets": 257887,
+    "case435_exactness_join_certificate_id": "2abf00603826f93bb6a538511bbd49ee45096901edbf9bc63c7d0cefb9e7fc3f",
+    "case435_logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "case435_profile_conditioning_program_id": "160486e8c6023b4cfb7ac430065a1dd8c8c422342535fbd5b9b0bceb2ca2e820",
+    "f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "maximum_protocol_sha256": "daa55d18aa8adfcef9b8a6ea2c6fa734f7922888a902eb863c6307c0fc13bacf",
+    "successor_manifest_id": "6aed1139c158f8685bcb226697a2efe57af3c42f57831173bd7b3ea169025d9c",
+    "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+  }
+}

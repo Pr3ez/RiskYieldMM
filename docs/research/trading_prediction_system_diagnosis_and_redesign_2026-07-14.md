@@ -991,7 +991,7 @@ Each stage is a gate. Later complexity is not a substitute for failure at an
 earlier dependency, but independent workstreams may proceed in parallel after
 their explicitly named prerequisite contracts are accepted.
 
-### Current execution pointer — 2026-08-10 case-435 authority transition
+### Current execution pointer — 2026-08-11 all-case verifier V1
 
 <!-- STAGE1_ACTIVE_GATE: S1-A4 -->
 
@@ -1025,9 +1025,57 @@ prove the exact maximum is 257,887 octets. The accepted D transition now binds
 four acyclic exact-delta seed/manifest/boundary/target authorities, replaces
 only effective case 435, preserves 474 cases and 407 programs by exact
 predecessor resolution, and keeps the old F2 values as immutable ceilings with
-successor resource requalification required. The next bounded action is
-independent verifier expansion `A4-P6-V`; producer and runner expansion remain
-held. `A4-P6-T` remains accepted predecessor fail-first infrastructure. The
+successor resource requalification required. Verifier packets V0/V1/V2/V3/V4 are now
+accepted: the dual authority resolver/read barrier preserves case 5; exact
+intrinsic cases 24/54 attain 523,738 and 3,145,728 octets; and exact-profile
+case 69 independently derives and attains 2,581 octets under its retained
+result/spec application. The case-435 prerequisite audit found that the inherited flat context
+transport would require 106 files while immutable F0 permits 64. The accepted
+versioned `A4-P6-V3-T` boundary uses one complete-record canonical context
+pack, producing a 41-file input surface with 23 slots of headroom and no
+seed/manifest/plan/exactness/F0/F2 change. V3 now accepts case 435 through the
+complete 67-object context, all 137 P1 applications, exact 257,887-octet
+P2/P3 equality, deterministic output, and immutable F2 requalification. V4
+now accepts case 475 through the exact 12-state/11-transition local sweep, the
+524,112/524,380 adjacent strict-limit crossing, the unique minimal one-field
+mutation, the complete P1/P3 prospective result, and immutable F2. The
+independent hybrid review `A4-P6-V-A` now accepts the complete V0–V4 verifier,
+its exact identity/resource ledger, 128-test pinned replay, deterministic
+report, and unchanged expected-red boundary. Formal verifier expansion is
+closed. The independent `A4-P6-P` review now accepts the separate producer
+after 12 producer and 12 unchanged-verifier runs across all six cases, exact
+candidate/result/resource closure sealing, predecessor case-5 compatibility,
+and unchanged one-/six-failure expected-red boundaries. `A4-P6-R`, the
+parent-owned all-or-nothing six-case runner, is now accepted after two
+byte-identical parent transactions, exact full-run F2 reconciliation,
+read-only replay, and injected rollback. `A4-P6-E` is now independently
+accepted after two complete reviewer replays and separate case/F2
+reconstruction. It releases `A4-R475` for versioned all-case implementation,
+and the contract-only `A4-R475-T` packet is now accepted. That contract freezes
+the exact 475-case/five-family ledger, distinct versioned roles, sequential
+resumable case commits, immutable all-case F0/F2 reconciliation, and root-last
+publication while proving the unchanged binaries still support only six pilot
+cases. Foundation-only `A4-R475-V0` is now accepted: the new isolated verifier
+reconstructs all 475 case/plan bindings, pins the complete typed runtime under
+immutable F0, accepts zero constructive cases, and rejects before candidate or
+output access. `A4-R475-V1`, intrinsic-template coverage for all 66 applicable
+cases, was the next implementation target, but the accepted
+`A4-R475-V1-F-A` pre-implementation audit now proves that 26 frozen P2
+endpoints are unattainable after restoring only their pinned text-language
+ceilings. Independently reviewed case 8 closes the contradiction exactly:
+legal maximum and attainer 928 versus frozen P2 524,288. Direct V1
+implementation is therefore blocked by the contract's own unattained-case
+policy. Contract-only `A4-R475-V1-C1` is now accepted after independent
+reconstruction of all 66 cases, 1,647 steps, and 1,806 per-case unique
+dependencies; it accepts no maximum. Pre-execution dual-source freeze
+`A4-R475-V1-C2-S` is now accepted after sealing both complete sources, both
+closed output schemas, distinct core AST identities, answer-independent F0
+projections, and five absent result paths without executing either channel.
+Frozen legal-upper packet `A4-R475-V1-C2-U` is now accepted after its
+prewritten independent reviewer reconstructed all 66 records and 1,647 proof
+steps without observing the attainer channel. It accepts no exact maximum.
+`A4-R475-V1-C2-A` is next. `A4-P6-T`
+remains accepted predecessor fail-first infrastructure. The
 rejected-V1 structural
 bootstrap remains excluded. The detailed chronology below is
 retained as evidence and design rationale; any older sentence naming an active
@@ -1565,18 +1613,53 @@ and the separate C2 constructor/checker accept a 257,887-octet legal attainer
 without an exactness claim. The separate C3 join/checker accept the exact
 257,887-octet maximum, and the four-authority exact-delta D transition is
 accepted. Independent verifier expansion `A4-P6-V` has now accepted its first
-ordered implementation packet, `A4-P6-V0` successor authority resolution/read
-barrier. `A4-P6-V1` intrinsic cases 24/54 are next; no new case algorithm is
-accepted yet. The control ledger
+ordered implementation packets `A4-P6-V0` successor authority resolution/read
+barrier, `A4-P6-V1` exact intrinsic cases 24/54, and `A4-P6-V2` exact-profile
+case 69. They independently validate retained bytes, typed/intrinsic legality,
+exact analytic attainment, profile application, and resource/event evidence
+without dynamic code execution. `A4-P6-V3-T` has additionally accepted the
+versioned packed-context transport after proving the inherited 106-file
+closure cannot fit immutable F0=64; the corrected path uses 41 files and
+changes no mathematical authority or limit. `A4-P6-V3` now accepts corrected
+case 435 through complete 67-object context replay, all 137 P1 applications,
+exact 257,887-octet P2/P3 equality, and immutable F2 requalification.
+`A4-P6-V4` now accepts local case 475 and consolidates all successor verifier
+fixtures under unchanged F2. Independent verifier acceptance `A4-P6-V-A` now
+reconstructs the 39-file authority/F0/F2 and seven-record identity ledger,
+replays all 128 pinned verifier tests, and preserves exact expected-red
+producer/runner failures. Formal `A4-P6-V`, separate producer expansion
+`A4-P6-P`, parent pilot runner `A4-P6-R`, and independent end-to-end acceptance
+`A4-P6-E` are accepted. Contract-only `A4-R475-T` is also accepted after an
+independent reconstruction of all 475 case records, five execution families,
+12 F0 records, 18 F2 records, and the lifecycle/publication invariants.
+Foundation-only `A4-R475-V0` is also accepted after independent case-ledger,
+source-isolation, typed-runtime, deterministic CLI, and immutable-F0 review.
+It accepts zero constructive cases; only the producer and runner roles remain
+fail-first. `A4-R475-V1-F-A` is now accepted: 26/66 frozen intrinsic P2
+endpoints are unattainable, with independently exact case 8 at 928 versus P2
+524,288. Direct V1 implementation is not permitted. The `A4-R475-V1-C`
+correction is active; its C1 dependency/successor-interface contract is accepted
+without promoting any case, and `A4-R475-V1-C2-S` now freezes both independent
+channel sources and schemas before either runs. `A4-R475-V1-C2-U` now accepts
+only the legal-upper channel; `A4-R475-V1-C2-A` is the sole active execution
+packet. The
+control ledger
 separates the `S1-R0` offline-research milestone
 from the complete `S1-X` live-activation exit, and defines bounded acceptance,
 replan, WIP, and resume rules. This roadmap remains the program specification;
 dated amendments do not override the control document's current state.
 
+**Current amendment to the matrix below:** any historical wording that says to
+implement `A4-R475-V1` directly is superseded by accepted falsification
+`A4-R475-V1-F-A`. C1, C2-S, and legal-upper-only C2-U are accepted; complete
+`A4-R475-V1-C2-A` and `C3` before V1. The current Step-2 test gap therefore
+includes those remaining correction packets plus `V1`–`V3`, `P`, `R`, and
+`E`.
+
 | Item | Specification |
 |---|---|
-| Required code changes | **Implemented through bounded V4.9F-A1 plus locally accepted A2-M Raw V6 and Raw V7, with a historical Raw V8 Step-2 runtime surface and the Raw V8 initializer technically GO:** signed local manifest authority; durable pre-effect attempt/exactly-one-terminal lifecycle; exact failed-prefix replay; synchronous cancellation/interruption evidence; startup orphan recovery; strict provisional four-member replay; explicit unsigned-suffix trust disclosure; the private V8 four-operation/185-field/66-counter records; and the crash-safe empty V8 profile initializer. `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and `POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` remain mandatory and `passed` remains false. **Immediate next A2-M P0:** V1 maximum proof is rejected by immutable coordinate/node/depth cap contradictions; the replacement compact-proof V2 correction, exact-delta V4 successor inventory, corrected V2 seed, dual all-475-case preflights, final V2/F2 authority, V2-only constructive boundary, and bounded case-5 verifier/producer are accepted without changing the registry, any of the 408 V3 profile objects/IDs, or the 474-row universe. The six-case target infrastructure is accepted, but case 435 falsifies its frozen structural-P2/P3 equality. The `A4-P6-C435-A` census/design, `B` dependency closure, exact 257,887-octet `C1` upper certificate, independent 257,887-octet `C2` legal attainer, identity-bound `C3` exactness join, four-authority exact-delta `D` transition, and dual-mode verifier resolver/read barrier `A4-P6-V0` are accepted. Next implement `A4-P6-V1` intrinsic cases 24/54, then V2 case 69, V3 case 435, V4 case 475/F2 consolidation, independent verifier acceptance, the separate producer, runner, replacement pilot, and 474 maxima plus separate local-shutdown result. Next complete separate work accounting/certification, production adapters, and Raw V7/final-tree compatibility; then re-audit and implement the corrected Step 3 target-span ownership, retained-intent replay, finite ingress/shutdown work, receipt grammar, result lineage, and remaining projection lifecycle through step 12. **Later A2-M order:** physical normalization and fixture-level oracles; independent finalizer; campaign isolation; atomic publication; full matched neutrality/overhead and frozen workloads; calibration, confirmation, thresholds, then A2-E. Remaining Stage 1 work also includes durable saturation/BACKPRESSURE and bounded causal parser turns; independently qualified runtime-currentness and incremental actor designs; multi-session fairness; effective systemd/chronyd/VM authority; provider/certificate, crash, storage-fault and long no-trading campaigns; measured immutable deployment and external anchors; atomic H1/H2/order-intent/outbox; non-bypassable governance/order/fill authority; heartbeat/disconnect status; deterministic HTF/futures mapping; independent labels and interval-aware splits; cross-lineage promotion; stale/synthetic-row exclusion; quarantined-artifact rebuild; and legacy migration. |
-| Required tests | **Accepted predecessor Raw V7 evidence:** every one of 27 audit rows is Direct; 242/242 direct cases and the frozen 39-file/558-case adjacent matrix passed on its accepted post-format tree, with exact inventories, static/public-surface audits, compilation/lint, and leftover/worktree review. The shared constructor safety correction requires that exact inventory to be rerun on the final tree. **Historical Raw V8 Step-2 evidence:** the then-current independent golden replay, 185-field/85-null-attempt and operation/checkpoint truth tables, generated boundary witnesses, process isolation, and 12 targeted Raw V7 compatibility cases remain predecessor evidence, not current target-bound acceptance. **Current Step-2 accepted sub-gates:** exact 52-node graph/path coverage; scalar, DFA, and Unicode conformance; typed rule/application structure; registry-bound value validation; all 41 generic plus 11 complex operators; all 42 rules with recursive literal closure; schema-valid generic true/false witnesses; a 44-case complex true/business-false/evaluation-failure witness; all eight applications and two resolvers with a 57-case no-skip oracle; 27 additional application-boundary adversaries; 375 combined component tests; a canonical V3 inventory with 408 scope profiles accepted by a 45-case focused inventory/security suite; the deterministic 31-test V1 feasibility rejection; two independent READY reviews plus final hash verification for the compact-proof V2 correction; the exact-delta V4 inventory accepted after 33 focused adversaries and a final 134-case predecessor/V4/security/consumer matrix; two independent all-475-case counting preflights and comparator; final V2/F2 freeze; V2 constructive boundary; bounded case-5 verifier/producer; six-case fail-first infrastructure; 17 exact-upper certificate tests; 17 independent-attainer/full-P1 tests; 16 exactness-join tests; and 26 authority-transition tests covering deterministic independent replay, reversible exact delta, transitive physical/semantic binding, F2 non-relabeling, and hostile re-sealed mutations. **Current Step-2 test gap:** corrected six-case verifier/producer/runner evidence; complete 475-case constructive maxima; separate complete runtime-work accounting/certification; production differential adapters; and final Raw V7 compatibility. **Initializer evidence:** 38 focused projection cases plus independent replacement/alias/lease probes, lint, and compilation. The dated Raw V6 228-test and earlier 2,441-passed/32-skipped repository results remain predecessor context, not current full-suite claims. **Known focused gaps:** V8 target-span/finite-grammar correction, projection lifecycle, marker/probe/runtime-adapter and full-field integration, collector/artifact/replay, and whole-V8 acceptance; physical normalization and fixture-level then matched neutrality; independently derived correctness finalization; campaign isolation; and atomic durable publication. **Required before Stage 1 exit:** complete A2-M neutrality/overhead and layer-availability evidence; immutable calibration plus independent confirmation; measured 10k/100k correctness, crash/restart/scaling, 30-day two-asset and 100-scope capacity/fairness campaigns; durable saturation/parser/actor evidence; real provider and certificate conformance; privileged clock/deployment validation; governance/order/fill attacks; atomic H1/H2/intent/outbox tests; complete heartbeat/disconnect/recovery status; independent labels and interval-overlap tests; HTF/futures boundary tests; and operational raw replay/live parity. |
+| Required code changes | **Implemented through bounded V4.9F-A1 plus locally accepted A2-M Raw V6 and Raw V7, with a historical Raw V8 Step-2 runtime surface and the Raw V8 initializer technically GO:** signed local manifest authority; durable pre-effect attempt/exactly-one-terminal lifecycle; exact failed-prefix replay; synchronous cancellation/interruption evidence; startup orphan recovery; strict provisional four-member replay; explicit unsigned-suffix trust disclosure; the private V8 four-operation/185-field/66-counter records; and the crash-safe empty V8 profile initializer. `CORRECTNESS_FINALIZER_NOT_IMPLEMENTED` and `POST_RUN_SUFFIX_PROVENANCE_UNATTESTED` remain mandatory and `passed` remains false. **Immediate next A2-M P0:** V1 maximum proof is rejected by immutable coordinate/node/depth cap contradictions; the replacement compact-proof V2 correction, exact-delta V4 successor inventory, corrected V2 seed, dual all-475-case preflights, final V2/F2 authority, V2-only constructive boundary, and bounded case-5 verifier/producer are accepted without changing the registry, any of the 408 V3 profile objects/IDs, or the 474-row universe. The six-case target infrastructure is accepted, but case 435 falsifies its frozen structural-P2/P3 equality. The `A4-P6-C435-A` census/design, `B` dependency closure, exact 257,887-octet `C1` upper certificate, independent 257,887-octet `C2` legal attainer, identity-bound `C3` exactness join, four-authority exact-delta `D` transition, dual-mode verifier resolver/read barrier `A4-P6-V0`, exact intrinsic verifier packet `A4-P6-V1` for cases 24/54, exact-profile verifier packet `A4-P6-V2` for case 69, versioned packed-context prerequisite `A4-P6-V3-T`, exact packed-context verifier packet `A4-P6-V3` for case 435, exact local-minimality verifier packet `A4-P6-V4` for case 475, independent verifier acceptance `A4-P6-V-A`, independently reviewed separate producer expansion `A4-P6-P`, parent-owned all-or-nothing six-case runner `A4-P6-R`, and independent end-to-end release adjudication `A4-P6-E` are accepted. `A4-R475` is released for versioned implementation, and contract-only `A4-R475-T` now freezes the exact 475-case/five-family role and campaign boundary. The accepted six-case binaries remain six-case-only. Foundation-only `A4-R475-V0` now supplies the isolated all-case authority resolver and complete typed runtime while accepting zero constructive cases. The intrinsic repair's C1 dependency contract, C2-S pre-execution dual-source/schema freeze, and independently reconstructed C2-U legal-upper channel are accepted; execute only the already sealed `A4-R475-V1-C2-A` attainer channel next, then the C3 equality join and verifier packets `A4-R475-V1` through `V3`. Then implement the separate producer `P`, runner `R`, and independent end-to-end acceptance `E`; only then execute and accept all 474 maximum results plus the separate local-shutdown result under immutable limits. Next complete separate work accounting/certification, production adapters, and Raw V7/final-tree compatibility; then re-audit and implement the corrected Step 3 target-span ownership, retained-intent replay, finite ingress/shutdown work, receipt grammar, result lineage, and remaining projection lifecycle through step 12. **Later A2-M order:** physical normalization and fixture-level oracles; independent finalizer; campaign isolation; atomic publication; full matched neutrality/overhead and frozen workloads; calibration, confirmation, thresholds, then A2-E. Remaining Stage 1 work also includes durable saturation/BACKPRESSURE and bounded causal parser turns; independently qualified runtime-currentness and incremental actor designs; multi-session fairness; effective systemd/chronyd/VM authority; provider/certificate, crash, storage-fault and long no-trading campaigns; measured immutable deployment and external anchors; atomic H1/H2/order-intent/outbox; non-bypassable governance/order/fill authority; heartbeat/disconnect status; deterministic HTF/futures mapping; independent labels and interval-aware splits; cross-lineage promotion; stale/synthetic-row exclusion; quarantined-artifact rebuild; and legacy migration. |
+| Required tests | **Accepted predecessor Raw V7 evidence:** every one of 27 audit rows is Direct; 242/242 direct cases and the frozen 39-file/558-case adjacent matrix passed on its accepted post-format tree, with exact inventories, static/public-surface audits, compilation/lint, and leftover/worktree review. The shared constructor safety correction requires that exact inventory to be rerun on the final tree. **Historical Raw V8 Step-2 evidence:** the then-current independent golden replay, 185-field/85-null-attempt and operation/checkpoint truth tables, generated boundary witnesses, process isolation, and 12 targeted Raw V7 compatibility cases remain predecessor evidence, not current target-bound acceptance. **Current Step-2 accepted sub-gates:** exact 52-node graph/path coverage; scalar, DFA, and Unicode conformance; typed rule/application structure; registry-bound value validation; all 41 generic plus 11 complex operators; all 42 rules with recursive literal closure; schema-valid generic true/false witnesses; a 44-case complex true/business-false/evaluation-failure witness; all eight applications and two resolvers with a 57-case no-skip oracle; 27 additional application-boundary adversaries; 375 combined component tests; a canonical V3 inventory with 408 scope profiles accepted by a 45-case focused inventory/security suite; the deterministic 31-test V1 feasibility rejection; two independent READY reviews plus final hash verification for the compact-proof V2 correction; the exact-delta V4 inventory accepted after 33 focused adversaries and a final 134-case predecessor/V4/security/consumer matrix; two independent all-475-case counting preflights and comparator; final V2/F2 freeze; V2 constructive boundary; bounded case-5 verifier/producer; six-case fail-first infrastructure; 17 exact-upper certificate tests; 17 independent-attainer/full-P1 tests; 16 exactness-join tests; 26 authority-transition tests; accepted V0/V1/V2 verifier packets covering the dual authority barrier, cases 5/24/54/69, deterministic F2 evidence, runtime differentials, and hostile re-sealed mutations; 17 independent/hostile packed-context transport tests proving the flat 106-file contradiction and corrected 41-file boundary; V3 case-435 verifier evidence with 21 focused and seven generic-runtime differential cases; V4 case-475 verifier evidence with 16 focused tests, exact preflight-F2 reproduction, hostile mutations, deterministic double runs, plus green 83-test lower and 61-test packed compatibility matrices; V-A hybrid acceptance with 37 hostile checks, a deterministic 128-test pinned replay, exact seven-record identity/resource reconstruction, every F2 limit boundary, and unchanged one-/six-failure expected-red suites; A4-P6-P acceptance with 12 producer runs, 12 unchanged-verifier runs, 17 successor qualification passes, exact closure/resource sealing, and unchanged predecessor boundaries; A4-P6-R acceptance with two byte-identical parent transactions, 12 producer plus 12 verifier child runs, exact full-run F2 reconciliation, read-only replay, candidate immutability, and injected rollback; A4-P6-E acceptance with two byte-identical predecessor-review replays, four effective parent transactions, 24 producer plus 24 verifier child runs, independent exact case/F2 reconstruction, and hostile re-sealed release rejection; contract-only A4-R475-T acceptance with nine green independent contract tests, four coherently re-sealed hostile mutations, exact reconstruction of all 475 case records plus 12 F0 and 18 F2 records, and three intentional fail-first role checks; and foundation-only A4-R475-V0 acceptance with 22 focused passes, all 475 bindings reconstructed, two byte-identical fail-closed CLI replays, complete typed-runtime replay, immutable F0 headroom, and exactly two remaining role failures. **Current Step-2 accepted correction evidence:** C1 reconstructs the complete 66-case dependency and successor-interface contract; C2-S adds 16 focused checks over two sealed standalone channel sources, two closed non-overlapping schemas, three fixed attainer shards, distinct core AST identities, answer-independent F0 bounds, five freeze-time absent official outputs, hostile mutations, and byte-identical independent review. C2-U adds 25 focused checks over one atomically published 66-case upper result, a prewritten recursive/reverse-DP reviewer, all 1,647 proof steps and six method families, coherent re-signing attacks, exact read-surface instrumentation, and an attainer-free traced replay. No attainer, equality, or exact maximum is accepted. **Current Step-2 test gap:** execute and independently accept the already sealed `A4-R475-V1-C2-A`, then the C3 equality join, `A4-R475-V1` through `V3`, versioned producer/runner/end-to-end acceptance, complete results for all 475 cases, separate complete runtime-work accounting/certification, production differential adapters, and final Raw V7 compatibility. **Initializer evidence:** 38 focused projection cases plus independent replacement/alias/lease probes, lint, and compilation. The dated Raw V6 228-test and earlier 2,441-passed/32-skipped repository results remain predecessor context, not current full-suite claims. **Known focused gaps:** V8 target-span/finite-grammar correction, projection lifecycle, marker/probe/runtime-adapter and full-field integration, collector/artifact/replay, and whole-V8 acceptance; physical normalization and fixture-level then matched neutrality; independently derived correctness finalization; campaign isolation; and atomic durable publication. **Required before Stage 1 exit:** complete A2-M neutrality/overhead and layer-availability evidence; immutable calibration plus independent confirmation; measured 10k/100k correctness, crash/restart/scaling, 30-day two-asset and 100-scope capacity/fairness campaigns; durable saturation/parser/actor evidence; real provider and certificate conformance; privileged clock/deployment validation; governance/order/fill attacks; atomic H1/H2/intent/outbox tests; complete heartbeat/disconnect/recovery status; independent labels and interval-overlap tests; HTF/futures boundary tests; and operational raw replay/live parity. |
 | Expected output | Versioned event ledger and split manifest for every supported scope; data/label audit with cluster counts; versioned A2-M bundle and durable publisher; frozen campaign manifests and raw bundles; separately regenerable analysis with explicit limitations/nonclaims |
 | Acceptance criteria | No constructible or replayable correctness PASS without independently derived roots/results; declared and observed provenance are distinct; selected physical-output and boundary evidence is immutable and replayable under its frozen profile; no sampling failure is omitted; no threshold is selected before independent confirmation; zero known clock/eligibility violations or caller-controlled authority clocks; no raw `CONTROL_SUBSCRIPTION_ACK` independently restores health; no pre-binding bar enters recovery; no terminated or superseded session authorizes H1; zero `EXECUTION_BAR PASS` before the exact intent/outbox is atomically present; independent labels agree on sampled events; every feature dependency has availability metadata |
 | Dependencies | For the active A2-M work: qualified host/storage authority, authoritative source/runtime/environment collector inputs, stable marker and attempt/terminal interfaces, and campaign isolation or a separately frozen external-isolation mechanism. For the data-contract work: provider completed-bar/status/feed-health sources, point-in-time concrete futures mappings and product schedules, and a first-seen journal for future evidence |
@@ -2547,8 +2630,30 @@ attainer; the separate C2 constructor/checker accept a 257,887-octet P1-legal
 attainer without claiming exactness. The separate C3 join/checker prove the
 exact 257,887-octet maximum; the accepted D transition binds the corrected
 four-authority delta chain and releases `A4-P6-V`. The frozen verifier design
-now has accepted V0 successor resolution/read-barrier evidence; V1 intrinsic
-cases 24/54 are next while cases 69/435/475, producer, and runner remain held.
+now has accepted V0 successor resolution/read-barrier evidence, V1 exact
+intrinsic cases 24/54, and V2 exact-profile case 69. The accepted V3 transport
+prerequisite proves the inherited flat case-435 closure needs 106 input files
+and freezes a versioned 41-file complete-record pack without changing F0/F2 or
+logical identities. V3 independently accepts corrected case 435 at 257,887
+octets after complete context/P1 replay and immutable F2 requalification. V4
+accepts case 475 and consolidated F2; V-A independently accepts the complete
+verifier. A4-P6-P independently accepts the six-case producer expansion, and
+A4-P6-R accepts the parent-owned runner with transaction, rollback, and
+whole-run F2 evidence. A4-P6-E independently accepts the complete pilot
+closure and releases A4-R475 for versioned implementation. Contract-only
+A4-R475-T now freezes the complete 475-case/five-family campaign and its
+fail-closed role boundary. Foundation-only A4-R475-V0 accepts the new verifier
+authority with zero constructive cases and no candidate/output access;
+A4-R475-V1-F-A subsequently falsifies 26/66 intrinsic-template endpoints and
+independently proves case 8 exact at 928 rather than frozen P2 524,288.
+A4-R475-V1-C1 now freezes the complete dependency and successor interface;
+C2-S now seals both complete independent sources and output schemas before any
+official result exists. C2-U now accepts one independently reconstructed
+66-case legal-upper result without claiming attainment or exactness. The
+already frozen C2-A is next, followed by C3 over all 66 upper/attainer pairs.
+Only then can V1
+honestly accept them; all
+remaining non-pilot cases still lack all-case constructive acceptance.
 See the
 [`S1-A2 boundary freeze`](v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md)
 and the
@@ -2571,8 +2676,12 @@ the
 [`case-435 independent-attainer acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md),
 [`case-435 exactness-join acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md),
 [`case-435 authority-transition acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md),
+[`case-435 packed-context boundary acceptance`](v4_9f_a2_raw_v8_step2_v2_case435_context_pack_boundary_acceptance_2026-08-10.md),
 [`independent-verifier expansion design`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md),
 [`independent-verifier V0 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md),
+[`independent-verifier V1 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v1_acceptance_2026-08-10.md),
+[`independent-verifier V2 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v2_acceptance_2026-08-10.md),
+[`independent-verifier V3 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v3_acceptance_2026-08-10.md),
 and
 [`S1-A3 final-freeze acceptance`](v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md).
 

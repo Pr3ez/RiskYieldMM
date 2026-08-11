@@ -1,0 +1,108 @@
+{
+  "acceptance_report_version": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.all_case_campaign_contract_acceptance_report.v1",
+  "all_case_campaign_contract_acceptance_report_id": "16035e8342cbe5713aa9d619638da13b34d5e7e56707433e66dfb3aa1078f1cd",
+  "contract_authority": {
+    "all_case_campaign_contract_id": "9be94bf6b53b612d62ac26bc74133f25c1101a0962987a855e65cdcd06418583",
+    "raw_octets": 382710,
+    "raw_sha256": "3ca4ff4d6e581895b813043e7fdeed24c33cf2c828e362ac81de1725e95a84bb",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_all_case_campaign_contract_v49f.json"
+  },
+  "correction_subgate": "A4-R475-T",
+  "fail_first_boundary": {
+    "accepted_pilot_case_count": 6,
+    "accepted_six_case_binaries_remain_immutable": true,
+    "all_case_execution_authorized_now": false,
+    "expected_missing_role_failures": 3,
+    "non_pilot_case_count": 469,
+    "versioned_role_count": 3
+  },
+  "formal_stage1_state": "NO-GO",
+  "independent_reconstruction_evidence": {
+    "case_count": 475,
+    "case_execution_ledger_id": "67ec002e95bf30764aa1d7e0175ab082d4b4f987a7d96981be75ece794e62566",
+    "execution_family_counts": {
+      "CORRECTED_APPLICATION_EXACT_PROFILE": 1,
+      "GENERIC_PROFILE_ATTAINMENT": 406,
+      "INTRINSIC_TEMPLATE_ATTAINMENT": 66,
+      "LOCAL_MINIMALITY": 1,
+      "SIGNED_ANALYTIC_EXACT_PROFILE": 1
+    },
+    "f0_record_count": 12,
+    "f2_record_count": 18,
+    "local_minimality_case_count": 1,
+    "maximum_publication_case_count": 474,
+    "ordered_case_execution_records_sha256": "d3ddf4d97353bde65295764eeed8d0f347c1930d8089dc25f20e91c946578e72",
+    "required_full_run_f2_values": [
+      475,
+      29189597,
+      66119,
+      417528,
+      170915620,
+      1735,
+      66119,
+      44461267,
+      329067149,
+      367039374,
+      619175993,
+      4160,
+      4198492,
+      46268,
+      17,
+      569,
+      54297,
+      15585644
+    ]
+  },
+  "lifecycle_decision": {
+    "checkpoint": "DURABLE_CASE_COMMIT_REVALIDATED_BEFORE_REUSE",
+    "partial_acceptance": "FORBIDDEN",
+    "publication": "COMPLETE_PRIVATE_WORK_ROOT_RENAMED_ONCE_ROOT_LAST",
+    "resume": "CONTIGUOUS_VALID_PREFIX_ONLY",
+    "scheduler": "STRICT_SEQUENTIAL_SINGLE_WRITER_V1"
+  },
+  "next_bounded_packet": "A4-R475-V0",
+  "ordered_acceptance_criteria": [
+    {
+      "criterion_name": "PINNED_PREDECESSOR_AND_SUCCESSOR_AUTHORITY_CHAIN",
+      "criterion_position": 1,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "ALL_475_EFFECTIVE_CASE_AND_PLAN_RECORDS_RECONSTRUCTED",
+      "criterion_position": 2,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "FIVE_EXECUTION_FAMILIES_EXPLICIT_AND_COMPLETE",
+      "criterion_position": 3,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "IMMUTABLE_F0_AND_F2_RESOURCE_LEDGERS",
+      "criterion_position": 4,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "VERSIONED_ROLE_PATHS_AND_INDEPENDENCE_BOUNDARY",
+      "criterion_position": 5,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "FAIL_CLOSED_CHECKPOINT_RESUME_AND_ROLLBACK",
+      "criterion_position": 6,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "ROOT_LAST_ATOMIC_CAMPAIGN_PUBLICATION",
+      "criterion_position": 7,
+      "criterion_state": "PASS"
+    },
+    {
+      "criterion_name": "EXPLICIT_FAIL_FIRST_AND_STAGE1_NONCLAIMS",
+      "criterion_position": 8,
+      "criterion_state": "PASS"
+    }
+  ],
+  "review_decision": "ACCEPTED_CONTRACT_ONLY",
+  "source_marker": "INDEPENDENT_A4_R475_T_ALL_CASE_CONTRACT_REVIEWER_V1"
+}

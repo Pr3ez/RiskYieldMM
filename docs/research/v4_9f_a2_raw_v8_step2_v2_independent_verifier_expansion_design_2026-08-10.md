@@ -2,24 +2,33 @@
 
 **Date:** 2026-08-10  
 **Formal sub-gate:** `A4-P6-V`  
-**Current work packet:** `A4-P6-V1`  
-**Decision:** `IMPLEMENTATION DESIGN FROZEN; V0 ACCEPTED; FORMAL VERIFIER EXPANSION NOT ACCEPTED`  
+**Current work packet:** `A4-P6-P`  
+**Decision:** `IMPLEMENTATION DESIGN FROZEN; V0/V1/V2/V3/V4/V-A AND FORMAL VERIFIER EXPANSION ACCEPTED`  
 **Stage 1:** `NO-GO`
 
 Implementation status is recorded by the
-[`V0 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md)
+[`V0 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md),
+[`V1 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v1_acceptance_2026-08-10.md),
+[`V2 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v2_acceptance_2026-08-10.md),
+[`V3 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v3_acceptance_2026-08-10.md),
+[`V4 acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v4_acceptance_2026-08-10.md),
+[`V-A acceptance`](v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-10.md),
+the accepted
+[`case-435 packed-context boundary`](v4_9f_a2_raw_v8_step2_v2_case435_context_pack_boundary_acceptance_2026-08-10.md),
 and the mutable
 [`Stage 1 execution control`](stage1_execution_control_2026-08-08.md). Packet
 states and the immediate action below are execution metadata, not changes to
-the frozen verifier design. V0 is accepted and V1 is now the next bounded
-packet.
+the frozen verifier design. V0/V1/V2/V3/V4 and the independent acceptance
+review `V-A` are accepted; formal verifier expansion is closed and the
+separate producer packet `A4-P6-P` is now active.
 
 ## 1. Purpose
 
 This design turns the accepted case-435 exact-delta transition into an
 executable, independently checked verifier expansion for cases 24, 54, 69,
 435, and 475. It preserves the already accepted case-5 verifier and does not
-release any producer or parent runner.
+by itself release any producer or parent runner; the later accepted V-A review
+releases only the separate producer implementation packet.
 
 The expansion must prove the complete verifier decision, not merely compare a
 candidate with a stored answer:
@@ -51,12 +60,16 @@ milestone.
 | Import the D checker or a C1/C2 proof checker and accept its answer | Less code | Collapses independent consumption into proof-checker trust and does not implement the effective resolver/P1 replay itself | Rejected |
 | One verifier source with an exact authority-mode dispatcher | Preserves case 5; consumes D only when the D boundary is explicitly supplied; keeps one frozen role | Requires two closed loaders and careful drift tests | **Selected** |
 
-The selected source accepts exactly two boundary paths:
+The selected source accepts exactly three boundary paths:
 
 1. the predecessor constructive boundary, which retains the accepted case-5
    behavior and predecessor IDs; or
 2. the D boundary delta, which requires the entire predecessor-plus-delta
-   chain and successor IDs before any candidate path is opened.
+   chain and successor IDs before any candidate path is opened and preserves
+   the accepted V0/V1/V2 flat-context cases; or
+3. the additive case-435 packed-context boundary delta, which first accepts
+   the complete D chain and then authorizes only the corrected physical
+   transport needed by V3.
 
 There is no heuristic fallback between modes. Any other path, missing delta,
 duplicate override, unresolved record, or mismatched physical/semantic
@@ -103,6 +116,12 @@ access:
 7. corrected six-case target delta;
 8. the pinned verifier source and typed-rule runtime.
 
+For a case-435 V3 invocation it then loads and verifies the accepted
+packed-context boundary delta before opening candidate bytes. That delta does
+not replace or reinterpret the D authorities; it adds one transport authority
+and leaves the effective seed, manifest, program, plan, exactness join, and F2
+catalog unchanged.
+
 It reconstructs the same exact resolution proved by D:
 
 - case 435 uses successor program
@@ -139,14 +158,24 @@ The non-null maximum contexts are resolved exactly as follows:
 | 24 | `OWNER_MEMBER` | One complete `CapacityMeasurementOperationResultEvidence` context object whose `result` member byte-equals the inline witness and whose owner discriminators/identity/rules/codec validate |
 | 54 | null | Inline intrinsic record only |
 | 69 | `OUTER_RESULT_APPLICATION` | Inline result `WITNESS_RECORD`, exact V4 operation-spec pointer, and the one frozen signed-spec invocation |
-| 435 | `ROOT_APPLICATION` | Root context object, 67 ordered observation references with exactly one inline witness at ordinal 64, exact selector/target-registry/marker authorities, and the frozen 137-invocation schedule |
+| 435 | `ROOT_APPLICATION` via `MAXIMUM_WITNESS_PACKED_CONTEXT` | One compact canonical input pack containing the root plus 66 non-inline observations, 67 ordered observation references with exactly one inline witness at ordinal 64, exact selector/target-registry/marker authorities, and the frozen 137-invocation schedule |
 | 475 | local tagged candidate | Complete mutated spec plus complete prospective result; no maximum context catalog |
 
-`CONTEXT_OBJECT` files are compact canonical complete records. Their IDs,
-record identities, declared types, intrinsic rules, codec limits, hashes,
-lengths, sorted order, reference closure, and candidate-root file closure are
-recomputed. A hash-only, summary-only, copied authority, unreferenced object,
-duplicate object, symlink, or reopened/replaced record rejects.
+Flat `CONTEXT_OBJECT` files and case-435 packed logical context records are
+compact canonical complete records. Their IDs, record identities, declared
+types, intrinsic rules, codec limits, hashes, lengths, sorted order, reference
+closure, and candidate-root file closure are recomputed. A hash-only,
+summary-only, copied authority, unreferenced object, duplicate object, symlink,
+or reopened/replaced record rejects. The pack is input transport only: verified
+publication returns to the inherited individual logical context-object files
+and receipt entries.
+
+The packed correction is required because the D successor pins 38 authority
+files while the inherited flat case-435 closure needs 67 context-object files;
+`38 + 1 candidate + 67 = 106` exceeds immutable F0 `INPUT_FILE_COUNT = 64`.
+The correction uses 41 input files and changes no F0/F2 ceiling. See the linked
+transport acceptance for the independent contradiction proof and hostile
+matrix.
 
 ## 6. Case-specific proof obligations
 
@@ -184,7 +213,8 @@ duplicate object, symlink, or reopened/replaced record rejects.
 - import the C3 `EXACT_ATTAINED_MAXIMUM` endpoint 257,887 and verify it remains
   below the immutable predecessor structural ceiling 262,143;
 - resolve the complete 67-observation/root/selector context;
-- replay all 137 frozen applications using the pinned rule runtime;
+- replay all 137 frozen applications using the verifier-owned static typed
+  subset and compare that subset separately against the pinned generic runtime;
 - require 12,531 charged/completed rule evaluations and 125,431 direct
   expression nodes;
 - require the inline ordinal-64 observation to be P1 legal and exactly 257,887
@@ -230,11 +260,11 @@ observed pilot output.
 | Packet | State | Falsifiable exit |
 |---|---|---|
 | `A4-P6-V0` successor resolver/read barrier | `ACCEPTED` | Dual-mode dispatcher preserves case 5; successor mode independently reconstructs all D identities/resolution before candidate access; missing/extra/ambiguous/tampered authority and path aliases reject |
-| `A4-P6-V1` intrinsic cases 24/54 | `NEXT / ACTIVE PACKET` | Independently constructed legal attaining fixtures pass; owner/context, union, raw-string, Unicode, order/uniqueness, codec, nonattainment, and re-sealed mutation oracles reject |
-| `A4-P6-V2` exact profile case 69 | `WAITING` | Structural/analytic intersection derives 2,581; exact result/spec application passes; context, schedule, analytic endpoint, P1, and P3 mutations reject |
-| `A4-P6-V3` corrected case 435 | `WAITING` | Exact-delta plan resolves; complete context and 137 P1 invocations pass; 257,887 P2/P3 equality and all immutable F2 limits pass; old plan/C2 trust/substitution mutations reject |
-| `A4-P6-V4` local case 475 and consolidated F2 | `WAITING` | Eleven-transition minimality proof passes; better/equal/incorrect mutation and prospective-result substitutions reject; all five cases pass twice byte-identically under per-case F2 |
-| `A4-P6-V-A` independent acceptance | `WAITING` | Separate acceptance reviewer/test reconstructs identities, results, resource vectors, source isolation, candidate immutability, and expected-red producer/runner boundary |
+| `A4-P6-V1` intrinsic cases 24/54 | `ACCEPTED` | Independently constructed legal attaining fixtures pass; owner/context, union, raw-string, Unicode, order/uniqueness, codec, nonattainment, and re-sealed mutation oracles reject |
+| `A4-P6-V2` exact profile case 69 | `ACCEPTED` | Structural/analytic intersection derives 2,581; exact result/spec application passes; context, schedule, analytic endpoint, P1, and P3 mutations reject |
+| `A4-P6-V3` corrected case 435 | `ACCEPTED` | Packed-context delta and exact-delta plan resolve; complete context and 137 P1 invocations pass; 257,887 P2/P3 equality and all immutable F2 limits pass; old plan/C2 trust/flat-context/substitution mutations reject |
+| `A4-P6-V4` local case 475 and consolidated F2 | `ACCEPTED` | Eleven-transition minimality proof passes; better/equal/incorrect mutation and prospective-result substitutions reject; all five cases pass twice byte-identically under per-case F2 |
+| `A4-P6-V-A` independent acceptance | `ACCEPTED` | Separate acceptance reviewer/test reconstructs identities, results, resource vectors, source isolation, candidate immutability, and expected-red producer/runner boundary |
 
 Advancement is strictly ordered. A packet is not marked complete because its
 positive fixture works; its hostile matrix, deterministic rerun, source
@@ -262,15 +292,14 @@ The final verifier acceptance must include at least:
 
 ## 10. Immediate next action
 
-The original V0 freeze instruction is fulfilled by the linked acceptance.
-Implement only `A4-P6-V1` next. It must add independent retained-byte intrinsic
-validation for cases 24 and 54 under the accepted dual-mode resolver. Both
-positive fixtures and the complete owner/context, union, raw-string, Unicode,
-order/uniqueness, codec, nonattainment, and re-sealed mutation matrix must pass
-without weakening predecessor case 5 or the V0 read-before-candidate barrier.
+The V0/V1/V2/V3/V4 instructions and independent V-A review are fulfilled by
+the linked acceptances. Formal verifier expansion is accepted. Execute only
+`A4-P6-P` next: expand the separate producer for cases 24, 54, 69, 435, and
+475 against the frozen accepted verifier contract without importing verifier
+answers or weakening F0/F2.
 
-Do not implement cases 69, 435, or 475 or release a producer or runner during
-V1. Do not claim the expanded verifier, six-case pilot, all-475 result set,
+The producer packet is released; the parent runner remains held until producer
+expansion is independently accepted. Do not claim the six-case pilot, all-475 result set,
 Stage 1, Stage 2, predictive edge, or profitability.
 
 No external literature search was needed for this design. It is a

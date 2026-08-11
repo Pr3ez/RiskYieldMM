@@ -1,0 +1,140 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "case_record_schema": {
+    "identity_domain": "RiskYieldMMRawV8Step2MaximumProtocolV2IntrinsicP1AttainerCaseV1",
+    "member_contracts": {
+      "attainer_canonical_sha256": "LOWERCASE_SHA256",
+      "attainer_case_record_id": "SEMANTIC_ID_OVER_ALL_OTHER_MEMBERS",
+      "case_execution_record_id": "LOWERCASE_SHA256",
+      "case_position": "EXACT_INTEGER_1_THROUGH_66",
+      "construction_source": "EXACT_LOCAL_LONGEST_FIRST_WITH_FAIL_CLOSED_P1_REPLAY",
+      "construction_step_count": "POSITIVE_EXACT_INTEGER",
+      "construction_transcript_sha256": "LOWERCASE_SHA256",
+      "external_result_consumed": "EXACT_FALSE",
+      "intrinsic_correction_case_id": "LOWERCASE_SHA256",
+      "logical_count_plan_id": "LOWERCASE_SHA256",
+      "measured_attainer_canonical_octets": "EXACT_INTEGER_0_THROUGH_524288",
+      "p1_validation_status": "EXACT_ACCEPTED",
+      "p1_validation_work_limit": "POSITIVE_EXACT_INTEGER_AT_OR_BELOW_FROZEN_RUNTIME_CEILING",
+      "p1_validation_work_used": "NONNEGATIVE_EXACT_INTEGER_AT_OR_BELOW_LIMIT",
+      "root_type_name": "NONEMPTY_TEXT"
+    },
+    "ordered_member_names": [
+      "case_position",
+      "intrinsic_correction_case_id",
+      "case_execution_record_id",
+      "logical_count_plan_id",
+      "root_type_name",
+      "measured_attainer_canonical_octets",
+      "attainer_canonical_sha256",
+      "construction_step_count",
+      "construction_transcript_sha256",
+      "p1_validation_status",
+      "p1_validation_work_limit",
+      "p1_validation_work_used",
+      "construction_source",
+      "external_result_consumed",
+      "attainer_case_record_id"
+    ],
+    "unknown_member_policy": "REJECT"
+  },
+  "identity_domain": "RiskYieldMMRawV8Step2MaximumProtocolV2IntrinsicAttainerOutputSchemaV1",
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "output_schema_id": "20aa310f1f96823412c7a078c5e3bb09e0c79d87beb919cfd25f8decdf0d18c0",
+  "root_record_schema": {
+    "identity_domain": "RiskYieldMMRawV8Step2MaximumProtocolV2IntrinsicP1AttainerResultV1",
+    "member_contracts": {
+      "attainer_channel_result_id": "SEMANTIC_ID_OVER_ALL_OTHER_MEMBERS",
+      "canonicalization_version": "PINNED_FROM_C1",
+      "case_count": "EXACT_66",
+      "exactness_claimed": "EXACT_FALSE",
+      "external_result_consumed": "EXACT_FALSE",
+      "formal_stage1_state": "EXACT_NO_GO",
+      "intrinsic_exactness_correction_contract_id": "PINNED_C1_CONTRACT_ID",
+      "measurement_schema_version": "PINNED_FROM_C1",
+      "next_bounded_packet": "EXACT_A4_R475_V1_C3",
+      "ordered_case_attainer_records": "EXACTLY_66_CLOSED_CASE_RECORDS_IN_POSITION_ORDER",
+      "ordered_case_attainer_records_sha256": "SHA256_OF_CANONICAL_ORDERED_CASE_ARRAY",
+      "ordered_witness_shard_records": "EXACTLY_3_CLOSED_SHARD_AUTHORITY_RECORDS",
+      "ordered_witness_shard_records_sha256": "SHA256_OF_CANONICAL_ORDERED_SHARD_ARRAY",
+      "output_schema_id": "THIS_SCHEMA_ID",
+      "packet": "EXACT_A4_R475_V1_C2_A",
+      "result_version": "EXACT_INTRINSIC_P1_ATTAINER_RESULT_V1",
+      "source_freeze_id": "ACCEPTED_C2_S_ID",
+      "source_sha256": "FROZEN_C2_A_SOURCE_SHA256"
+    },
+    "ordered_member_names": [
+      "canonicalization_version",
+      "measurement_schema_version",
+      "result_version",
+      "packet",
+      "source_freeze_id",
+      "source_sha256",
+      "output_schema_id",
+      "intrinsic_exactness_correction_contract_id",
+      "case_count",
+      "ordered_case_attainer_records",
+      "ordered_case_attainer_records_sha256",
+      "ordered_witness_shard_records",
+      "ordered_witness_shard_records_sha256",
+      "exactness_claimed",
+      "external_result_consumed",
+      "formal_stage1_state",
+      "next_bounded_packet",
+      "attainer_channel_result_id"
+    ],
+    "unknown_member_policy": "REJECT"
+  },
+  "schema_version": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.intrinsic_attainer_output_schema.v1",
+  "transport_contract": {
+    "atomic_publication": "BUILD_ALL_FOUR_TEMPS_FSYNC_THEN_LINK_NOREPLACE_SHARDS_FIRST_ROOT_LAST_FSYNC_PARENT_OR_ROLL_BACK_ALL",
+    "compact_shard_encoding": "SORTED_KEYS_COMPACT_UTF8_FINAL_LF",
+    "fixed_shard_case_ranges": [
+      [
+        1,
+        22
+      ],
+      [
+        23,
+        44
+      ],
+      [
+        45,
+        66
+      ]
+    ],
+    "individual_file_strict_upper_octets": 16777216,
+    "maximum_witness_canonical_octets_per_case": 524288,
+    "partial_result_policy": "ROLL_BACK_AND_PUBLISH_NOTHING",
+    "pre_freeze_output_presence_policy": "ALL_FOUR_PATHS_MUST_BE_ABSENT",
+    "root_encoding": "SORTED_KEYS_INDENT_2_UTF8_FINAL_LF",
+    "root_output_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_intrinsic_attainer_channel_result_v49f.json",
+    "shard_count": 3,
+    "shard_output_relative_paths": [
+      "scripts/tests/raw_v8_step2_maximum_protocol_v2_intrinsic_attainer_witness_shard_1_v49f.json",
+      "scripts/tests/raw_v8_step2_maximum_protocol_v2_intrinsic_attainer_witness_shard_2_v49f.json",
+      "scripts/tests/raw_v8_step2_maximum_protocol_v2_intrinsic_attainer_witness_shard_3_v49f.json"
+    ],
+    "total_output_file_count": 4,
+    "worst_case_witness_payload_octets_per_shard": 11534336
+  },
+  "witness_shard_schema": {
+    "identity_domain": "RiskYieldMMRawV8Step2MaximumProtocolV2IntrinsicWitnessShardV1",
+    "ordered_member_names": [
+      "witness_shard_version",
+      "source_freeze_id",
+      "shard_position",
+      "first_case_position",
+      "last_case_position",
+      "witness_count",
+      "ordered_witness_records",
+      "witness_shard_id"
+    ],
+    "unknown_member_policy": "REJECT",
+    "version_literal": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.intrinsic_witness_shard.v1",
+    "witness_record_member_names": [
+      "case_position",
+      "witness_record"
+    ]
+  }
+}

@@ -1,0 +1,1297 @@
+{
+  "attainer_channel_consumed": false,
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "case_count": 66,
+  "exactness_claimed": false,
+  "formal_stage1_state": "NO-GO",
+  "intrinsic_exactness_correction_contract_id": "171e9d47a7733f8448f94af5a16da4ba5258f30ee08cb4c835289a05adcb8cb9",
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "next_bounded_packet": "A4-R475-V1-C2-A",
+  "ordered_case_upper_records": [
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "7ea175111c1fb72d8bd1a5e39b056d4fdc0c9be72404052b5faddbd2c48ec1aa",
+      "case_position": 1,
+      "intrinsic_correction_case_id": "5ba0ab46ad7ccde8b16c906975b836c473a328fb4ff9f9baa412836cc2e519c6",
+      "legal_domain_upper_octets": 3132,
+      "logical_count_plan_id": "e718fefce1e79d1b0186dd5e18cd1613ca1c528d9706d099b51a8aa347ba2aba",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 59,
+      "proof_step_transcript_sha256": "ccdee8dd44f19a64e440607b63f6f0d35a6b6457577580cfda443ce8b6fa4baa",
+      "root_type_name": "CapacityMeasurementAckDeadlineExpiryResultEvidenceV1",
+      "upper_case_record_id": "2201801d3bc1f2e248ef00e5eb7d2323efbe12aaae33663e44e3231c74162312"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "a2bca050a4598aa4dcafe78c1c4cc0a84bc862edeb8840d22d698246c688a3b6",
+      "case_position": 2,
+      "intrinsic_correction_case_id": "6d4372a989d56927f004b375f4436e6eee2a217edd6014febd4427c1fa3bbd10",
+      "legal_domain_upper_octets": 467,
+      "logical_count_plan_id": "3db8453ea0cbb70ee52ef90bfbff444eb5652a4c92fc220b5ac5b2e547f365d9",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 7,
+      "proof_step_transcript_sha256": "38c6f581d6e65b70b4293bde179758c1349d45bc3c28549d6b5c7f9102dbe23e",
+      "root_type_name": "CapacityMeasurementAckDeadlineExpirySpecV1",
+      "upper_case_record_id": "daa8df3208408753919a2a0f6872069c54f7b3f28bd3dab412fcf99d4d800a32"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "561767c8a3c00519dfc8c287655fcc429da652c94f4b9eaed4a4bc17e08ca208",
+      "case_position": 3,
+      "intrinsic_correction_case_id": "9e59903d2cc33977921752561c2dc3b7b4a8e94e889fe4719a3f28652fdbdce3",
+      "legal_domain_upper_octets": 288,
+      "logical_count_plan_id": "7ff117e6c23a829cea78e68dc851cbebbbbdd7dc77fe213ab217bbedf96c954a",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 8,
+      "proof_step_transcript_sha256": "ca7c549b64ed262edb79c9aa364425b724412fabdcdcb9f9d714a5e411882f7c",
+      "root_type_name": "CapacityMeasurementAttemptStateErrorFormsV1",
+      "upper_case_record_id": "71523dcae39dad070604bf5001744a603cf2f9edb9c94a37eea98e4438a548ce"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "600dd1ad31f7d085a2b5f0ff9616e6e9145a7ceb5f51f976664a9f647fb860d9",
+      "case_position": 4,
+      "intrinsic_correction_case_id": "1cc96ffe81149c2777214ed22650eb06fa08dc0940ac21d963b9b58b9d800ced",
+      "legal_domain_upper_octets": 244,
+      "logical_count_plan_id": "e3006b771a57968bd641769de9a01b91c778e511263accc7eeaf378c6b6b2871",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 8,
+      "proof_step_transcript_sha256": "41b36537bdba6cd557cbe121d4ce9678e053d4d8a328e61ec785c27ec545a333",
+      "root_type_name": "CapacityMeasurementAvailabilityStateRuleV1",
+      "upper_case_record_id": "4fee2932d345e70f98b534e879ea196de3bc2ced00ed58b59dd63c39c84f1297"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "778ddcce6e9c12e996e633139e1cafec82657f6cbd191cf7bca117d2868a9d71",
+      "case_position": 5,
+      "intrinsic_correction_case_id": "fa120b9522ed5b7053ea3d12164a44836da8dad67c8796c8440e45cf99227274",
+      "legal_domain_upper_octets": 29,
+      "logical_count_plan_id": "d8149e3965dbdb9ed708860af0599463eafcfe2d428404ec7dea9aa20873cbe0",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 4,
+      "proof_step_transcript_sha256": "502edeb529f17095bc798516d512f7ebf9d9852806455c35577315ea834757ea",
+      "root_type_name": "CapacityMeasurementBoolValueV1",
+      "upper_case_record_id": "de898856a11e07d4da082cb2660f8d61024b8c95c6a30e88852e50069fa43bc7"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "df2e062f500776d88b4f4baf18fef87785f611069f034001ba2069d26bfa0d4f",
+      "case_position": 6,
+      "intrinsic_correction_case_id": "0069daeed752fdde7f3e14ed3f798ac6e97c3c8169ec62c803726dd5949d17f0",
+      "legal_domain_upper_octets": 187,
+      "logical_count_plan_id": "31d809eb7b617a85f6d3b5a14c0d4f0a490c313e2d09fc5841bba5283a69fed5",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 5,
+      "proof_step_transcript_sha256": "3e5e3c1e062f43238844197ef9ec7aa35c57320e54e58fa193b15c97a5621216",
+      "root_type_name": "CapacityMeasurementCheckpointOperationRecordV1",
+      "upper_case_record_id": "2b38ec85f3516abe3f2c1f34f48c1d1a30cd088506cb9b1c06af32282021c284"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "eab404809bae389b960b5cec6ba9661e332c46040ab95bf97da6080a7f46cc16",
+      "case_position": 7,
+      "intrinsic_correction_case_id": "39ebc40cad8e87b48ab7be0053425fd9dad91497052283357d248ce0aa16a2f9",
+      "legal_domain_upper_octets": 2261,
+      "logical_count_plan_id": "a9eb00ebc978113d47011b063c2bdfc9ed7288f3beb77516d86c31e583a23f7a",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 11,
+      "proof_step_transcript_sha256": "563c773c8711df2978c4d7ff5b557f553e19505de8aa516a49f4b9d5a5f7aa0d",
+      "root_type_name": "CapacityMeasurementCrossFieldConstraintDefinitionV1",
+      "upper_case_record_id": "72b7ef363ac3f8b78cec5dfb72042b0e8fba6fd075298c3381cd6db48bb1d6f3"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "1420050db2b2b51ae358845c0185deb9e9f6107f32a6b3e21e8a544c59ee69dc",
+      "case_position": 8,
+      "intrinsic_correction_case_id": "8c771bc5eefa88fb0544b360fc2859d6d2790ec76699cbe6682124eab6abb423",
+      "legal_domain_upper_octets": 928,
+      "logical_count_plan_id": "9f0d86518b9df46f39b4e97d1a311d4fd0f44ad8eb810d9f6fe7437144369ca3",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 14,
+      "proof_step_transcript_sha256": "8ecd4c3c030002064cd583909129bbea6f63d4fa235c058c4e73f018b9c2e510",
+      "root_type_name": "CapacityMeasurementDispatchWindowEvidenceV1",
+      "upper_case_record_id": "e1824bdaf23c8a470fa7d94525dc4feca4076bc52d08f935ee639caa5c14cd64"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "5bee10acde40071f9864447b50c178de2456fc8fe1a38f2d24d3ed25ee3c77bd",
+      "case_position": 9,
+      "intrinsic_correction_case_id": "182a2d83c16dda843b00908bfe89e8a22994fb1a71e1ae94195911ea6d8f884f",
+      "legal_domain_upper_octets": 2685,
+      "logical_count_plan_id": "e7a043709778d9ca2d785a19e197b8d5ea8b707a3810b41dfa9bfd28191a7404",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 48,
+      "proof_step_transcript_sha256": "240ad1950a6b2b7026ebeb9444e4f0dd85b555e2b3edbf5472ed447aa1022214",
+      "root_type_name": "CapacityMeasurementDueDecisionClockEvidenceV1",
+      "upper_case_record_id": "ac157d977d556305c2599b2ff6acc64778029bdd317412a2a055aa3bdaa6acf9"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "cac4f4831cc99b7d752c8651a16841f7c29629effa1b665c877a2110450585e7",
+      "case_position": 10,
+      "intrinsic_correction_case_id": "6e89b23208c1f4ff3bc41d9edafec07d04f63f46e4d75daf65f19231da811dca",
+      "legal_domain_upper_octets": 124,
+      "logical_count_plan_id": "1173b394dee336e4eb9e74fa97e06e08dc4bcd209f95e182425ea39f572ad8b9",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 8,
+      "proof_step_transcript_sha256": "0a8536ce3ad0f12aec562f9bd8901b0385b4605c90946f6d2f06fdc73e650409",
+      "root_type_name": "CapacityMeasurementDurationBoundValueV1",
+      "upper_case_record_id": "3665473ea8896ab1292ef0e49b9111a1867a888bc1c3673246cc19b1b906a7de"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "ef3000ddaff6f453e6c70ffe7a67678e0bf596dd3e7840ae78dd32af8478b8fa",
+      "case_position": 11,
+      "intrinsic_correction_case_id": "bf2ceb97a7715ef6d821fff218e7f6d3ca0b6d1c5f47056d4a100bf70c74195d",
+      "legal_domain_upper_octets": 172,
+      "logical_count_plan_id": "40c290effb94cac76e3cdf43523cd86d2b808fa5bc3030d86eca86035554edfb",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 7,
+      "proof_step_transcript_sha256": "0ba985c3ba0a5da827e1f716d135d4baca6b04774673bbcba75a9f0dc1df6568",
+      "root_type_name": "CapacityMeasurementErrorFormDefinitionV1",
+      "upper_case_record_id": "c87559e36b126bac21da9dc6f8f9e996de0320b2ace7f1fa80b928950c1578fb"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "0648f7cbc1c883185f0a46e0a9b87dbd6afc733971d39662f4b4913aa8682c4a",
+      "case_position": 12,
+      "intrinsic_correction_case_id": "ac9de71ae63dcd17acdc0ad28e44f9aca60bbedd0f980a5bbea633273ad3d7a1",
+      "legal_domain_upper_octets": 291,
+      "logical_count_plan_id": "07ac1ff68f8c8653700c3e6be9fef369a3db45a116cad20f807cc9a332ef935e",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 4,
+      "proof_step_transcript_sha256": "73205e2c662d57b2eca6bc80679898b44c95413818469a5bb3052bee1e1066e1",
+      "root_type_name": "CapacityMeasurementFixedUIntMapEntryV1",
+      "upper_case_record_id": "512942f1ef8a5e322e5625bdb364ad27d7f0637075486b3f9213884fe22c3df0"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "eeb55293e06332700cf32047cc44a45360127779bd8de5bac41af1ca1d348f6a",
+      "case_position": 13,
+      "intrinsic_correction_case_id": "65c57cef2275a44bb4037de22100daa4210facb6cf3ae2a76988f455203e8efc",
+      "legal_domain_upper_octets": 3072,
+      "logical_count_plan_id": "ac40fdf8906e8552b418eb6fbd328050f6a148ce1367d68158bb2c2746ec06e1",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 9,
+      "proof_step_transcript_sha256": "34d1360cc78e5d6c4d11297a070e04ec0aecfdf2c719555909de306305053c25",
+      "root_type_name": "CapacityMeasurementFixedUIntMapValueV1",
+      "upper_case_record_id": "330b797b7e22d22c4c03b172a7afe96976709e874ee27336101f6ff866980e01"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "a703c8d25ad59519ece446135ae8ad7ce4ef85062e8a7de93bb164fdb5d6c66e",
+      "case_position": 14,
+      "intrinsic_correction_case_id": "ed03aa4072fa2cf70265c40cbcf5e2608df3b0ce0f9126f711b5059ee9ab5f8f",
+      "legal_domain_upper_octets": 1137,
+      "logical_count_plan_id": "34c6d76ee299340d081beb682d549a908205fb045de1063dc7fa50101860c89c",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 21,
+      "proof_step_transcript_sha256": "c5cec1248b2d74c271b3adbcf91c29bb721f079bc9a6246b6488fa279b1bb8b4",
+      "root_type_name": "CapacityMeasurementIngressLogicalOracleProfileV1",
+      "upper_case_record_id": "41b954813484213f38298c7e2b0fde24367bfbeb00e37975360a6db9ec6135fb"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "6ef13402678caad89fdac15d2e8269714ede7b8c340e0936fdb094712cd4c2bc",
+      "case_position": 15,
+      "intrinsic_correction_case_id": "306182290868f732d007297f9fb681aa70a7a4a8d6e44dc6655f307bdf3e8b2a",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "fc11542b3f74383cc8a2b0c8d42862c679bfa8e9ed1ba30c62d09e89a3d06b17",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 16,
+      "proof_step_transcript_sha256": "4303f868eb1a4ef83eafa23423e03abe43e88f4a9b6aefce04d78f8c23f29828",
+      "root_type_name": "CapacityMeasurementIngressOperationSpecV2",
+      "upper_case_record_id": "530d93991531d033dc00730217832875efbf60226ef13d9c3f9f5aceb36ed4a3"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "ccb02745fb2611ae67a2dcfb54c9c88fc43c1d43b252316a3b1695e061a556b6",
+      "case_position": 16,
+      "intrinsic_correction_case_id": "62e79a57db0859b7932567227c29697a2b925100319e5d8424330f07124b043f",
+      "legal_domain_upper_octets": 932,
+      "logical_count_plan_id": "a31bbc2b88332c63cf06d30c260cf04b26153d2194a80e5ee36e9ae18bd2851e",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 15,
+      "proof_step_transcript_sha256": "a1733789429ca2fccf3ef3caaf94b5e866f8b03b06b46d511e1e4f135f4cac5d",
+      "root_type_name": "CapacityMeasurementIngressResultEvidenceV2",
+      "upper_case_record_id": "01897f27c5dcfc562df9b22663c327b3035e160cb97ca424dd926d64dd738289"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "296f80a6c549e14177790a263da9e50c9c0f8bd32d373a38e43380490b562780",
+      "case_position": 17,
+      "intrinsic_correction_case_id": "a577d5c4769cdfdf9fc7d09bb23e0ec23842bb690d2420d3e5c43a58e4d3de20",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "3dcb2e7bafe8c5824f0b84864d89c7627ca31ce423e1ffd6def945e2ca444dfc",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 37,
+      "proof_step_transcript_sha256": "959feac366159a88ccaba6a1d75664e91f52c975d3189cda718d69dfb667b73f",
+      "root_type_name": "CapacityMeasurementLocalShutdownResultEvidenceV2",
+      "upper_case_record_id": "cd161fcf3201113c10ab03a137660f94b5e100be3bcb42b1ca893018a8df5e4b"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "1643eaa8092a347e684b0de08ff564905070b047d2907863eac910adbc232fe0",
+      "case_position": 18,
+      "intrinsic_correction_case_id": "91f34c93a9e1c7a10172cf38d4de0d7d8cdc063a4214a4a2e9f6ccd0e2ff38eb",
+      "legal_domain_upper_octets": 1092,
+      "logical_count_plan_id": "e8e1babfd6552bd7e584c55bb144f2c2c571b13ebed44185fb5413186e189730",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 19,
+      "proof_step_transcript_sha256": "0a1fce9e10e4a27649596594e09d0cce1cf8c8cf2204b432babb55a3a6fa327c",
+      "root_type_name": "CapacityMeasurementLocalShutdownSpecV2",
+      "upper_case_record_id": "4b54fd7780302786688e750aa1808067b186dd8a74e8874a115b66f31919d23f"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "438744c9c84659d3a10dcdf5896f37bb96e77bacc41a7b63d96c213fae84c0d7",
+      "case_position": 19,
+      "intrinsic_correction_case_id": "7ae3477d447b6137aa5995a6bcb75fd85c17af0382b3886566bfd8a602a7da81",
+      "legal_domain_upper_octets": 206,
+      "logical_count_plan_id": "a396ec28585709c974ae7ce7a1c41747bbef15e67da0ca0b87b1bae0d303ada1",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 4,
+      "proof_step_transcript_sha256": "26c5f655e2f26f3345de71d0d836d386f00459549e072890675af1bbc0bb8167",
+      "root_type_name": "CapacityMeasurementLogicalOutputFrameV1",
+      "upper_case_record_id": "bf1d9326908ba6f29e42222afa59e43bf7365d73142ce9a6fab9c451a1d1e4f8"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "13bb3876b7dca538dd22b7454bf63c983a29dc6564e52c54904a429f328ce9bf",
+      "case_position": 20,
+      "intrinsic_correction_case_id": "ed9c5317f13d7afd9a510fbc8d05c78c7fbb835bf03d258fa7ad702bb666e61a",
+      "legal_domain_upper_octets": 186,
+      "logical_count_plan_id": "125d1a375d2ebff5a2fac4e5061ae72ff065d407d81826c0ed466a183470c120",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 5,
+      "proof_step_transcript_sha256": "52302013841cecae74be54b6be24ecda286f7358a030f1c4b8ddd1c821d11722",
+      "root_type_name": "CapacityMeasurementObservationMethodRolePairV1",
+      "upper_case_record_id": "0829f133ce684a99bc06a6862bddaf44cf6bfe535d213ebba22760511c886c77"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "1f1a3b29ae9b3537beddc5bfc2336386a69627ad0c8234d9bf9ef20cdabbaf8f",
+      "case_position": 21,
+      "intrinsic_correction_case_id": "3e5d8db6027975ffaed77e768d2cdaa5071a722f6328cd8be857ba6b76234518",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "a829a592b12ff3e7e52f73efec256ca6aa3806db3e4d63cde59e79e51d4ebfd8",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 85,
+      "proof_step_transcript_sha256": "645923fc25149460c509399494a1fea052a530396b001f41b1866e8774a30fe0",
+      "root_type_name": "CapacityMeasurementOperationDeclarationV1",
+      "upper_case_record_id": "e87c2c9a115757da5b668127a2396bb3c38fc0833c0cb68d93b841208d6d34d8"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "161447a90fd269aadc80a27a3b51dee2e147714259d6469f693430084b6d5ffe",
+      "case_position": 22,
+      "intrinsic_correction_case_id": "d7a11f811e424239713cc0c5c151630c1fc2a250af2ed28b152c7080c70fc2fa",
+      "legal_domain_upper_octets": 3132,
+      "logical_count_plan_id": "a98a190ea7961a70b8db361286abfa272777166289f4614f0d570a4a1a7033a2",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 61,
+      "proof_step_transcript_sha256": "a7d707f4d8c6bad749f596cee07040ce57dd9783e955bf17d07766c24da40276",
+      "root_type_name": "CapacityMeasurementOperationResultBody",
+      "upper_case_record_id": "c228b4f63b0a9b6f198d700cafe10fba5423bc91c39d11b10fbbb56a7ac4a4da"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "f4418044114a71d673a0e9d2905e908051c69a757d026564d434da3affd84cd7",
+      "case_position": 23,
+      "intrinsic_correction_case_id": "93006c0b6d319ebdbe46efbb572c0d49f0838069ecbf1c2e2f422436d64b3be6",
+      "legal_domain_upper_octets": 932,
+      "logical_count_plan_id": "394ed24416b6050a47abd9d6b36a8ad843689ef9dc5b5726d97d29a28977554a",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 17,
+      "proof_step_transcript_sha256": "710044a411eb10c179dbee97fa05face35fbcceeaa8192f31cd2a9993f54dc56",
+      "root_type_name": "CapacityMeasurementOperationResultBody",
+      "upper_case_record_id": "6adb63aa27ed64e21b666bf958b002f864c4a5ee0ca1036348f03ee99effa190"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "ac5278ca03e99af5fc4c218e31f507638b412d44585b4f7e5d29f13b891a9b46",
+      "case_position": 24,
+      "intrinsic_correction_case_id": "5828eb419b1570cd94b19000995ca190eb805b4f4a64074dbf5516a332caa82a",
+      "legal_domain_upper_octets": 523738,
+      "logical_count_plan_id": "428ff735837b841e66103d64cbcd4af7ceaf88d009c38229ad5e4cde0ab30d67",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 39,
+      "proof_step_transcript_sha256": "4f49193fc68b54e8ac95f5bdd6933f0035a266ff4bdeb943b16b7567e19ccbdd",
+      "root_type_name": "CapacityMeasurementOperationResultBody",
+      "upper_case_record_id": "b04893b4c10a8fa66f5eff2d4186286f8fe67cbd4b852671639a80a6d005f970"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "3bab22d02f5f0147276102992941d559a70b2c2ac1171032f4873fd3878326f4",
+      "case_position": 25,
+      "intrinsic_correction_case_id": "9dd37fa7cac4a4b1cd6727d7c17c22067fc500acc0a6b6caa00fc9c0320a7dbd",
+      "legal_domain_upper_octets": 36277,
+      "logical_count_plan_id": "59f246e22b98cdc1fb177985a4599e1f287b2b2b0d2b0204448974795ad53d81",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 35,
+      "proof_step_transcript_sha256": "d9a1484248c1a1c934601af65b606a0e1be9e4df8bc7c0fc8f88778b9aedee48",
+      "root_type_name": "CapacityMeasurementOperationResultBody",
+      "upper_case_record_id": "c8ca3e32da7e81f64264417bdf0a8604476f48bd080742e9699bb865dc9c39c9"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "d63288f0c7c24d4158fda988bab280d8a62dd3099b76c5ea8bcb10a353afe8e5",
+      "case_position": 26,
+      "intrinsic_correction_case_id": "512b4e9066f6904e20f25e528bb3b1a17c01e75e24f99d79c99d8adcab50c695",
+      "legal_domain_upper_octets": 524287,
+      "logical_count_plan_id": "79b24bdd43b155a8f505def654fe2cad5404b528246f9f1fb11893eb4c6a147c",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 157,
+      "proof_step_transcript_sha256": "cbf7cde7bfa17326840d3e82e6dd0281d20c0ada905afe10671ab53b14fcbcaa",
+      "root_type_name": "CapacityMeasurementOperationResultEvidence",
+      "upper_case_record_id": "85350e6cc9917c0a4618c48a41c57d003ee03e79415f13cd4fb17db86474ef6a"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "bdbc34abaa94ae5a78d80aa1658b2ccf460fa88ed63ca19413b4c07047846518",
+      "case_position": 27,
+      "intrinsic_correction_case_id": "a759c5650b3a7e60e81d636f4953229d2dc40e7ffd789ad93350dbdb7be91af8",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "def86236461356b461e62f7bf24d443ba362b8dc97daca6af6a06c32b16273e7",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 63,
+      "proof_step_transcript_sha256": "c41df164081393e42eb029a391a9a1e2e51064b57e38a7ab57853a4792f752eb",
+      "root_type_name": "CapacityMeasurementOperationSpec",
+      "upper_case_record_id": "e41901600a5d04a073c643bc01c416b65ec26379ff9831f6517e97dc252b2d20"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "bd113ba58f00631bee3b5b12aafbf83707100c6248f63f706ad6528431026621",
+      "case_position": 28,
+      "intrinsic_correction_case_id": "6c61dcb5b27007119521c202ba3f0752f0a4ffb59bc2167a5d4b521c246fc53d",
+      "legal_domain_upper_octets": 467,
+      "logical_count_plan_id": "888e2e06fe2a76505e724697d8516b51f670e045d5ba06e7be3d8be0d8e04980",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 9,
+      "proof_step_transcript_sha256": "6d1ef1a6b08577f66d62196da829e7232c969d6035594db4f98360bcb0ae4929",
+      "root_type_name": "CapacityMeasurementOperationSpecBody",
+      "upper_case_record_id": "400bc61d77987bd5339ab42729aa8eefc5366c4170ee9b848683d2a4e501e138"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "7d38bc8f796ff57fdac728365bae02f87cd48cd32eb4710b33f6e538d9e4b3d1",
+      "case_position": 29,
+      "intrinsic_correction_case_id": "501e5d42cb54a377233f8380a2b96402b081f402daa4ddde5b1fb5326d066a91",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "e054058412fcfcafcdde705335346e72d5d701c370bdbd5aeb93b4cdfae7122c",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 18,
+      "proof_step_transcript_sha256": "13787bcb7d8d3a52807a9495a6d7485b493c0f05511756a9d4560262112667ae",
+      "root_type_name": "CapacityMeasurementOperationSpecBody",
+      "upper_case_record_id": "ae69a142cf96c2a3185ee4ca7969be5015ca029b6ffb5a1f4004871ea06dc284"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "07da3ec393dcd7b09e7507c067f09d0c342f814ee7afc2e73391d8f2334ac82e",
+      "case_position": 30,
+      "intrinsic_correction_case_id": "9da3d03fe06d3bfdc98f322ba2d424ee1d5e14328ee6c1b466d04fdd9aa5610f",
+      "legal_domain_upper_octets": 1092,
+      "logical_count_plan_id": "2c6daf226623f2f588922097fb2657cef93a5faf82b3c678d74d6d664d927baa",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 21,
+      "proof_step_transcript_sha256": "ee4097b13bed089343d47b894b44f3da0b7e0f22923211eeadb4c6607f63e35c",
+      "root_type_name": "CapacityMeasurementOperationSpecBody",
+      "upper_case_record_id": "88148227d3f8b5c7cb2bdd17847dde5a999eef050e0a57b8b242d764a417bd8b"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "a7f54a148b605ad93d3b25b00fa42a580dce233a5f7dbb74025806af09a4eb03",
+      "case_position": 31,
+      "intrinsic_correction_case_id": "e35989dc1c425208106b482cf4db59de9b1f1f4d599091a7bf2b8a98a5fc0c72",
+      "legal_domain_upper_octets": 2042,
+      "logical_count_plan_id": "83359854ae0f1df078aa74935ec5c636c07e0465e724739486e0a1de631f4842",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 12,
+      "proof_step_transcript_sha256": "709332777a8bdc1b048e3071e7bd1820272cb43cbdb8035438192cbcaea4fcb5",
+      "root_type_name": "CapacityMeasurementOperationSpecBody",
+      "upper_case_record_id": "8eecaf6687abc60332098e4d567e9d4d859f06ef72e51903224eb94c5ded13c8"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "710a625746d9753d45f99db5d8e9eab7b621be075f4bb52fc6b95bd41c53650b",
+      "case_position": 32,
+      "intrinsic_correction_case_id": "de825d5cc2b908436af6c5fe5a71dfde4667535dba2d73fa7b4efa41b01899ec",
+      "legal_domain_upper_octets": 563,
+      "logical_count_plan_id": "567d3d6289ac93923188c75f14bb20364adc9c4c8fce319f145b162c37360294",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 6,
+      "proof_step_transcript_sha256": "3dbb9e9e920289611dc2e206616c6cb58372afbf3d92809572e34d3f2b480465",
+      "root_type_name": "CapacityMeasurementOptionalTextValueV1",
+      "upper_case_record_id": "527ae49619d8b3be7d9b46a6b85a78e5e7016c3a6e114ed4ae8fba58523cca91"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "353e6f0e943d4bff86d466d7a1e3789255685115f992785a8e0b1596475e7083",
+      "case_position": 33,
+      "intrinsic_correction_case_id": "8501ba418637ad710e6afb869f857bcdfc0680723b484a65e6e4839ea35bd6bd",
+      "legal_domain_upper_octets": 65,
+      "logical_count_plan_id": "c393fa10e844ef36443af6a33131fc703c8280f1e5e892f9534d2ff53c4cefac",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 6,
+      "proof_step_transcript_sha256": "26b49f6029c645d41645778463cfc0165223ba44318cb1f9553b214b8d9d7ad9",
+      "root_type_name": "CapacityMeasurementOptionalUIntValueV1",
+      "upper_case_record_id": "e73acdfc9394c8e03eb5bedc87d51a0de7ae0f72efc2f861225f3bcde1e82be2"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "93ca83a8ef9d71b976febd1128eb04716a8490d40c9c64f432801775590819bf",
+      "case_position": 34,
+      "intrinsic_correction_case_id": "21ae33ee8ff918a2f8edbbf747d196fe806763e8dde4375be1607d726b7919ea",
+      "legal_domain_upper_octets": 22571,
+      "logical_count_plan_id": "7db440108e6d1d5d66efe7e877d4f52b7ec048b93f25d4f614f4bfb7b2ed6eb7",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 40,
+      "proof_step_transcript_sha256": "61c030f07b05ae5677b2d22db3ff06d7178d2f49139a287a8afad5484fae103c",
+      "root_type_name": "CapacityMeasurementStatusReasonPolicyDefinitionV1",
+      "upper_case_record_id": "466132eab08b6689bb911c3de186ab8e6be77ef614104f61d4b435975d2e12ad"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "b1ae5d08273de59dacfd556a3b3d44cffb7193e6011399fc7be908763a855520",
+      "case_position": 35,
+      "intrinsic_correction_case_id": "59c23497cc6fb6bbfc9ffd439d0de911d9e19b3683e81d0a3f996b0340b58865",
+      "legal_domain_upper_octets": 789,
+      "logical_count_plan_id": "6dceb409b1e5aa698abe8dc4d6f0486a5ac033334814bd3b39ef4ae48631e844",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 16,
+      "proof_step_transcript_sha256": "973b9fcf9d7281497b7e89d6145ff3ccc0ab6914b12cd4dda6d305c73cf086e0",
+      "root_type_name": "CapacityMeasurementStatusReasonRuleV1",
+      "upper_case_record_id": "302f6680893c0095ae25e7344bfdbc477187a6e687a515a51c5ec11ac71300f0"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "610f6991310e5c77f4251730ee85eec3e567463118c604d045f29b9deb219d39",
+      "case_position": 36,
+      "intrinsic_correction_case_id": "d24b2555a9ecd262b8e75098db0c92902e3d9b15874457b7a07a6a2781c040bf",
+      "legal_domain_upper_octets": 36277,
+      "logical_count_plan_id": "5fd5bc744bf5eec561ef0307e9ae949b3ff4df959d85b5eab708960aaf246859",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 33,
+      "proof_step_transcript_sha256": "b0b87504ad56a02433444d5b4b46ae8d99c808a3f585e9b60ec4cb0873274fa5",
+      "root_type_name": "CapacityMeasurementSubscriptionDispatchResultEvidenceV2",
+      "upper_case_record_id": "4e1a54a1d40d937ac02d48f5fbf3a587835e95568bb09c09872fa71ddf4fc7c6"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "f28ddae2f1154775fdbd2fe74382a759363d533f2a3a5b80dd7e8274fdb6fd9d",
+      "case_position": 37,
+      "intrinsic_correction_case_id": "bfe095ddac684437fc42be9efa40cceafac0d57f8b2fddb2709e33d2e86cc873",
+      "legal_domain_upper_octets": 2042,
+      "logical_count_plan_id": "b893ada2b905b816b812a2a5abe72d9c5e2ec62e6aee420dd03605a016d4fbf1",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 10,
+      "proof_step_transcript_sha256": "f58f26f6016b1dc2e09a3d36f9e4a7a6bd5c971c8293423f3db434fec143de48",
+      "root_type_name": "CapacityMeasurementSubscriptionDispatchSpecV2",
+      "upper_case_record_id": "45541d980ba67c2db5eb3c742cfc6cb4a0386542c85e013d857370a42390061a"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "4ced6ad8769b00f674ffea5afa2e23fe3656d02f2a53b8bcf9150d703f2181bc",
+      "case_position": 38,
+      "intrinsic_correction_case_id": "da45f047645ee68fe88fcd240dba682af61266d2d1ba967e7326749b86962fa5",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "b135031fcd40935a36d88b4c1aa88afbdc106ac4a9ac5a0b97cc5a25d5a9b55d",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 28,
+      "proof_step_transcript_sha256": "bdedfda2668ea89afc3208fb4b83d7acf4d1c50552694d78d97b752959ae09d4",
+      "root_type_name": "CapacityMeasurementTargetFieldDescriptorV1",
+      "upper_case_record_id": "7d26e1825b9d5d6fd63d004b3648aec2aa3c0c742a4b5b0632ba1892a9c818f3"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "e9360419940ccf0b21a2916123361e1b008ab87b45285d2b6f331b93d5c81b22",
+      "case_position": 39,
+      "intrinsic_correction_case_id": "948edc295bd5e2fccdd5c74cbc781a3859c93d4f3c892d168f5811c021c8ce26",
+      "legal_domain_upper_octets": 29,
+      "logical_count_plan_id": "2fad7a09fc2ec971fde7b1f4042528d649f96a1f9a258589aaf176afa895a2f6",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 6,
+      "proof_step_transcript_sha256": "41b5e48add6a46088a68cfb287105652244a57815db436d3f95f138245b8840b",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "9f1065252562fde5d82eda9b35e2cecfa97373350c5ab72fd9d02621f48f9a5d"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "8dcead48b25db590f522aebdf601386372ecc7407ba01eb1689c70f8da052237",
+      "case_position": 40,
+      "intrinsic_correction_case_id": "c8c72cbc0e441eee0a98fadb1298b8ba7731c47de50dee0fc4e8c82dfcb7f858",
+      "legal_domain_upper_octets": 124,
+      "logical_count_plan_id": "8c1c60253c116f399c1606ea2b69b2adb03ee6d5a709ecdd1f24d6cc859f96b7",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 10,
+      "proof_step_transcript_sha256": "7f9b0f048dafc0f242b1054d9d21b613a444e455f9d3e7c6dd246ce7c15ba474",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "2a8338fcb416e7503935fe6e4e85163355da3b822a01c1e4024979f607c5c0ba"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "8a416bcda92bcd496ac441a210c5ab9528596060095f7e41857320098bd8c303",
+      "case_position": 41,
+      "intrinsic_correction_case_id": "43b6ce4d524e40059e64b0478e2aa1a1e97bd3dca544c3c495bdd7f0fe18f811",
+      "legal_domain_upper_octets": 3072,
+      "logical_count_plan_id": "2588d5a03ddc5e5aa20aa91be5b930c09a42ca996719c56e616280c126058636",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 11,
+      "proof_step_transcript_sha256": "21e84716154a9924e4fc2d91066f81fdf23cfb198b69fbc3c5ef0611dc5adf8b",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "45a71d43b0bff521b8d24391d8d97b2e38338c619e3831b77b244c13241efc02"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "b5fc453249c64ada95ef8e5958b70039d799b9639c852b2072209d908f877764",
+      "case_position": 42,
+      "intrinsic_correction_case_id": "266d77362bc5df4dfda7ddb523af8598272ea7b115610f7c2cd7efe40d138ed4",
+      "legal_domain_upper_octets": 563,
+      "logical_count_plan_id": "5006e3d83572afe17a5869d3552d885d3845f3bbe5b3a61fc9fb90694d9d661b",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 8,
+      "proof_step_transcript_sha256": "06f111ffd58e1855886e09d468db78b3c061909c35bfbd34b2ca9cc9f0b41f9e",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "9003b646f232db779a590ba5d7ed07e22552b62b5e0451e8557f28bbf3abc1fb"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "fbd8c52d6515d7deb3fd7d1f65e1695d5c3ad4a68abce95dde3c645e2fe1e78a",
+      "case_position": 43,
+      "intrinsic_correction_case_id": "c108186e8a741fb5ee1ac08c3544bd3a2cd86c49c9b5c464efe831ba995b53f8",
+      "legal_domain_upper_octets": 65,
+      "logical_count_plan_id": "f51749e66dfb54728149a5d84dc0c1ed46fa3263c1fcf6bde01b818933630fe2",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 8,
+      "proof_step_transcript_sha256": "990f4efb1a2ebf14fadcdd9915ddd18b023009acc9eb5be87500c37230ddedb6",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "51395c41a480c7dd784badec4ffb5c9294901c13da6893206d1fed027476a2e8"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "60727cae42a72d6e51e8140ca2ba939c1a10f8ddc7ab392590b9aa7dc5855523",
+      "case_position": 44,
+      "intrinsic_correction_case_id": "19e62c739819d0dfe8978b736f436296a4a8a49d4a1f819f074450afe27cc600",
+      "legal_domain_upper_octets": 538,
+      "logical_count_plan_id": "c30b449f0b70658adf29563cd5ff7ebfcc1560a9e6be24e67d27494a9ccb1244",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 6,
+      "proof_step_transcript_sha256": "83a92276b14cddfea16f28d654720a766a1dad8ff42bfb6ec4274b2c55d0f0a6",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "e874d1e0f8c0d773fb7155476d80558e5bebeed7557526f150ae030b71b8f8f6"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "d99fb49c33cf7434c4f3504ceaccd5fea2e134c40d34e5ff834727a5a20d5b93",
+      "case_position": 45,
+      "intrinsic_correction_case_id": "39c26a2dec378f1f78d0321bf103b73b6421701bf3196f939db753912f060ec5",
+      "legal_domain_upper_octets": 2091,
+      "logical_count_plan_id": "32ee76fbe01a31a06df8555fe7342f0f1af1f6170b18e7c35c41a067fa55613c",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 7,
+      "proof_step_transcript_sha256": "9c2cee836203f1e691534aa2a6cfdbeea6722b74cd2498b5f334121f41ecd504",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "ede0688ac3b28adbc21c443af12bdaead9ec9c408b5ed4267ff8bd862aec8ffe"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "b094094b4c4582d76cf6c3f93ab52496914bc4fcc4b16e9b7a6ae4bcbaf1b42a",
+      "case_position": 46,
+      "intrinsic_correction_case_id": "80ab425570434d64681fa1fcae019440ff4f18511998274db0df7b394c6f9684",
+      "legal_domain_upper_octets": 40,
+      "logical_count_plan_id": "15d2f96f98205e86eb0c6059469520b169ace70f3f5a03369e527ac64fa02c57",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 6,
+      "proof_step_transcript_sha256": "fdb414714c5f30f769ee171071f60cc5260a5e833ca7a5f4044f20536dc2f4e6",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "368025e5d037127185094a0b52a77c351e087bef1738a706f16f5816b9dd57df"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "d78d6b331ac83de44a23d81edc7ea643f6bd0bdba22cd68e2b129c0c761a2d4a",
+      "case_position": 47,
+      "intrinsic_correction_case_id": "a0052e2a473a39e511181a8189dd849d29bec17f3f82b3d2559b9b6153ac75e0",
+      "legal_domain_upper_octets": 99,
+      "logical_count_plan_id": "fc19688cbe5185619e755cf691f5b13cbdd205800dfb6f3e58f8f7bdb700d48f",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 7,
+      "proof_step_transcript_sha256": "6c6a46ca8fee50f586460bbafd435b007ecd5dee2eff9ac0e5c26af41d88a21a",
+      "root_type_name": "CapacityMeasurementTargetValue",
+      "upper_case_record_id": "94ae00f481d636c89a436912774a473f26d376d3261c02ec5b84b3deb84a51d3"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "476e221916c9adf669b17a2ad3420d8547a633dc18cf4a212e684b1b70b7b2cc",
+      "case_position": 48,
+      "intrinsic_correction_case_id": "e0d6cd341765f0078430aad55a6a791701cf6adc95ba83da14e5af142b5ff69a",
+      "legal_domain_upper_octets": 2091,
+      "logical_count_plan_id": "83bf6865c08d7f4d39f09f09014f646e50dad0d61fd46add087cd1bc3cf76623",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 5,
+      "proof_step_transcript_sha256": "f23c8e7ae8dc28f14d207e9a9ed0d4db96d5fecb63ae964ed5acc798000b38be",
+      "root_type_name": "CapacityMeasurementTextListValueV1",
+      "upper_case_record_id": "c2ab5cfaf220418214ff2643f4fe6de7e4759b1c930f837d9e50f3ce888dbaac"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "6a94ed48e8455b84c9be3375c9b7086f74246974cb78e606b9a2f72a4965386f",
+      "case_position": 49,
+      "intrinsic_correction_case_id": "f21f3e95574cc61b8c4e5b662c7b7c7b798d5f235185ba10fff448fc091cfd7f",
+      "legal_domain_upper_octets": 538,
+      "logical_count_plan_id": "5b57c2ab9817b7d3b8df89f7b40ea05ef0b4594ef1fb8b2503ef0708ccb677df",
+      "ordered_proof_methods": [
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 4,
+      "proof_step_transcript_sha256": "fe211d345a4bf4ee690ba1749ded4aee86ba4e0be5fcdbf9fdf45f4d3011b264",
+      "root_type_name": "CapacityMeasurementTextValueV1",
+      "upper_case_record_id": "aaf5a11b71a64395cbf15b9025b2e8f8f195457aede19bd00351b204526d94fa"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "0bd74427c0ddfbcadeb2dc5c0b827f0888de91b71e51401655b713565b8e85b7",
+      "case_position": 50,
+      "intrinsic_correction_case_id": "2f6904481abd2a6ff6324eaed0fca31286f31bdb07299749388d786135e83ce7",
+      "legal_domain_upper_octets": 99,
+      "logical_count_plan_id": "0d64f557e579118b91a3d771e2fa4ab955e5f04d009ef5d30db9cde8e3e85dea",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 5,
+      "proof_step_transcript_sha256": "bb3bdfbf7b31aa21557dc1cc9cee94de034b561763bfe733c883f6a15ca561e5",
+      "root_type_name": "CapacityMeasurementUIntListValueV1",
+      "upper_case_record_id": "cdcb4ef7348caf9c7e00d9b218fc282f2bc37f6854da423c4e7300a04617f8c5"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "b246e1d1543786ea0cd35a2482d20ea64b8f7b0505f49ca2d69491ce158aa0f9",
+      "case_position": 51,
+      "intrinsic_correction_case_id": "b129a13ad088841c23c309b16700454d42d7d86176c3a23203ec40ea0b042a41",
+      "legal_domain_upper_octets": 40,
+      "logical_count_plan_id": "a8307be56fe98d5b417155574c9da489bd2c37832bbd781d1865a50f1951d1da",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 4,
+      "proof_step_transcript_sha256": "76d6401dd01c95eca888aefe904041194e09c336e0a1a1975a532cdb58a07c15",
+      "root_type_name": "CapacityMeasurementUIntValueV1",
+      "upper_case_record_id": "4e5d6d9798ff022e86e3c6ee713359e8b0cc444efd343c1eb451aba7c262428c"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "6187221d0cc25a9b3a59e5af3a0af0686716f5705aa1728a47c2cc542a91d84f",
+      "case_position": 52,
+      "intrinsic_correction_case_id": "67419fee6d79b9d07822682f18209dffffeb519c0c0ad73c79b3ee5b88c016b1",
+      "legal_domain_upper_octets": 2727,
+      "logical_count_plan_id": "b20ab7c6aee594e47e41223bd19d10aa685e9427ac3420d6148c8cd849b6f302",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 23,
+      "proof_step_transcript_sha256": "8e95a2f5fc00c5626f0f17407cd857e013d2df5e457f1f2d9d1d241920fcfb09",
+      "root_type_name": "CapacityMeasurementValueConstraintDefinitionV1",
+      "upper_case_record_id": "31b70a6ef6a5c83f5d06d6f7296d6d52906edd7e5c72d50835ce7d288b8f665e"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "05590e05c5f1a17ef9b67d588a9e5624e6ee3b4e07e01915d8afa879dd5da58f",
+      "case_position": 53,
+      "intrinsic_correction_case_id": "879068a7c8fdf5abde217751dfeca45e203a107679d2e39f698c965e9518bc5e",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "81230c23c2ceebe497283d6825fdb61b14229b42b8bf58a8a59c1f491c514dc6",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 10,
+      "proof_step_transcript_sha256": "ad589bcc846cec56a8d699f981ee81137977af3508011c82afc23ffa16a65dd2",
+      "root_type_name": "CapacityMeasurementValueShapeDefinitionV1",
+      "upper_case_record_id": "68b2289c39b57e32c9b236f580ca626b269389997c424fd708134fdb5412676a"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "280baaadd22bbb4739495fa2fe3ba451c182c0c5b97740af5786dc699233694c",
+      "case_position": 54,
+      "intrinsic_correction_case_id": "61f0acdf445173089b6078b37a188e2f083b3c0819ef7a63aec879596189a9c1",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "4eeedde2c223693e62a2b89a2016b43f9954496771189616ad68ac8cf21e6da1",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 5,
+      "proof_step_transcript_sha256": "1fdcace069d40d5beddd54815d48036e812144782679bdeedb463cac08bb96b8",
+      "root_type_name": "CapacityMeasurementVocabularyDefinitionV1",
+      "upper_case_record_id": "93246a37a047c86fc0b4bdb3e9c8ccda5a3fd7301bea77cfe7035c0db30226b3"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "ad482a529d0736f3e1f5893bf7937c5dc45694581738889c9a3be59bcf76c900",
+      "case_position": 55,
+      "intrinsic_correction_case_id": "c70d9575f4fe1a43fc3eeeb9774568263d44f016389c1f3eecaed4b0823f6961",
+      "legal_domain_upper_octets": 476,
+      "logical_count_plan_id": "fa6914f745214f0a7e114a9adc1bd0714339ef248c9eb8d499f0dd0bbf233438",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 10,
+      "proof_step_transcript_sha256": "330bd2dc3fcd9881109c8981926b47a70c6044eb30308e6dbdb165a7d3b19b2a",
+      "root_type_name": "CheckpointSelectorEntryV1",
+      "upper_case_record_id": "4b22e98c29264f44a0ab2f3dd6603bffb258cb015602479cca51e82fe5ce9241"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "7bb8ed1151daa22115ab1d8fa2d7fb0d3d589a98e0adb018af58c9a72c65f6ca",
+      "case_position": 56,
+      "intrinsic_correction_case_id": "def108898e27197862db695eecc14e182f3e6a874f873260c1f7f8a4eb9fd491",
+      "legal_domain_upper_octets": 35234,
+      "logical_count_plan_id": "e4079da978c3beb8ed9b405352e89405ee7a9c9856a5cb6ddb9e9545eb29a799",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 22,
+      "proof_step_transcript_sha256": "a757a9329c8821038318fdae6d9dab5face19501275a51736da9f09390e1af64",
+      "root_type_name": "CheckpointSelectorV1",
+      "upper_case_record_id": "17bb5826a94b0c0ee1ad3ddd4fc7f9a3575caf77267749fa6311596ae844e85f"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "2cc2f57cee2af885b0fb2edd53439c6ee39da6aed1ec62ad5c4d2c8fffa225a8",
+      "case_position": 57,
+      "intrinsic_correction_case_id": "e0af62424b8131c2e4a75c0cab0a4a567bf8a525438de28f15ad49db4b695095",
+      "legal_domain_upper_octets": 4338,
+      "logical_count_plan_id": "4cab9b3ae98194d6e066efb142ea91a8f1b0b3fe532a39d583b96d0297ab28f2",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 24,
+      "proof_step_transcript_sha256": "3ec3d1584f27a7ffaaf94dedc35201ebbb63b5717bcc55f9003122bbd2d1007f",
+      "root_type_name": "MarkerContractV1",
+      "upper_case_record_id": "1c61c6ae9267117475aa38fda23b515eaa14abd2dd674cedbb413f7e23b9fadd"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "f8a452e36862a0bacc63175e95fb04de8f165a202eefa311f2f7b7ba2fdc3f3a",
+      "case_position": 58,
+      "intrinsic_correction_case_id": "0c7e0b463744f013383a9c7110711a2c962d61b2418837d99606aa8f08fc416f",
+      "legal_domain_upper_octets": 5797,
+      "logical_count_plan_id": "75f709e9c9484a0d69be605767ce9aac86cc324ff57e56eb2b20b96febe0c281",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 11,
+      "proof_step_transcript_sha256": "1fe70cdffdfcfa90cb3ef9ef7730ca130f9091306c793100f54f0f145bb5f59c",
+      "root_type_name": "OperationCounterSnapshotSchemaV1",
+      "upper_case_record_id": "b305ab4c72274feccd7c211eaa92785b354d3ace7175b5bba00a33a7b0105f19"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "a18e453159b2293955087f14d2af7d8443b6d08097bff63f7eb593024da124aa",
+      "case_position": 59,
+      "intrinsic_correction_case_id": "6fe91014ee1bb46497d7eaf2f67274c9a78235c53eb58ff2e71a33bb66b7991d",
+      "legal_domain_upper_octets": 1312,
+      "logical_count_plan_id": "4c211e59468418590279f379d8aec01c1a92b03888891fc0e6d5806e65c8579f",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 7,
+      "proof_step_transcript_sha256": "13a3c825c0445b42d3bc1e3b3dc5befdb27b8276bcfef1f0d77e29c6f2c99262",
+      "root_type_name": "OperationCounterSnapshotV1",
+      "upper_case_record_id": "f7db500b1ad8078013aebfbd36d288ce1323d6b14c9e9dba6755df08d79df8d1"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "3b1687fca3af7c2614f1ecbb99d107df4bdb8b35926a9f656c0708cf51d20f91",
+      "case_position": 60,
+      "intrinsic_correction_case_id": "a8fe083aad68f8597b8d8e1f4f4072a7d99360afcb33b8893543e2a02add43f2",
+      "legal_domain_upper_octets": 1071,
+      "logical_count_plan_id": "b9fe287b7e7ca7709ea08908e4889ff1c2a33cba836e77d1401eaf625c87973e",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 14,
+      "proof_step_transcript_sha256": "9435fca066f872a145a4ed5eb63cf28fcfb7b8781e1ad940d45e62a6cd2bce12",
+      "root_type_name": "SourceErrorDetailV1",
+      "upper_case_record_id": "a5e7947b160ba85696f1c2143fbfc69c9a34343c4f6745accd7fe4e00733b0c2"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "35bdbc9140063eb432d7fcc60dc8e22cd55d94bea9a5a75eedc7ed093dec81a6",
+      "case_position": 61,
+      "intrinsic_correction_case_id": "0b8420ff890966d14e7aa2676e9120c7ce99126197e2343423b11ad1ea98312e",
+      "legal_domain_upper_octets": 4096,
+      "logical_count_plan_id": "8daa62f05787becbd3f2704cc7a6244ae3706fe2d4fdbc0c5e10ff86a8c8c4fb",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 84,
+      "proof_step_transcript_sha256": "4f1e615eb70cacc0c8b6a6e8425eec2ae6b40e45a183db015db1ed5abe95590d",
+      "root_type_name": "TargetFieldObservationV1",
+      "upper_case_record_id": "d2cad56c9580be05b9e13f2dd059951950261071ae903263709f3e4ea1f7198f"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "f4363adad064801d428511f4e85aadea087094a55e137a596a1f1f075d1fa921",
+      "case_position": 62,
+      "intrinsic_correction_case_id": "79792b83e340f5053c7eee8c0708b8d856c9ba4fba2f1cff576a5881c9fcee0c",
+      "legal_domain_upper_octets": 524288,
+      "logical_count_plan_id": "412390d1bfba757351993798f8983443c3d75b61a00cb93bc78c0e4f8aed0f6c",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 136,
+      "proof_step_transcript_sha256": "8efb466a8be9e5a8a089643dc61d83cf5271f5c5b24c2edb1c648c80bd3fb976",
+      "root_type_name": "TargetFieldRegistryV1",
+      "upper_case_record_id": "7f8946f5f228b2ed26652566f8d402a4f93b0f399acebc0823da0dff6dbd2919"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "2d5147f4135ec2faf16b76740c681ad1f9547c9fb8b1021dfae157436e938bd9",
+      "case_position": 63,
+      "intrinsic_correction_case_id": "cab5961cfede930bf3a87923459e4a5c11e305627d674484a2187cf18fb83066",
+      "legal_domain_upper_octets": 217,
+      "logical_count_plan_id": "e5ba64b48d52c3b66e60600942a1cee1fa9856cb67755cf529bf4bf128a5b084",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 10,
+      "proof_step_transcript_sha256": "330bd5e5651abecb6de8b769455083329dca13d5487114ae1617bd362721aeb6",
+      "root_type_name": "TargetObservationClockSpanV2",
+      "upper_case_record_id": "ef9c0d7da74d3ea61b3c1d0184966a68e4752bb1ffb737070a018023f2c44534"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "d7695cbf052aa46ba9bde7b8758a8ac22c2fce2da638948d82f994040bd00214",
+      "case_position": 64,
+      "intrinsic_correction_case_id": "36fc2c6b76c40493f64a637a47bdf010d75178acdf94ad9a41304c78c6b1b81f",
+      "legal_domain_upper_octets": 1972,
+      "logical_count_plan_id": "dc836e573890b87ecc4d1d9e309ad6a8c1627e96ca5e56b61c5d2d48d5b73236",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 64,
+      "proof_step_transcript_sha256": "b819998ad9505e6f4e11f2a26c22fbe88b612dd50f43fa68c6d747fc704fb614",
+      "root_type_name": "TargetObservationContextV2",
+      "upper_case_record_id": "f62915787be5f03beced2aad669d875d085086565918f63aa75e574982700a73"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "53032ad790b6c1621720711e6031cafdb2d1596e9cfac2dd63e320ab1becb259",
+      "case_position": 65,
+      "intrinsic_correction_case_id": "ec1b0c8eabfe58b674ab6a1115a241e09bdb52aec35ec86b6a05497ce8177ec8",
+      "legal_domain_upper_octets": 5268,
+      "logical_count_plan_id": "1897cebfcc6df117d41b91df8641d9ba96f95877680a9aea9bfefb14656d2b40",
+      "ordered_proof_methods": [
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 17,
+      "proof_step_transcript_sha256": "2607f9a0f3716b35d068ef104da003fce6554d984fdc6c47669c4de1d6886731",
+      "root_type_name": "TargetObservationRootV2",
+      "upper_case_record_id": "8f7fe1d4f15e49adf50d71489f29bee046c7e49db0d7b6366213fe03cbf22783"
+    },
+    {
+      "attainer_source_or_output_read": false,
+      "case_execution_record_id": "09c37b71cdbcc23719dd4413c78f2c0f1f17f786eb7defc9e7cee52a2986f61e",
+      "case_position": 66,
+      "intrinsic_correction_case_id": "d40d6e639b76bf6303abbaccf1dd6163cbd51bca9da816a9ef66c259a81eab10",
+      "legal_domain_upper_octets": 262143,
+      "logical_count_plan_id": "e279c8c3d9194db6ae49975c95b935ac15b2295ef48482bab574218211f13960",
+      "ordered_proof_methods": [
+        "ASCII_DFA_DYNAMIC_PROGRAMMING",
+        "CLOSED_BUILTIN_FORMULA",
+        "CODEC_INTERSECTION",
+        "FINITE_ENUMERATION",
+        "PINNED_UNICODE_PROFILE_PROGRAM",
+        "RULE_AWARE_COMPOSITION"
+      ],
+      "proof_status": "PROVED_LEGAL_DOMAIN_SUPERSET",
+      "proof_step_count": 158,
+      "proof_step_transcript_sha256": "68d0dc129406ec4103f198decc2de6a5c2ec64a6ca4bb454f36dd3db5b20ea19",
+      "root_type_name": "TargetObservationV2",
+      "upper_case_record_id": "086b981c6446ccc6afa6596e46d4f5f1bae99d5429f930d46a1c7e8d1867df5d"
+    }
+  ],
+  "ordered_case_upper_records_sha256": "2dc54db7144e1d9f0b8ecd562711b9c8c4454e99301fe615bbe7f77787118397",
+  "output_schema_id": "7e2af5b6b28d64bd6251f02bb2ae8d9b005f2c05c3321994e4cc8c1e9449326b",
+  "packet": "A4-R475-V1-C2-U",
+  "proof_method_case_census": {
+    "ASCII_DFA_DYNAMIC_PROGRAMMING": 21,
+    "CLOSED_BUILTIN_FORMULA": 51,
+    "CODEC_INTERSECTION": 66,
+    "FINITE_ENUMERATION": 58,
+    "PINNED_UNICODE_PROFILE_PROGRAM": 18,
+    "RULE_AWARE_COMPOSITION": 66
+  },
+  "result_version": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.intrinsic_legal_upper_result.v1",
+  "source_freeze_id": "d6e17e638a99449bc806b72cfefb850d6f64ed578dc5314a135b8e71fe5b008e",
+  "source_sha256": "5ef8441d5ddb14642d2a90f688e5f0cf9e49384a18eb9c91b48e293eab526e8a",
+  "upper_channel_result_id": "b57d8d494524ce964330fa2046c4d66f0c8a854b7eaa8fe1abae3bb09e5f8d2d"
+}

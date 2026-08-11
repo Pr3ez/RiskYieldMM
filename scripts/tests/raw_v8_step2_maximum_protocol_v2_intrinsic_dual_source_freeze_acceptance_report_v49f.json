@@ -1,0 +1,46 @@
+{
+  "authority_raw_octets": 7639498,
+  "authority_record_count": 4,
+  "channel_results_accepted": false,
+  "decision": "ACCEPTED_PRE_EXECUTION_DUAL_SOURCE_AND_SCHEMA_FREEZE",
+  "distinct_core_ast_fingerprint_count": 2,
+  "dual_source_freeze_acceptance_report_id": "18dcb2b97a13cb0a8912ad3bc152cb0e388740d386207fbad38dbbd19bef7ec5",
+  "dual_source_freeze_id": "d6e17e638a99449bc806b72cfefb850d6f64ed578dc5314a135b8e71fe5b008e",
+  "exact_maxima_accepted": false,
+  "formal_stage1_state": "NO-GO",
+  "intrinsic_exactness_correction_contract_id": "171e9d47a7733f8448f94af5a16da4ba5258f30ee08cb4c835289a05adcb8cb9",
+  "next_bounded_packet": "A4-R475-V1-C2-U",
+  "ordered_reviewed_channel_records": [
+    {
+      "channel": "LEGAL_UPPER",
+      "channel_position": 1,
+      "core_ast_fingerprint": "4b2fb1d5463c2d8aa6174652b3e35d6866bb4bb94a0eb046d355f232e3f87f4b",
+      "derivation_kind_count": 11,
+      "official_execution_count": 0,
+      "opposite_channel_path_reference_count": 0,
+      "output_schema_id": "7e2af5b6b28d64bd6251f02bb2ae8d9b005f2c05c3321994e4cc8c1e9449326b",
+      "source_raw_octets": 24421,
+      "source_raw_sha256": "5ef8441d5ddb14642d2a90f688e5f0cf9e49384a18eb9c91b48e293eab526e8a"
+    },
+    {
+      "channel": "P1_LEGAL_ATTAINER",
+      "channel_position": 2,
+      "core_ast_fingerprint": "eaf7e544610c0ccf333b75f44c1dea1533fb523f73631f3932a69cf32a830586",
+      "derivation_kind_count": 11,
+      "official_execution_count": 0,
+      "opposite_channel_path_reference_count": 0,
+      "output_schema_id": "20aa310f1f96823412c7a078c5e3bb09e0c79d87beb919cfd25f8decdf0d18c0",
+      "source_raw_octets": 34062,
+      "source_raw_sha256": "971cac97399c839917a6d87e6726be8547d54e45af9687f2ac85b3d4b6b6e448"
+    }
+  ],
+  "packet": "A4-R475-V1-C2-S",
+  "pre_execution_absent_output_count": 5,
+  "projected_pinned_input_upper_octets": 7969945,
+  "projected_total_output_upper_octets": 38994304,
+  "report_version": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.intrinsic_dual_source_freeze_acceptance_report.v1",
+  "source_freeze_raw_octets": 9861,
+  "source_freeze_raw_sha256": "57891c14624ed999e1b370a2478e41c99b23c6d0c471d9493c71c8381c40e3c5",
+  "source_marker": "INDEPENDENT_A4_R475_V1_C2_S_REVIEWER_V1",
+  "source_or_channel_execution_count": 0
+}
