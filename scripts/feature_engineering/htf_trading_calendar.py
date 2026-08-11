@@ -16,11 +16,10 @@ Temporal/data contract:
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Any
 
 import polars as pl
-
 
 CALENDAR_CRYPTO_24_7 = "crypto_24_7"
 CALENDAR_FUTURES_SESSION_OBSERVED = "futures_session_observed"
@@ -167,10 +166,7 @@ def _observed_segments(
         raw.select("timestamp")
         .sort("timestamp")
         .with_columns(
-            (
-                pl.col("timestamp").diff().dt.total_minutes().fill_null(0)
-                > threshold
-            )
+            (pl.col("timestamp").diff().dt.total_minutes().fill_null(0) > threshold)
             .cast(pl.Int64)
             .alias("_new_segment")
         )
@@ -265,7 +261,7 @@ def canonicalize_ohlcv(
     raw = _normalize_raw_ohlcv(df)
     raw_rows = len(raw)
     if raw.is_empty():
-        empty = pl.DataFrame(schema={col: pl.Null for col in CANONICAL_BAR_COLUMNS})
+        empty = pl.DataFrame(schema=dict.fromkeys(CANONICAL_BAR_COLUMNS, pl.Null))
         return empty, CanonicalizationSummary(
             asset_id=asset_id,
             calendar_id=calendar_id,
@@ -338,28 +334,22 @@ def canonicalize_ohlcv(
             pl.col("timestamp").alias("timestamp"),
         ]
     )
-    canonical = (
-        canonical.join_asof(
-            real_times,
-            on="timestamp",
-            strategy="backward",
-        )
-        .with_columns(
-            (pl.col("timestamp") - pl.col("_prev_real_ts"))
-            .dt.total_minutes()
-            .fill_null(0)
-            .cast(pl.Int32)
-            .alias("minutes_since_prev_real_bar")
-        )
+    canonical = canonical.join_asof(
+        real_times,
+        on="timestamp",
+        strategy="backward",
+    ).with_columns(
+        (pl.col("timestamp") - pl.col("_prev_real_ts"))
+        .dt.total_minutes()
+        .fill_null(0)
+        .cast(pl.Int32)
+        .alias("minutes_since_prev_real_bar")
     )
 
     canonical = canonical.with_columns(
         [
             pl.col("session_id_num").cast(pl.Int64),
-            pl.col("timestamp")
-            .dt.date()
-            .cast(pl.Utf8)
-            .alias("session_date"),
+            pl.col("timestamp").dt.date().cast(pl.Utf8).alias("session_date"),
             pl.concat_str(
                 [
                     pl.lit(asset_id),
@@ -367,16 +357,21 @@ def canonicalize_ohlcv(
                     pl.col("session_id_num").cast(pl.Utf8),
                 ]
             ).alias("session_id"),
-            pl.col("timestamp").rank("ordinal").over("session_id_num")
+            pl.col("timestamp")
+            .rank("ordinal")
+            .over("session_id_num")
             .sub(1)
             .cast(pl.Int32)
             .alias("session_bar_pos"),
         ]
     )
+    # These close-distance/close-label fields describe the completed offline
+    # observed segment. They inspect its suffix (and weekly close also inspects
+    # the next row), so they are aggregation/audit metadata, not causal model
+    # inputs. A future authoritative cutoff-known calendar may replace them for
+    # feature use; regime_calendar_state deliberately excludes them today.
     canonical = canonical.with_columns(
-        (
-            pl.col("timestamp").max().over("session_id_num") - pl.col("timestamp")
-        )
+        (pl.col("timestamp").max().over("session_id_num") - pl.col("timestamp"))
         .dt.total_minutes()
         .cast(pl.Int32)
         .alias("session_minutes_to_close")
@@ -449,7 +444,8 @@ def _historical_session_close_minutes(df_1m: pl.DataFrame) -> set[int]:
         df_1m.filter(pl.col("is_session_close_bar"))
         .select(
             (
-                pl.col("timestamp").dt.hour() * 60 + pl.col("timestamp").dt.minute()
+                pl.col("timestamp").dt.hour().cast(pl.Int32) * 60
+                + pl.col("timestamp").dt.minute().cast(pl.Int32)
             ).alias("_close_minute")
         )
         .group_by("_close_minute")
@@ -512,12 +508,18 @@ def aggregate_canonical_ohlcv(
                 pl.col("calendar_id").first().alias("calendar_id"),
                 pl.col("is_market_open").any().alias("is_market_open"),
                 pl.col("is_synthetic_no_trade").all().alias("is_synthetic_no_trade"),
-                pl.col("is_open_session_gap_fill").any().alias("is_open_session_gap_fill"),
-                pl.col("minutes_since_prev_real_bar").max().alias("minutes_since_prev_real_bar"),
+                pl.col("is_open_session_gap_fill")
+                .any()
+                .alias("is_open_session_gap_fill"),
+                pl.col("minutes_since_prev_real_bar")
+                .max()
+                .alias("minutes_since_prev_real_bar"),
                 pl.col("session_id").first().alias("session_id"),
                 pl.col("session_date").first().alias("session_date"),
                 pl.col("session_bar_pos").min().alias("session_bar_pos"),
-                pl.col("session_minutes_to_close").min().alias("session_minutes_to_close"),
+                pl.col("session_minutes_to_close")
+                .min()
+                .alias("session_minutes_to_close"),
                 pl.col("is_session_open_bar").any().alias("is_session_open_bar"),
                 pl.col("is_session_close_bar").any().alias("is_session_close_bar"),
                 pl.col("is_weekly_open_bar").any().alias("is_weekly_open_bar"),
@@ -533,8 +535,8 @@ def aggregate_canonical_ohlcv(
         [
             _utc_bucket_end_expr(target_timeframe).alias("_bucket_end"),
             (
-                pl.col("_bucket_max_ts").dt.hour() * 60
-                + pl.col("_bucket_max_ts").dt.minute()
+                pl.col("_bucket_max_ts").dt.hour().cast(pl.Int32) * 60
+                + pl.col("_bucket_max_ts").dt.minute().cast(pl.Int32)
             ).alias("_bucket_max_minute"),
         ]
     )
@@ -543,13 +545,14 @@ def aggregate_canonical_ohlcv(
         source_seen_through_bucket = pl.col("_bucket_end") <= pl.lit(
             source_max_ts + timedelta(minutes=1)
         )
-        real_observed_close = (
-            pl.col("is_session_close_bar")
-            & pl.col("_bucket_max_minute").is_in(sorted(close_minutes))
-        )
+        real_observed_close = pl.col("is_session_close_bar") & pl.col(
+            "_bucket_max_minute"
+        ).is_in(sorted(close_minutes))
         complete_expr = complete_expr | source_seen_through_bucket | real_observed_close
     grouped = grouped.with_columns(complete_expr.alias("_is_complete_bucket"))
-    dropped_incomplete = int((~grouped["_is_complete_bucket"]).sum()) if drop_incomplete else 0
+    dropped_incomplete = (
+        int((~grouped["_is_complete_bucket"]).sum()) if drop_incomplete else 0
+    )
     if drop_incomplete:
         grouped = grouped.filter(pl.col("_is_complete_bucket"))
 

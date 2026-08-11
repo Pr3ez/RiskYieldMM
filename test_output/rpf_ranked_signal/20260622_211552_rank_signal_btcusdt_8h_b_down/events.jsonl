@@ -1,0 +1,3 @@
+{"event": "stage_start", "ts": "2026-06-22T21:15:52.449985+00:00", "command": "rank_signal", "asset": "BTCUSDT", "root": "8h/B", "side": "down"}
+{"event": "trial_error", "ts": "2026-06-22T21:15:56.719174+00:00", "trial_number": 1, "error_type": "TypeError", "error_message": "float() argument must be a string or a real number, not 'NoneType'"}
+{"event": "stage_done", "ts": "2026-06-22T21:15:56.798223+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal/20260622_211552_rank_signal_btcusdt_8h_b_down", "best_objective": 1.1927415074309982}

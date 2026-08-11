@@ -1,0 +1,3487 @@
+{
+  "evaluation_order": "DEPTH_FIRST_LEFT_TO_RIGHT_LAZY_BRANCHES_CHECKED_UINT128",
+  "ordered_primitive_opcode_records": [
+    {
+      "opcode": "CONST_V1",
+      "opcode_position": 1,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [
+        "value"
+      ],
+      "result_type": "LITERAL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "PARAM_V1",
+      "opcode_position": 2,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [
+        "parameter_name"
+      ],
+      "result_type": "PARAMETER_VALUE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CHILD_V1",
+      "opcode_position": 3,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [
+        "zero_based_index"
+      ],
+      "result_type": "CELL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CHILDREN_V1",
+      "opcode_position": 4,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [],
+      "result_type": "CELL_LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CEILING_V1",
+      "opcode_position": 5,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "VAR_V1",
+      "opcode_position": 6,
+      "operand_type_rule": "NONE",
+      "ordered_required_member_names_after_opcode": [
+        "variable_name"
+      ],
+      "result_type": "BOUND_VALUE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "LET_V1",
+      "opcode_position": 7,
+      "operand_type_rule": "SEQUENTIAL_BINDINGS",
+      "ordered_required_member_names_after_opcode": [
+        "ordered_bindings",
+        "result_expression"
+      ],
+      "result_type": "RESULT_TYPE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IF_V1",
+      "opcode_position": 8,
+      "operand_type_rule": "BOOL,LAZY_BRANCHES",
+      "ordered_required_member_names_after_opcode": [
+        "condition",
+        "then_expression",
+        "else_expression"
+      ],
+      "result_type": "COMMON_BRANCH_TYPE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "VALIDATE_V1",
+      "opcode_position": 9,
+      "operand_type_rule": "BOOL,TEXT,LAZY_RESULT",
+      "ordered_required_member_names_after_opcode": [
+        "condition",
+        "error_code",
+        "result_expression"
+      ],
+      "result_type": "RESULT_TYPE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "EQ_V1",
+      "opcode_position": 10,
+      "operand_type_rule": "SAME_TYPE",
+      "ordered_required_member_names_after_opcode": [
+        "left",
+        "right"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "LE_V1",
+      "opcode_position": 11,
+      "operand_type_rule": "ORDERED_SAME_TYPE",
+      "ordered_required_member_names_after_opcode": [
+        "left",
+        "right"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "LT_V1",
+      "opcode_position": 12,
+      "operand_type_rule": "ORDERED_SAME_TYPE",
+      "ordered_required_member_names_after_opcode": [
+        "left",
+        "right"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "AND_V1",
+      "opcode_position": 13,
+      "operand_type_rule": "BOOL_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "ordered_operands"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "OR_V1",
+      "opcode_position": 14,
+      "operand_type_rule": "BOOL_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "ordered_operands"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "NOT_V1",
+      "opcode_position": 15,
+      "operand_type_rule": "BOOL",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IN_SET_V1",
+      "opcode_position": 16,
+      "operand_type_rule": "VALUE,LITERAL_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "operand",
+        "ordered_values"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_NULL_V1",
+      "opcode_position": 17,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_BOOLEAN_V1",
+      "opcode_position": 18,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_TEXT_V1",
+      "opcode_position": 19,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_U128_V1",
+      "opcode_position": 20,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_SIGNED_SAFE_INTEGER_V1",
+      "opcode_position": 21,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_LIST_V1",
+      "opcode_position": 22,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_MAPPING_V1",
+      "opcode_position": 23,
+      "operand_type_rule": "ANY",
+      "ordered_required_member_names_after_opcode": [
+        "operand"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "IS_CELL_EMPTY_V1",
+      "opcode_position": 24,
+      "operand_type_rule": "CELL",
+      "ordered_required_member_names_after_opcode": [
+        "cell"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "HAS_EXACT_KEYS_V1",
+      "opcode_position": 25,
+      "operand_type_rule": "MAPPING,TEXT_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "mapping",
+        "ordered_keys"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "FIELD_V1",
+      "opcode_position": 26,
+      "operand_type_rule": "MAPPING,TEXT",
+      "ordered_required_member_names_after_opcode": [
+        "mapping",
+        "field_name"
+      ],
+      "result_type": "ANY",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "INDEX_V1",
+      "opcode_position": 27,
+      "operand_type_rule": "SEQUENCE,U128",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "zero_based_index"
+      ],
+      "result_type": "ANY",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "LIST_V1",
+      "opcode_position": 28,
+      "operand_type_rule": "EXPRESSION_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "ordered_items"
+      ],
+      "result_type": "LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CONCAT_V1",
+      "opcode_position": 29,
+      "operand_type_rule": "LIST_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "ordered_sequences"
+      ],
+      "result_type": "LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "LIST_LENGTH_V1",
+      "opcode_position": 30,
+      "operand_type_rule": "SEQUENCE",
+      "ordered_required_member_names_after_opcode": [
+        "sequence"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "MAP_V1",
+      "opcode_position": 31,
+      "operand_type_rule": "SEQUENCE,TEXT,SCOPED_EXPRESSION",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "item_variable",
+        "map_expression"
+      ],
+      "result_type": "LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "FILTER_V1",
+      "opcode_position": 32,
+      "operand_type_rule": "SEQUENCE,TEXT,SCOPED_BOOL",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "item_variable",
+        "predicate"
+      ],
+      "result_type": "LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "ANY_V1",
+      "opcode_position": 33,
+      "operand_type_rule": "SEQUENCE,TEXT,SCOPED_BOOL",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "item_variable",
+        "predicate"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "ALL_V1",
+      "opcode_position": 34,
+      "operand_type_rule": "SEQUENCE,TEXT,SCOPED_BOOL",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "item_variable",
+        "predicate"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "ALL_INDEXED_V1",
+      "opcode_position": 35,
+      "operand_type_rule": "SEQUENCE,TEXT,TEXT,SCOPED_BOOL",
+      "ordered_required_member_names_after_opcode": [
+        "sequence",
+        "index_variable",
+        "item_variable",
+        "predicate"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "FOLD_MIN_U128_V1",
+      "opcode_position": 36,
+      "operand_type_rule": "NONEMPTY_U128_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "sequence"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "FOLD_MAX_U128_V1",
+      "opcode_position": 37,
+      "operand_type_rule": "NONEMPTY_U128_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "sequence"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CHECKED_ADD_LIST_U128_V1",
+      "opcode_position": 38,
+      "operand_type_rule": "U128_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "sequence"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CHECKED_SUB_U128_V1",
+      "opcode_position": 39,
+      "operand_type_rule": "U128,U128",
+      "ordered_required_member_names_after_opcode": [
+        "left",
+        "right"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CHECKED_MUL_U128_V1",
+      "opcode_position": 40,
+      "operand_type_rule": "U128,U128",
+      "ordered_required_member_names_after_opcode": [
+        "left",
+        "right"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CAPPED_ADD_LIST_U128_V1",
+      "opcode_position": 41,
+      "operand_type_rule": "U128,U128_LIST",
+      "ordered_required_member_names_after_opcode": [
+        "ceiling",
+        "sequence"
+      ],
+      "result_type": "CAPPED_U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CAPPED_MUL_U128_V1",
+      "opcode_position": 42,
+      "operand_type_rule": "U128,U128,U128",
+      "ordered_required_member_names_after_opcode": [
+        "ceiling",
+        "left",
+        "right"
+      ],
+      "result_type": "CAPPED_U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CAPPED_VALUE_V1",
+      "opcode_position": 43,
+      "operand_type_rule": "CAPPED_U128",
+      "ordered_required_member_names_after_opcode": [
+        "capped_value"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CAPPED_EXCEEDED_V1",
+      "opcode_position": 44,
+      "operand_type_rule": "CAPPED_U128",
+      "ordered_required_member_names_after_opcode": [
+        "capped_value"
+      ],
+      "result_type": "BOOL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "DECIMAL_OCTETS_V1",
+      "opcode_position": 45,
+      "operand_type_rule": "SIGNED_SAFE_INTEGER",
+      "ordered_required_member_names_after_opcode": [
+        "signed_integer"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CANONICAL_STRING_OCTETS_V1",
+      "opcode_position": 46,
+      "operand_type_rule": "TEXT",
+      "ordered_required_member_names_after_opcode": [
+        "text"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_EMPTY_V1",
+      "opcode_position": 47,
+      "operand_type_rule": "LIST",
+      "ordered_required_member_names_after_opcode": [
+        "state_expression"
+      ],
+      "result_type": "CELL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_BUILD_CLIPPED_V1",
+      "opcode_position": 48,
+      "operand_type_rule": "U128,U128,U128,LIST",
+      "ordered_required_member_names_after_opcode": [
+        "lower",
+        "upper",
+        "ceiling",
+        "state_expression"
+      ],
+      "result_type": "CELL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_BUILD_FROM_CAPPED_V1",
+      "opcode_position": 49,
+      "operand_type_rule": "CAPPED_U128,CAPPED_U128,U128,LIST",
+      "ordered_required_member_names_after_opcode": [
+        "lower_capped",
+        "upper_capped",
+        "ceiling",
+        "state_expression"
+      ],
+      "result_type": "CELL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_CLIP_V1",
+      "opcode_position": 50,
+      "operand_type_rule": "CELL,U128",
+      "ordered_required_member_names_after_opcode": [
+        "cell",
+        "ceiling"
+      ],
+      "result_type": "CELL",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_LOWER_V1",
+      "opcode_position": 51,
+      "operand_type_rule": "CELL",
+      "ordered_required_member_names_after_opcode": [
+        "cell"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_UPPER_V1",
+      "opcode_position": 52,
+      "operand_type_rule": "CELL",
+      "ordered_required_member_names_after_opcode": [
+        "cell"
+      ],
+      "result_type": "U128",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CELL_STATE_V1",
+      "opcode_position": 53,
+      "operand_type_rule": "CELL",
+      "ordered_required_member_names_after_opcode": [
+        "cell"
+      ],
+      "result_type": "LIST",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "CALL_RULE_V1",
+      "opcode_position": 54,
+      "operand_type_rule": "SHA256_RULE_ID,TYPED_ARGUMENT_BINDINGS",
+      "ordered_required_member_names_after_opcode": [
+        "transfer_rule_id",
+        "ordered_argument_bindings"
+      ],
+      "result_type": "RULE_RESULT_TYPE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    {
+      "opcode": "RESOLVE_LOCAL_CATALOG_V1",
+      "opcode_position": 55,
+      "operand_type_rule": "TEXT",
+      "ordered_required_member_names_after_opcode": [
+        "catalog_id"
+      ],
+      "result_type": "MAPPING",
+      "unknown_or_extra_member_policy": "REJECT"
+    }
+  ],
+  "ordered_transfer_rule_records": [
+    {
+      "ordered_parameter_names": [
+        "fixed_canonical_octets"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "fixed_canonical_octets",
+          "parameter_position": 1,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "lower": {
+          "opcode": "PARAM_V1",
+          "parameter_name": "fixed_canonical_octets"
+        },
+        "opcode": "CELL_BUILD_CLIPPED_V1",
+        "state_expression": {
+          "opcode": "LIST_V1",
+          "ordered_items": []
+        },
+        "upper": {
+          "opcode": "PARAM_V1",
+          "parameter_name": "fixed_canonical_octets"
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 1,
+      "transfer_rule_id": "ede0c23223c7c27f9618795e1777dff9bcc8a9918aee1673431452f10cb092f9",
+      "transfer_rule_name": "FIXED_EXACT_OR_EMPTY_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "boolean_literal"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "boolean_literal",
+          "parameter_position": 1,
+          "value_type": "BOOLEAN_OR_NULL_FULL_DOMAIN_SENTINEL"
+        }
+      ],
+      "program": {
+        "condition": {
+          "opcode": "OR_V1",
+          "ordered_operands": [
+            {
+              "opcode": "IS_NULL_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "boolean_literal"
+              }
+            },
+            {
+              "opcode": "IS_BOOLEAN_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "boolean_literal"
+              }
+            }
+          ]
+        },
+        "error_code": "BOOLEAN_SENTINEL_INVALID",
+        "opcode": "VALIDATE_V1",
+        "result_expression": {
+          "condition": {
+            "opcode": "IS_NULL_V1",
+            "operand": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "boolean_literal"
+            }
+          },
+          "else_expression": {
+            "condition": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "boolean_literal"
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "CONST_V1",
+                "value": 5
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "CONST_V1",
+                "value": 5
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "CONST_V1",
+                "value": 4
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "CONST_V1",
+                "value": 4
+              }
+            }
+          },
+          "opcode": "IF_V1",
+          "then_expression": {
+            "opcode": "LET_V1",
+            "ordered_bindings": [
+              {
+                "binding_name": "admitted",
+                "value_expression": {
+                  "item_variable": "length",
+                  "opcode": "FILTER_V1",
+                  "predicate": {
+                    "left": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "length"
+                    },
+                    "opcode": "LE_V1",
+                    "right": {
+                      "opcode": "CEILING_V1"
+                    }
+                  },
+                  "sequence": {
+                    "opcode": "LIST_V1",
+                    "ordered_items": [
+                      {
+                        "opcode": "CONST_V1",
+                        "value": 4
+                      },
+                      {
+                        "opcode": "CONST_V1",
+                        "value": 5
+                      }
+                    ]
+                  }
+                }
+              }
+            ],
+            "result_expression": {
+              "condition": {
+                "left": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "admitted"
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 0
+                }
+              },
+              "else_expression": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "lower": {
+                  "opcode": "FOLD_MIN_U128_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "admitted"
+                  }
+                },
+                "opcode": "CELL_BUILD_CLIPPED_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                },
+                "upper": {
+                  "opcode": "FOLD_MAX_U128_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "admitted"
+                  }
+                }
+              },
+              "opcode": "IF_V1",
+              "then_expression": {
+                "opcode": "CELL_EMPTY_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                }
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 2,
+      "transfer_rule_id": "588a316525f85701c2981a740802b8a234eff8a8251bfa4581327d868fd334c0",
+      "transfer_rule_name": "BOOLEAN_LITERAL_OR_FULL_DOMAIN_SENTINEL_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "integer_minimum",
+        "integer_maximum",
+        "ordered_probe_values"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "integer_minimum",
+          "parameter_position": 1,
+          "value_type": "SIGNED_SAFE_INTEGER"
+        },
+        {
+          "parameter_name": "integer_maximum",
+          "parameter_position": 2,
+          "value_type": "SIGNED_SAFE_INTEGER"
+        },
+        {
+          "parameter_name": "ordered_probe_values",
+          "parameter_position": 3,
+          "value_type": "ORDERED_JSON_ARRAY"
+        }
+      ],
+      "program": {
+        "condition": {
+          "opcode": "AND_V1",
+          "ordered_operands": [
+            {
+              "opcode": "IS_SIGNED_SAFE_INTEGER_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "integer_minimum"
+              }
+            },
+            {
+              "opcode": "IS_SIGNED_SAFE_INTEGER_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "integer_maximum"
+              }
+            },
+            {
+              "left": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "integer_minimum"
+              },
+              "opcode": "LE_V1",
+              "right": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "integer_maximum"
+              }
+            }
+          ]
+        },
+        "error_code": "SAFE_INTEGER_INTERVAL_INVALID",
+        "opcode": "VALIDATE_V1",
+        "result_expression": {
+          "ceiling": {
+            "opcode": "CEILING_V1"
+          },
+          "lower": {
+            "opcode": "DECIMAL_OCTETS_V1",
+            "signed_integer": {
+              "condition": {
+                "opcode": "AND_V1",
+                "ordered_operands": [
+                  {
+                    "left": {
+                      "opcode": "PARAM_V1",
+                      "parameter_name": "integer_minimum"
+                    },
+                    "opcode": "LE_V1",
+                    "right": {
+                      "opcode": "CONST_V1",
+                      "value": 0
+                    }
+                  },
+                  {
+                    "left": {
+                      "opcode": "CONST_V1",
+                      "value": 0
+                    },
+                    "opcode": "LE_V1",
+                    "right": {
+                      "opcode": "PARAM_V1",
+                      "parameter_name": "integer_maximum"
+                    }
+                  }
+                ]
+              },
+              "else_expression": {
+                "condition": {
+                  "left": {
+                    "opcode": "CONST_V1",
+                    "value": 0
+                  },
+                  "opcode": "LT_V1",
+                  "right": {
+                    "opcode": "PARAM_V1",
+                    "parameter_name": "integer_minimum"
+                  }
+                },
+                "else_expression": {
+                  "opcode": "PARAM_V1",
+                  "parameter_name": "integer_maximum"
+                },
+                "opcode": "IF_V1",
+                "then_expression": {
+                  "opcode": "PARAM_V1",
+                  "parameter_name": "integer_minimum"
+                }
+              },
+              "opcode": "IF_V1",
+              "then_expression": {
+                "opcode": "CONST_V1",
+                "value": 0
+              }
+            }
+          },
+          "opcode": "CELL_BUILD_CLIPPED_V1",
+          "state_expression": {
+            "opcode": "LIST_V1",
+            "ordered_items": []
+          },
+          "upper": {
+            "opcode": "FOLD_MAX_U128_V1",
+            "sequence": {
+              "opcode": "LIST_V1",
+              "ordered_items": [
+                {
+                  "opcode": "DECIMAL_OCTETS_V1",
+                  "signed_integer": {
+                    "opcode": "PARAM_V1",
+                    "parameter_name": "integer_minimum"
+                  }
+                },
+                {
+                  "opcode": "DECIMAL_OCTETS_V1",
+                  "signed_integer": {
+                    "opcode": "PARAM_V1",
+                    "parameter_name": "integer_maximum"
+                  }
+                }
+              ]
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 3,
+      "transfer_rule_id": "120cc63ee503532b4c05ba09891a09be301735c260770b9e970b0ba23ac7792b",
+      "transfer_rule_name": "SIGNED_SAFE_INTEGER_ENDPOINT_AND_NEAREST_ZERO_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "text_language_position",
+        "text_language_id",
+        "ordered_literals"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "text_language_position",
+          "parameter_position": 1,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "text_language_id",
+          "parameter_position": 2,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "ordered_literals",
+          "parameter_position": 3,
+          "value_type": "ORDERED_JSON_ARRAY"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "lengths",
+            "value_expression": {
+              "item_variable": "literal",
+              "map_expression": {
+                "opcode": "CANONICAL_STRING_OCTETS_V1",
+                "text": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "literal"
+                }
+              },
+              "opcode": "MAP_V1",
+              "sequence": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "ordered_literals"
+              }
+            }
+          },
+          {
+            "binding_name": "admitted",
+            "value_expression": {
+              "item_variable": "length",
+              "opcode": "FILTER_V1",
+              "predicate": {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "length"
+                },
+                "opcode": "LE_V1",
+                "right": {
+                  "opcode": "CEILING_V1"
+                }
+              },
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "lengths"
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "item_variable": "literal",
+            "opcode": "ALL_V1",
+            "predicate": {
+              "opcode": "IS_TEXT_V1",
+              "operand": {
+                "opcode": "VAR_V1",
+                "variable_name": "literal"
+              }
+            },
+            "sequence": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "ordered_literals"
+            }
+          },
+          "error_code": "FINITE_TEXT_LITERAL_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "condition": {
+              "left": {
+                "opcode": "LIST_LENGTH_V1",
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "admitted"
+                }
+              },
+              "opcode": "EQ_V1",
+              "right": {
+                "opcode": "CONST_V1",
+                "value": 0
+              }
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "FOLD_MIN_U128_V1",
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "admitted"
+                }
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "FOLD_MAX_U128_V1",
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "admitted"
+                }
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "opcode": "CELL_EMPTY_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 4,
+      "transfer_rule_id": "4407417690f33b84c0e1e8c6637d0fab1ba2de26705853f7288a1fbef36accd0",
+      "transfer_rule_name": "FINITE_CANONICAL_STRING_LENGTH_EXTREMA_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "built_in_language_kind",
+        "minimum_canonical_octets",
+        "maximum_canonical_octets",
+        "text_language_id",
+        "text_language_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "built_in_language_kind",
+          "parameter_position": 1,
+          "value_type": "OPTIONAL_TEXT"
+        },
+        {
+          "parameter_name": "minimum_canonical_octets",
+          "parameter_position": 2,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "maximum_canonical_octets",
+          "parameter_position": 3,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "text_language_id",
+          "parameter_position": 4,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "text_language_position",
+          "parameter_position": 5,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "condition": {
+          "opcode": "AND_V1",
+          "ordered_operands": [
+            {
+              "opcode": "IS_U128_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "minimum_canonical_octets"
+              }
+            },
+            {
+              "opcode": "IS_U128_V1",
+              "operand": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "maximum_canonical_octets"
+              }
+            },
+            {
+              "left": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "minimum_canonical_octets"
+              },
+              "opcode": "LE_V1",
+              "right": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "maximum_canonical_octets"
+              }
+            }
+          ]
+        },
+        "error_code": "BOUNDED_TEXT_INTERVAL_INVALID",
+        "opcode": "VALIDATE_V1",
+        "result_expression": {
+          "ceiling": {
+            "opcode": "CEILING_V1"
+          },
+          "lower": {
+            "opcode": "PARAM_V1",
+            "parameter_name": "minimum_canonical_octets"
+          },
+          "opcode": "CELL_BUILD_CLIPPED_V1",
+          "state_expression": {
+            "opcode": "LIST_V1",
+            "ordered_items": []
+          },
+          "upper": {
+            "opcode": "PARAM_V1",
+            "parameter_name": "maximum_canonical_octets"
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 5,
+      "transfer_rule_id": "f8c4e867735c0cc2d322fb1ce3bea102e6e823fef515a9ec5b98021a712dc998",
+      "transfer_rule_name": "BOUNDED_CANONICAL_STRING_OCTET_INTERVAL_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "text_language_position",
+        "text_language_id",
+        "language_kind",
+        "built_in_language_kind",
+        "ascii_dfa_id",
+        "unicode_identifier_profile_id",
+        "minimum_utf8_octets",
+        "maximum_utf8_octets",
+        "minimum_decoded_octets",
+        "maximum_decoded_octets",
+        "decimal_maximum"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "text_language_position",
+          "parameter_position": 1,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "text_language_id",
+          "parameter_position": 2,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "language_kind",
+          "parameter_position": 3,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "built_in_language_kind",
+          "parameter_position": 4,
+          "value_type": "OPTIONAL_TEXT"
+        },
+        {
+          "parameter_name": "ascii_dfa_id",
+          "parameter_position": 5,
+          "value_type": "OPTIONAL_TEXT"
+        },
+        {
+          "parameter_name": "unicode_identifier_profile_id",
+          "parameter_position": 6,
+          "value_type": "OPTIONAL_TEXT"
+        },
+        {
+          "parameter_name": "minimum_utf8_octets",
+          "parameter_position": 7,
+          "value_type": "OPTIONAL_U128"
+        },
+        {
+          "parameter_name": "maximum_utf8_octets",
+          "parameter_position": 8,
+          "value_type": "OPTIONAL_U128"
+        },
+        {
+          "parameter_name": "minimum_decoded_octets",
+          "parameter_position": 9,
+          "value_type": "OPTIONAL_U128"
+        },
+        {
+          "parameter_name": "maximum_decoded_octets",
+          "parameter_position": 10,
+          "value_type": "OPTIONAL_U128"
+        },
+        {
+          "parameter_name": "decimal_maximum",
+          "parameter_position": 11,
+          "value_type": "OPTIONAL_TEXT"
+        }
+      ],
+      "program": {
+        "condition": {
+          "left": {
+            "opcode": "CEILING_V1"
+          },
+          "opcode": "LT_V1",
+          "right": {
+            "opcode": "CONST_V1",
+            "value": 2
+          }
+        },
+        "else_expression": {
+          "ceiling": {
+            "opcode": "CEILING_V1"
+          },
+          "lower": {
+            "opcode": "CONST_V1",
+            "value": 2
+          },
+          "opcode": "CELL_BUILD_CLIPPED_V1",
+          "state_expression": {
+            "opcode": "LIST_V1",
+            "ordered_items": []
+          },
+          "upper": {
+            "opcode": "CEILING_V1"
+          }
+        },
+        "opcode": "IF_V1",
+        "then_expression": {
+          "opcode": "CELL_EMPTY_V1",
+          "state_expression": {
+            "opcode": "LIST_V1",
+            "ordered_items": []
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 6,
+      "transfer_rule_id": "912f8ce3e83df6728da6728ebb6096476ca382aa0a952cb7ee17cd7f6ddc03ff",
+      "transfer_rule_name": "ALL_CANONICAL_JSON_STRINGS_UNDER_EFFECTIVE_CEILING_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "canonical_octets"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "canonical_octets",
+          "parameter_position": 1,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "lower": {
+          "opcode": "PARAM_V1",
+          "parameter_name": "canonical_octets"
+        },
+        "opcode": "CELL_BUILD_CLIPPED_V1",
+        "state_expression": {
+          "opcode": "LIST_V1",
+          "ordered_items": []
+        },
+        "upper": {
+          "opcode": "PARAM_V1",
+          "parameter_name": "canonical_octets"
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 7,
+      "transfer_rule_id": "49adb6e77460e6f4659df1b454a04921fb183b5f6dcb86c635a5364344061ac2",
+      "transfer_rule_name": "DERIVED_IDENTITY_EXACT_OR_EMPTY_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 1,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "child",
+            "value_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "cell": {
+                "opcode": "CHILD_V1",
+                "zero_based_index": 0
+              },
+              "opcode": "CELL_CLIP_V1"
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "left": {
+              "opcode": "CEILING_V1"
+            },
+            "opcode": "LT_V1",
+            "right": {
+              "opcode": "CONST_V1",
+              "value": 4
+            }
+          },
+          "else_expression": {
+            "condition": {
+              "cell": {
+                "opcode": "VAR_V1",
+                "variable_name": "child"
+              },
+              "opcode": "IS_CELL_EMPTY_V1"
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "FOLD_MIN_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 4
+                    },
+                    {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "child"
+                      },
+                      "opcode": "CELL_LOWER_V1"
+                    }
+                  ]
+                }
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "FOLD_MAX_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 4
+                    },
+                    {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "child"
+                      },
+                      "opcode": "CELL_UPPER_V1"
+                    }
+                  ]
+                }
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "CONST_V1",
+                "value": 4
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "CONST_V1",
+                "value": 4
+              }
+            }
+          },
+          "opcode": "IF_V1",
+          "then_expression": {
+            "opcode": "VAR_V1",
+            "variable_name": "child"
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 8,
+      "transfer_rule_id": "db5d6356377b2f718d155258c129062c0af76b51207458bee977d84db77a447b",
+      "transfer_rule_name": "NULL_LITERAL_AND_NON_NULL_CHILD_UNION_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "referenced_type_name",
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "referenced_type_name",
+          "parameter_position": 1,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 2,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "cell": {
+          "opcode": "CHILD_V1",
+          "zero_based_index": 0
+        },
+        "opcode": "CELL_CLIP_V1"
+      },
+      "result_type": "CELL",
+      "rule_position": 9,
+      "transfer_rule_id": "09ea3dd5ee0f6b4cc2942919c3f9d750d59983e7ca8901055c890a2e81602231",
+      "transfer_rule_name": "VALIDATED_CHILD_BOUNDS_ALIAS_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "minimum_items",
+        "maximum_items",
+        "item_value_schema_id",
+        "item_step_position",
+        "ordered_run_records",
+        "observer_closure_record"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "minimum_items",
+          "parameter_position": 1,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "maximum_items",
+          "parameter_position": 2,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "item_value_schema_id",
+          "parameter_position": 3,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "item_step_position",
+          "parameter_position": 4,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "ordered_run_records",
+          "parameter_position": 5,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "observer_closure_record",
+          "parameter_position": 6,
+          "value_type": "JSON_MAPPING"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "item",
+            "value_expression": {
+              "opcode": "CHILD_V1",
+              "zero_based_index": 0
+            }
+          },
+          {
+            "binding_name": "minimum",
+            "value_expression": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "minimum_items"
+            }
+          },
+          {
+            "binding_name": "maximum",
+            "value_expression": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "maximum_items"
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "opcode": "AND_V1",
+            "ordered_operands": [
+              {
+                "opcode": "AND_V1",
+                "ordered_operands": [
+                  {
+                    "opcode": "IS_U128_V1",
+                    "operand": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "minimum"
+                    }
+                  },
+                  {
+                    "opcode": "IS_U128_V1",
+                    "operand": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "maximum"
+                    }
+                  },
+                  {
+                    "left": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "minimum"
+                    },
+                    "opcode": "LE_V1",
+                    "right": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "maximum"
+                    }
+                  }
+                ]
+              },
+              {
+                "opcode": "IS_MAPPING_V1",
+                "operand": {
+                  "opcode": "PARAM_V1",
+                  "parameter_name": "observer_closure_record"
+                }
+              },
+              {
+                "left": {
+                  "field_name": "batch_eligible",
+                  "mapping": {
+                    "opcode": "PARAM_V1",
+                    "parameter_name": "observer_closure_record"
+                  },
+                  "opcode": "FIELD_V1"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": true
+                }
+              },
+              {
+                "opcode": "IS_LIST_V1",
+                "operand": {
+                  "opcode": "PARAM_V1",
+                  "parameter_name": "ordered_run_records"
+                }
+              },
+              {
+                "left": {
+                  "opcode": "CHECKED_ADD_LIST_U128_V1",
+                  "sequence": {
+                    "item_variable": "run",
+                    "map_expression": {
+                      "field_name": "item_count",
+                      "mapping": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "run"
+                      },
+                      "opcode": "FIELD_V1"
+                    },
+                    "opcode": "MAP_V1",
+                    "sequence": {
+                      "opcode": "PARAM_V1",
+                      "parameter_name": "ordered_run_records"
+                    }
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "maximum"
+                }
+              }
+            ]
+          },
+          "error_code": "ARRAY_PARAMETERS_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "condition": {
+              "cell": {
+                "opcode": "VAR_V1",
+                "variable_name": "item"
+              },
+              "opcode": "IS_CELL_EMPTY_V1"
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower_capped": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "opcode": "CAPPED_ADD_LIST_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 2
+                    },
+                    {
+                      "capped_value": {
+                        "ceiling": {
+                          "opcode": "CEILING_V1"
+                        },
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "CAPPED_MUL_U128_V1",
+                        "right": {
+                          "cell": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "item"
+                          },
+                          "opcode": "CELL_LOWER_V1"
+                        }
+                      },
+                      "opcode": "CAPPED_VALUE_V1"
+                    },
+                    {
+                      "condition": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "EQ_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 0
+                        }
+                      },
+                      "else_expression": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "CHECKED_SUB_U128_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 1
+                        }
+                      },
+                      "opcode": "IF_V1",
+                      "then_expression": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              "opcode": "CELL_BUILD_FROM_CAPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": [
+                  {
+                    "opcode": "VAR_V1",
+                    "variable_name": "maximum"
+                  },
+                  {
+                    "capped_value": {
+                      "ceiling": {
+                        "opcode": "CEILING_V1"
+                      },
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "CAPPED_MUL_U128_V1",
+                      "right": {
+                        "cell": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "item"
+                        },
+                        "opcode": "CELL_UPPER_V1"
+                      }
+                    },
+                    "opcode": "CAPPED_VALUE_V1"
+                  },
+                  {
+                    "condition": {
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    },
+                    "else_expression": {
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "CHECKED_SUB_U128_V1",
+                      "right": {
+                        "opcode": "CONST_V1",
+                        "value": 1
+                      }
+                    },
+                    "opcode": "IF_V1",
+                    "then_expression": {
+                      "opcode": "CONST_V1",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              "upper_capped": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "opcode": "CAPPED_ADD_LIST_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 2
+                    },
+                    {
+                      "capped_value": {
+                        "ceiling": {
+                          "opcode": "CEILING_V1"
+                        },
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "CAPPED_MUL_U128_V1",
+                        "right": {
+                          "cell": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "item"
+                          },
+                          "opcode": "CELL_UPPER_V1"
+                        }
+                      },
+                      "opcode": "CAPPED_VALUE_V1"
+                    },
+                    {
+                      "condition": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "EQ_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 0
+                        }
+                      },
+                      "else_expression": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "CHECKED_SUB_U128_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 1
+                        }
+                      },
+                      "opcode": "IF_V1",
+                      "then_expression": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "condition": {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "minimum"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 0
+                }
+              },
+              "else_expression": {
+                "opcode": "CELL_EMPTY_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                }
+              },
+              "opcode": "IF_V1",
+              "then_expression": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "lower": {
+                  "opcode": "CONST_V1",
+                  "value": 2
+                },
+                "opcode": "CELL_BUILD_CLIPPED_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                },
+                "upper": {
+                  "opcode": "CONST_V1",
+                  "value": 2
+                }
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 10,
+      "transfer_rule_id": "f53fce77353295a5f5708c06be61a3461a3960a29de299018783daa58a5c44bb",
+      "transfer_rule_name": "HOMOGENEOUS_ARRAY_BATCH_INTERVAL_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "minimum_items",
+        "maximum_items",
+        "item_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "minimum_items",
+          "parameter_position": 1,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "maximum_items",
+          "parameter_position": 2,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "item_step_position",
+          "parameter_position": 3,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "item",
+            "value_expression": {
+              "opcode": "CHILD_V1",
+              "zero_based_index": 0
+            }
+          },
+          {
+            "binding_name": "minimum",
+            "value_expression": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "minimum_items"
+            }
+          },
+          {
+            "binding_name": "maximum",
+            "value_expression": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "maximum_items"
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "opcode": "AND_V1",
+            "ordered_operands": [
+              {
+                "opcode": "IS_U128_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "minimum"
+                }
+              },
+              {
+                "opcode": "IS_U128_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "maximum"
+                }
+              },
+              {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "minimum"
+                },
+                "opcode": "LE_V1",
+                "right": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "maximum"
+                }
+              }
+            ]
+          },
+          "error_code": "ARRAY_PARAMETERS_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "condition": {
+              "cell": {
+                "opcode": "VAR_V1",
+                "variable_name": "item"
+              },
+              "opcode": "IS_CELL_EMPTY_V1"
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower_capped": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "opcode": "CAPPED_ADD_LIST_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 2
+                    },
+                    {
+                      "capped_value": {
+                        "ceiling": {
+                          "opcode": "CEILING_V1"
+                        },
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "CAPPED_MUL_U128_V1",
+                        "right": {
+                          "cell": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "item"
+                          },
+                          "opcode": "CELL_LOWER_V1"
+                        }
+                      },
+                      "opcode": "CAPPED_VALUE_V1"
+                    },
+                    {
+                      "condition": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "EQ_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 0
+                        }
+                      },
+                      "else_expression": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "minimum"
+                        },
+                        "opcode": "CHECKED_SUB_U128_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 1
+                        }
+                      },
+                      "opcode": "IF_V1",
+                      "then_expression": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              },
+              "opcode": "CELL_BUILD_FROM_CAPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": [
+                  {
+                    "opcode": "VAR_V1",
+                    "variable_name": "maximum"
+                  },
+                  {
+                    "opcode": "VAR_V1",
+                    "variable_name": "maximum"
+                  },
+                  {
+                    "capped_value": {
+                      "ceiling": {
+                        "opcode": "CEILING_V1"
+                      },
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "CAPPED_MUL_U128_V1",
+                      "right": {
+                        "cell": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "item"
+                        },
+                        "opcode": "CELL_UPPER_V1"
+                      }
+                    },
+                    "opcode": "CAPPED_VALUE_V1"
+                  },
+                  {
+                    "condition": {
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    },
+                    "else_expression": {
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "maximum"
+                      },
+                      "opcode": "CHECKED_SUB_U128_V1",
+                      "right": {
+                        "opcode": "CONST_V1",
+                        "value": 1
+                      }
+                    },
+                    "opcode": "IF_V1",
+                    "then_expression": {
+                      "opcode": "CONST_V1",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              "upper_capped": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "opcode": "CAPPED_ADD_LIST_U128_V1",
+                "sequence": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": [
+                    {
+                      "opcode": "CONST_V1",
+                      "value": 2
+                    },
+                    {
+                      "capped_value": {
+                        "ceiling": {
+                          "opcode": "CEILING_V1"
+                        },
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "CAPPED_MUL_U128_V1",
+                        "right": {
+                          "cell": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "item"
+                          },
+                          "opcode": "CELL_UPPER_V1"
+                        }
+                      },
+                      "opcode": "CAPPED_VALUE_V1"
+                    },
+                    {
+                      "condition": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "EQ_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 0
+                        }
+                      },
+                      "else_expression": {
+                        "left": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "maximum"
+                        },
+                        "opcode": "CHECKED_SUB_U128_V1",
+                        "right": {
+                          "opcode": "CONST_V1",
+                          "value": 1
+                        }
+                      },
+                      "opcode": "IF_V1",
+                      "then_expression": {
+                        "opcode": "CONST_V1",
+                        "value": 0
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "condition": {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "minimum"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 0
+                }
+              },
+              "else_expression": {
+                "opcode": "CELL_EMPTY_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                }
+              },
+              "opcode": "IF_V1",
+              "then_expression": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "lower": {
+                  "opcode": "CONST_V1",
+                  "value": 2
+                },
+                "opcode": "CELL_BUILD_CLIPPED_V1",
+                "state_expression": {
+                  "opcode": "LIST_V1",
+                  "ordered_items": []
+                },
+                "upper": {
+                  "opcode": "CONST_V1",
+                  "value": 2
+                }
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 11,
+      "transfer_rule_id": "db29106a0397afd802df00b43157e57a73e89be4566e5019614783a21f2ea4d1",
+      "transfer_rule_name": "HOMOGENEOUS_ARRAY_STREAM_INTERVAL_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "record_member_count",
+        "ordered_member_records",
+        "record_syntax_octets_excluding_child_values"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "record_member_count",
+          "parameter_position": 1,
+          "value_type": "U128"
+        },
+        {
+          "parameter_name": "ordered_member_records",
+          "parameter_position": 2,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "record_syntax_octets_excluding_child_values",
+          "parameter_position": 3,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "children",
+            "value_expression": {
+              "opcode": "CHILDREN_V1"
+            }
+          },
+          {
+            "binding_name": "lower",
+            "value_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "opcode": "CAPPED_ADD_LIST_U128_V1",
+              "sequence": {
+                "opcode": "CONCAT_V1",
+                "ordered_sequences": [
+                  {
+                    "opcode": "LIST_V1",
+                    "ordered_items": [
+                      {
+                        "opcode": "PARAM_V1",
+                        "parameter_name": "record_syntax_octets_excluding_child_values"
+                      }
+                    ]
+                  },
+                  {
+                    "item_variable": "member",
+                    "map_expression": {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "member"
+                      },
+                      "opcode": "CELL_LOWER_V1"
+                    },
+                    "opcode": "MAP_V1",
+                    "sequence": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "children"
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "binding_name": "upper",
+            "value_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "opcode": "CAPPED_ADD_LIST_U128_V1",
+              "sequence": {
+                "opcode": "CONCAT_V1",
+                "ordered_sequences": [
+                  {
+                    "opcode": "LIST_V1",
+                    "ordered_items": [
+                      {
+                        "opcode": "PARAM_V1",
+                        "parameter_name": "record_syntax_octets_excluding_child_values"
+                      }
+                    ]
+                  },
+                  {
+                    "item_variable": "member",
+                    "map_expression": {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "member"
+                      },
+                      "opcode": "CELL_UPPER_V1"
+                    },
+                    "opcode": "MAP_V1",
+                    "sequence": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "children"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "opcode": "AND_V1",
+            "ordered_operands": [
+              {
+                "left": {
+                  "opcode": "PARAM_V1",
+                  "parameter_name": "record_member_count"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "children"
+                  }
+                }
+              },
+              {
+                "left": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "PARAM_V1",
+                    "parameter_name": "ordered_member_records"
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "children"
+                  }
+                }
+              }
+            ]
+          },
+          "error_code": "RECORD_CHILD_BINDING_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "condition": {
+              "item_variable": "member",
+              "opcode": "ANY_V1",
+              "predicate": {
+                "cell": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "member"
+                },
+                "opcode": "IS_CELL_EMPTY_V1"
+              },
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "children"
+              }
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower_capped": {
+                "opcode": "VAR_V1",
+                "variable_name": "lower"
+              },
+              "opcode": "CELL_BUILD_FROM_CAPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper_capped": {
+                "opcode": "VAR_V1",
+                "variable_name": "upper"
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "opcode": "CELL_EMPTY_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 12,
+      "transfer_rule_id": "0605b9284c84cdbc01f16e87fb5706aa86fa98f6bbc5f8d295e58da08d92e3b1",
+      "transfer_rule_name": "RECORD_SYNTAX_PLUS_ORDERED_CHILD_SUM_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "ordered_alternative_records",
+        "owner_type_name",
+        "owner_typed_member_path"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "ordered_alternative_records",
+          "parameter_position": 1,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "owner_type_name",
+          "parameter_position": 2,
+          "value_type": "OPTIONAL_TEXT"
+        },
+        {
+          "parameter_name": "owner_typed_member_path",
+          "parameter_position": 3,
+          "value_type": "TYPED_PATH"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "children",
+            "value_expression": {
+              "opcode": "CHILDREN_V1"
+            }
+          },
+          {
+            "binding_name": "admitted",
+            "value_expression": {
+              "item_variable": "alternative",
+              "opcode": "FILTER_V1",
+              "predicate": {
+                "opcode": "AND_V1",
+                "ordered_operands": [
+                  {
+                    "opcode": "NOT_V1",
+                    "operand": {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "alternative"
+                      },
+                      "opcode": "IS_CELL_EMPTY_V1"
+                    }
+                  },
+                  {
+                    "left": {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "alternative"
+                      },
+                      "opcode": "CELL_LOWER_V1"
+                    },
+                    "opcode": "LE_V1",
+                    "right": {
+                      "opcode": "CEILING_V1"
+                    }
+                  }
+                ]
+              },
+              "sequence": {
+                "opcode": "CHILDREN_V1"
+              }
+            }
+          },
+          {
+            "binding_name": "clipped",
+            "value_expression": {
+              "item_variable": "alternative",
+              "map_expression": {
+                "ceiling": {
+                  "opcode": "CEILING_V1"
+                },
+                "cell": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "alternative"
+                },
+                "opcode": "CELL_CLIP_V1"
+              },
+              "opcode": "MAP_V1",
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "admitted"
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "left": {
+              "opcode": "LIST_LENGTH_V1",
+              "sequence": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "ordered_alternative_records"
+              }
+            },
+            "opcode": "EQ_V1",
+            "right": {
+              "opcode": "LIST_LENGTH_V1",
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "children"
+              }
+            }
+          },
+          "error_code": "UNION_CHILD_BINDING_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "condition": {
+              "left": {
+                "opcode": "LIST_LENGTH_V1",
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "clipped"
+                }
+              },
+              "opcode": "EQ_V1",
+              "right": {
+                "opcode": "CONST_V1",
+                "value": 0
+              }
+            },
+            "else_expression": {
+              "ceiling": {
+                "opcode": "CEILING_V1"
+              },
+              "lower": {
+                "opcode": "FOLD_MIN_U128_V1",
+                "sequence": {
+                  "item_variable": "alternative",
+                  "map_expression": {
+                    "cell": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "alternative"
+                    },
+                    "opcode": "CELL_LOWER_V1"
+                  },
+                  "opcode": "MAP_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "clipped"
+                  }
+                }
+              },
+              "opcode": "CELL_BUILD_CLIPPED_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              },
+              "upper": {
+                "opcode": "FOLD_MAX_U128_V1",
+                "sequence": {
+                  "item_variable": "alternative",
+                  "map_expression": {
+                    "cell": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "alternative"
+                    },
+                    "opcode": "CELL_UPPER_V1"
+                  },
+                  "opcode": "MAP_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "clipped"
+                  }
+                }
+              }
+            },
+            "opcode": "IF_V1",
+            "then_expression": {
+              "opcode": "CELL_EMPTY_V1",
+              "state_expression": {
+                "opcode": "LIST_V1",
+                "ordered_items": []
+              }
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 13,
+      "transfer_rule_id": "a8dfbc47cc4b3000ee2ab46d9d668b83e6bce923fee5220aca45647376637657",
+      "transfer_rule_name": "ORDERED_NONEMPTY_ALTERNATIVE_INTERVAL_UNION_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "coordinate"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "coordinate",
+          "parameter_position": 1,
+          "value_type": "JSON_MAPPING"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "coordinate",
+            "value_expression": {
+              "opcode": "PARAM_V1",
+              "parameter_name": "coordinate"
+            }
+          },
+          {
+            "binding_name": "relation",
+            "value_expression": {
+              "field_name": "codec_byte_bound_relation",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "coordinate"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "limit",
+            "value_expression": {
+              "field_name": "codec_octet_limit",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "coordinate"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "scope",
+            "value_expression": {
+              "field_name": "coordinate_scope",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "coordinate"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "overhead",
+            "value_expression": {
+              "field_name": "minimum_sibling_and_syntax_octets",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "coordinate"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "inclusive",
+            "value_expression": {
+              "condition": {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "relation"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": "LE"
+                }
+              },
+              "else_expression": {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "limit"
+                },
+                "opcode": "CHECKED_SUB_U128_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 1
+                }
+              },
+              "opcode": "IF_V1",
+              "then_expression": {
+                "opcode": "VAR_V1",
+                "variable_name": "limit"
+              }
+            }
+          },
+          {
+            "binding_name": "derived",
+            "value_expression": {
+              "left": {
+                "opcode": "VAR_V1",
+                "variable_name": "inclusive"
+              },
+              "opcode": "CHECKED_SUB_U128_V1",
+              "right": {
+                "opcode": "VAR_V1",
+                "variable_name": "overhead"
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "opcode": "AND_V1",
+            "ordered_operands": [
+              {
+                "opcode": "IS_MAPPING_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "coordinate"
+                }
+              },
+              {
+                "mapping": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "coordinate"
+                },
+                "opcode": "HAS_EXACT_KEYS_V1",
+                "ordered_keys": [
+                  "codec_byte_bound_relation",
+                  "codec_octet_limit",
+                  "codec_owner_type_name",
+                  "codec_owner_typed_member_path",
+                  "coordinate_position",
+                  "coordinate_scope",
+                  "derived_payload_octet_ceiling",
+                  "minimum_sibling_and_syntax_octets",
+                  "selected_union_alternative_name"
+                ]
+              },
+              {
+                "opcode": "IN_SET_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "relation"
+                },
+                "ordered_values": [
+                  "LE",
+                  "LT"
+                ]
+              },
+              {
+                "opcode": "IN_SET_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "scope"
+                },
+                "ordered_values": [
+                  "SELF_TYPE",
+                  "OWNER_PAYLOAD_RESIDUAL"
+                ]
+              },
+              {
+                "opcode": "OR_V1",
+                "ordered_operands": [
+                  {
+                    "opcode": "NOT_V1",
+                    "operand": {
+                      "left": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "scope"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "opcode": "CONST_V1",
+                        "value": "SELF_TYPE"
+                      }
+                    }
+                  },
+                  {
+                    "left": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "overhead"
+                    },
+                    "opcode": "EQ_V1",
+                    "right": {
+                      "opcode": "CONST_V1",
+                      "value": 0
+                    }
+                  }
+                ]
+              },
+              {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "derived"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "field_name": "derived_payload_octet_ceiling",
+                  "mapping": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "coordinate"
+                  },
+                  "opcode": "FIELD_V1"
+                }
+              }
+            ]
+          },
+          "error_code": "CODEC_COORDINATE_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "ceiling": {
+              "opcode": "CEILING_V1"
+            },
+            "lower": {
+              "opcode": "VAR_V1",
+              "variable_name": "derived"
+            },
+            "opcode": "CELL_BUILD_CLIPPED_V1",
+            "state_expression": {
+              "opcode": "LIST_V1",
+              "ordered_items": []
+            },
+            "upper": {
+              "opcode": "VAR_V1",
+              "variable_name": "derived"
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 14,
+      "transfer_rule_id": "ad22ec09d35137e817f79ffc6159d4733dfc74412e60da040200b286efc014ac",
+      "transfer_rule_name": "CODEC_COORDINATE_CEILING_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "ordered_codec_coordinate_records",
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "ordered_codec_coordinate_records",
+          "parameter_position": 1,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 2,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "coordinate_cells",
+            "value_expression": {
+              "item_variable": "coordinate",
+              "map_expression": {
+                "opcode": "CALL_RULE_V1",
+                "ordered_argument_bindings": [
+                  {
+                    "parameter_name": "coordinate",
+                    "value_expression": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "coordinate"
+                    }
+                  }
+                ],
+                "transfer_rule_id": "ad22ec09d35137e817f79ffc6159d4733dfc74412e60da040200b286efc014ac"
+              },
+              "opcode": "MAP_V1",
+              "sequence": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "ordered_codec_coordinate_records"
+              }
+            }
+          },
+          {
+            "binding_name": "effective",
+            "value_expression": {
+              "opcode": "FOLD_MIN_U128_V1",
+              "sequence": {
+                "opcode": "CONCAT_V1",
+                "ordered_sequences": [
+                  {
+                    "opcode": "LIST_V1",
+                    "ordered_items": [
+                      {
+                        "opcode": "CEILING_V1"
+                      }
+                    ]
+                  },
+                  {
+                    "item_variable": "coordinate_cell",
+                    "map_expression": {
+                      "cell": {
+                        "opcode": "VAR_V1",
+                        "variable_name": "coordinate_cell"
+                      },
+                      "opcode": "CELL_UPPER_V1"
+                    },
+                    "opcode": "MAP_V1",
+                    "sequence": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "coordinate_cells"
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "left": {
+              "opcode": "CONST_V1",
+              "value": 0
+            },
+            "opcode": "LT_V1",
+            "right": {
+              "opcode": "LIST_LENGTH_V1",
+              "sequence": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "ordered_codec_coordinate_records"
+              }
+            }
+          },
+          "error_code": "CODEC_COORDINATE_LIST_EMPTY",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "ceiling": {
+              "opcode": "VAR_V1",
+              "variable_name": "effective"
+            },
+            "cell": {
+              "opcode": "CHILD_V1",
+              "zero_based_index": 0
+            },
+            "opcode": "CELL_CLIP_V1"
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 15,
+      "transfer_rule_id": "590a0a69d282a5e562df54c6771b02937b0b1920084f0faf1fe9654060840bed",
+      "transfer_rule_name": "RECOMPUTED_CODEC_RESIDUAL_INTERSECTION_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "safe_relaxation_rule_id",
+        "authority_predicate_locator",
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "safe_relaxation_rule_id",
+          "parameter_position": 1,
+          "value_type": "TEXT"
+        },
+        {
+          "parameter_name": "authority_predicate_locator",
+          "parameter_position": 2,
+          "value_type": "TYPED_PATH"
+        },
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 3,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "cell": {
+          "opcode": "CHILD_V1",
+          "zero_based_index": 0
+        },
+        "opcode": "CELL_CLIP_V1"
+      },
+      "result_type": "CELL",
+      "rule_position": 16,
+      "transfer_rule_id": "0e8876ee49aee6066cd00720e1351018ffd8e3a450d80090085c5c5f497b67bd",
+      "transfer_rule_name": "VALIDATED_RELAXATION_ALIAS_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "case_binding",
+        "fixed_authority_bindings",
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "case_binding",
+          "parameter_position": 1,
+          "value_type": "JSON_MAPPING"
+        },
+        {
+          "parameter_name": "fixed_authority_bindings",
+          "parameter_position": 2,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 3,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "cell": {
+          "opcode": "CHILD_V1",
+          "zero_based_index": 0
+        },
+        "opcode": "CELL_CLIP_V1"
+      },
+      "result_type": "CELL",
+      "rule_position": 17,
+      "transfer_rule_id": "35c02d38962a8041afcd8928f2be015be006f2de2e7bbef843af2d0149c79022",
+      "transfer_rule_name": "VALIDATED_SCOPE_ALIAS_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "ordered_application_invocation_records",
+        "child_step_position"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "ordered_application_invocation_records",
+          "parameter_position": 1,
+          "value_type": "ORDERED_JSON_ARRAY"
+        },
+        {
+          "parameter_name": "child_step_position",
+          "parameter_position": 2,
+          "value_type": "U128"
+        }
+      ],
+      "program": {
+        "ceiling": {
+          "opcode": "CEILING_V1"
+        },
+        "cell": {
+          "opcode": "CHILD_V1",
+          "zero_based_index": 0
+        },
+        "opcode": "CELL_CLIP_V1"
+      },
+      "result_type": "CELL",
+      "rule_position": 18,
+      "transfer_rule_id": "5e96ad36578dd01bde29434a6ebdf3e41285cf08d783c0a705567ef2e1eb6568",
+      "transfer_rule_name": "VALIDATED_APPLICATION_ALIAS_V1",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    },
+    {
+      "ordered_parameter_names": [
+        "local_shutdown_analytic_catalog_id"
+      ],
+      "ordered_parameter_type_records": [
+        {
+          "parameter_name": "local_shutdown_analytic_catalog_id",
+          "parameter_position": 1,
+          "value_type": "TEXT"
+        }
+      ],
+      "program": {
+        "opcode": "LET_V1",
+        "ordered_bindings": [
+          {
+            "binding_name": "catalog",
+            "value_expression": {
+              "catalog_id": {
+                "opcode": "PARAM_V1",
+                "parameter_name": "local_shutdown_analytic_catalog_id"
+              },
+              "opcode": "RESOLVE_LOCAL_CATALOG_V1"
+            }
+          },
+          {
+            "binding_name": "states",
+            "value_expression": {
+              "field_name": "ordered_controller_state_records",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "catalog"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "transitions",
+            "value_expression": {
+              "field_name": "ordered_controller_transition_records",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "catalog"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "terminal",
+            "value_expression": {
+              "opcode": "INDEX_V1",
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "states"
+              },
+              "zero_based_index": {
+                "opcode": "CONST_V1",
+                "value": 11
+              }
+            }
+          },
+          {
+            "binding_name": "components",
+            "value_expression": {
+              "field_name": "ordered_state_components",
+              "mapping": {
+                "opcode": "VAR_V1",
+                "variable_name": "terminal"
+              },
+              "opcode": "FIELD_V1"
+            }
+          },
+          {
+            "binding_name": "winner",
+            "value_expression": {
+              "opcode": "INDEX_V1",
+              "sequence": {
+                "opcode": "VAR_V1",
+                "variable_name": "components"
+              },
+              "zero_based_index": {
+                "opcode": "CONST_V1",
+                "value": 7
+              }
+            }
+          }
+        ],
+        "result_expression": {
+          "condition": {
+            "opcode": "AND_V1",
+            "ordered_operands": [
+              {
+                "opcode": "IS_LIST_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "states"
+                }
+              },
+              {
+                "opcode": "IS_LIST_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "transitions"
+                }
+              },
+              {
+                "left": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "states"
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 12
+                }
+              },
+              {
+                "left": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "transitions"
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 11
+                }
+              },
+              {
+                "index_variable": "state_index",
+                "item_variable": "state",
+                "opcode": "ALL_INDEXED_V1",
+                "predicate": {
+                  "left": {
+                    "field_name": "controller_state_position",
+                    "mapping": {
+                      "opcode": "VAR_V1",
+                      "variable_name": "state"
+                    },
+                    "opcode": "FIELD_V1"
+                  },
+                  "opcode": "EQ_V1",
+                  "right": {
+                    "opcode": "CHECKED_ADD_LIST_U128_V1",
+                    "sequence": {
+                      "opcode": "LIST_V1",
+                      "ordered_items": [
+                        {
+                          "opcode": "VAR_V1",
+                          "variable_name": "state_index"
+                        },
+                        {
+                          "opcode": "CONST_V1",
+                          "value": 1
+                        }
+                      ]
+                    }
+                  }
+                },
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "states"
+                }
+              },
+              {
+                "index_variable": "transition_index",
+                "item_variable": "transition",
+                "opcode": "ALL_INDEXED_V1",
+                "predicate": {
+                  "opcode": "AND_V1",
+                  "ordered_operands": [
+                    {
+                      "left": {
+                        "field_name": "controller_transition_position",
+                        "mapping": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "transition"
+                        },
+                        "opcode": "FIELD_V1"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "opcode": "CHECKED_ADD_LIST_U128_V1",
+                        "sequence": {
+                          "opcode": "LIST_V1",
+                          "ordered_items": [
+                            {
+                              "opcode": "VAR_V1",
+                              "variable_name": "transition_index"
+                            },
+                            {
+                              "opcode": "CONST_V1",
+                              "value": 1
+                            }
+                          ]
+                        }
+                      }
+                    },
+                    {
+                      "left": {
+                        "field_name": "source_controller_state_id",
+                        "mapping": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "transition"
+                        },
+                        "opcode": "FIELD_V1"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "field_name": "controller_state_id",
+                        "mapping": {
+                          "opcode": "INDEX_V1",
+                          "sequence": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "states"
+                          },
+                          "zero_based_index": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "transition_index"
+                          }
+                        },
+                        "opcode": "FIELD_V1"
+                      }
+                    },
+                    {
+                      "left": {
+                        "field_name": "target_controller_state_id",
+                        "mapping": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "transition"
+                        },
+                        "opcode": "FIELD_V1"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "field_name": "controller_state_id",
+                        "mapping": {
+                          "opcode": "INDEX_V1",
+                          "sequence": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "states"
+                          },
+                          "zero_based_index": {
+                            "opcode": "CHECKED_ADD_LIST_U128_V1",
+                            "sequence": {
+                              "opcode": "LIST_V1",
+                              "ordered_items": [
+                                {
+                                  "opcode": "VAR_V1",
+                                  "variable_name": "transition_index"
+                                },
+                                {
+                                  "opcode": "CONST_V1",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "opcode": "FIELD_V1"
+                      }
+                    },
+                    {
+                      "left": {
+                        "field_name": "expected_target_state_components",
+                        "mapping": {
+                          "opcode": "VAR_V1",
+                          "variable_name": "transition"
+                        },
+                        "opcode": "FIELD_V1"
+                      },
+                      "opcode": "EQ_V1",
+                      "right": {
+                        "field_name": "ordered_state_components",
+                        "mapping": {
+                          "opcode": "INDEX_V1",
+                          "sequence": {
+                            "opcode": "VAR_V1",
+                            "variable_name": "states"
+                          },
+                          "zero_based_index": {
+                            "opcode": "CHECKED_ADD_LIST_U128_V1",
+                            "sequence": {
+                              "opcode": "LIST_V1",
+                              "ordered_items": [
+                                {
+                                  "opcode": "VAR_V1",
+                                  "variable_name": "transition_index"
+                                },
+                                {
+                                  "opcode": "CONST_V1",
+                                  "value": 1
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "opcode": "FIELD_V1"
+                      }
+                    }
+                  ]
+                },
+                "sequence": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "transitions"
+                }
+              },
+              {
+                "left": {
+                  "field_name": "state_kind",
+                  "mapping": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "terminal"
+                  },
+                  "opcode": "FIELD_V1"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": "TERMINAL"
+                }
+              },
+              {
+                "left": {
+                  "opcode": "LIST_LENGTH_V1",
+                  "sequence": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "components"
+                  }
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "opcode": "CONST_V1",
+                  "value": 8
+                }
+              },
+              {
+                "opcode": "IS_U128_V1",
+                "operand": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "winner"
+                }
+              },
+              {
+                "left": {
+                  "opcode": "VAR_V1",
+                  "variable_name": "winner"
+                },
+                "opcode": "EQ_V1",
+                "right": {
+                  "field_name": "winner_attainable_maximum_octets",
+                  "mapping": {
+                    "opcode": "VAR_V1",
+                    "variable_name": "catalog"
+                  },
+                  "opcode": "FIELD_V1"
+                }
+              }
+            ]
+          },
+          "error_code": "LOCAL_CONTROLLER_INVALID",
+          "opcode": "VALIDATE_V1",
+          "result_expression": {
+            "ceiling": {
+              "opcode": "CEILING_V1"
+            },
+            "lower": {
+              "opcode": "VAR_V1",
+              "variable_name": "winner"
+            },
+            "opcode": "CELL_BUILD_CLIPPED_V1",
+            "state_expression": {
+              "opcode": "VAR_V1",
+              "variable_name": "components"
+            },
+            "upper": {
+              "opcode": "VAR_V1",
+              "variable_name": "winner"
+            }
+          }
+        }
+      },
+      "result_type": "CELL",
+      "rule_position": 19,
+      "transfer_rule_id": "e8d9f78007e3ca8ae277b3a3c49cf8608e9c83ef2b59c817168f328e2bbe85f2",
+      "transfer_rule_name": "EXACT_CHAINED_LOCAL_CONTROLLER_TERMINAL_WINNER_V2",
+      "transfer_rule_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule.v1"
+    }
+  ],
+  "transfer_rule_catalog_id": "b800345ad9cfbf1f742e76097d13612174649773e08a24eb58b3c8ea18b0c700",
+  "transfer_rule_catalog_version": "riskyieldmm.raw_v8_step2_external_schema_v2.cell_transfer_rule_catalog.v1",
+  "unknown_or_extra_ast_member_policy": "REJECT"
+}

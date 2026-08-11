@@ -1,0 +1,270 @@
+{
+  "audit_version": "trading_prediction_system_audit_evidence_v1",
+  "audit_date": "2026-07-14",
+  "repository": {
+    "branch": "regression-targets",
+    "head": "3940a023",
+    "worktree_note": "Pre-existing modified and untracked files were preserved; this audit did not treat the worktree as a clean release candidate."
+  },
+  "input_reports": [
+    {
+      "path": "docs/research/deep-research-report (8).md",
+      "sha256": "da7fe06bd42c49da5523f8a48345fba672c8d736df8e6eb003f13b5ddb46ea43",
+      "lines": 1675
+    },
+    {
+      "path": "docs/research/deep-research-report (9).md",
+      "sha256": "177f26a2a0aa4f1a32fe2a458fe848888463b6a0dd7bd88e7a7a51f9346b60cc",
+      "lines": 611
+    }
+  ],
+  "report_artifact": {
+    "path": "docs/research/trading_prediction_system_diagnosis_and_redesign_2026-07-14.md",
+    "sha256": "6ada7698ef8b8aba1958e49bb37b4c51a37f5ab20de56d0c8af5e24743c2f7a7",
+    "lines": 1107,
+    "words": 15189
+  },
+  "feature_availability_audit": {
+    "path": "docs/validation/trading_prediction_feature_availability_audit_2026-07-14.json",
+    "sha256": "3ae437bc70884ab679a663ae01fd726b1839fa23b81264b94b2c521e5b29363d",
+    "generator_path": "scripts/analysis/audit_trading_prediction_feature_availability.py",
+    "generator_sha256": "5e3e0f8476c6780fe2c4b2c68d29f3e36563cf8153b39e94a9e19746c5407806",
+    "analyst_feature_count": 32,
+    "rpf_unique_feature_count": 2530,
+    "rpf_manifest_count": 48,
+    "entries_missing_required_audit_fields": 0,
+    "inventory_complete": true,
+    "strict_point_in_time_certification_complete": false,
+    "deployment_blocked_by_feature_certification": true
+  },
+  "analyst_cusum_meta_candidate": {
+    "artifact_path": "models/analyst_cusum_meta/cusum-meta-logistic-all56-20260710-v2.artifact.json",
+    "artifact_file_sha256": "7c912384f0d0b712e97fd65335713ff11514c740f7cbcce204cd4ca06e181263",
+    "embedded_checksum": "25154c48fb042b61c73cd49bc1d1bb3a69da1982eb2a91bd4a570f7027c5a129",
+    "model_version": "cusum-meta-logistic-all56-20260710-v2",
+    "candidate_only": true,
+    "auto_promoted": false,
+    "deployment_eligible": false,
+    "eligible_selections": [],
+    "decision_threshold": 0.5,
+    "decision_threshold_role": "declared_runtime_candidate_not_tuned_on_oof",
+    "separate_probability_calibration": false,
+    "training_rows": 65096,
+    "positive_rows": 10070,
+    "positive_rate": 0.15469460489123757,
+    "feature_count": 32,
+    "oof": {
+      "rows": 64029,
+      "folds": 128,
+      "model": {
+        "brier": 0.12951754525165168,
+        "log_loss": 0.4260612442599866,
+        "pr_auc": 0.19883167968092352
+      },
+      "causal_base_rate": {
+        "brier": 0.1307716283196111,
+        "log_loss": 0.4308114194300237,
+        "pr_auc": 0.15362442071123397
+      },
+      "brier_improvement": 0.001254083067959405,
+      "log_loss_improvement": 0.004750175170037119,
+      "pr_auc_lift_over_prevalence": 1.2854395818144035,
+      "negative_brier_improvement_folds": 35,
+      "negative_brier_improvement_fold_rate": 0.2734375
+    },
+    "coverage": {
+      "rows_by_timeframe": {
+        "1m": 62058,
+        "15m": 2469,
+        "1h": 375,
+        "4h": 104,
+        "8h": 47,
+        "12h": 31,
+        "1d": 12
+      },
+      "one_minute_share": 0.9533304657736267,
+      "selections_with_rows": 26,
+      "intended_selections": 56,
+      "provider_session_assets_with_rows_at_1h_or_slower": 0
+    },
+    "historical_clock": {
+      "source": "current_revision_canonical_ohlcv",
+      "decision_scenario": "nominal_bar_close_plus_5_seconds",
+      "additional_label_maturity_embargo_seconds": 86400,
+      "actual_historical_first_seen_available": false
+    },
+    "primary_event_geometry": {
+      "target_outcomes": 10110,
+      "stop_outcomes": 35975,
+      "target_first_rate_among_target_or_stop": 0.21937723771292178,
+      "gross_break_even_rate_for_2R_target_and_1R_stop": 0.3333333333333333,
+      "naive_decisive_event_expectancy_r": -0.3418682868612346,
+      "note": "Timeouts, ambiguity, costs, and deployment eligibility make realised expectancy different and generally less favorable; this is a diagnostic of the locked event geometry, not a backtest."
+    }
+  },
+  "locked_replay_180_day_matrix": {
+    "report_path": "docs/validation/meta_model_analyst_locked_trade_replay_report_2026-07-12.md",
+    "machine_path": "docs/validation/meta_model_analyst_locked_trade_replay_2026-07-12.json",
+    "machine_file_sha256": "faa74c79a49bf33c0634fcd65f93f85cdcf9aad205bda1b07d74e593dd89d473",
+    "completed_selections": 56,
+    "positive_net_selections": 18,
+    "descriptive_check_passes": 9,
+    "median_net_return_pct": -4.315,
+    "median_annualized_sharpe": -1.423,
+    "fills": 152597,
+    "round_trips": 67735,
+    "one_minute_positive_selections": 0,
+    "fifteen_minute_positive_selections": 0,
+    "one_minute_median_net_return_pct": -95.068,
+    "one_minute_median_sharpe": -51.673,
+    "portfolio_aggregation": false,
+    "cost_scenario": {
+      "fee_bps_per_changed_notional": 1.0,
+      "adverse_slippage_bps_per_changed_side": 1.0,
+      "quoted_full_spread_bps": 0.0,
+      "execution_latency_minutes": 1
+    }
+  },
+  "forward_paper_snapshot": {
+    "source_path": "~/.local/state/riskyieldmm/forward_paper/status.json",
+    "status": "stopped",
+    "last_heartbeat_at": "2026-07-13T23:08:24.938050Z",
+    "recorded_pid": 69799,
+    "recorded_pid_present_at_audit": false,
+    "real_order_routing": false,
+    "source_vintage": "append_only_first_seen",
+    "streams": 56,
+    "total_fills": 618,
+    "round_trips": 291,
+    "one_minute_round_trips": 282,
+    "meta_shadow_events": 0,
+    "instrument_costs_complete": false,
+    "portfolio_aggregation": false,
+    "live_assets": [
+      "BTCUSDT",
+      "ETHUSDT"
+    ],
+    "delayed_assets": [
+      "CL",
+      "ES",
+      "EURUSD",
+      "GC",
+      "NQ",
+      "USDJPY"
+    ],
+    "runtime_repository_version_mismatch": {
+      "running_service_version": "forward_paper_service_v2",
+      "current_repository_service_version": "forward_paper_service_v3"
+    },
+    "journal_diagnostics": {
+      "delayed_provider_revisions": 1465,
+      "source_gaps": 113,
+      "stream_incidents": 720,
+      "fetch_failures": 58,
+      "bybit_rate_limit_failures": 39
+    },
+    "selected_streams": {
+      "BTCUSDT/1m": {
+        "fills": 151,
+        "round_trips": 67,
+        "gross_return_pct": -0.09781502495523897,
+        "net_return_pct": -2.595817079685292,
+        "cost_pct_of_initial": 2.503177848320251
+      },
+      "ETHUSDT/1m": {
+        "fills": 151,
+        "round_trips": 70,
+        "gross_return_pct": 0.542385320415506,
+        "net_return_pct": -2.112697784743578,
+        "cost_pct_of_initial": 2.6582865610688717
+      }
+    }
+  },
+  "rpf_research_path": {
+    "status": "research_active_not_promoted",
+    "production_promoted": false,
+    "first_benchmark": "BTCUSDT/8h/B",
+    "manifest_path": "data/htf_multiasset/btcusdt/regression_path_features_v1/8h_b/1m/manifest.json",
+    "materialized_rows": 2810755,
+    "manifest_feature_count": 2530,
+    "feature_families": 13,
+    "other_core_asset_root_manifest_feature_count": 29,
+    "other_core_asset_root_combinations": 47,
+    "target_contract_findings": {
+      "current_entry_reference": "each row current close",
+      "future_window": "fixed later opposite-family 15m half-window shared by rows in a batch",
+      "sample_batch_valid_rows": 227,
+      "sample_batch_shared_future_path": true,
+      "first_touch_order_used_by_active_target": false,
+      "economic_execution_price_modeled": false
+    },
+    "valid_synthetic_rows_examples": {
+      "EURUSD_8h_b": 12701,
+      "USDJPY_8h_b": 18186,
+      "ES_8h_b": 181
+    },
+    "sampled_completed_higher_timeframe_check": {
+      "batch_files": [
+        "batch_0001.parquet",
+        "batch_2929.parquet",
+        "batch_5856.parquet"
+      ],
+      "rows": 1315,
+      "higher_timeframe_close_columns": 6,
+      "future_close_violations": 0
+    },
+    "recent_single_step_regression_example": {
+      "run_id": "stage1_regression_btcusdt_8h_b_ctx_corexself_reg_direction_extreme_up_share_hvol_v2_live_feat_regression_only_opt_core_aac8f86a1c_t0003_fs_regression_only_lb120_val20_mf300_ms0p02_dedupe0p995_it200_d5_lr0p05",
+      "selected_features": 300,
+      "completed_prediction_steps": 1,
+      "validation_rows": 4767,
+      "validation_spearman": 0.14851175623833007,
+      "validation_r2": 0.019545545530304076,
+      "prediction_rows": 240,
+      "prediction_spearman": 0.6318574829666624,
+      "prediction_r2": 0.05491403131211203,
+      "prediction_target_std": 0.2987624735491803,
+      "prediction_score_std": 0.01729536552237665,
+      "interpretation": "One prediction block is insufficient for model selection or edge claims; the score is strongly compressed."
+    },
+    "artifact_inventory_lower_bounds": {
+      "test_output_summary_json_files": 207,
+      "test_output_trials_parquet_files": 165,
+      "prediction_analysis_summary_json_files": 278
+    }
+  },
+  "legacy_statistical_validation": {
+    "path": "scripts/target_models/validation/statistical_metrics.py",
+    "connected_to_current_analyst_or_rpf_promotion": false,
+    "pbo_warning": "compute_pbo returns the relative OOS rank of a single best-IS strategy; this is not the CSCV fraction of split logits below zero defined by the cited PBO method.",
+    "dsr_warning": "compute_deflated_sharpe_ratio stores an annualized Sharpe minus an expected maximum as deflated_sharpe; it must be rederived and validated against the published DSR statistic before use.",
+    "action": "Do not use these legacy outputs for a promotion claim until reference-fixture tests match the primary papers."
+  },
+  "verification": {
+    "targeted_analyst_tests": {
+      "passed": 224,
+      "failed": 0,
+      "duration_seconds": 20.57,
+      "interpretation": "Implementation contracts passed; predictive edge and profitability were not established by unit tests."
+    },
+    "targeted_rpf_tests": {
+      "passed": 130,
+      "skipped": 6,
+      "failed": 0,
+      "duration_seconds": 1.63,
+      "interpretation": "Implementation contracts passed; target economics and out-of-sample edge were not established by unit tests."
+    },
+    "json_parse": "pass",
+    "feature_audit_json_parse": "pass",
+    "feature_audit_deterministic_regeneration_check": "pass",
+    "feature_audit_generator_ruff": "pass",
+    "report_fingerprint_match": "pass",
+    "markdown_link_check": "pass_no_missing_local_markdown_targets"
+  },
+  "overall_decision": {
+    "live_capital_ready": false,
+    "paper_meta_candidate_ready": false,
+    "shadow_research_only": true,
+    "profitability_claim_supported": false
+  }
+}

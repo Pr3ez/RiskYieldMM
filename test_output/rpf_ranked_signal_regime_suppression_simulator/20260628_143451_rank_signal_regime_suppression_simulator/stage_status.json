@@ -1,0 +1,10 @@
+{
+  "stage": "rank_signal_regime_suppression_simulator",
+  "status": "complete",
+  "written_at": "2026-06-28T14:34:51.555145+00:00",
+  "summary": {
+    "window_rows": 3840,
+    "summary_rows": 6,
+    "suppressed_windows": 1323
+  }
+}

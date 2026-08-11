@@ -1,0 +1,14 @@
+{
+  "stage": "rank_signal_row_rule_bank",
+  "status": "complete",
+  "written_at": "2026-06-24T19:28:15.077732+00:00",
+  "summary": {
+    "row_diagnostic_run": "test_output/rpf_ranked_signal_row_diagnostic/20260624_185848_rank_signal_row_diagnostic",
+    "input_rows": 169,
+    "feature_count": 71,
+    "folds": 1,
+    "rule_candidates": 856,
+    "rules": 1,
+    "accepted_rows": 9
+  }
+}

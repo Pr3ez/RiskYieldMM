@@ -1,0 +1,878 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#080d14" />
+    <title>RiskYieldMM Analyst</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%233b8cff'/%3E%3Cpath d='M7 9h4.8c3.6 0 5.6 1.7 5.6 4.7 0 2-1 3.5-2.8 4.2L19 23h-4.2l-3.7-4.5H10V23H7V9Zm3 2.8v4h1.7c1.7 0 2.6-.7 2.6-2s-.9-2-2.6-2H10ZM18 9h3.5l3 5.3L27.4 9H31l-4.8 8.2V23h-3.3v-5.8L18 9Z' fill='white'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <form id="chart-form"></form>
+
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="RiskYieldMM Analyst home">
+          <span class="brand-mark" aria-hidden="true">RY</span>
+          <span class="brand-copy">
+            <strong>RiskYieldMM</strong>
+            <small>Market Analyst</small>
+          </span>
+        </a>
+
+        <div class="instrument-toolbar" aria-label="Instrument selection">
+          <label class="compact-field asset-field">
+            <span>Market</span>
+            <select id="asset-select" name="asset" form="chart-form"></select>
+          </label>
+          <span class="toolbar-separator" aria-hidden="true"></span>
+          <label class="compact-field source-field">
+            <span>Data</span>
+            <select id="source-select" name="source" form="chart-form"></select>
+          </label>
+          <span class="toolbar-separator timeframe-separator" aria-hidden="true"></span>
+          <label class="compact-field timeframe-select-fallback">
+            <span>Interval</span>
+            <select
+              id="timeframe-select"
+              name="timeframe"
+              form="chart-form"
+              aria-label="Chart timeframe"
+            ></select>
+          </label>
+          <div
+            id="timeframe-quickbar"
+            class="timeframe-quickbar"
+            role="group"
+            aria-label="Chart timeframe"
+          ></div>
+        </div>
+
+        <div class="market-health" aria-label="Live data health">
+          <span id="source-quality-badge" class="source-badge checking">
+            Checking source
+          </span>
+          <span id="live-state" class="live-state">Connecting</span>
+          <span class="update-clock">
+            <small>Latest source bar</small>
+            <strong id="last-update-value">—</strong>
+          </span>
+        </div>
+
+        <div class="top-actions">
+          <button
+            id="layers-toggle-button"
+            class="icon-button layers-toggle-button"
+            type="button"
+            aria-controls="layers-panel"
+            aria-expanded="true"
+            title="Show or hide indicator layers"
+          >
+            <span aria-hidden="true">☷</span>
+            <span>Layers</span>
+          </button>
+          <button id="reload-button" class="icon-button" type="button" title="Reload chart">
+            <span aria-hidden="true">↻</span>
+            <span class="button-label">Refresh</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="workspace">
+        <section class="chart-column">
+          <header class="chart-header">
+            <div class="instrument-title">
+              <span class="market-dot" aria-hidden="true"></span>
+              <div>
+                <div class="title-line">
+                  <h1 id="meta-asset">—</h1>
+                  <span id="meta-timeframe" class="timeframe-chip">—</span>
+                  <span id="meta-source" class="dataset-chip">—</span>
+                </div>
+                <p id="subtitle" class="subtitle">Loading chart payload…</p>
+              </div>
+            </div>
+            <dl class="chart-facts" aria-label="Chart metadata">
+              <div>
+                <dt>Bars</dt>
+                <dd id="meta-bars">—</dd>
+              </div>
+              <div class="range-fact">
+                <dt>Loaded range</dt>
+                <dd id="meta-range">—</dd>
+              </div>
+            </dl>
+
+          </header>
+
+          <section
+            id="decision-workbench"
+            class="decision-workbench"
+            aria-label="Decision support readiness"
+            aria-live="polite"
+          >
+            <header class="decision-workbench-header">
+              <div>
+                <span class="eyebrow">Causal decision support</span>
+                <strong>Evidence readiness</strong>
+              </div>
+              <div class="decision-mode-group">
+                <span id="decision-mode-badge" class="decision-mode-badge">
+                  DIAGNOSTIC
+                </span>
+                <span>Fast triage only · diagnostics never guarantee a trade or profit</span>
+              </div>
+            </header>
+            <div class="decision-pipeline">
+              <article id="decision-card-feed" class="decision-card" data-tone="waiting">
+                <span class="decision-step">01 · Market & feed</span>
+                <strong id="decision-feed-state">Checking</strong>
+                <p id="decision-feed-detail">Waiting for source freshness.</p>
+              </article>
+              <article id="decision-card-readiness" class="decision-card" data-tone="waiting">
+                <span class="decision-step">02 · Readiness</span>
+                <strong id="decision-readiness-state">Waiting</strong>
+                <p id="decision-readiness-detail">No decision assessment yet.</p>
+              </article>
+              <article id="decision-card-agreement" class="decision-card" data-tone="waiting">
+                <span class="decision-step">03 · Agreement</span>
+                <strong id="decision-agreement-state">Waiting</strong>
+                <p id="decision-agreement-detail">Directional evidence is loading.</p>
+              </article>
+              <article id="decision-card-context" class="decision-card" data-tone="waiting">
+                <span class="decision-step">04 · Context & risk</span>
+                <strong id="decision-context-state">Waiting</strong>
+                <p id="decision-context-detail">Structure, volatility and activity are loading.</p>
+              </article>
+              <article id="decision-card-execution" class="decision-card" data-tone="neutral">
+                <span class="decision-step">05 · Execution</span>
+                <strong id="decision-execution-state">Routing off</strong>
+                <p id="decision-execution-detail">Research diagnostics; real orders are disabled.</p>
+              </article>
+              <article id="decision-card-replay" class="decision-card" data-tone="waiting">
+                <span class="decision-step">06 · Replay evidence</span>
+                <strong id="decision-replay-state">Not run</strong>
+                <p id="decision-replay-detail">Run a causal replay for this exact selection.</p>
+              </article>
+              <article id="decision-card-paper" class="decision-card" data-tone="waiting">
+                <span class="decision-step">07 · Forward paper</span>
+                <strong id="decision-paper-state">Checking</strong>
+                <p id="decision-paper-detail">Waiting for independent shadow evidence.</p>
+              </article>
+            </div>
+
+            <details id="market-context-details" class="analysis-details">
+              <summary>
+                <span>Market context details</span>
+                <small>Structure, comparable volatility and phase participation</small>
+              </summary>
+              <section
+                id="market-context-strip"
+                class="market-context-strip"
+                aria-label="Current causal market context"
+                hidden
+              >
+                <header class="market-context-strip-header">
+                  <div>
+                    <span class="eyebrow">Completed bars · next-action timing</span>
+                    <strong>Market Context v1</strong>
+                  </div>
+                  <span>Context and risk diagnostics, never an order instruction</span>
+                </header>
+                <div class="market-context-cards">
+                  <article id="context-card-structure" class="context-card" hidden>
+                    <header>
+                      <span>Prior Structure</span>
+                      <strong id="context-state-structure" class="context-state">Waiting</strong>
+                    </header>
+                    <div id="context-metrics-structure" class="context-metrics"></div>
+                    <p id="context-note-structure" class="context-note"></p>
+                  </article>
+                  <article id="context-card-volatility" class="context-card" hidden>
+                    <header>
+                      <span>Comparable Volatility</span>
+                      <strong id="context-state-volatility" class="context-state">Waiting</strong>
+                    </header>
+                    <div id="context-metrics-volatility" class="context-metrics"></div>
+                    <p id="context-note-volatility" class="context-note"></p>
+                  </article>
+                  <article id="context-card-participation" class="context-card" hidden>
+                    <header>
+                      <span>Phase-adjusted Participation</span>
+                      <strong id="context-state-participation" class="context-state">Waiting</strong>
+                    </header>
+                    <div id="context-metrics-participation" class="context-metrics"></div>
+                    <p id="context-note-participation" class="context-note"></p>
+                  </article>
+                </div>
+              </section>
+            </details>
+
+            <details id="mtf-context-details" class="analysis-details">
+              <summary>
+                <span>Cross-timeframe details</span>
+                <small>Closed-bar alignment, quality and regime risk</small>
+              </summary>
+              <section
+                id="mtf-context-matrix"
+                class="mtf-context-matrix"
+                aria-live="polite"
+                aria-label="Causal cross-timeframe context"
+                hidden
+              >
+                <header class="mtf-context-header">
+                  <div>
+                    <span class="eyebrow">Closed bars only</span>
+                    <strong>Cross-Timeframe Context</strong>
+                  </div>
+                  <span id="mtf-context-badge" class="mtf-context-badge">Waiting</span>
+                </header>
+                <div class="mtf-context-table-wrap">
+                  <table class="mtf-context-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">Role / TF</th>
+                        <th scope="col">Trend</th>
+                        <th scope="col">Quality</th>
+                        <th scope="col">Volatility</th>
+                        <th scope="col">Prototype regime / risk</th>
+                        <th scope="col">Available as of</th>
+                      </tr>
+                    </thead>
+                    <tbody id="mtf-context-rows"></tbody>
+                  </table>
+                </div>
+                <p id="mtf-context-reason" class="mtf-context-reason"></p>
+              </section>
+            </details>
+          </section>
+
+          <section
+            id="diagnostic-vintage"
+            class="diagnostic-vintage"
+            aria-live="polite"
+            role="note"
+            hidden
+          >
+            <strong id="diagnostic-vintage-label">Diagnostic replay</strong>
+            <span id="diagnostic-vintage-message"></span>
+          </section>
+
+          <section id="chart-wrap" class="chart-wrap" data-pane-count="0">
+            <div id="chart-legend" class="chart-legend" aria-label="Visible chart layers">
+              <div class="legend-group" data-overlay="cusum_trend" data-price-overlay="true">
+                <strong>CUSUM Trend</strong>
+                <span class="legend-key"><i style="--swatch: #20c997"></i>upper</span>
+                <span class="legend-key"><i style="--swatch: #ff5b6e"></i>lower</span>
+                <span class="legend-key legend-key-dashed">
+                  <i style="--swatch: #f8c15c"></i>trail
+                </span>
+              </div>
+              <div class="legend-group" data-overlay="ewma_volatility">
+                <strong>EWMA Volatility</strong>
+                <span class="legend-key"><i style="--swatch: #ff8b5c"></i>fast</span>
+                <span class="legend-key"><i style="--swatch: #48a9ff"></i>medium</span>
+                <span class="legend-key"><i style="--swatch: #a879ff"></i>slow</span>
+              </div>
+              <div class="legend-group" data-overlay="volatility_scaled_trend">
+                <strong>Vol-scaled Trend</strong>
+                <span class="legend-key">
+                  <i style="--swatch: #ff8b5c"></i>
+                  <span id="legend-trend-fast">fast</span>
+                </span>
+                <span class="legend-key">
+                  <i style="--swatch: #48a9ff"></i>
+                  <span id="legend-trend-medium">medium</span>
+                </span>
+                <span class="legend-key">
+                  <i style="--swatch: #a879ff"></i>
+                  <span id="legend-trend-slow">slow</span>
+                </span>
+                <span class="legend-key"><i style="--swatch: #e8edf3"></i>score</span>
+                <span class="legend-key legend-key-dashed">
+                  <i style="--swatch: #7d8999"></i>quality
+                </span>
+              </div>
+              <div class="legend-group" data-overlay="online_regime">
+                <strong>Prototype Regime</strong>
+                <span class="legend-key"><i style="--swatch: #20c997"></i>bull</span>
+                <span class="legend-key"><i style="--swatch: #ff5b6e"></i>bear</span>
+                <span class="legend-key"><i style="--swatch: #6e86a3"></i>range</span>
+                <span class="legend-key"><i style="--swatch: #f8a94f"></i>transition</span>
+                <span class="legend-key legend-key-risk">
+                  <i style="--swatch: #d46b91"></i>change risk
+                </span>
+              </div>
+              <div
+                class="legend-group"
+                data-overlay="prior_structure"
+                data-price-overlay="true"
+              >
+                <strong>Prior Structure · 48</strong>
+                <span class="legend-key"><i style="--swatch: #39d0c3"></i>prior high</span>
+                <span class="legend-key"><i style="--swatch: #ec7090"></i>prior low</span>
+              </div>
+              <div class="legend-group" data-overlay="comparable_volatility">
+                <strong>Comparable Volatility</strong>
+                <span class="legend-key"><i style="--swatch: #64b5f6"></i>RS percentile</span>
+                <span class="legend-key"><i style="--swatch: #f4b860"></i>fast / slow state</span>
+                <span class="legend-key legend-key-dashed">
+                  <i style="--swatch: #c792ea"></i>range shock
+                </span>
+              </div>
+              <div class="legend-group" data-overlay="phase_adjusted_participation">
+                <strong>Phase-adjusted Participation</strong>
+                <span class="legend-key"><i style="--swatch: #56dcb4"></i>relative activity</span>
+                <span class="legend-key legend-key-dashed">
+                  <i style="--swatch: #8290a3"></i>display midpoint
+                </span>
+              </div>
+              <div id="marker-legend" class="legend-group" hidden>
+                <strong>Analytical events</strong>
+                <span class="legend-key"><b class="marker-up">▲</b>bull change</span>
+                <span class="legend-key"><b class="marker-down">▼</b>bear change</span>
+                <span class="legend-key"><b class="marker-structure">◆</b>structure context</span>
+                <span class="legend-key legend-key-risk">
+                  <b class="marker-risk">■</b>regime risk
+                </span>
+              </div>
+              <div id="replay-pane-legend" class="legend-group replay-pane-legend" hidden>
+                <strong>1m causal replay</strong>
+                <span class="legend-key"><i style="--swatch: #48a9ff"></i>equity</span>
+                <span class="legend-key"><i style="--swatch: #ff5b6e"></i>drawdown</span>
+                <span class="legend-key"><i style="--swatch: #8e9baa"></i>position</span>
+              </div>
+              <div id="replay-protection-legend" class="legend-group" hidden>
+                <strong>Frozen protected bracket</strong>
+                <span class="legend-key legend-key-dashed"><i style="--swatch: #ff5b6e"></i>stop loss</span>
+                <span class="legend-key legend-key-dashed"><i style="--swatch: #20c997"></i>take profit</span>
+              </div>
+              <div id="replay-meta-legend" class="legend-group" hidden>
+                <strong>CUSUM meta-label</strong>
+                <span class="legend-key"><i style="--swatch: #f8c15c"></i>stored P(TP first)</span>
+                <span class="legend-key legend-key-dashed"><i style="--swatch: #c792ea"></i>strict required P</span>
+              </div>
+              <div id="forward-meta-shadow-legend" class="legend-group" hidden>
+                <strong>Forward META SHADOW</strong>
+                <span class="legend-key"><i style="--swatch: #56dcb4"></i>stored P(TP first)</span>
+                <span class="legend-key"><b class="marker-meta-outcome">●</b>outcome known</span>
+                <span id="forward-meta-shadow-state" class="legend-state">checking journal</span>
+              </div>
+              <div id="replay-marker-legend" class="legend-group" hidden>
+                <strong>Replay fills</strong>
+                <span class="legend-key"><b class="marker-up">▲</b>buy / long</span>
+                <span class="legend-key"><b class="marker-down">▼</b>sell / exit</span>
+              </div>
+            </div>
+            <div id="chart"></div>
+            <div id="loading" class="loading" role="status">
+              <span class="loading-spinner" aria-hidden="true"></span>
+              <span>Loading market data</span>
+            </div>
+          </section>
+
+          <footer class="statusbar">
+            <div id="crosshair" class="crosshair">Crosshair: —</div>
+            <div id="status" class="status" aria-live="polite">Ready</div>
+          </footer>
+
+          <section id="research-drawer" class="research-drawer is-collapsed">
+            <header class="research-drawer-header">
+              <div class="research-heading">
+                <button
+                  id="research-toggle-button"
+                  class="drawer-toggle"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="research-drawer-body"
+                >
+                  <span class="drawer-chevron" aria-hidden="true">⌃</span>
+                  <span>Validation & research</span>
+                </button>
+                <span class="research-caption">Forward-only evidence and causal replay</span>
+              </div>
+              <div class="research-tabs" role="tablist" aria-label="Validation view">
+                <button
+                  class="research-tab is-active"
+                  type="button"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="paper-section"
+                  data-research-tab="paper"
+                >
+                  Paper
+                </button>
+                <button
+                  class="research-tab"
+                  type="button"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="replay-panel"
+                  data-research-tab="replay"
+                >
+                  Causal replay
+                </button>
+              </div>
+            </header>
+
+            <div id="research-drawer-body" class="research-drawer-body">
+              <div
+                id="research-parity-note"
+                class="research-parity-note"
+                role="status"
+                aria-live="polite"
+                hidden
+              ></div>
+              <section
+                id="paper-section"
+                class="paper-section research-tab-panel is-active"
+                data-research-panel="paper"
+                role="tabpanel"
+                aria-labelledby="paper-title"
+              >
+                <header class="paper-header">
+                  <div>
+                    <div class="replay-title-row">
+                      <h2 id="paper-title">Forward paper validation</h2>
+                      <span id="paper-feed-badge" class="replay-source-badge">
+                        Service not started
+                      </span>
+                      <span id="paper-risk-badge" class="risk-badge warn">
+                        Observe only · routing off
+                      </span>
+                    </div>
+                    <p id="paper-summary">
+                      Waiting for an independent append-only shadow experiment.
+                    </p>
+                  </div>
+                  <button id="paper-refresh-button" type="button">Refresh status</button>
+                </header>
+                <div class="replay-warning" role="note">
+                  <strong>Independent shadow</strong>
+                  <span>
+                    Every asset/timeframe stream has its own normalized ledger. This is not a combined portfolio or a venue OMS. Real routing and partial fills are disabled.
+                  </span>
+                </div>
+                <div id="paper-facts" class="paper-facts" aria-label="Paper service facts"></div>
+                <section class="research-contract" aria-labelledby="paper-contract-title">
+                  <h3 id="paper-contract-title">Frozen engine contract</h3>
+                  <div
+                    id="paper-contract"
+                    class="paper-facts"
+                    aria-label="Paper engine contract"
+                  ></div>
+                </section>
+                <details id="paper-order-details" class="execution-details">
+                  <summary id="paper-order-summary">No shadow order activity</summary>
+                  <p class="execution-disclaimer">
+                    Internal created → pending → full-target-fill lifecycle. Venue acknowledgements,
+                    cancel/replace, reconciliation, and partial fills are not modeled.
+                  </p>
+                  <div
+                    id="paper-order-facts"
+                    class="paper-facts"
+                    aria-label="Paper order and fill details"
+                  ></div>
+                </details>
+                <h3 class="research-section-title">Independent stream performance</h3>
+                <div id="paper-metrics" class="replay-metrics" aria-label="Forward paper metrics"></div>
+                <span id="paper-state" class="replay-state" aria-live="polite">Not started</span>
+              </section>
+
+              <section
+                id="replay-panel"
+                class="replay-panel research-tab-panel"
+                data-research-panel="replay"
+                role="tabpanel"
+                aria-labelledby="replay-title"
+                hidden
+              >
+                <header class="replay-header">
+                  <div>
+                    <div class="replay-title-row">
+                      <h2 id="replay-title">1m causal replay</h2>
+                      <span id="replay-source-badge" class="replay-source-badge">
+                        Canonical source only
+                      </span>
+                      <span id="replay-risk-badge" class="risk-badge warn">
+                        Diagnostic · costs incomplete
+                      </span>
+                    </div>
+                    <p>
+                      Replays finalized one-minute bars and releases each selected-timeframe
+                      signal only after its source candle closes.
+                    </p>
+                  </div>
+                  <span class="manual-run-note">
+                    Manual snapshot · current canonical history · not the live journal
+                  </span>
+                </header>
+
+                <div class="replay-warning" role="note">
+                  <strong>Research warning</strong>
+                  <span id="replay-warning-message">
+                    This uses current canonical history, not an immutable as-was-live record.
+                    Historical revisions, costs, and model selection can alter results.
+                  </span>
+                </div>
+
+                <fieldset id="replay-controls" class="replay-controls">
+                  <legend>Replay assumptions</legend>
+                  <label>
+                    <span>Replay days</span>
+                    <input id="replay-days-input" name="replay_days" type="number" min="1" max="730" step="1" value="30" />
+                  </label>
+                  <label>
+                    <span>Fee (bps / unit turnover)</span>
+                    <input id="replay-fee-input" name="fee_bps" type="number" min="0" max="1000" step="0.01" value="1" />
+                  </label>
+                  <label>
+                    <span>Slippage (bps / unit turnover)</span>
+                    <input id="replay-slippage-input" name="slippage_bps" type="number" min="0" max="1000" step="0.01" value="1" />
+                  </label>
+                  <label>
+                    <span>Spread (bps / unit turnover)</span>
+                    <input id="replay-spread-input" name="spread_bps" type="number" min="0" max="1000" step="0.01" value="0" />
+                  </label>
+                  <label>
+                    <span>Execution latency (minutes)</span>
+                    <input id="replay-latency-input" name="execution_latency_minutes" type="number" min="0" max="60" step="1" value="1" />
+                  </label>
+                  <details id="replay-protected-research" class="replay-protected-research">
+                    <summary>
+                      <span>Protected bracket + CUSUM meta filter</span>
+                      <span class="replay-mode-states" aria-label="Protected research status">
+                        <strong id="replay-policy-state" class="research-mode-state neutral">E0 · protection off</strong>
+                        <strong id="replay-meta-state" class="research-mode-state neutral">ML off · no scoring</strong>
+                      </span>
+                    </summary>
+                    <div class="replay-protected-grid">
+                      <label class="replay-opt-in-control">
+                        <span>Static stop / take profit</span>
+                        <span class="replay-checkbox-line">
+                          <input id="replay-protected-bracket-input" name="protected_bracket" type="checkbox" value="1" />
+                          <strong>Enable protected E1/E4 research</strong>
+                        </span>
+                      </label>
+                      <label>
+                        <span>Risk-unit volatility multiplier</span>
+                        <input id="replay-risk-unit-volatility-input" name="risk_unit_volatility_multiplier" type="number" min="0.1" max="20" step="0.1" value="2" disabled />
+                      </label>
+                      <label>
+                        <span>Stop distance (risk units)</span>
+                        <input id="replay-stop-risk-units-input" name="stop_risk_units" type="number" min="0.1" max="20" step="0.1" value="1" disabled />
+                      </label>
+                      <label>
+                        <span>Take profit (risk units)</span>
+                        <input id="replay-target-risk-units-input" name="target_risk_units" type="number" min="0.1" max="50" step="0.1" value="2" disabled />
+                      </label>
+                      <label>
+                        <span>Timeout (selected-TF bars)</span>
+                        <input id="replay-timeout-target-bars-input" name="timeout_target_bars" type="number" min="1" max="1000" step="1" value="20" disabled />
+                      </label>
+                      <label>
+                        <span>Break-even safety margin (probability)</span>
+                        <input id="replay-break-even-safety-margin-input" name="break_even_safety_margin" type="number" min="0" max="0.5" step="0.01" value="0.05" disabled />
+                      </label>
+                      <label>
+                        <span>CUSUM meta-label mode</span>
+                        <select id="replay-meta-filter-mode-select" name="meta_filter_mode">
+                          <option value="off" selected>Off · no model scoring</option>
+                          <option value="shadow">Shadow · score only</option>
+                          <option value="gate">Gate · filter entries</option>
+                        </select>
+                      </label>
+                    </div>
+                    <p class="replay-protected-note">
+                      Opt-in research only. Brackets are frozen from the actual fill and evaluated on
+                      causal 1m bars; timeout counts accepted finalized selected-timeframe candles. The safety
+                      margin is locked into each replay policy. A gate requires the stored probability to be
+                      strictly greater than both the model threshold and the decision-time static-stop break-even
+                      estimate plus that margin. Shadow mode accepts a compatible server artifact; gate mode
+                      additionally requires explicit promotion and a locked deployment-eligibility record.
+                      Unavailable models are rejected and no score is fabricated. Real routing remains off.
+                    </p>
+                  </details>
+                  <div class="replay-actions">
+                    <button id="run-replay-button" class="primary-button" type="button">Run Replay</button>
+                    <button id="optimize-replay-button" type="button">Walk-forward Optimize</button>
+                  </div>
+                  <span id="replay-state" class="replay-state" aria-live="polite">Ready for canonical data</span>
+                </fieldset>
+
+                <div id="replay-results" class="replay-results" hidden>
+                  <div id="replay-outcome" class="research-outcome" role="status" hidden>
+                    <strong id="replay-outcome-label"></strong>
+                    <span id="replay-outcome-reason"></span>
+                  </div>
+                  <div
+                    id="replay-run-meta"
+                    class="paper-facts"
+                    aria-label="Replay request and coverage facts"
+                  ></div>
+                  <section class="research-contract" aria-labelledby="replay-contract-title">
+                    <h3 id="replay-contract-title">Replay execution and data contract</h3>
+                    <div
+                      id="replay-contract"
+                      class="paper-facts"
+                      aria-label="Replay execution and data contract"
+                    ></div>
+                  </section>
+                  <div id="replay-metrics" class="replay-metrics" aria-label="Replay metrics"></div>
+                  <details id="replay-fill-details" class="execution-details" hidden>
+                    <summary id="replay-fill-summary">Execution ledger</summary>
+                    <div class="execution-table-wrap">
+                      <table class="execution-table">
+                        <thead>
+                          <tr>
+                            <th>Time</th>
+                            <th>Position</th>
+                            <th>Reference → adverse</th>
+                            <th>Costs</th>
+                            <th>Equity</th>
+                            <th>Reason</th>
+                          </tr>
+                        </thead>
+                        <tbody id="replay-fill-rows"></tbody>
+                      </table>
+                    </div>
+                  </details>
+                  <details id="replay-optimization" class="replay-optimization" hidden>
+                    <summary id="replay-optimization-summary">Walk-forward optimization details</summary>
+                    <pre id="replay-optimization-details"></pre>
+                  </details>
+                </div>
+              </section>
+            </div>
+          </section>
+        </section>
+
+        <aside id="layers-panel" class="layers-panel" aria-label="Chart layers and settings">
+          <header class="panel-header">
+            <div>
+              <span class="eyebrow">Chart controls</span>
+              <h2>Layers</h2>
+            </div>
+            <span id="visible-layer-count" class="layer-count">8 visible</span>
+          </header>
+
+          <div class="layer-actions" role="group" aria-label="Bulk layer controls">
+            <button id="all-indicators-button" type="button">Show all</button>
+            <button id="clear-indicators-button" type="button">Hide all</button>
+          </div>
+
+          <fieldset class="indicator-set">
+            <legend>Direction & regime diagnostics</legend>
+            <label class="layer-card active" data-indicator-card="cusum_trend">
+              <input type="checkbox" name="indicators" value="cusum_trend" form="chart-form" checked />
+              <span class="layer-visual cusum-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>CUSUM Trend</strong>
+                <small id="indicator-status-cusum">Change detection & trail</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="ewma_volatility">
+              <input type="checkbox" name="indicators" value="ewma_volatility" form="chart-form" checked />
+              <span class="layer-visual ewma-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>EWMA Volatility</strong>
+                <small id="indicator-status-ewma">Fast / medium / slow</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="volatility_scaled_trend">
+              <input type="checkbox" name="indicators" value="volatility_scaled_trend" form="chart-form" checked />
+              <span class="layer-visual trend-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Vol-scaled Trend</strong>
+                <small id="indicator-status-trend">Normalized multi-horizon trend</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="online_regime">
+              <input type="checkbox" name="indicators" value="online_regime" form="chart-form" checked />
+              <span class="layer-visual regime-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Prototype Regime</strong>
+                <small id="indicator-status-regime">Bull / bear / range / transition</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="cross_timeframe_context">
+              <input type="checkbox" name="indicators" value="cross_timeframe_context" form="chart-form" checked />
+              <span class="layer-visual mtf-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Cross-TF Context</strong>
+                <small id="indicator-status-mtf">Closed-bar alignment matrix</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+          </fieldset>
+
+          <fieldset class="indicator-set indicator-set-context">
+            <legend>Context & risk diagnostics</legend>
+            <label class="layer-card active" data-indicator-card="prior_structure">
+              <input type="checkbox" name="indicators" value="prior_structure" form="chart-form" checked />
+              <span class="layer-visual structure-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Prior Structure</strong>
+                <small id="indicator-status-structure">Prior-only channels & tests</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="comparable_volatility">
+              <input type="checkbox" name="indicators" value="comparable_volatility" form="chart-form" checked />
+              <span class="layer-visual comparable-vol-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Comparable Volatility</strong>
+                <small id="indicator-status-comparable-vol">RS range state & percentile</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+            <label class="layer-card active" data-indicator-card="phase_adjusted_participation">
+              <input type="checkbox" name="indicators" value="phase_adjusted_participation" form="chart-form" checked />
+              <span class="layer-visual participation-visual" aria-hidden="true"></span>
+              <span class="layer-copy">
+                <strong>Phase-adjusted Participation</strong>
+                <small id="indicator-status-participation">Activity vs comparable market phase</small>
+              </span>
+              <span class="layer-switch" aria-hidden="true"></span>
+            </label>
+          </fieldset>
+
+          <details id="indicator-guide" class="indicator-guide">
+            <summary>How to read these indicators</summary>
+            <div class="indicator-guide-body">
+              <p>
+                <strong>CUSUM Trend</strong>
+                Detects persistent standardized shifts in the Hull-moving-average residual.
+                Bands and trail use the price scale; candle tints and change markers describe
+                an analytical state, not an order or fill.
+              </p>
+              <p>
+                <strong>EWMA Volatility</strong>
+                Shows close-to-close volatility per bar. Fast above slow suggests expansion;
+                fast below slow suggests contraction. It measures risk magnitude, not direction.
+              </p>
+              <p>
+                <strong>Vol-scaled Trend</strong>
+                A bounded -1 to +1 directional composite. Sign indicates direction and path
+                quality describes how cleanly price travelled; it is diagnostic evidence.
+              </p>
+              <p>
+                <strong>Prototype Regime</strong>
+                Shows fixed, untrained regime weights and change risk from 0% to 100%.
+                Weights are not calibrated probabilities, confidence, or a trading gate.
+              </p>
+              <p>
+                <strong>Cross-Timeframe Context</strong>
+                Aligns the active timeframe with fixed higher-timeframe choices using only
+                values already available after those candles closed. It describes trend
+                alignment, conflict, or transition risk; it is not a trade instruction.
+              </p>
+              <p>
+                <strong>Prior Structure</strong>
+                Draws rolling highs and lows made only from bars available before the active
+                candle. A test, rejection, or close beyond a prior level describes location
+                and room-to-risk; it does not predict direction by itself.
+              </p>
+              <p>
+                <strong>Comparable Volatility</strong>
+                Uses the Rogers–Satchell OHLC range estimator with prior-only EWMA and rank
+                references. In the fixed 0–100% pane, percentile is a rank and 50% is neutral
+                for the signed ratio/shock scores. This is not direction or a cross-interval
+                raw-vol comparison.
+              </p>
+              <p>
+                <strong>Phase-adjusted Participation</strong>
+                Compares finalized volume with prior observations from the same UTC/session
+                phase. The fixed pane maps neutral activity to 50%; lower/higher values mean
+                quieter/stronger participation. Futures, crypto, and FX-proxy volume units
+                must not be compared directly.
+              </p>
+              <p class="indicator-guide-timing">
+                <strong>Timing:</strong> values use finalized candles and become actionable no
+                earlier than the next bar. Prior channel lines are known at the active bar open;
+                structure states, volatility, and participation are known after its close.
+                Analytical events are separate from replay fills.
+              </p>
+            </div>
+          </details>
+
+          <label id="cusum-sensitivity-field" class="panel-field">
+            <span>CUSUM sensitivity</span>
+            <select id="cusum-sensitivity-select" name="cusum_sensitivity" form="chart-form">
+              <option value="Fast (Day Trade)">Fast · 14 bars</option>
+              <option value="Balanced (Swing)" selected>Balanced · 21 bars</option>
+              <option value="Slow (Trend)">Slow · 50 bars</option>
+            </select>
+          </label>
+
+          <div class="panel-divider"></div>
+
+          <section class="settings-section">
+            <div class="settings-title-row">
+              <div>
+                <span class="eyebrow">Display</span>
+                <h3>Data window</h3>
+              </div>
+            </div>
+            <label class="switch-row">
+              <input id="live-refresh-toggle" type="checkbox" checked />
+              <span class="switch-control" aria-hidden="true"></span>
+              <span>
+                <strong>Live refresh</strong>
+                <small>Poll for finalized bars every 30s</small>
+              </span>
+            </label>
+            <label class="switch-row">
+              <input id="auto-history-toggle" type="checkbox" checked />
+              <span class="switch-control" aria-hidden="true"></span>
+              <span>
+                <strong>Auto history</strong>
+                <small>Load older bars when scrolling left</small>
+              </span>
+            </label>
+            <label class="panel-field">
+              <span>Maximum bars</span>
+              <input id="max-bars-input" name="max_bars" type="number" min="1" form="chart-form" />
+            </label>
+            <details class="advanced-settings">
+              <summary>Advanced date range</summary>
+              <div class="advanced-settings-body">
+                <label class="panel-field">
+                  <span>Start UTC stop</span>
+                  <input id="start-input" name="start" type="text" placeholder="Optional lower bound" form="chart-form" />
+                </label>
+                <label class="panel-field">
+                  <span>End UTC anchor</span>
+                  <input id="end-input" name="end" type="text" placeholder="Optional right edge" form="chart-form" />
+                </label>
+              </div>
+            </details>
+          </section>
+
+          <div class="panel-buttons">
+            <button id="load-older-button" type="button" disabled>Load older</button>
+            <button id="load-button" class="primary-button" type="submit" form="chart-form">
+              Apply settings
+            </button>
+          </div>
+
+          <aside class="source-note">
+            <span class="free-badge">FREE SOURCES</span>
+            <p>
+              Source quality is explicit: live exchange bars and delayed fallback data are
+              never presented as equivalent.
+            </p>
+          </aside>
+        </aside>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/lightweight-charts@5.2.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="./app.js"></script>
+  </body>
+</html>

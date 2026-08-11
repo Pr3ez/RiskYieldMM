@@ -1,0 +1,406 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "component_status": "FOUNDATION_ONLY_NOT_EXTERNAL_SCHEMA_REGISTRY_V2",
+  "foundation_ledger_version": "riskyieldmm.raw_v8_step2_external_schema_v2.foundation_ledger.v1",
+  "identifier_profile_specs": [
+    {
+      "edge_trim_code_points": [
+        "U+0009",
+        "U+000A",
+        "U+000B",
+        "U+000C",
+        "U+000D",
+        "U+001C",
+        "U+001D",
+        "U+001E",
+        "U+001F",
+        "U+0020",
+        "U+0085",
+        "U+00A0",
+        "U+1680",
+        "U+2000",
+        "U+2001",
+        "U+2002",
+        "U+2003",
+        "U+2004",
+        "U+2005",
+        "U+2006",
+        "U+2007",
+        "U+2008",
+        "U+2009",
+        "U+200A",
+        "U+2028",
+        "U+2029",
+        "U+202F",
+        "U+205F",
+        "U+3000"
+      ],
+      "forbidden_code_point_ranges": [
+        [
+          "U+0000",
+          "U+001F"
+        ],
+        [
+          "U+007F",
+          "U+007F"
+        ]
+      ],
+      "maximum_scalar_values": 128,
+      "maximum_utf8_octets": 128,
+      "normalization_form": "NFC",
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "unicode_source_names": [
+        "CompositionExclusions.txt",
+        "DerivedNormalizationProps.txt",
+        "NormalizationTest.txt",
+        "PropList.txt",
+        "ReadMe.txt",
+        "UnicodeData.txt"
+      ],
+      "unicode_version": "15.0.0"
+    },
+    {
+      "edge_trim_code_points": [
+        "U+0009",
+        "U+000A",
+        "U+000B",
+        "U+000C",
+        "U+000D",
+        "U+001C",
+        "U+001D",
+        "U+001E",
+        "U+001F",
+        "U+0020",
+        "U+0085",
+        "U+00A0",
+        "U+1680",
+        "U+2000",
+        "U+2001",
+        "U+2002",
+        "U+2003",
+        "U+2004",
+        "U+2005",
+        "U+2006",
+        "U+2007",
+        "U+2008",
+        "U+2009",
+        "U+200A",
+        "U+2028",
+        "U+2029",
+        "U+202F",
+        "U+205F",
+        "U+3000"
+      ],
+      "forbidden_code_point_ranges": [
+        [
+          "U+0000",
+          "U+001F"
+        ],
+        [
+          "U+007F",
+          "U+007F"
+        ]
+      ],
+      "maximum_scalar_values": 256,
+      "maximum_utf8_octets": 256,
+      "normalization_form": "NFC",
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_B_V1",
+      "unicode_source_names": [
+        "CompositionExclusions.txt",
+        "DerivedNormalizationProps.txt",
+        "NormalizationTest.txt",
+        "PropList.txt",
+        "ReadMe.txt",
+        "UnicodeData.txt"
+      ],
+      "unicode_version": "15.0.0"
+    },
+    {
+      "edge_trim_code_points": [
+        "U+0009",
+        "U+000A",
+        "U+000B",
+        "U+000C",
+        "U+000D",
+        "U+001C",
+        "U+001D",
+        "U+001E",
+        "U+001F",
+        "U+0020",
+        "U+0085",
+        "U+00A0",
+        "U+1680",
+        "U+2000",
+        "U+2001",
+        "U+2002",
+        "U+2003",
+        "U+2004",
+        "U+2005",
+        "U+2006",
+        "U+2007",
+        "U+2008",
+        "U+2009",
+        "U+200A",
+        "U+2028",
+        "U+2029",
+        "U+202F",
+        "U+205F",
+        "U+3000"
+      ],
+      "forbidden_code_point_ranges": [
+        [
+          "U+0000",
+          "U+001F"
+        ],
+        [
+          "U+007F",
+          "U+007F"
+        ]
+      ],
+      "maximum_scalar_values": 256,
+      "maximum_utf8_octets": 1024,
+      "normalization_form": "NFC",
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_C_V1",
+      "unicode_source_names": [
+        "CompositionExclusions.txt",
+        "DerivedNormalizationProps.txt",
+        "NormalizationTest.txt",
+        "PropList.txt",
+        "ReadMe.txt",
+        "UnicodeData.txt"
+      ],
+      "unicode_version": "15.0.0"
+    }
+  ],
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "metadata_shape_declarations": {
+    "identifier_profile": {
+      "identity_field": "unicode_identifier_profile_id",
+      "identity_payload_member_order": [
+        "profile_id",
+        "unicode_version",
+        "normalization_form",
+        "maximum_scalar_values",
+        "maximum_utf8_octets",
+        "forbidden_code_point_ranges",
+        "edge_trim_code_points",
+        "unicode_source_record_ids"
+      ],
+      "materialized_member_order": [
+        "profile_id",
+        "unicode_version",
+        "normalization_form",
+        "maximum_scalar_values",
+        "maximum_utf8_octets",
+        "forbidden_code_point_ranges",
+        "edge_trim_code_points",
+        "unicode_source_record_ids",
+        "unicode_identifier_profile_id"
+      ],
+      "semantic_id_domain": "RiskYieldMMA2MStep2UnicodeIdentifierProfileV1V4_9F_RawV8",
+      "source_spec_member_order": [
+        "profile_id",
+        "unicode_version",
+        "normalization_form",
+        "maximum_scalar_values",
+        "maximum_utf8_octets",
+        "forbidden_code_point_ranges",
+        "edge_trim_code_points",
+        "unicode_source_names"
+      ]
+    },
+    "surface_assignment": {
+      "identity_field": null,
+      "identity_payload_member_order": null,
+      "materialized_member_order": [
+        "surface_position",
+        "type_name",
+        "typed_member_path",
+        "value_location",
+        "nullable",
+        "profile_id"
+      ],
+      "semantic_id_domain": null,
+      "source_spec_member_order": [
+        "surface_position",
+        "type_name",
+        "typed_member_path",
+        "value_location",
+        "nullable",
+        "profile_id"
+      ]
+    },
+    "unicode_source": {
+      "identity_field": "unicode_source_record_id",
+      "identity_payload_member_order": [
+        "source_name",
+        "unicode_version",
+        "official_url",
+        "byte_count",
+        "sha256"
+      ],
+      "materialized_member_order": [
+        "source_name",
+        "unicode_version",
+        "official_url",
+        "byte_count",
+        "sha256",
+        "unicode_source_record_id"
+      ],
+      "semantic_id_domain": "RiskYieldMMA2MStep2UnicodeSourceRecordV1V4_9F_RawV8",
+      "source_spec_member_order": [
+        "source_name",
+        "unicode_version",
+        "official_url",
+        "byte_count",
+        "sha256"
+      ]
+    }
+  },
+  "surface_assignments": [
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "surface_position": 1,
+      "type_name": "CapacityMeasurementAckDeadlineExpirySpecV1",
+      "typed_member_path": [
+        "workload_family"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "surface_position": 2,
+      "type_name": "CapacityMeasurementIngressOperationSpecV2",
+      "typed_member_path": [
+        "workload_family"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "surface_position": 3,
+      "type_name": "CapacityMeasurementLocalShutdownSpecV2",
+      "typed_member_path": [
+        "workload_family"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "surface_position": 4,
+      "type_name": "CapacityMeasurementSubscriptionDispatchSpecV2",
+      "typed_member_path": [
+        "workload_family"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_A_V1",
+      "surface_position": 5,
+      "type_name": "CapacityMeasurementOperationDeclarationV1",
+      "typed_member_path": [
+        "stage"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_B_V1",
+      "surface_position": 6,
+      "type_name": "CapacityMeasurementOperationDeclarationV1",
+      "typed_member_path": [
+        "workload_id"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_B_V1",
+      "surface_position": 7,
+      "type_name": "CapacityMeasurementTextValueV1",
+      "typed_member_path": [
+        "value"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": true,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_B_V1",
+      "surface_position": 8,
+      "type_name": "CapacityMeasurementOptionalTextValueV1",
+      "typed_member_path": [
+        "value"
+      ],
+      "value_location": "MEMBER_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_B_V1",
+      "surface_position": 9,
+      "type_name": "CapacityMeasurementTextListValueV1",
+      "typed_member_path": [
+        "values"
+      ],
+      "value_location": "ARRAY_ITEM_VALUE"
+    },
+    {
+      "nullable": false,
+      "profile_id": "RAW_V8_UNICODE_IDENTIFIER_C_V1",
+      "surface_position": 10,
+      "type_name": "CapacityMeasurementSubscriptionDispatchSpecV2",
+      "typed_member_path": [
+        "expected_topic"
+      ],
+      "value_location": "MEMBER_VALUE"
+    }
+  ],
+  "unicode_source_specs": [
+    {
+      "byte_count": 8911,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/CompositionExclusions.txt",
+      "sha256": "3b019c0a33c3140cbc920c078f4f9af2680ba4f71869c8d4de5190667c70b6a3",
+      "source_name": "CompositionExclusions.txt",
+      "unicode_version": "15.0.0"
+    },
+    {
+      "byte_count": 837688,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/DerivedNormalizationProps.txt",
+      "sha256": "d5687a48c95c7d6e1ec59cb29c0f2e8b052018eb069a4371b7368d0561e12a29",
+      "source_name": "DerivedNormalizationProps.txt",
+      "unicode_version": "15.0.0"
+    },
+    {
+      "byte_count": 2625136,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/NormalizationTest.txt",
+      "sha256": "fb9ac8cc154a80cad6caac9897af55a4e75176af6f4e2bb6edc2bf8b1d57f326",
+      "source_name": "NormalizationTest.txt",
+      "unicode_version": "15.0.0"
+    },
+    {
+      "byte_count": 132360,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/PropList.txt",
+      "sha256": "e05c0a2811d113dae4abd832884199a3ea8d187ee1b872d8240a788a96540bfd",
+      "source_name": "PropList.txt",
+      "unicode_version": "15.0.0"
+    },
+    {
+      "byte_count": 635,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/ReadMe.txt",
+      "sha256": "53672c0d0b5185e3cf04c8e970d544c3af81ae7c8eeba0b9cf6d355aa954ae1f",
+      "source_name": "ReadMe.txt",
+      "unicode_version": "15.0.0"
+    },
+    {
+      "byte_count": 1913704,
+      "official_url": "https://www.unicode.org/Public/15.0.0/ucd/UnicodeData.txt",
+      "sha256": "806e9aed65037197f1ec85e12be6e8cd870fc5608b4de0fffd990f689f376a73",
+      "source_name": "UnicodeData.txt",
+      "unicode_version": "15.0.0"
+    }
+  ]
+}

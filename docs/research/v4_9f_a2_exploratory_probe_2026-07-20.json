@@ -1,0 +1,135 @@
+{
+  "artifact_kind": "V4_9F_A2_EXPLORATORY_TRANSPORT_PROBE",
+  "campaign_eligibility": "EXPLORATORY_ONLY",
+  "campaign_eligibility_reasons": [
+    "dirty_worktree",
+    "single_observation_per_workload",
+    "no_preregistered_trial_randomization",
+    "temporary_tmpfs_storage",
+    "development_test_authority",
+    "instrumentation_contract_not_yet_frozen"
+  ],
+  "date": "2026-07-20",
+  "environment": {
+    "cpu_affinity": "0-11",
+    "cpu_governor": "powersave",
+    "cpu_model": "Intel(R) Core(TM) i5-10500H CPU @ 2.50GHz",
+    "cpu_threads": 12,
+    "event_loop_policy": "_UnixDefaultEventLoopPolicy",
+    "filesystem": "tmpfs",
+    "git_commit": "4b3e9eda62c09564ce4626087383eeed9f5faea9",
+    "git_worktree_clean": false,
+    "kernel": "7.0.0-27-generic",
+    "openssl": "OpenSSL 3.6.3 9 Jun 2026",
+    "perf_counter_implementation": "clock_gettime(CLOCK_MONOTONIC)",
+    "perf_counter_resolution_seconds": 1e-09,
+    "platform": "Linux-7.0.0-27-generic-x86_64-with-glibc2.43",
+    "python": "CPython 3.12.12 conda-forge GCC 14.3.0",
+    "sqlite": "3.51.1",
+    "websockets": "16.0"
+  },
+  "measurement_method": {
+    "cpu_duration_clock": "time.process_time_ns",
+    "elapsed_duration_clock": "time.perf_counter_ns",
+    "fresh_loopback_tls_runtime_projection_per_sample": true,
+    "full_projection_verify_inside_timed_region": false,
+    "integrated_path": "PhysicalTransportRuntimeV4.process_next_ingress_v49d",
+    "signed_a1_policy_enabled": true,
+    "timed_region": "after actor activation through ingress progress return"
+  },
+  "profile_observation": {
+    "cprofile_changes_absolute_timing": true,
+    "one_frame_profile_cpu_seconds": 3.056,
+    "primitive_calls": 3205047,
+    "top_cumulative_paths": [
+      {
+        "calls": 6,
+        "cumulative_seconds": 2.678,
+        "path": "ExactTlsWebSocketDriverV49.assert_current"
+      },
+      {
+        "calls": 6,
+        "cumulative_seconds": 2.586,
+        "path": "PinnedTlsWebSocketRuntimeArtifactsV49B.assert_current"
+      },
+      {
+        "calls": 1884,
+        "cumulative_seconds": 1.468,
+        "path": "retained runtime artifact member assert_current"
+      },
+      {
+        "calls": 13026,
+        "cumulative_seconds": 1.955,
+        "path": "hashlib HASH.update"
+      },
+      {
+        "calls": 2,
+        "cumulative_seconds": 0.263,
+        "path": "PhysicalProjectionStoreV4._append_transport_actor_event_record_core"
+      }
+    ],
+    "total_calls": 3307914
+  },
+  "samples": [
+    {
+      "actor_event_count_after": 2,
+      "cpu_milliseconds": 2313.81821,
+      "elapsed_milliseconds": 2325.939695,
+      "frame_count": 1,
+      "parser_event_count": 1,
+      "raw_octets": 2
+    },
+    {
+      "actor_event_count_after": 3,
+      "cpu_milliseconds": 3090.307667,
+      "elapsed_milliseconds": 3101.969815,
+      "frame_count": 2,
+      "parser_event_count": 2,
+      "raw_octets": 4
+    },
+    {
+      "actor_event_count_after": 5,
+      "cpu_milliseconds": 4683.719426,
+      "elapsed_milliseconds": 4689.313986,
+      "frame_count": 4,
+      "parser_event_count": 4,
+      "raw_octets": 8
+    },
+    {
+      "actor_event_count_after": 9,
+      "cpu_milliseconds": 7961.462601,
+      "elapsed_milliseconds": 7967.72024,
+      "frame_count": 8,
+      "parser_event_count": 8,
+      "raw_octets": 16
+    }
+  ],
+  "source_sha256_at_measurement": {
+    "operational_runtime_artifacts_v49b.py": "589b603ce4d99db51d71cc02bd94cf6badfbf440f103980f3624c8dac3744dc4",
+    "physical_projection_v4.py": "32e22f3eec523609652dbd18455b3ae4b23ddf5cf71b468c1af13b7d0f25acf4",
+    "physical_transport_runtime_v4.py": "238351935027aecdb1713377e1c9decbdfa79da43fba6146082f96760518d528",
+    "physical_transport_session_actor_v49c.py": "3d09ec25e9ddb7a355639f0d6ee93923ee0c0424c19c38aa75aa92d3ac6d9bb9",
+    "physical_transport_tls_v49.py": "731b2ddceb6c98e74273ee0d059d4a9236159b714f6369e99391289a465a4e6f"
+  },
+  "workload": {
+    "frame_encoding": "unmasked server PONG with empty payload",
+    "frame_octets": 2,
+    "ingress_delivery": "coalesced post-upgrade bytes in one initial RAW batch",
+    "purpose": "isolate integrated parser plus actor/projection/currentness cost without application classification or automatic output",
+    "sample_frame_counts": [
+      1,
+      2,
+      4,
+      8
+    ]
+  },
+  "conclusions": [
+    "The integrated service cost is already measured in seconds for one minimum frame in this exploratory environment.",
+    "The dominant profiled cost is repeated runtime-artifact currentness verification and file hashing, not WebSocket frame parsing.",
+    "A parser frame-count quantum alone cannot establish a useful event-loop or transport-command latency bound.",
+    "A2-M must measure currentness, actor, projection, SQLite, TLS, and parser stages separately.",
+    "A scalable currentness-check design and incremental actor/projection work must be treated as prerequisites before A2-E service objectives can be accepted.",
+    "These observations select no threshold and support no live-readiness, capacity, profitability, or production claim."
+  ],
+  "schema_version": "riskyieldmm_v4_9f_a2_exploratory_probe_1"
+}

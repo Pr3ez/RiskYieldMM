@@ -1,0 +1,12 @@
+{
+  "stage": "rank_signal_transfer_separator",
+  "status": "complete",
+  "written_at": "2026-06-24T16:21:15.802930+00:00",
+  "summary": {
+    "diagnostic_run": "test_output/rpf_ranked_signal_transfer_diagnostic/20260624_162103_rank_signal_transfer_diagnostic",
+    "joined_rows": 227,
+    "feature_count": 112,
+    "result_rows": 288,
+    "summary_rows": 3
+  }
+}

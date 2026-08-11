@@ -1,0 +1,119 @@
+{
+  "version": "rpf_walkforward_optuna_stages_v1",
+  "feature_set": "regression_path_features_v1",
+  "target_variant": "distance_horizon_vol_v2",
+  "first_benchmark": {
+    "target_assets": ["BTCUSDT"],
+    "roots": ["8h/B"],
+    "context_assets": "core-ex-target",
+    "targets": [
+      "target_reg_distance_up_extreme_hvol_v2",
+      "target_reg_distance_up_mean_high_hvol_v2",
+      "target_reg_distance_down_mean_low_hvol_v2",
+      "target_reg_distance_down_extreme_hvol_v2",
+      "target_reg_direction_extreme_up_share_hvol_v2",
+      "target_reg_direction_mean_up_share_hvol_v2"
+    ]
+  },
+  "default_effective_config": {
+    "window": {
+      "lookback_batches": 120,
+      "val_batches": 20,
+      "embargo_batches": 0
+    },
+    "feature": {
+      "feature_source_mode": "regression_only",
+      "feature_policy": "target_specific_v2",
+      "max_features": 300,
+      "min_abs_spearman": 0.02,
+      "min_selected_features": 20,
+      "dedupe_corr_threshold": 0.995,
+      "clip_quantiles": [0.001, 0.999],
+      "stability_segments": 5,
+      "tail_quantile": 0.8
+    },
+    "model": {
+      "iterations": 200,
+      "depth": 4,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 10.0,
+      "loss_function": "RMSE",
+      "eval_metric": "RMSE",
+      "early_stopping_rounds": 50,
+      "od_type": "Iter",
+      "od_wait": null,
+      "random_strength": null,
+      "bootstrap_type": null,
+      "bagging_temperature": null,
+      "subsample": null,
+      "mvs_reg": null,
+      "border_count": null,
+      "grow_policy": null,
+      "min_data_in_leaf": null,
+      "max_leaves": null,
+      "leaf_estimation_method": null,
+      "leaf_estimation_iterations": null,
+      "boosting_type": null,
+      "has_time": true,
+      "gpu_ram_part": null
+    }
+  },
+  "stages": {
+    "readiness": {
+      "tunes": [],
+      "output": "optimization_readiness.json"
+    },
+    "geometry": {
+      "tunes": ["lookback_batches", "val_batches", "embargo_batches"],
+      "output": "locked_window_config.json"
+    },
+    "feature_policy": {
+      "tunes": [
+        "feature_source_mode",
+        "max_features",
+        "min_abs_spearman",
+        "min_selected_features",
+        "dedupe_corr_threshold",
+        "clip_quantiles",
+        "stability_segments",
+        "tail_quantile"
+      ],
+      "output": "locked_feature_policy_config.json"
+    },
+    "core_model": {
+      "tunes": [
+        "iterations",
+        "learning_rate",
+        "depth",
+        "l2_leaf_reg",
+        "early_stopping_rounds",
+        "od_wait"
+      ],
+      "output": "locked_core_model_config.json"
+    },
+    "sampling": {
+      "tunes": [
+        "bootstrap_type",
+        "bagging_temperature",
+        "subsample",
+        "random_strength",
+        "border_count"
+      ],
+      "output": "locked_regularized_model_config.json"
+    },
+    "tree_policy": {
+      "tunes": [
+        "grow_policy",
+        "min_data_in_leaf",
+        "max_leaves",
+        "leaf_estimation_method",
+        "leaf_estimation_iterations"
+      ],
+      "output": "locked_advanced_model_config.json"
+    },
+    "confirmation": {
+      "tunes": [],
+      "output": "final_confirmation_config.json"
+    }
+  }
+}

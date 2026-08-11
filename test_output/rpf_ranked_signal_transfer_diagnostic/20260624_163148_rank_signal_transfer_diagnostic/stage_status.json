@@ -1,0 +1,14 @@
+{
+  "stage": "rank_signal_transfer_diagnostic",
+  "status": "complete",
+  "written_at": "2026-06-24T16:32:10.903679+00:00",
+  "summary": {
+    "candidate_transfer_rows": 1440,
+    "safe_context_rows": 1440,
+    "active_window_rows": 765,
+    "candidate_count": 3,
+    "source_run_count": 4,
+    "good_rows": 171,
+    "bad_rows": 433
+  }
+}

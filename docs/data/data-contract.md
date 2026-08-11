@@ -301,6 +301,63 @@ end_return
 Label rows must be generated without access to future prediction batches outside
 the permitted forward-distance label window.
 
+Experimental target-survey and regression label roots are stored beside the
+legacy label roots and must not overwrite them. Triple-barrier four-class
+variants use roots such as `htf_4class_labels_tb_atr_wide_v2/1m/`.
+Volatility-normalized distance regression targets use one shared root per
+variant and regime/family layout. The historical `distance_vol_v1` root is:
+
+```text
+{layout.label_root}_reg_distance_vol_v1/1m/
+```
+
+It contains four nullable target columns:
+
+```text
+target_reg_distance_up_extreme_vol_v1
+target_reg_distance_up_mean_high_vol_v1
+target_reg_distance_down_mean_low_vol_v1
+target_reg_distance_down_extreme_vol_v1
+```
+
+`distance_vol_v1` divides a multi-hour future path distance by the row's
+short-horizon prediction-time volatility. It remains available for historical
+diagnostics, but the preferred corrected research root is:
+
+```text
+{layout.label_root}_reg_distance_horizon_vol_v2/1m/
+```
+
+It contains:
+
+```text
+target_reg_distance_up_extreme_hvol_v2
+target_reg_distance_up_mean_high_hvol_v2
+target_reg_distance_down_mean_low_hvol_v2
+target_reg_distance_down_extreme_hvol_v2
+```
+
+`distance_horizon_vol_v2` keeps the same raw future distances as v1 and
+normalizes them by:
+
+```text
+horizon_minutes = future_15m_bar_count * 15
+horizon_vol_pct = tb_volatility_pct * sqrt(horizon_minutes)
+target = raw_distance_pct / horizon_vol_pct
+```
+
+These are label-only distances in units of causal horizon-adjusted volatility.
+Invalid rows use `null`, not `-1`, and carry
+`target_reg_distance_valid_v2=false` plus a diagnostic reason. The current
+production Stage-1 CatBoost workflow remains classification-only. Regression
+experiments must use the dedicated
+`htf_stage1_regression_walkforward.py` runner, which filters null targets and
+uses `CatBoostRegressor` plus regression/rank metrics. Its optional
+`--feature-policy target_specific_v1` policy must select, deduplicate, and clip
+features from train rows only inside each walk-forward step.
+Use `validate_stage1_regression_targets.py` before model runs to verify every
+generated row against the source future `15m` label windows.
+
 ## Incremental Update Contract
 
 The HTF materializer should not recompute stable historical artifacts when new

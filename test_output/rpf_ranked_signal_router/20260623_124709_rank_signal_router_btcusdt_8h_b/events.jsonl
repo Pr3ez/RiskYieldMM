@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-23T12:47:09.668627+00:00", "command": "rank_signal_router", "asset": "BTCUSDT", "root": "8h/B"}
+{"event": "stage_done", "ts": "2026-06-23T12:47:29.117066+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal_router/20260623_124709_rank_signal_router_btcusdt_8h_b"}

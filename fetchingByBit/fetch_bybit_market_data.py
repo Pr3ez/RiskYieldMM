@@ -41,6 +41,7 @@ SYMBOL = DEFAULT_BYBIT_SYMBOL  # Backward-compatible single-symbol default
 CATEGORY = BYBIT_CATEGORY  # spot | linear | inverse
 START_DATE = "2021-01-01"
 END_DATE = "now"  # supports "now", "today", ISO strings, YYYY-MM-DD
+KLINE_FINALITY_LAG_MS = 5_000
 
 # What data to fetch
 FETCH_KLINES = True
@@ -214,6 +215,56 @@ def _to_ms(ts_like: str | datetime) -> int:
         else:
             dt = dt.astimezone(timezone.utc)
     return int(dt.timestamp() * 1000)
+
+
+def latest_complete_kline_start_ms(
+    interval: str,
+    *,
+    now: datetime | None = None,
+    safety_lag_ms: int = KLINE_FINALITY_LAG_MS,
+) -> int:
+    """Return the latest bar open whose close precedes the safe UTC clock."""
+
+    if interval not in INTERVAL_MS:
+        raise ValueError(f"Unsupported Bybit interval: {interval!r}")
+    if safety_lag_ms < 0:
+        raise ValueError("safety_lag_ms must be non-negative")
+    current = now or datetime.now(timezone.utc)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=timezone.utc)
+    now_ms = int(current.astimezone(timezone.utc).timestamp() * 1000)
+    step_ms = INTERVAL_MS[interval]
+    safe_close_boundary_ms = ((now_ms - safety_lag_ms) // step_ms) * step_ms
+    return safe_close_boundary_ms - step_ms
+
+
+def _prune_unclosed_kline_tail(
+    output_dir: str,
+    sym_prefix: str,
+    *,
+    latest_closed_start_ms: int,
+) -> int:
+    """Remove persisted kline rows that are still forming at the safe clock."""
+
+    removed = 0
+    for _, filename, _ in reversed(_list_existing_files(output_dir, sym_prefix)):
+        path = os.path.join(output_dir, filename)
+        frame = _normalize_timestamp_dtype(pl.read_parquet(path))
+        if frame.is_empty():
+            os.remove(path)
+            continue
+        timestamp_ms = frame["timestamp"].dt.epoch(time_unit="ms")
+        keep = timestamp_ms <= latest_closed_start_ms
+        kept = frame.filter(keep)
+        removed_here = frame.height - kept.height
+        if removed_here == 0:
+            break
+        removed += removed_here
+        if kept.is_empty():
+            os.remove(path)
+        else:
+            _normalize_timestamp_dtype(kept).write_parquet(path)
+    return removed
 
 
 def respect_rate_limit(resp: requests.Response) -> None:
@@ -470,7 +521,8 @@ def fetch_and_save(
       - Fetches oldest→newest pages from Bybit (forward pagination)
       - Merges and globally sorts (oldest→newest)
       - Writes/extends chunked parquet files in sorted-{label}-bybit-{category}
-      - On resume, fetches ONLY candles strictly after the max saved timestamp
+      - On resume, re-fetches one closed overlap candle, then appends newer bars
+      - Never persists a candle until its interval is closed plus safety lag
       - Keeps fixed chunk size and numbering; tops up last partial file first
       - Verifies sorting/step integrity at the end
     """
@@ -479,8 +531,8 @@ def fetch_and_save(
 
     req_start_ts = _to_ms(start_date)
     req_end_ts = _to_ms(end_date)
-    now_ts = int(datetime.now(timezone.utc).timestamp() * 1000)
-    end_ts = min(req_end_ts, now_ts)
+    latest_closed_ts = latest_complete_kline_start_ms(interval)
+    end_ts = min(req_end_ts, latest_closed_ts)
 
     output_dir = os.path.join(BASE_DIR, f"sorted-{label}-bybit-{category}")
     os.makedirs(output_dir, exist_ok=True)
@@ -488,6 +540,21 @@ def fetch_and_save(
     step_ms = INTERVAL_MS[interval]
 
     existing = _list_existing_files(output_dir, sym_prefix)
+    if existing:
+        removed_unclosed = _prune_unclosed_kline_tail(
+            output_dir,
+            sym_prefix,
+            latest_closed_start_ms=latest_closed_ts,
+        )
+        if removed_unclosed:
+            print(f"Removed {removed_unclosed} unclosed persisted {label} candle(s).")
+            logger.warning(
+                "Removed %s unclosed persisted %s %s candle(s)",
+                removed_unclosed,
+                symbol,
+                label,
+            )
+        existing = _list_existing_files(output_dir, sym_prefix)
     is_resume = len(existing) > 0
 
     # Determine resume point and chunk size
@@ -502,8 +569,9 @@ def fetch_and_save(
         last_ts_ms = _read_last_timestamp_ms(last_path)
         first_ts_ms = _read_first_timestamp_ms(os.path.join(output_dir, existing[0][1]))
         if last_ts_ms is not None:
-            # fetch strictly after the last saved candle
-            start_ts = max(req_start_ts, last_ts_ms + step_ms)
+            # Re-fetch the latest saved candle as a one-bar overlap so an
+            # earlier partial/API revision is replaced before appending.
+            start_ts = max(req_start_ts, last_ts_ms)
         start_index = last_idx + 1
 
         # Infer chunk size from first file (stable reference)
@@ -546,8 +614,21 @@ def fetch_and_save(
     # Try loading checkpoint if exists
     checkpoint_df = load_checkpoint(output_dir)
     if checkpoint_df is not None and checkpoint_df.height > 0:
-        last_checkpoint_ts = int(checkpoint_df["timestamp"].max().timestamp() * 1000)
-        if last_checkpoint_ts > start_ts:
+        checkpoint_df = checkpoint_df.filter(
+            pl.col("timestamp")
+            .dt.epoch(time_unit="ms")
+            .is_between(
+                start_ts,
+                end_ts,
+                closed="both",
+            )
+        )
+        last_checkpoint_ts = (
+            int(checkpoint_df["timestamp"].max().timestamp() * 1000)
+            if checkpoint_df.height > 0
+            else None
+        )
+        if last_checkpoint_ts is not None and last_checkpoint_ts >= start_ts:
             start_ts = last_checkpoint_ts + step_ms
             cur_start = start_ts
             page_dfs.append(checkpoint_df)
@@ -593,7 +674,13 @@ def fetch_and_save(
             continue
 
         # within-page: oldest→newest
-        klines_sorted = sorted(klines, key=lambda x: int(x[0]))
+        klines_sorted = sorted(
+            (row for row in klines if cur_start <= int(row[0]) <= end_ts),
+            key=lambda x: int(x[0]),
+        )
+        if not klines_sorted:
+            cur_start = cur_end + step_ms
+            continue
         first_ts = int(klines_sorted[0][0])
         last_ts = int(klines_sorted[-1][0])
 
@@ -727,17 +814,23 @@ def fetch_and_save(
     # 1) Top-up last partial file (if any)
     last_idx, last_fname, _ = existing[-1]
     last_path = os.path.join(output_dir, last_fname)
-    last_rows = _read_rows(last_path)
+    replacement_start_ms = int(new_df["timestamp"].min().timestamp() * 1000)
+    last_df = _normalize_timestamp_dtype(pl.read_parquet(last_path))
+    last_df = last_df.filter(
+        pl.col("timestamp").dt.epoch(time_unit="ms") < replacement_start_ms
+    )
+    last_rows = last_df.height
     consumed = 0
 
     if last_rows < chunk_size and new_df.height > 0:
         need = min(chunk_size - last_rows, new_df.height)
         if need > 0:
-            last_df = _normalize_timestamp_dtype(pl.read_parquet(last_path))
             combined = pl.concat(
                 [last_df, _normalize_timestamp_dtype(new_df.slice(0, need))]
             )
-            combined = _normalize_timestamp_dtype(combined.sort("timestamp"))
+            combined = _normalize_timestamp_dtype(
+                combined.unique(subset=["timestamp"], keep="last").sort("timestamp")
+            )
             combined.write_parquet(last_path)
             consumed = need
             print(f"↻ topped-up {last_fname}: {last_rows} → {combined.height} rows")
@@ -745,7 +838,16 @@ def fetch_and_save(
     # 2) Write remaining in fixed-size chunks
     remaining = new_df.slice(consumed)
     if remaining.height == 0:
+        clean_checkpoints(output_dir)
         _verify_integrity(output_dir, sym_prefix, step_ms)
+        save_progress(
+            "klines",
+            label,
+            int(new_df["timestamp"].max().timestamp() * 1000),
+            "complete",
+            symbol=symbol,
+            category=category,
+        )
         print("No more rows after top-up. Done.")
         return
 

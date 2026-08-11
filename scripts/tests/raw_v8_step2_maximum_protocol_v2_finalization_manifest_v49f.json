@@ -1,0 +1,435 @@
+{
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "comparison_evidence": {
+    "all_18_metric_summaries_equal": true,
+    "all_475_case_records_equal": true,
+    "all_resource_limits_satisfied": true,
+    "comparison_payload_id": "8fca05661cbf728468b442466f613b7840b9c462cb2fd55302d34569fe243256",
+    "comparison_payload_version": "riskyieldmm.raw_v8_step2_external_schema_v2.preflight_comparison_payload.v1",
+    "comparison_status": "EXACT_AGREEMENT",
+    "implementation_a_raw_sha256": "fa02fcfce55e6e7b16ef90422ac079b8e34cbc1cf2c0d8422dd8b28639ec76e7",
+    "implementation_a_semantic_payload_id": "d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b",
+    "implementation_b_raw_sha256": "de618350fc5c5c48d998de7ae49449f9edca0eff25161bde07cf271c22e47954",
+    "implementation_b_semantic_payload_id": "d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b",
+    "raw_octets": 1206,
+    "raw_sha256": "44e1572ea8a9bfd19a876e80dcb027a503f9e720389a2671d02c37bc740f9b43",
+    "semantic_count_vector_sha256": "a9d7cd1ce1cb0aa6dccb175a5a1c49e69f1e672e18a9b4419ccbcdfedc1f79a8",
+    "semantic_payload_bytes_equal": true
+  },
+  "finalization_manifest_id": "edde204e98ed1caeeb8ae270487d85e39a2168e0a3692ce1d8748d2d8e7fd858",
+  "finalization_manifest_version": "riskyieldmm.raw_v8_step2_external_schema_v2.finalization_manifest.v1",
+  "finalization_status": "FINAL_V2_F2_FROZEN",
+  "ordered_f2_limit_records": [
+    {
+      "f2_full_run": 475,
+      "f2_per_case": 1,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 475,
+      "full_run_rounding_unit": 1,
+      "metric_name": "SCOPE_CASE_COUNT",
+      "metric_position": 1,
+      "per_case_f0_ceiling": 1,
+      "per_case_rounding_unit": 1,
+      "required_full_run": 475,
+      "required_per_case": 1
+    },
+    {
+      "f2_full_run": 29190144,
+      "f2_per_case": 2102272,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 1099511627776,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "LOGICAL_DESCRIPTOR_OCCURRENCE_COUNT",
+      "metric_position": 2,
+      "per_case_f0_ceiling": 4294967296,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 29189597,
+      "required_per_case": 2101890
+    },
+    {
+      "f2_full_run": 66560,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 268435456,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "RECURRENCE_STATE_ENTRY_COUNT",
+      "metric_position": 3,
+      "per_case_f0_ceiling": 4194304,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 66119,
+      "required_per_case": 158
+    },
+    {
+      "f2_full_run": 417792,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 2147483648,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "RECURRENCE_TRANSITION_ATTEMPT_COUNT",
+      "metric_position": 4,
+      "per_case_f0_ceiling": 134217728,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 417528,
+      "required_per_case": 1002
+    },
+    {
+      "f2_full_run": 170915840,
+      "f2_per_case": 4204544,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 281474976710656,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "LOGICAL_UNBATCHED_TRANSITION_EQUIVALENT_COUNT",
+      "metric_position": 5,
+      "per_case_f0_ceiling": 1099511627776,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 170915620,
+      "required_per_case": 4204335
+    },
+    {
+      "f2_full_run": 2048,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 134217728,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "RECURRENCE_BATCH_APPLICATION_COUNT",
+      "metric_position": 6,
+      "per_case_f0_ceiling": 1048576,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 1735,
+      "required_per_case": 20
+    },
+    {
+      "f2_full_run": 66560,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 134217728,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "CACHE_ENTRY_COUNT",
+      "metric_position": 7,
+      "per_case_f0_ceiling": 1048576,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 66119,
+      "required_per_case": 158
+    },
+    {
+      "f2_full_run": 45088768,
+      "f2_per_case": 106496,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 17179869184,
+      "full_run_rounding_unit": 1048576,
+      "metric_name": "CACHE_KEY_CANONICAL_OCTETS",
+      "metric_position": 8,
+      "per_case_f0_ceiling": 268435456,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 44461267,
+      "required_per_case": 106427
+    },
+    {
+      "f2_full_run": 329252864,
+      "f2_per_case": 790528,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 34359738368,
+      "full_run_rounding_unit": 1048576,
+      "metric_name": "DERIVATION_CANONICALIZATION_INPUT_OCTETS",
+      "metric_position": 9,
+      "per_case_f0_ceiling": 536870912,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 329067149,
+      "required_per_case": 789383
+    },
+    {
+      "f2_full_run": 368050176,
+      "f2_per_case": 880640,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 34359738368,
+      "full_run_rounding_unit": 1048576,
+      "metric_name": "DERIVATION_CANONICALIZATION_OUTPUT_OCTETS",
+      "metric_position": 10,
+      "per_case_f0_ceiling": 536870912,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 367039374,
+      "required_per_case": 880113
+    },
+    {
+      "f2_full_run": 619708416,
+      "f2_per_case": 1482752,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 34359738368,
+      "full_run_rounding_unit": 1048576,
+      "metric_name": "DERIVATION_HASH_PREIMAGE_OCTETS",
+      "metric_position": 11,
+      "per_case_f0_ceiling": 536870912,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 619175993,
+      "required_per_case": 1481221
+    },
+    {
+      "f2_full_run": 5120,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 2147483648,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "INTRINSIC_RULE_EVALUATION_COUNT",
+      "metric_position": 12,
+      "per_case_f0_ceiling": 134217728,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 4160,
+      "required_per_case": 10
+    },
+    {
+      "f2_full_run": 4199424,
+      "f2_per_case": 49152,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 2147483648,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "CROSS_RULE_EVALUATION_COUNT",
+      "metric_position": 13,
+      "per_case_f0_ceiling": 134217728,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 4198492,
+      "required_per_case": 48649
+    },
+    {
+      "f2_full_run": 47104,
+      "f2_per_case": 1024,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 536870912,
+      "full_run_rounding_unit": 1024,
+      "metric_name": "APPLICATION_EVALUATION_COUNT",
+      "metric_position": 14,
+      "per_case_f0_ceiling": 16777216,
+      "per_case_rounding_unit": 1024,
+      "required_full_run": 46268,
+      "required_per_case": 569
+    },
+    {
+      "f2_full_run": 17,
+      "f2_per_case": 17,
+      "full_run_aggregation": "MAXIMUM",
+      "full_run_f0_ceiling": 65536,
+      "full_run_rounding_unit": 1,
+      "metric_name": "MAXIMUM_DERIVATION_DEPTH",
+      "metric_position": 15,
+      "per_case_f0_ceiling": 65536,
+      "per_case_rounding_unit": 1,
+      "required_full_run": 17,
+      "required_per_case": 17
+    },
+    {
+      "f2_full_run": 569,
+      "f2_per_case": 569,
+      "full_run_aggregation": "MAXIMUM",
+      "full_run_f0_ceiling": 1048576,
+      "full_run_rounding_unit": 1,
+      "metric_name": "MAXIMUM_ITERATION_DEPTH",
+      "metric_position": 16,
+      "per_case_f0_ceiling": 1048576,
+      "per_case_rounding_unit": 1,
+      "required_full_run": 569,
+      "required_per_case": 569
+    },
+    {
+      "f2_full_run": 57344,
+      "f2_per_case": 57344,
+      "full_run_aggregation": "MAXIMUM",
+      "full_run_f0_ceiling": 1073741824,
+      "full_run_rounding_unit": 4096,
+      "metric_name": "PEAK_RETAINED_DERIVATION_OCTETS",
+      "metric_position": 17,
+      "per_case_f0_ceiling": 1073741824,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 54297,
+      "required_per_case": 54297
+    },
+    {
+      "f2_full_run": 15728640,
+      "f2_per_case": 40960,
+      "full_run_aggregation": "SUM",
+      "full_run_f0_ceiling": 4294967296,
+      "full_run_rounding_unit": 1048576,
+      "metric_name": "DERIVATION_RESULT_CANONICAL_OCTETS",
+      "metric_position": 18,
+      "per_case_f0_ceiling": 16773120,
+      "per_case_rounding_unit": 4096,
+      "required_full_run": 15585644,
+      "required_per_case": 37195
+    }
+  ],
+  "ordered_implementation_authorities": [
+    {
+      "algorithm_marker": "ITERATIVE_CATALOG_INTERPRETER_V1",
+      "implementation_label": "A",
+      "implementation_position": 1,
+      "raw_octets": 97254,
+      "raw_sha256": "fa02fcfce55e6e7b16ef90422ac079b8e34cbc1cf2c0d8422dd8b28639ec76e7",
+      "repository_relative_path": "scripts/tests/preflight_raw_v8_step2_maximum_protocol_v2_a_v49f.py"
+    },
+    {
+      "algorithm_marker": "FLAT_LEDGER_PREFIX_SUM_V1",
+      "implementation_label": "B",
+      "implementation_position": 2,
+      "raw_octets": 89474,
+      "raw_sha256": "de618350fc5c5c48d998de7ae49449f9edca0eff25161bde07cf271c22e47954",
+      "repository_relative_path": "scripts/tests/preflight_raw_v8_step2_maximum_protocol_v2_b_v49f.py"
+    },
+    {
+      "algorithm_marker": "RiskYieldMMStep2PreflightComparisonV1V4_9F_RawV8",
+      "implementation_label": "COMPARATOR",
+      "implementation_position": 3,
+      "raw_octets": 52732,
+      "raw_sha256": "e0527f10a4ccb18891d18b8910101066bbc01ab57eebc2e3b18338d7c6f4f793",
+      "repository_relative_path": "scripts/tests/compare_raw_v8_step2_maximum_protocol_v2_preflights_v49f.py"
+    }
+  ],
+  "preflight_contract_authority": {
+    "contract_id": "6609ad7b9abf21432136e49af178e20c17cb7bc27d3b444a4b6f01a17073fc76",
+    "contract_version": "riskyieldmm.raw_v8_step2_external_schema_v2.preflight_execution_contract.v1",
+    "raw_octets": 16919,
+    "raw_sha256": "007ed9a8d06b91f73708129b66a33eaf525e203d306426d05b8cd8bba9c7294b",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_preflight_contract_v49f.json"
+  },
+  "protocol_counting_semantics_id": "34f6c285e1ce5c2b0496a63f6eda3ee15f72d6268f5ba9dbb0748e01e61d38fb",
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "seed_authority": {
+    "catalog_version": "riskyieldmm.raw_v8_step2_external_schema_v2.maximum_protocol_v2_seed_catalog.v1",
+    "raw_octets": 13419905,
+    "raw_sha256": "a75a2f352e8513b7ff0043693a0c65ebbf4bc6f06859354789af69e1162b0e4f",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_seed_catalog_v49f.json",
+    "seed_catalog_id": "ac22151fa74702ac1488924f01161eaa38574545e6272a290db6b0bbd288ae5f"
+  },
+  "semantic_evidence": {
+    "ordered_metric_evidence_records": [
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "SCOPE_CASE_COUNT",
+        "metric_position": 1,
+        "required_full_run": 475,
+        "required_per_case": 1
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "LOGICAL_DESCRIPTOR_OCCURRENCE_COUNT",
+        "metric_position": 2,
+        "required_full_run": 29189597,
+        "required_per_case": 2101890
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "RECURRENCE_STATE_ENTRY_COUNT",
+        "metric_position": 3,
+        "required_full_run": 66119,
+        "required_per_case": 158
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "RECURRENCE_TRANSITION_ATTEMPT_COUNT",
+        "metric_position": 4,
+        "required_full_run": 417528,
+        "required_per_case": 1002
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "LOGICAL_UNBATCHED_TRANSITION_EQUIVALENT_COUNT",
+        "metric_position": 5,
+        "required_full_run": 170915620,
+        "required_per_case": 4204335
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "RECURRENCE_BATCH_APPLICATION_COUNT",
+        "metric_position": 6,
+        "required_full_run": 1735,
+        "required_per_case": 20
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "CACHE_ENTRY_COUNT",
+        "metric_position": 7,
+        "required_full_run": 66119,
+        "required_per_case": 158
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "CACHE_KEY_CANONICAL_OCTETS",
+        "metric_position": 8,
+        "required_full_run": 44461267,
+        "required_per_case": 106427
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "DERIVATION_CANONICALIZATION_INPUT_OCTETS",
+        "metric_position": 9,
+        "required_full_run": 329067149,
+        "required_per_case": 789383
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "DERIVATION_CANONICALIZATION_OUTPUT_OCTETS",
+        "metric_position": 10,
+        "required_full_run": 367039374,
+        "required_per_case": 880113
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "DERIVATION_HASH_PREIMAGE_OCTETS",
+        "metric_position": 11,
+        "required_full_run": 619175993,
+        "required_per_case": 1481221
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "INTRINSIC_RULE_EVALUATION_COUNT",
+        "metric_position": 12,
+        "required_full_run": 4160,
+        "required_per_case": 10
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "CROSS_RULE_EVALUATION_COUNT",
+        "metric_position": 13,
+        "required_full_run": 4198492,
+        "required_per_case": 48649
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "APPLICATION_EVALUATION_COUNT",
+        "metric_position": 14,
+        "required_full_run": 46268,
+        "required_per_case": 569
+      },
+      {
+        "full_run_aggregation": "MAXIMUM",
+        "metric_name": "MAXIMUM_DERIVATION_DEPTH",
+        "metric_position": 15,
+        "required_full_run": 17,
+        "required_per_case": 17
+      },
+      {
+        "full_run_aggregation": "MAXIMUM",
+        "metric_name": "MAXIMUM_ITERATION_DEPTH",
+        "metric_position": 16,
+        "required_full_run": 569,
+        "required_per_case": 569
+      },
+      {
+        "full_run_aggregation": "MAXIMUM",
+        "metric_name": "PEAK_RETAINED_DERIVATION_OCTETS",
+        "metric_position": 17,
+        "required_full_run": 54297,
+        "required_per_case": 54297
+      },
+      {
+        "full_run_aggregation": "SUM",
+        "metric_name": "DERIVATION_RESULT_CANONICAL_OCTETS",
+        "metric_position": 18,
+        "required_full_run": 15585644,
+        "required_per_case": 37195
+      }
+    ],
+    "preflight_semantic_payload_version": "riskyieldmm.raw_v8_step2_external_schema_v2.preflight_semantic_payload.v1",
+    "raw_octets": 1702217,
+    "raw_sha256": "27d583074ed3b684d969644222ce025791e85fd7f28578b1ef9ca6fd6e573081",
+    "semantic_count_vector_sha256": "a9d7cd1ce1cb0aa6dccb175a5a1c49e69f1e672e18a9b4419ccbcdfedc1f79a8",
+    "semantic_payload_id": "d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b"
+  }
+}

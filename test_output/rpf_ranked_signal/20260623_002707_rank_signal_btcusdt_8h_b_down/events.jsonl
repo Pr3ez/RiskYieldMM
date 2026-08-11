@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-23T00:27:07.146017+00:00", "command": "rank_signal", "asset": "BTCUSDT", "root": "8h/B", "side": "down"}
+{"event": "stage_done", "ts": "2026-06-23T00:37:38.079038+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal/20260623_002707_rank_signal_btcusdt_8h_b_down", "best_objective": -0.029921659624835083}

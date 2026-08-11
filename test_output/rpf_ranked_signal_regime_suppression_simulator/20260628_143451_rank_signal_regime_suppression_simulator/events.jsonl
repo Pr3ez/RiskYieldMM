@@ -1,0 +1,2 @@
+{"event": "stage_start", "ts": "2026-06-28T14:34:51.396803+00:00", "command": "rank_signal_regime_suppression_simulator"}
+{"event": "stage_done", "ts": "2026-06-28T14:34:51.555256+00:00", "run": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ranked_signal_regime_suppression_simulator/20260628_143451_rank_signal_regime_suppression_simulator"}

@@ -71,6 +71,34 @@ All notable repository-level changes are recorded here.
   now complete 250/250 comparable steps; the candidate improves plain
   four-class accuracy and macro F1 but is not promoted because direction
   accuracy and cross-direction error are slightly worse than legacy.
+- Experimental volatility-normalized Stage-1 distance regression target
+  materializer. `materialize_stage1_regression_targets.py` writes four
+  nullable distance targets into a shared
+  `{layout.label_root}_reg_distance_vol_v1/1m/` root using the same
+  prediction-time volatility and opposite-family first-half future window as
+  `tb_atr_wide_v2`. The current implementation is label materialization and
+  diagnostics only; the main Stage-1 CatBoost runner remains classification
+  only.
+- Sparse-aware Stage-1 regression walk-forward smoke runner for the new
+  distance targets. `htf_stage1_regression_walkforward.py` reuses merged
+  Stage-1 feature/label roots and `stage1_batch_index.parquet`, trains
+  `CatBoostRegressor`, and reports MAE, RMSE, R2, Pearson, Spearman, and bias
+  without modifying the four-class classification runner.
+- Regression target validation command. `validate_stage1_regression_targets.py`
+  checks every generated row for null/valid consistency, nonnegative finite
+  targets, raw-to-volatility normalization, extreme/mean ordering, source
+  15m-window metadata, and independent raw-distance recomputation.
+- Corrected horizon-volatility regression target variant.
+  `materialize_stage1_regression_targets.py --variant distance_horizon_vol_v2`
+  writes four `*_hvol_v2` targets that keep the v1 raw future path distances
+  but normalize by `tb_volatility_pct * sqrt(future_15m_bar_count * 15)`.
+  `validate_stage1_regression_targets.py` verifies the v2 horizon minutes,
+  horizon volatility, raw-distance recomputation, and null/valid invariants.
+- Target-specific Stage-1 regression feature policy.
+  `htf_stage1_regression_walkforward.py --feature-policy target_specific_v1`
+  performs train-only feature screening, raw OHLCV/leakage-name removal,
+  near-duplicate pruning, target-specific ranking, and train-derived clipping
+  before fitting `CatBoostRegressor`.
 - Sparse-batch Stage-1 window handling. Merged roots now write a
   `stage1_batch_index.parquet` sidecar, Stage-1 windows count dense available
   batches instead of numeric `batch_id` ranges, and fold artifacts preserve

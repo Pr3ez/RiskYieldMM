@@ -47,6 +47,10 @@ fetchingMultiAsset/sorted-*
 fetchingMultiAsset/**/*.parquet
 fetchingbinance/**/sorted-*
 
+# Keep the Analyst runtime data directory in clean checkouts; payloads remain ignored.
+!Risk_Yield_Meta_Model_Analyst_0_0_1/web/data/
+!Risk_Yield_Meta_Model_Analyst_0_0_1/web/data/.gitkeep
+
 # Logs and temp files
 *.log
 logs/
@@ -55,11 +59,28 @@ test_output/htf_run_logs/*_status.json
 test_output/htf_stage1_regime_family_walkforward/plan_*.json
 test_output/htf_stage1_regime_family_walkforward/summary_*.json
 test_output/stage1_label_anomaly_experiments/
+test_output/stage1_feature_target_quality_audit/
+test_output/stage1_regression_walkforward/
+test_output/stage1_regression_grid_search/
+test_output/stage1_regression_optuna*/
+test_output/stage1_regression_walkforward_*/
 test_output/stage1_target_survey_metrics/
+test_output/regression_feature_engineering*/
+test_output/rpf_clean_classification*/
+test_output/rpf_clean_walkforward/
+test_output/rpf_feature_panels/
+test_output/rpf_ranked_signal_regime_diagnostic/
+test_output/rpf_ranked_signal_regime_suppression_simulator/
+test_output/rpf_ranked_signal_router/
 test_output/quarantine/
 test_output/ta_signal_diagnostics/
 test_output/tmp_stage1_*/
 test_output/python_documentation_audit.md
+# Raw-V8 exploratory/provenance products are reproducible non-authorities.
+test_output/raw_v8_step2_external_schema_v2_maximum_protocol_structural_self_test_v49f.json
+test_output/raw_v8_step2_inventory_v2_candidate.json
+# Legacy Analyst runtime output; new writes use XDG/RISKYIELDMM state storage.
+test_output/analyst_indicator_optimizer_trials.jsonl
 tmp/
 *.tmp
 *.bak

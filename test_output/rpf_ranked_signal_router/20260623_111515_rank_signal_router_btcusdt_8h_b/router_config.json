@@ -1,0 +1,421 @@
+{
+  "asset": "BTCUSDT",
+  "root": "8h/B",
+  "candidate_set": "default_v1",
+  "outer_window_count": 2,
+  "window_end_offset_steps": 0,
+  "evaluation_block_size": 2,
+  "gates": {
+    "min_validation_signal_count": 3,
+    "min_validation_precision_lift": 1.1,
+    "max_validation_false_discovery_rate": 0.6,
+    "min_validation_active_window_rate": 0.1,
+    "max_validation_zero_signal_window_rate": 0.9,
+    "min_validation_active_batch_count": 0,
+    "min_validation_lift_positive_batch_rate": 0.0,
+    "min_validation_median_active_precision_lift": 0.0,
+    "max_validation_median_active_false_discovery_rate": 1.0
+  },
+  "candidates": [
+    {
+      "name": "up_none_v1",
+      "side": "up",
+      "diagnostic": false,
+      "config": {
+        "train_batches": 40,
+        "val_batches": 5,
+        "elasticnet": {
+          "alpha": 0.03,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "none",
+          "sequence_length": 16,
+          "n_kernels": 128,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 100,
+          "depth": 3,
+          "learning_rate": 0.01,
+          "l2_leaf_reg": 30.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.975,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "up_rocket_16_v1",
+      "side": "up",
+      "diagnostic": false,
+      "config": {
+        "train_batches": 40,
+        "val_batches": 5,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 20,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 160,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 16,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 2,
+          "learning_rate": 0.01,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 2,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "up_rocket_32_v1",
+      "side": "up",
+      "diagnostic": false,
+      "config": {
+        "train_batches": 40,
+        "val_batches": 5,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 20,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 160,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 32,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 2,
+          "learning_rate": 0.01,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 2,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "up_rocket_64_v1",
+      "side": "up",
+      "diagnostic": false,
+      "config": {
+        "train_batches": 40,
+        "val_batches": 5,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 20,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 160,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 64,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 2,
+          "learning_rate": 0.01,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 2,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "down_none_v1",
+      "side": "down",
+      "diagnostic": false,
+      "config": {
+        "train_batches": 80,
+        "val_batches": 10,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "none",
+          "sequence_length": 16,
+          "n_kernels": 128,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 3,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "down_rocket_16_diag_v1",
+      "side": "down",
+      "diagnostic": true,
+      "config": {
+        "train_batches": 80,
+        "val_batches": 10,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 16,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 3,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "down_rocket_32_diag_v1",
+      "side": "down",
+      "diagnostic": true,
+      "config": {
+        "train_batches": 80,
+        "val_batches": 10,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 32,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 3,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    },
+    {
+      "name": "down_rocket_64_diag_v1",
+      "side": "down",
+      "diagnostic": true,
+      "config": {
+        "train_batches": 80,
+        "val_batches": 10,
+        "elasticnet": {
+          "alpha": 0.01,
+          "l1_ratio": 0.5,
+          "max_features": 40,
+          "min_features": 5,
+          "coef_eps": 1e-08,
+          "prefilter_features": 80,
+          "max_iter": 2000,
+          "tol": 0.001
+        },
+        "sequence": {
+          "mode": "causal_rocket_v1",
+          "sequence_length": 16,
+          "n_kernels": 64,
+          "seed": 42,
+          "cnn_embedding_dim": 8,
+          "cnn_conv_channels": 16,
+          "cnn_kernel_size": 3,
+          "cnn_epochs": 1,
+          "cnn_batch_size": 512,
+          "cnn_max_train_rows": 8000,
+          "cnn_device": "cpu"
+        },
+        "model": {
+          "rank_loss": "YetiRank",
+          "iterations": 50,
+          "depth": 3,
+          "learning_rate": 0.03,
+          "l2_leaf_reg": 100.0,
+          "random_strength": 1.0,
+          "early_stopping_rounds": 100,
+          "od_wait": 100
+        },
+        "decision": {
+          "threshold_quantile": 0.95,
+          "max_signals_per_batch": 3,
+          "fp_cost": 5.0,
+          "fn_cost": 1.0,
+          "high_target_positive_rate_threshold": 0.2,
+          "high_false_positive_rate_threshold": 0.3
+        }
+      }
+    }
+  ]
+}

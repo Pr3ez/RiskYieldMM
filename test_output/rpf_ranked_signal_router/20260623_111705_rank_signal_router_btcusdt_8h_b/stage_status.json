@@ -1,0 +1,16 @@
+{
+  "stage": "rank_signal_router",
+  "status": "complete",
+  "written_at": "2026-06-23T11:52:27.983479+00:00",
+  "summary": {
+    "asset": "BTCUSDT",
+    "root": "8h/B",
+    "outer_window_count": 120,
+    "candidate_validation_rows": 960,
+    "candidate_validation_score_rows": 1728000,
+    "candidate_validation_window_rows": 7200,
+    "selected_feature_rows": 28654,
+    "decision_rows": 214,
+    "conflict_rows": 0
+  }
+}

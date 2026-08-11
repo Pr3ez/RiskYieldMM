@@ -1,0 +1,615 @@
+{
+  "boundary_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_execution_boundary.v1",
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "boundary_status": "A4_B0_V2_ONLY_BOUNDARY_FROZEN",
+  "authority_contract": {
+    "seed_authority": {
+      "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_seed_catalog_v49f.json",
+      "raw_octets": 13419905,
+      "raw_sha256": "a75a2f352e8513b7ff0043693a0c65ebbf4bc6f06859354789af69e1162b0e4f",
+      "seed_catalog_id": "ac22151fa74702ac1488924f01161eaa38574545e6272a290db6b0bbd288ae5f",
+      "protocol_counting_semantics_id": "34f6c285e1ce5c2b0496a63f6eda3ee15f72d6268f5ba9dbb0748e01e61d38fb",
+      "ordered_authority_binding_record_count": 17,
+      "authority_loading_rule": "LOAD_SEED_THEN_SECURELY_RESOLVE_EVERY_ORDERED_AUTHORITY_RECORD_BEFORE_CANDIDATE_BYTES"
+    },
+    "finalization_manifest_authority": {
+      "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_finalization_manifest_v49f.json",
+      "raw_octets": 15560,
+      "raw_sha256": "0136fba014287605336193f782b4885f16e0163000d36429ceb0dfaf0cea52e0",
+      "finalization_manifest_id": "edde204e98ed1caeeb8ae270487d85e39a2168e0a3692ce1d8748d2d8e7fd858",
+      "finalization_status": "FINAL_V2_F2_FROZEN",
+      "semantic_payload_id": "d51f81fe078309ee817a4f7ab93be3891ef4fbb5aab45e41b8e0d60ce3103c1b",
+      "semantic_count_vector_sha256": "a9d7cd1ce1cb0aa6dccb175a5a1c49e69f1e672e18a9b4419ccbcdfedc1f79a8",
+      "comparison_payload_id": "8fca05661cbf728468b442466f613b7840b9c462cb2fd55302d34569fe243256",
+      "ordered_f2_limit_record_count": 18
+    },
+    "downstream_field_binding_rules": {
+      "maximum_protocol_sha256": "FINALIZATION_MANIFEST_AUTHORITY_RAW_SHA256",
+      "seed_catalog_id": "SEED_AUTHORITY_SEED_CATALOG_ID",
+      "finalization_manifest_id": "FINALIZATION_MANIFEST_AUTHORITY_ID",
+      "source_inventory_sha256": "SEED_ORDERED_AUTHORITY_ROLE_V4_INVENTORY_SEMANTIC_ID",
+      "external_schema_registry_id": "SEED_ORDERED_AUTHORITY_ROLE_STRUCTURAL_REGISTRY_SEMANTIC_ID",
+      "rule_literal_authority_sha256": "SEED_ORDERED_AUTHORITY_ROLE_RULE_LITERAL_AUTHORITY_RAW_SHA256",
+      "derivation_catalog_id": "SEED_RECURRENCE_CATALOG_ID",
+      "derivation_plan_id": "SEED_LOGICAL_COUNT_PLAN_ID_FOR_EXACT_CASE_POSITION",
+      "ordered_safe_relaxation_rule_ids": "SEED_LOGICAL_COUNT_PLAN_ORDERED_SAFE_RELAXATION_RULE_IDS",
+      "upper_bound_mode": "SEED_LOGICAL_COUNT_PLAN_UPPER_BOUND_MODE",
+      "resource_limit_catalog_id": "DERIVED_F2_RESOURCE_LIMIT_CATALOG_ID"
+    },
+    "f2_resource_limit_catalog": {
+      "catalog_version": "riskyieldmm.raw_v8_step2_external_schema_v2.f2_resource_limit_catalog.v1",
+      "identity_domain": "RiskYieldMMStep2F2ResourceLimitCatalogV1V4_9F_RawV8",
+      "ordered_identity_payload_member_names": [
+        "catalog_version",
+        "protocol_version",
+        "seed_catalog_id",
+        "finalization_manifest_id",
+        "ordered_f2_limit_records"
+      ],
+      "ordered_f2_limit_records_source": "/ordered_f2_limit_records",
+      "f2_resource_limit_catalog_id": "17a2258cde720b2868e9bb538fbd3d702c299a0db7d8fb5215938578d217d0fe"
+    },
+    "candidate_read_barrier": "ALL_AUTHORITIES_AND_SOURCE_SNAPSHOTS_ACCEPTED_BEFORE_OPENING_ANY_CANDIDATE_PATH",
+    "authority_drift_policy": "RECHECK_EVERY_AUTHORITY_AND_EXECUTABLE_AFTER_EACH_CASE_AND_BEFORE_PUBLICATION_OR_REJECT"
+  },
+  "implementation_role_contract": {
+    "ordered_role_records": [
+      {
+        "role_position": 1,
+        "role_name": "INDEPENDENT_VERIFIER",
+        "repository_relative_path": "scripts/tests/verify_raw_v8_step2_maximum_protocol_v2_candidate_v49f.py",
+        "source_marker": "INDEPENDENT_V2_CONSTRUCTIVE_VERIFIER_V1",
+        "input_kind": "ONE_CLOSED_PRODUCER_CANDIDATE_BUNDLE",
+        "output_kind": "ONE_VERIFIED_RESULT_BUNDLE",
+        "semantic_authority": true,
+        "may_execute_other_role": false
+      },
+      {
+        "role_position": 2,
+        "role_name": "SEPARATE_PRODUCER",
+        "repository_relative_path": "scripts/tests/produce_raw_v8_step2_maximum_protocol_v2_candidate_v49f.py",
+        "source_marker": "SEPARATE_V2_CONSTRUCTIVE_PRODUCER_V1",
+        "input_kind": "EXACT_CASE_POSITION_AND_FROZEN_AUTHORITIES",
+        "output_kind": "ONE_CLOSED_PRODUCER_CANDIDATE_BUNDLE",
+        "semantic_authority": false,
+        "may_execute_other_role": false
+      },
+      {
+        "role_position": 3,
+        "role_name": "PARENT_PILOT_RUNNER",
+        "repository_relative_path": "scripts/tests/run_raw_v8_step2_maximum_protocol_v2_pilot_v49f.py",
+        "source_marker": "PARENT_OWNED_V2_CONSTRUCTIVE_PILOT_RUNNER_V1",
+        "input_kind": "FROZEN_SIX_CASE_PILOT_CATALOG",
+        "output_kind": "ONE_NONPUBLICATION_PILOT_RESULT_BUNDLE",
+        "semantic_authority": false,
+        "may_execute_other_role": true
+      }
+    ],
+    "single_case_cli_contract": {
+      "producer_argument_order_after_python_isolation_flags": [
+        "PRODUCER_PATH",
+        "--repository-root",
+        "REPOSITORY_ROOT",
+        "--boundary",
+        "BOUNDARY_PATH",
+        "--case-position",
+        "CANONICAL_DECIMAL_CASE_POSITION",
+        "--output-root",
+        "ABSENT_PRODUCER_OUTPUT_ROOT"
+      ],
+      "verifier_argument_order_after_python_isolation_flags": [
+        "VERIFIER_PATH",
+        "--repository-root",
+        "REPOSITORY_ROOT",
+        "--boundary",
+        "BOUNDARY_PATH",
+        "--candidate-root",
+        "CLOSED_PRODUCER_OUTPUT_ROOT",
+        "--output-root",
+        "ABSENT_VERIFIER_OUTPUT_ROOT"
+      ],
+      "python_isolation_flags": [
+        "-I",
+        "-S",
+        "-B"
+      ],
+      "launch_policy": "FORK_SETRLIMIT_EXECVE_NO_SHELL_FIXED_ARGV_MINIMAL_ENVIRONMENT",
+      "success_exit_code": 0,
+      "success_stdout_policy": "EMPTY",
+      "success_stderr_policy": "EMPTY",
+      "failure_policy": "NONZERO_EXIT_NO_ACCEPTED_OUTPUT_ROOT"
+    },
+    "unknown_or_extra_role_policy": "REJECT"
+  },
+  "candidate_bundle_contract": {
+    "bundle_root_member_paths": [
+      "candidate.json",
+      "context_objects"
+    ],
+    "candidate_envelope_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_candidate_envelope.v1",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2ConstructiveCandidateEnvelopeV1V4_9F_RawV8",
+      "ordered_member_names": [
+        "candidate_version",
+        "canonicalization_version",
+        "measurement_schema_version",
+        "protocol_version",
+        "seed_catalog_id",
+        "finalization_manifest_id",
+        "case_position",
+        "case_kind",
+        "case_binding",
+        "logical_count_plan_id",
+        "candidate_payload",
+        "constructive_candidate_id"
+      ],
+      "case_binding_rule": "EXACT_DEEP_EQUALITY_WITH_SEED_CASE_BINDING_AT_CASE_POSITION",
+      "logical_count_plan_rule": "EXACT_SEED_PLAN_ID_AT_CASE_POSITION",
+      "identity_covers_every_preceding_member": true,
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "candidate_payload_tagged_union": {
+      "tag_member_name": "candidate_kind",
+      "ordered_alternative_records": [
+        {
+          "alternative_position": 1,
+          "candidate_kind": "MAXIMUM_WITNESS_CONTEXT",
+          "required_case_kind": "MAXIMUM_PUBLICATION_ROW",
+          "ordered_member_names": [
+            "candidate_kind",
+            "witness_record",
+            "scope_witness_context",
+            "ordered_context_object_entries"
+          ]
+        },
+        {
+          "alternative_position": 2,
+          "candidate_kind": "LOCAL_SHUTDOWN_MUTATION",
+          "required_case_kind": "LOCAL_SHUTDOWN_UNREPRESENTABLE_MINIMALITY",
+          "ordered_member_names": [
+            "candidate_kind",
+            "mutated_spec",
+            "prospective_result"
+          ]
+        }
+      ],
+      "unknown_tag_policy": "REJECT"
+    },
+    "context_object_entry_schema": {
+      "ordered_member_names": [
+        "context_object_position",
+        "claimed_maximum_context_object_id",
+        "record_type_name",
+        "repository_relative_path",
+        "raw_octet_count",
+        "raw_sha256"
+      ],
+      "path_rule": "context_objects/<first-two-id-characters>/<claimed-maximum-context-object-id>.json",
+      "file_encoding": "EXACT_COMPACT_CANONICAL_RECORD_BYTES_NO_WRAPPER_NO_TRAILING_BYTE",
+      "position_rule": "CONTIGUOUS_ONE_BASED",
+      "ordering_rule": "STRICTLY_INCREASING_CLAIMED_MAXIMUM_CONTEXT_OBJECT_ID",
+      "identity_rule": "VERIFIER_RECOMPUTES_RECORD_LEGALITY_ID_LENGTH_HASH_AND_REFERENCE_CLOSURE",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "forbidden_producer_claim_member_names": [
+      "canonical_byte_length",
+      "certified_analytic_maximum_octets",
+      "upper_bound_mode",
+      "ordered_safe_relaxation_rule_ids",
+      "derivation_catalog_id",
+      "derivation_plan_id",
+      "streamed_derivation_result_sha256",
+      "upper_bound_certificate",
+      "proof_resource_report",
+      "ordered_resource_measurements",
+      "winning_objective",
+      "changed_limit_field_count",
+      "sum_absolute_integer_deltas",
+      "expected_rejection_coordinate",
+      "verification_status"
+    ],
+    "producer_to_verifier_channel_rule": "CLOSED_CANDIDATE_BUNDLE_IS_THE_ONLY_PRODUCER_TO_VERIFIER_CHANNEL",
+    "candidate_claim_policy": "EVERY_PRODUCER_FIELD_IS_UNTRUSTED_AND_MUST_BE_INDEPENDENTLY_RECOMPUTED_OR_REJECTED"
+  },
+  "verifier_output_contract": {
+    "maximum_attainer_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.maximum_attainer.v2",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2MaximumAttainerV2V4_9F_RawV8",
+      "ordered_member_names": [
+        "artifact_version",
+        "canonicalization_version",
+        "measurement_schema_version",
+        "maximum_protocol_sha256",
+        "source_inventory_sha256",
+        "external_schema_registry_id",
+        "rule_literal_authority_sha256",
+        "type_name",
+        "alternative_name",
+        "constraint_scope",
+        "constraint_scope_id",
+        "constraint_scope_profile_id",
+        "witness_kind",
+        "canonical_byte_length",
+        "certified_analytic_maximum_octets",
+        "codec_byte_bound_relation",
+        "codec_octet_limit",
+        "codec_slack_octets",
+        "canonical_sha256",
+        "witness_record",
+        "scope_witness_context",
+        "required_context_object_count",
+        "ordered_required_context_object_ids",
+        "row_context_closure_id",
+        "upper_bound_certificate",
+        "proof_resource_report",
+        "maximum_attainer_id"
+      ],
+      "witness_kind": "INDEPENDENTLY_VALIDATED_LEGAL_MAXIMUM_ATTAINER",
+      "acceptance_rule": "P1_LEGAL_AND_P2_SOUND_UPPER_BOUND_AND_P3_EXACT_ATTAINMENT",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "upper_bound_certificate_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.upper_bound_certificate.v2",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2UpperBoundCertificateV2V4_9F_RawV8",
+      "ordered_member_names": [
+        "certificate_version",
+        "maximum_protocol_sha256",
+        "derivation_scope_id",
+        "upper_bound_mode",
+        "derivation_catalog_id",
+        "derivation_plan_id",
+        "ordered_safe_relaxation_rule_ids",
+        "certified_upper_bound_octets",
+        "streamed_derivation_result_sha256",
+        "upper_bound_certificate_id"
+      ],
+      "forbidden_member_names": [
+        "producer_upper_bound",
+        "producer_resource_claim",
+        "coordinate_catalog",
+        "ordered_component_choice_evidence",
+        "winner_digest"
+      ],
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "proof_resource_report_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.maximum_proof_resource_report.v2",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2MaximumProofResourceReportV2V4_9F_RawV8",
+      "ordered_member_names": [
+        "resource_report_version",
+        "maximum_protocol_sha256",
+        "derivation_scope_id",
+        "derivation_plan_id",
+        "derivation_certificate_id",
+        "resource_limit_catalog_id",
+        "ordered_resource_measurements",
+        "proof_resource_report_id"
+      ],
+      "meter_close_rule": "SEMANTIC_METER_CLOSES_BEFORE_RESOURCE_REPORT_SERIALIZATION",
+      "self_charge_policy": "REPORT_NEVER_CHARGES_ITS_OWN_ENCODING_ID_PREIMAGE_OR_HASH",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "local_shutdown_result_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.local_shutdown_unrepresentable.v2",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2LocalShutdownUnrepresentableV2V4_9F_RawV8",
+      "ordered_member_names": [
+        "artifact_version",
+        "canonicalization_version",
+        "measurement_schema_version",
+        "maximum_protocol_sha256",
+        "source_inventory_sha256",
+        "external_schema_registry_id",
+        "rule_literal_authority_sha256",
+        "constraint_scope_profile_id",
+        "baseline_spec_record_reference",
+        "mutated_limit_members",
+        "mutated_spec",
+        "changed_limit_field_count",
+        "sum_absolute_integer_deltas",
+        "prospective_result",
+        "prospective_result_canonical_byte_length",
+        "outer_codec_byte_bound_relation",
+        "outer_codec_octet_limit",
+        "expected_rejection_coordinate",
+        "minimality_certificate",
+        "proof_resource_report",
+        "local_shutdown_unrepresentable_id"
+      ],
+      "acceptance_rule": "EXACT_FROZEN_OBJECTIVE_AND_NO_STRICTLY_BETTER_LEGAL_MUTATION_AND_EXACT_SINGLE_MASK_REJECTION",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "verification_receipt_schema": {
+      "version_literal": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_verification_receipt.v1",
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2ConstructiveVerificationReceiptV1V4_9F_RawV8",
+      "ordered_member_names": [
+        "receipt_version",
+        "canonicalization_version",
+        "protocol_version",
+        "seed_catalog_id",
+        "finalization_manifest_id",
+        "case_position",
+        "case_kind",
+        "case_binding",
+        "logical_count_plan_id",
+        "constructive_candidate_id",
+        "candidate_raw_octets",
+        "candidate_raw_sha256",
+        "verification_status",
+        "result_artifact_kind",
+        "result_artifact_id",
+        "result_repository_relative_path",
+        "result_raw_octets",
+        "result_raw_sha256",
+        "ordered_verified_context_object_entries",
+        "verification_receipt_id"
+      ],
+      "maximum_status": "P1_P2_P3_ACCEPTED",
+      "local_status": "LOCAL_MINIMALITY_ACCEPTED",
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "verified_bundle_paths": {
+      "receipt": "verification_receipt.json",
+      "maximum_result": "maximum_attainer.json",
+      "local_result": "local_shutdown_unrepresentable.json",
+      "context_root": "context_objects"
+    },
+    "verifier_derived_only_fields": [
+      "constraint_scope",
+      "constraint_scope_id",
+      "canonical_byte_length",
+      "certified_analytic_maximum_octets",
+      "codec_slack_octets",
+      "canonical_sha256",
+      "required_context_object_count",
+      "ordered_required_context_object_ids",
+      "row_context_closure_id",
+      "upper_bound_certificate",
+      "proof_resource_report",
+      "mutated_limit_members",
+      "changed_limit_field_count",
+      "sum_absolute_integer_deltas",
+      "prospective_result_canonical_byte_length",
+      "expected_rejection_coordinate",
+      "minimality_certificate"
+    ]
+  },
+  "pilot_contract": {
+    "pilot_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_pilot.v2",
+    "pilot_status": "NONPUBLICATION_SIX_CASE_VERIFIER_PRODUCER_QUALIFICATION",
+    "ordered_pilot_case_records": [
+      {
+        "pilot_position": 1,
+        "case_position": 5,
+        "case_kind": "MAXIMUM_PUBLICATION_ROW",
+        "logical_count_plan_id": "d8149e3965dbdb9ed708860af0599463eafcfe2d428404ec7dea9aa20873cbe0",
+        "coverage_tag": "SMALL_BOOLEAN_EXHAUSTIVE_CANONICAL_LENGTH"
+      },
+      {
+        "pilot_position": 2,
+        "case_position": 24,
+        "case_kind": "MAXIMUM_PUBLICATION_ROW",
+        "logical_count_plan_id": "428ff735837b841e66103d64cbcd4af7ceaf88d009c38229ad5e4cde0ab30d67",
+        "coverage_tag": "OWNER_MEMBER_TAGGED_UNION_AND_OWNER_CODEC"
+      },
+      {
+        "pilot_position": 3,
+        "case_position": 54,
+        "case_kind": "MAXIMUM_PUBLICATION_ROW",
+        "logical_count_plan_id": "4eeedde2c223693e62a2b89a2016b43f9954496771189616ad68ac8cf21e6da1",
+        "coverage_tag": "RAW_STRING_ARRAY_CARDINALITY_ORDERING_AND_ESCAPING"
+      },
+      {
+        "pilot_position": 4,
+        "case_position": 69,
+        "case_kind": "MAXIMUM_PUBLICATION_ROW",
+        "logical_count_plan_id": "b991ffb7f0ea927d854228bcc52524e39fee7e88080d9171753b03cc59589fcb",
+        "coverage_tag": "LOCAL_SHUTDOWN_OUTER_RESULT_EXACT_APPLICATION_AND_CODEC"
+      },
+      {
+        "pilot_position": 5,
+        "case_position": 435,
+        "case_kind": "MAXIMUM_PUBLICATION_ROW",
+        "logical_count_plan_id": "9f8cd8303e3a9360986f0294210dda931e827af6eed4ec76b0c084e54f722c4a",
+        "coverage_tag": "MAX64_ROOT_FULL67_CONTEXT_137_APPLICATIONS_AND_SAFE_SUPERSET"
+      },
+      {
+        "pilot_position": 6,
+        "case_position": 475,
+        "case_kind": "LOCAL_SHUTDOWN_UNREPRESENTABLE_MINIMALITY",
+        "logical_count_plan_id": "2d46a1b71c9466fd3268b93dbc3e4a62a4855dd0324f4cfecfbb60d4589bbbc0",
+        "coverage_tag": "LOCAL_SHUTDOWN_EXACT_MINIMALITY_AND_SINGLE_MASK_REJECTION"
+      }
+    ],
+    "case_selection_rule": "EXACT_SEED_CASE_AND_PLAN_BINDINGS_NOT_PRODUCER_SELECTED_AND_NOT_CLAIMED_TO_DOMINATE_OTHER_CASES",
+    "execution_order": "FOR_EACH_PILOT_POSITION_RUN_PRODUCER_TO_CLOSED_ROOT_THEN_VERIFIER_TO_SEPARATE_CLOSED_ROOT",
+    "candidate_immutability_rule": "PARENT_SNAPSHOTS_COMPLETE_CANDIDATE_CLOSURE_BEFORE_AND_AFTER_VERIFICATION",
+    "limit_rule": "ALL_F2_LIMITS_ARE_IMMUTABLE_AND_NO_PILOT_OBSERVATION_MAY_RAISE_OR_REPAIR_THEM",
+    "determinism_rule": "TWO_COMPLETE_PILOT_RUNS_MUST_PRODUCE_BYTE_IDENTICAL_CANDIDATE_RESULT_AND_MANIFEST_BYTES",
+    "acceptance_rule": "ALL_SIX_CASES_ACCEPT_OR_THE_COMPLETE_PILOT_IS_NO_GO",
+    "publication_rule": "PILOT_RESULTS_MAY_BE_MATHEMATICALLY_VALID_BUT_DO_NOT_SELECT_OR_AUTHORIZE_THE_474_ROW_PUBLICATION",
+    "pilot_manifest_schema": {
+      "identity_domain": "RiskYieldMMA2MStep2ExternalSchemaV2ConstructivePilotManifestV2V4_9F_RawV8",
+      "ordered_member_names": [
+        "pilot_version",
+        "canonicalization_version",
+        "protocol_version",
+        "seed_catalog_id",
+        "finalization_manifest_id",
+        "producer_authority",
+        "verifier_authority",
+        "runner_authority",
+        "ordered_case_result_entries",
+        "pilot_status",
+        "constructive_pilot_manifest_id"
+      ],
+      "case_result_entry_ordered_member_names": [
+        "pilot_position",
+        "case_position",
+        "case_kind",
+        "logical_count_plan_id",
+        "constructive_candidate_id",
+        "candidate_root_raw_octets",
+        "candidate_root_sha256",
+        "verification_receipt_id",
+        "verified_result_artifact_id",
+        "verified_result_root_raw_octets",
+        "verified_result_root_sha256"
+      ],
+      "implementation_authority_ordered_member_names": [
+        "repository_relative_path",
+        "raw_octets",
+        "raw_sha256",
+        "source_marker"
+      ],
+      "unknown_or_extra_member_policy": "REJECT"
+    },
+    "canonical_output_root": "test_output/raw_v8_step2_maximum_protocol_v2_constructive_pilot_v49f",
+    "canonical_check_policy": "CHECK_REQUIRES_EXISTING_EXACT_OUTPUT_AND_NEVER_REPAIRS",
+    "canonical_write_policy": "WRITE_REQUIRES_ABSENT_OUTPUT_ROOT_AND_PUBLISHES_ROOT_LAST"
+  },
+  "resource_enforcement_contract": {
+    "semantic_metric_limit_source": "FINALIZATION_MANIFEST_ORDERED_F2_LIMIT_RECORDS",
+    "semantic_metric_case_rule": "EVERY_CASE_ENFORCES_ALL_18_F2_PER_CASE_LIMITS_BEFORE_CHARGED_OPERATION",
+    "semantic_metric_full_run_rule": "RUNNER_AGGREGATES_SUM_OR_MAX_EXACTLY_AS_FROZEN_AND_ENFORCES_ALL_18_F2_FULL_RUN_LIMITS",
+    "f2_metric_position_rule": "EXACTLY_CONTIGUOUS_POSITIONS_1_THROUGH_18",
+    "process_platform_limit_source": "SEED_F0_ORDERED_PLATFORM_CEILING_RECORDS",
+    "artifact_limit_source": "SEED_F0_ORDERED_PLATFORM_AND_PUBLICATION_CEILING_RECORDS",
+    "checked_arithmetic": "UNSIGNED_128_BIT_INTERMEDIATE_AND_SAFE_INTEGER_SERIALIZATION",
+    "preallocation_rule": "CHECK_PROSPECTIVE_COUNTER_AND_FILE_LIMIT_BEFORE_ALLOCATION_MUTATION_CANONICALIZATION_OR_HASH",
+    "producer_process_rule": "PARENT_ENFORCES_F0_WALL_CPU_RSS_TEMPORARY_STORAGE_DIAGNOSTIC_AND_OUTPUT_LIMITS",
+    "verifier_process_rule": "PARENT_ENFORCES_F0_WALL_CPU_RSS_TEMPORARY_STORAGE_DIAGNOSTIC_AND_OUTPUT_LIMITS",
+    "resource_observation_program": {
+      "wall_source": "MONOTONIC_NS_BEFORE_FORK_THROUGH_WAIT4_RETURN",
+      "cpu_source": "WAIT4_RUSAGE_USER_PLUS_SYSTEM_NANOSECONDS",
+      "peak_rss_source": "WAIT4_RUSAGE_MAXRSS_KIB_TIMES_1024_ON_LINUX",
+      "temporary_storage_source": "MAXIMUM_ALLOCATED_ST_BLOCKS_TIMES_512_IN_PRIVATE_OUTPUT_DIRECTORY"
+    },
+    "pilot_excess_policy": "CONTROLLED_NO_GO_WITH_NO_LIMIT_CHANGE_AND_NO_ACCEPTED_OUTPUT",
+    "telemetry_policy": "NONSEMANTIC_TELEMETRY_MAY_VARY_AND_NEVER_ENTERS_IDS_LIMITS_OR_ACCEPTANCE"
+  },
+  "filesystem_contract": {
+    "input_open_policy": "COMPONENT_BY_COMPONENT_BENEATH_ROOT_O_NOFOLLOW_O_NONBLOCK_CLOEXEC_WHERE_AVAILABLE",
+    "input_type_policy": "DIRECT_REGULAR_SINGLE_LINK_UNIQUE_DEVICE_INODE",
+    "bounded_read_policy": "FSTAT_SIZE_THEN_EXACT_LIMITED_READ_THEN_REQUIRE_EOF_THEN_FSTAT_RECHECK",
+    "json_policy": "STRICT_UTF8_I_JSON_NO_DUPLICATE_KEYS_NO_FLOATS_NO_BOM_NO_LONE_SURROGATES_BOUNDED_DEPTH_CANONICAL_ROUND_TRIP",
+    "source_snapshot_policy": "RAW_BYTES_DEVICE_INODE_SIZE_MODE_MTIME_NS_CTIME_NS_BEFORE_AND_AFTER",
+    "candidate_root_policy": "PRODUCER_PUBLISHES_ABSENT_ROOT_LAST_VERIFIER_READS_CLOSED_ROOT_ONLY",
+    "verified_root_policy": "VERIFIER_PUBLISHES_ABSENT_ROOT_LAST_AND_NEVER_WRITES_CANDIDATE_ROOT",
+    "atomic_file_policy": "O_EXCL_TEMP_WRITE_FSYNC_CLOSE_LINK_NOREPLACE_UNLINK_TEMP_FSYNC_PARENT",
+    "rollback_policy": "REMOVE_POST_LINK_FILE_WHEN_FINAL_AUTHORITY_CHECK_FAILS_BEFORE_ROOT_ACCEPTANCE",
+    "unexpected_file_policy": "REJECT",
+    "path_escape_policy": "REJECT_ABSOLUTE_DOT_DOT_EMPTY_OR_NONCANONICAL_COMPONENTS",
+    "hardlink_symlink_fifo_device_socket_policy": "REJECT",
+    "candidate_envelope_physical_encoding": "SORTED_KEYS_INDENT_2_UTF8_FINAL_LF",
+    "receipt_result_and_pilot_physical_encoding": "SORTED_KEYS_INDENT_2_UTF8_FINAL_LF",
+    "context_object_physical_encoding": "EXACT_COMPACT_CANONICAL_RECORD_BYTES",
+    "cleanup_policy": "REMOVE_ALL_PRIVATE_TEMPORARY_CHILD_OUTPUTS_ON_SUCCESS_OR_FAILURE",
+    "network_policy": "NO_NETWORK_NAMESPACE_OR_SOCKET_USE"
+  },
+  "independence_contract": {
+    "shared_executable_code_policy": "NONE_BETWEEN_VERIFIER_AND_PRODUCER",
+    "shared_material_policy": "THIS_DATA_CONTRACT_SEED_FINALIZATION_MANIFEST_AND_SEED_PINNED_AUTHORITIES_ONLY",
+    "verifier_forbidden_reads": [
+      "PRODUCER_SOURCE",
+      "PRODUCER_DIAGNOSTICS",
+      "PRODUCER_CACHE",
+      "ANY_OTHER_CANDIDATE",
+      "LEGACY_V1_STRUCTURAL_OUTPUT"
+    ],
+    "producer_forbidden_reads": [
+      "VERIFIER_SOURCE",
+      "VERIFIER_OUTPUT",
+      "VERIFIER_CACHE",
+      "ANY_ACCEPTED_CASE_RESULT_VECTOR",
+      "LEGACY_V1_STRUCTURAL_OUTPUT"
+    ],
+    "forbidden_import_roots": [
+      "ctypes",
+      "http",
+      "importlib",
+      "inspect",
+      "locale",
+      "marshal",
+      "multiprocessing",
+      "pickle",
+      "random",
+      "requests",
+      "riskyieldmm",
+      "scripts",
+      "socket",
+      "subprocess",
+      "tests",
+      "unicodedata",
+      "urllib"
+    ],
+    "allowed_standard_library_import_roots": [
+      "argparse",
+      "array",
+      "bisect",
+      "collections",
+      "contextlib",
+      "dataclasses",
+      "enum",
+      "functools",
+      "hashlib",
+      "heapq",
+      "itertools",
+      "json",
+      "math",
+      "operator",
+      "os",
+      "pathlib",
+      "resource",
+      "select",
+      "signal",
+      "stat",
+      "struct",
+      "sys",
+      "tempfile",
+      "time",
+      "types",
+      "typing"
+    ],
+    "dynamic_code_policy": "NO_EVAL_EXEC_COMPILE_DYNAMIC_IMPORT_REFLECTION_PICKLE_MARSHAL_OR_FOREIGN_FUNCTION_INTERFACE",
+    "subprocess_policy": "VERIFIER_AND_PRODUCER_FORBIDDEN_RUNNER_ONLY_FIXED_EXECVE",
+    "source_identity_policy": "DISTINCT_PATH_DEVICE_INODE_RAW_SHA256_AND_SOURCE_MARKER_REQUIRED",
+    "runtime_open_audit_policy": "TESTS_REJECT_FORBIDDEN_SOURCE_RESULT_CACHE_NETWORK_AND_LEGACY_PATH_OPENS",
+    "candidate_authority_policy": "CANDIDATE_IS_DATA_NOT_PROOF_AND_NO_PRODUCER_ASSERTION_CAN_SHORT_CIRCUIT_RECOMPUTATION"
+  },
+  "legacy_v1_exclusion_contract": {
+    "rejected_protocol_authority": {
+      "repository_relative_path": "docs/research/v4_9f_a2_raw_v8_step2_constructive_maximum_protocol_freeze_2026-08-01.md",
+      "raw_octets": 246093,
+      "raw_sha256": "b3b39b3cb15caa450d9974925db9b5f0b91dd5832a462d2a8687dc19a50c4409",
+      "required_status_fragment": "REJECTED — PRE-SEARCH PLAN EXCEEDS IMMUTABLE SEED CAPS"
+    },
+    "rejected_bootstrap_authority": {
+      "repository_relative_path": "scripts/tests/generate_raw_v8_step2_external_schema_v2_maximum_protocol_pilot_v49f.py",
+      "raw_octets": 76224,
+      "raw_sha256": "450d4a64fd111ff01c58f7caad3d66112d334648577fdd320e97617a88c06f74",
+      "required_module_fragment": "Fail-closed record of the rejected Raw-V8 Step-2 V1 pilot bootstrap"
+    },
+    "accepted_rejection_authority": {
+      "repository_relative_path": "docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md",
+      "raw_octets": 9411,
+      "raw_sha256": "fe6cb23e3246cb99db7498e38b543eabce58523c9c5200839eda5e4dfe7ce72a"
+    },
+    "forbidden_input_or_output_fragments": [
+      "maximum_protocol.v1",
+      "maximum_protocol_pilot.v1",
+      "maximum_protocol_structural_self_test.v1",
+      "NON_AUTHORITATIVE_REDUCED_STRUCTURAL_TEST_ONLY",
+      "REDUCED_STRUCTURAL_TEST_DOMAIN",
+      "ordered_component_choice_evidence",
+      "MaximumRecordReferenceV1",
+      "V3_INVENTORY_POINTER"
+    ],
+    "legacy_execution_policy": "NEITHER_VERIFIER_PRODUCER_NOR_RUNNER_IMPORTS_EXECUTES_OR_ACCEPTS_OUTPUT_FROM_THE_REJECTED_BOOTSTRAP",
+    "legacy_structural_self_test_policy": "RETAINED_HISTORICAL_ENGINEERING_EVIDENCE_ONLY_AND_ZERO_PILOT_COVERAGE_CREDIT",
+    "legacy_canonical_mode_policy": "REJECTED_BOOTSTRAP_MUST_CONTINUE_TO_REFUSE_CANONICAL_CHECK_AND_WRITE",
+    "v2_relabel_policy": "NO_V1_PATH_VERSION_TAG_ID_DOMAIN_POINTER_OR_ARTIFACT_MAY_BE_RELABELLED_AS_V2"
+  },
+  "constructive_boundary_id": "bdc7363ae28dfe9a1c1dc132808cb1bd4a06c409201cd49b31e394893142a7ed"
+}

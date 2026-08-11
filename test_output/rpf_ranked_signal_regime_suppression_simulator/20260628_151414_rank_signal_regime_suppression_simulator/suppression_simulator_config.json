@@ -1,0 +1,11 @@
+{
+  "regime_run": "test_output/rpf_ranked_signal_regime_diagnostic/20260628_150140_rank_signal_regime_diagnostic",
+  "suppress_up_states": [
+    2
+  ],
+  "suppress_down_states": [
+    1
+  ],
+  "suppress_up_change_flags": [],
+  "suppress_down_change_flags": []
+}

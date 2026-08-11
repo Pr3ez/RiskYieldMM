@@ -1,0 +1,101 @@
+{
+  "acceptance_report_version": "riskyieldmm.raw_v8_step2.maximum_protocol_v2.all_case_verifier_foundation_acceptance_report.v1",
+  "accepted_constructive_case_count": 0,
+  "all_case_verifier_foundation_acceptance_report_id": "127784d23829d3b92179596d5d058d5305c0075208b8a809109e4de49663973f",
+  "contract_authority": {
+    "all_case_campaign_contract_id": "9be94bf6b53b612d62ac26bc74133f25c1101a0962987a855e65cdcd06418583",
+    "raw_octets": 382710,
+    "raw_sha256": "3ca4ff4d6e581895b813043e7fdeed24c33cf2c828e362ac81de1725e95a84bb",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_all_case_campaign_contract_v49f.json"
+  },
+  "correction_subgate": "A4-R475-V0",
+  "fail_first_boundary": {
+    "accepted_constructive_case_count": 0,
+    "candidate_access_forbidden": true,
+    "expected_remaining_role_failures": 2,
+    "versioned_producer_present": false,
+    "versioned_runner_present": false,
+    "versioned_verifier_present": true
+  },
+  "formal_stage1_state": "NO-GO",
+  "independent_case_reconstruction": {
+    "case435_effective_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "case_count": 475,
+    "case_execution_ledger_id": "67ec002e95bf30764aa1d7e0175ab082d4b4f987a7d96981be75ece794e62566",
+    "execution_family_counts": {
+      "CORRECTED_APPLICATION_EXACT_PROFILE": 1,
+      "GENERIC_PROFILE_ATTAINMENT": 406,
+      "INTRINSIC_TEMPLATE_ATTAINMENT": 66,
+      "LOCAL_MINIMALITY": 1,
+      "SIGNED_ANALYTIC_EXACT_PROFILE": 1
+    },
+    "ordered_case_execution_records_sha256": "d3ddf4d97353bde65295764eeed8d0f347c1930d8089dc25f20e91c946578e72",
+    "successor_plan_case_positions": [
+      435
+    ]
+  },
+  "independent_source_review": {
+    "candidate_and_output_arguments_deleted_before_rejection": true,
+    "forbidden_source_tokens_observed": 0,
+    "foundation_only_call_order": [
+      "_load_foundation",
+      "_foundation_recheck",
+      "_reject"
+    ],
+    "imported_top_level_modules": [
+      "__future__",
+      "dataclasses",
+      "hashlib",
+      "json",
+      "os",
+      "pathlib",
+      "stat",
+      "sys",
+      "types",
+      "typing"
+    ],
+    "required_foundation_function_count": 7
+  },
+  "next_bounded_packet": "A4-R475-V1",
+  "ordered_acceptance_criteria": [
+    "EXACT_CONTRACT_AND_ALL_475_CASE_BINDINGS_RECONSTRUCTED",
+    "UNIQUE_CASE435_SUCCESSOR_DISPATCH",
+    "PINNED_COMPLETE_TYPED_RUNTIME",
+    "NO_PILOT_ROLE_IMPORT_OR_EXECUTION",
+    "NO_CANDIDATE_OR_OUTPUT_ACCESS_IN_V0",
+    "TWO_BYTE_IDENTICAL_FAIL_CLOSED_REPLAYS",
+    "IMMUTABLE_F0_HEADROOM"
+  ],
+  "resource_evidence": {
+    "authority_file_count": 18,
+    "authority_file_headroom": 46,
+    "f0_limits_raised": false,
+    "pinned_input_octet_headroom": 50390876,
+    "pinned_input_octets": 16717988
+  },
+  "review_decision": "ACCEPTED_FOUNDATION_ONLY",
+  "source_marker": "INDEPENDENT_A4_R475_V0_FOUNDATION_REVIEWER_V1",
+  "typed_runtime_replay": {
+    "application_count": 8,
+    "byte_identical": true,
+    "replay_count": 2,
+    "resolver_count": 2,
+    "rule_count": 42,
+    "stdout_sha256": "0d8be7cfa3f77b1c8cca558362371a623a476b23fdd4e4ad4ceed7841298f869",
+    "unsupported_complex_rule_count": 0
+  },
+  "verifier_authority": {
+    "raw_octets": 42659,
+    "raw_sha256": "15adb9fd5c427c1e1e96ff630e13b36d3f385f12eaf68a388a5da7be48dbf5aa",
+    "repository_relative_path": "scripts/tests/verify_raw_v8_step2_maximum_protocol_v2_all_case_candidate_v49f.py",
+    "source_marker": "INDEPENDENT_V2_ALL_CASE_CONSTRUCTIVE_VERIFIER_V1"
+  },
+  "verifier_cli_replay": {
+    "byte_identical": true,
+    "candidate_paths_opened": 0,
+    "output_paths_created": 0,
+    "replay_count": 2,
+    "return_code": 1,
+    "stderr_sha256": "8d0f7da834e5bc7ae0b2b1c2b79bf99ac083c297104530692fae3c897ac01321"
+  }
+}

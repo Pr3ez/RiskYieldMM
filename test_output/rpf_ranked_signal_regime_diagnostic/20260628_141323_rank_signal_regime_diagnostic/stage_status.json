@@ -1,0 +1,18 @@
+{
+  "stage": "rank_signal_regime_diagnostic",
+  "status": "complete",
+  "written_at": "2026-06-28T14:14:46.139395+00:00",
+  "summary": {
+    "context_rows": 3840,
+    "change_events": 9063,
+    "state_metric_rows": 6,
+    "sides": [
+      "down",
+      "up"
+    ],
+    "candidates": [
+      "down_rocket_16_diag_v1",
+      "up_rocket_64_v1"
+    ]
+  }
+}

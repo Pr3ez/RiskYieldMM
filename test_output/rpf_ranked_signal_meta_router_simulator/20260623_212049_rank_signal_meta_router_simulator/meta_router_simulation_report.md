@@ -1,0 +1,42 @@
+# RPF Ranked Signal Meta-Router Simulator
+
+## Scope
+
+- diagnostic run: `test_output/rpf_ranked_signal_transfer_diagnostic/20260623_212043_rank_signal_transfer_diagnostic`
+- train source block: `older`
+- test source block: `latest`
+- trained candidate rules: `3`
+
+## Rules
+
+| Side | Candidate | Feature | Direction | Threshold | Train Signals | Train Precision | Train Lift |
+|---|---|---|---|---:|---:|---:|---:|
+| down | down_rocket_16_diag_v1 | `reliability_selected_window_row_lift` | lower_good | 0.969697 | 3 | 1 | 4.89796 |
+| up | up_none_v1 | `threshold` | higher_good | 0.0215847 | 3 | 1 | 2.75269 |
+| up | up_rocket_64_v1 | `score_mean` | lower_good | -0.00188434 | 6 | 1 | 1.99511 |
+
+## Candidate Acceptance Summary
+
+| Source | Side | Candidate | Windows | Signals | TP | FP | Precision | Base Rate | Lift | FDR |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| latest | down | down_rocket_16_diag_v1 | 4 | 9 | 6 | 3 | 0.666667 | 0.39375 | 1.69312 | 0.333333 |
+| latest | up | up_none_v1 | 3 | 0 | 0 | 0 | - | 0.522222 | - | - |
+| latest | up | up_rocket_64_v1 | 20 | 17 | 14 | 3 | 0.823529 | 0.582083 | 1.4148 | 0.176471 |
+| older | down | down_rocket_16_diag_v1 | 4 | 3 | 3 | 0 | 1 | 0.204167 | 4.89796 | 0 |
+| older | up | up_none_v1 | 16 | 3 | 3 | 0 | 1 | 0.363281 | 2.75269 | 0 |
+| older | up | up_rocket_64_v1 | 17 | 6 | 6 | 0 | 1 | 0.501225 | 1.99511 | 0 |
+
+## Side Router Summary
+
+| Source | Side | Candidate | Windows | Signals | TP | FP | Precision | Base Rate | Lift | FDR |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| latest | down | selected_side_router | 120 | 9 | 6 | 3 | 0.666667 | 0.333333 | 2 | 0.333333 |
+| latest | up | selected_side_router | 120 | 17 | 14 | 3 | 0.823529 | 0.429896 | 1.91565 | 0.176471 |
+| older | down | selected_side_router | 120 | 3 | 3 | 0 | 1 | 0.417257 | 2.3966 | 0 |
+| older | up | selected_side_router | 120 | 9 | 9 | 0 | 1 | 0.362222 | 2.76074 | 0 |
+
+## Interpretation
+
+- This is an offline dry-run only.
+- Rules are fit on the configured train source block and replayed on other blocks.
+- Current prediction labels are used only for matured outcome scoring, never for fitting test-block rules.

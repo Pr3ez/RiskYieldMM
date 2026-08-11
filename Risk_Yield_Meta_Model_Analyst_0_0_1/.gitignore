@@ -1,0 +1,3 @@
+__pycache__/
+web/data/*.json
+!web/data/.gitkeep

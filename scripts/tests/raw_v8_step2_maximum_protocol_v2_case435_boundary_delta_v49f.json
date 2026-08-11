@@ -1,0 +1,86 @@
+{
+  "boundary_delta_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_exact_boundary_delta.v1",
+  "boundary_status": "CASE435_EXACT_DELTA_ACCEPTED_FOR_INDEPENDENT_VERIFIER_EXPANSION",
+  "canonicalization_version": "riskyieldmm_canonical_json_v1",
+  "case435_pilot_record_override": {
+    "case_kind": "MAXIMUM_PUBLICATION_ROW",
+    "case_position": 435,
+    "coverage_tag": "MAX64_ROOT_FULL67_CONTEXT_137_APPLICATIONS_EXACT_257887",
+    "logical_count_plan_id": "343259e38b6050fac5905fdc7ed6dca6d345d32c07b8370085bdf865793e7ad8",
+    "pilot_position": 5
+  },
+  "effective_authority_resolution": {
+    "all_other_case_resolution": "BYTE_EXACT_PREDECESSOR_RECORDS_ONLY",
+    "ambiguous_missing_duplicate_or_extra_resolution_policy": "REJECT",
+    "candidate_read_barrier": "ALL_PREDECESSOR_AND_DELTA_AUTHORITIES_ACCEPTED_BEFORE_OPENING_CANDIDATE_BYTES",
+    "case435_resolution": "SUCCESSOR_EXACT_RECORDS_ONLY",
+    "downstream_field_binding_overrides": {
+      "derivation_plan_id_for_case435": "SUCCESSOR_CASE435_LOGICAL_COUNT_PLAN_ID",
+      "finalization_manifest_id": "SUCCESSOR_MANIFEST_ID",
+      "maximum_protocol_sha256": "SUCCESSOR_MANIFEST_DELTA_RAW_SHA256",
+      "ordered_safe_relaxation_rule_ids_for_case435": [],
+      "resource_limit_catalog_id": "SUCCESSOR_F2_RESOURCE_LIMIT_CATALOG_ID",
+      "seed_catalog_id": "SUCCESSOR_SEED_CATALOG_ID",
+      "upper_bound_mode_for_case435": "EXACT_LEGAL_DOMAIN"
+    },
+    "load_order": [
+      "PREDECESSOR_BOUNDARY",
+      "PREDECESSOR_SEED_AND_MANIFEST",
+      "SUCCESSOR_SEED_DELTA",
+      "SUCCESSOR_MANIFEST_DELTA"
+    ]
+  },
+  "measurement_schema_version": "riskyieldmm_physical_transport_a2m_raw_v49f_v8",
+  "predecessor_constructive_boundary_authority": {
+    "constructive_boundary_id": "bdc7363ae28dfe9a1c1dc132808cb1bd4a06c409201cd49b31e394893142a7ed",
+    "raw_octets": 27334,
+    "raw_sha256": "05468ec3411869fc5b4b5c60d2820e58f8ebf0af96dea978f06d92705fe3bb2b",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_constructive_boundary_v49f.json"
+  },
+  "preserved_boundary_contract": {
+    "candidate_and_result_schemas_unchanged": true,
+    "filesystem_and_independence_contracts_unchanged": true,
+    "implementation_role_records_unchanged": true,
+    "inherited_member_names": [
+      "boundary_status",
+      "boundary_version",
+      "candidate_bundle_contract",
+      "canonicalization_version",
+      "filesystem_contract",
+      "implementation_role_contract",
+      "independence_contract",
+      "legacy_v1_exclusion_contract",
+      "measurement_schema_version",
+      "protocol_version",
+      "verifier_output_contract"
+    ],
+    "inherited_members_sha256": "d82c0d211a11aaf948de5324f831dd0dd7ac2f9e3027b69b6fe01c4da29ea4f1"
+  },
+  "producer_expansion_state": "HOLD_UNTIL_A4_P6_V_ACCEPTED",
+  "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+  "runner_state": "HOLD_UNTIL_VERIFIER_AND_PRODUCER_EXPANSIONS_ACCEPTED",
+  "successor_constructive_boundary_id": "7d4c06f56cd3cacd97cc4ff655e31f380fe9231c6c7c1374caee499186e1f73d",
+  "successor_f2_resource_limit_catalog": {
+    "catalog_version": "riskyieldmm.raw_v8_step2_external_schema_v2.case435_exact_f2_resource_limit_catalog.v2",
+    "f2_resource_limit_catalog_id": "5b2171f64c082ddaa5ecbeb19e2e2f5b952c07336a097364f23fd1658c3d944f",
+    "limit_records_source": "PREDECESSOR_FINALIZATION_MANIFEST_ORDERED_F2_LIMIT_RECORDS",
+    "predecessor_ordered_f2_limit_records_sha256": "0535f351fb1a668e4bba2f864232052b2187efd4317869fb749f28d2e7da9b1e",
+    "protocol_version": "riskyieldmm.raw_v8_step2_external_schema_v2.constructive_maximum_protocol.v2",
+    "resource_requalification_rule": "CASE435_EXPANDED_VERIFIER_MUST_FIT_EVERY_IMMUTABLE_PER_CASE_AND_FULL_RUN_LIMIT_OR_REJECT",
+    "successor_manifest_id": "6aed1139c158f8685bcb226697a2efe57af3c42f57831173bd7b3ea169025d9c",
+    "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+  },
+  "successor_manifest_delta_authority": {
+    "raw_octets": 2192,
+    "raw_sha256": "daa55d18aa8adfcef9b8a6ea2c6fa734f7922888a902eb863c6307c0fc13bacf",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_manifest_delta_v49f.json",
+    "successor_manifest_id": "6aed1139c158f8685bcb226697a2efe57af3c42f57831173bd7b3ea169025d9c"
+  },
+  "successor_seed_delta_authority": {
+    "raw_octets": 22976,
+    "raw_sha256": "5ce6b2156389ff0aecad7272a564308662a6ec3a77c4b94bfcae7ce32739c3da",
+    "repository_relative_path": "scripts/tests/raw_v8_step2_maximum_protocol_v2_case435_seed_delta_v49f.json",
+    "successor_seed_catalog_id": "7fad47e881624d0f39809e72ce2d3d3fd81fb8c85f854fe8332faf543cd1120b"
+  },
+  "verifier_expansion_state": "RELEASED_FOR_A4_P6_V_IMPLEMENTATION"
+}

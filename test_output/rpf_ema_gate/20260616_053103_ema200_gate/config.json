@@ -1,0 +1,26 @@
+{
+  "asset": "BTCUSDT",
+  "timeframes": [
+    "15m",
+    "1h",
+    "4h",
+    "1d"
+  ],
+  "buffers": [
+    0.0,
+    0.001,
+    0.0025,
+    0.005
+  ],
+  "up_score_path": "test_output/rpf_clean_classification/20260615_164900_classification_cls_extreme_up_ge_2x_down_hvol_v2/prediction_scores.parquet",
+  "down_score_path": "test_output/rpf_clean_classification/20260615_181239_classification_cls_extreme_down_ge_2x_up_hvol_v2/prediction_scores.parquet",
+  "up_classifier_trial_number": null,
+  "down_classifier_trial_number": null,
+  "row_level_paths": [
+    "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate/ema_gate_scores_15m.parquet",
+    "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate/ema_gate_scores_1h.parquet",
+    "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate/ema_gate_scores_4h.parquet",
+    "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/test_output/rpf_ema_gate/20260616_053103_ema200_gate/ema_gate_scores_1d.parquet"
+  ],
+  "current_close_source": "/run/media/przem/linux_data/risk_yield_multi-asset_dataset/RiskYieldMM/data/htf_multiasset/btcusdt/htf_canonical_ohlcv/1m/btcusdt_1m_canonical.parquet"
+}

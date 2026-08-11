@@ -975,6 +975,113 @@ is:
 docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-27.md
 ```
 
+Volatility-normalized distance regression targets are available as a
+label-only research layer. They use the same row authority and next
+opposite-family first-half `15m` label window as `tb_atr_wide_v2`, but write
+continuous distances instead of four classes.
+
+The historical `distance_vol_v1` columns divide multi-hour future excursions by
+the row's short-horizon prediction-time volatility:
+
+```text
+target_reg_distance_up_extreme_vol_v1
+target_reg_distance_up_mean_high_vol_v1
+target_reg_distance_down_mean_low_vol_v1
+target_reg_distance_down_extreme_vol_v1
+```
+
+That v1 scale is arithmetically valid but too large for multi-hour label
+windows. The preferred corrected research variant is
+`distance_horizon_vol_v2`, which keeps the same raw distances and normalizes by
+horizon-adjusted volatility:
+
+```text
+horizon_minutes = future_15m_bar_count * 15
+horizon_vol_pct = tb_volatility_pct * sqrt(horizon_minutes)
+target = raw_distance_pct / horizon_vol_pct
+```
+
+Its columns are:
+
+```text
+target_reg_distance_up_extreme_hvol_v2
+target_reg_distance_up_mean_high_hvol_v2
+target_reg_distance_down_mean_low_hvol_v2
+target_reg_distance_down_extreme_hvol_v2
+```
+
+For example, `0.82` means the future excursion reached `0.82x` the
+horizon-adjusted causal volatility estimate. Invalid rows are stored as `null`
+with `target_reg_distance_valid_v2=false`.
+
+Materialize the first BTCUSDT `8h/B` research slice with:
+
+```bash
+python scripts/analysis/materialize_stage1_regression_targets.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variant distance_horizon_vol_v2 \
+  --write-sanity-report
+```
+
+These labels are written under a separate root such as:
+
+```text
+data/htf_multiasset/btcusdt/htf_4class_labels_reg_distance_horizon_vol_v2/1m/
+```
+
+Validate all four distance targets row-by row against the source future `15m`
+label windows with:
+
+```bash
+python scripts/analysis/validate_stage1_regression_targets.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variant distance_horizon_vol_v2 \
+  --write-report
+```
+
+Stage-1 merged dataset assembly can resolve these label roots. The main
+`htf_stage1_regime_family_walkforward.py` runner remains a four-class
+classification workflow, so do not train it directly on these continuous
+targets. Use the dedicated regression smoke runner instead:
+
+```bash
+/media/przem/linux_data/conda/envs/ml_env/bin/python \
+  scripts/analysis/htf_stage1_regression_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --stage1-target-col target_reg_distance_up_extreme_hvol_v2 \
+  --feature-policy target_specific_v2 \
+  --max-features 300 \
+  --min-selected-features 20 \
+  --merged-batch-min 5800 \
+  --merged-batch-limit 180 \
+  --n-steps 20 \
+  --lookback-batches 120 \
+  --val-batches 20 \
+  --iterations 200 \
+  --depth 4 \
+  --learning-rate 0.05 \
+  --task-type CPU
+```
+
+Use `--task-type GPU` when the local CatBoost build and CUDA runtime are ready.
+The `target_specific_v2` feature policy selects features inside each
+walk-forward step using train rows only, removes raw OHLCV/leakage/bad-quality
+columns, requires enough train-only Spearman evidence, penalizes sign-flipping
+chronological subwindows, deduplicates near-identical features, and applies
+train-derived clip bounds to validation and prediction rows.
+
+The first bounded BTCUSDT `8h/B` v2 smoke completed all four target columns.
+Those tiny one- or two-step runs only validate wiring and target-specific
+feature selection; they are not prediction-quality evidence. Full comparison
+requires more chronological steps and target-by-target review of validation
+metrics first, then prediction-batch confirmation: MAE, RMSE, R2, Pearson,
+Spearman, bias, p95 coverage, and tail error.
+
 For the current full regime/family Stage-1 v1 run:
 
 ```bash
@@ -1184,7 +1291,123 @@ RiskYieldMM is built around financial time-series validation constraints:
 ## Documentation Index
 
 Start with [`docs/README.md`](docs/README.md) for the organized documentation
-map. High-signal documents:
+map.
+
+### Current trading-system redesign Stage 1 checkpoint
+
+<!-- STAGE1_ACTIVE_GATE: S1-A4 -->
+
+The mutable execution pointer is now
+[`docs/research/stage1_execution_control_2026-08-08.md`](docs/research/stage1_execution_control_2026-08-08.md).
+It is the sole mutable source for gate state, dependencies, WIP limits, and
+resume commands. `S1-A1`, the dual 475-case `S1-A2` feasibility preflight, and
+the final two-component V2/F2 authority `S1-A3` are accepted. The single active
+gate is `S1-A4`: constructive maximum verifier/producer evidence. The
+independent case-435 attainability analysis originally placed verifier expansion
+`A4-P6-V` on hold: even a deliberately enlarged legal-domain upper bound is
+260,909 octets, 1,234 below frozen P2.U 262,143, while P3 requires equality.
+The independent profile-scope audit closes `A4-P6-C435-A`: it proves that 407
+generic programs covering 474 internal scope cases use the same structural-only
+P2 shortcut, while only case 69 has an application-aware exact P2. The complete
+case-435 dependency graph and conditional-factorization proof now close
+`A4-P6-C435-B`; unconditional field independence is rejected. The independent
+C1 solver/checker now prove the exact 257,887-octet upper bound without claiming
+an attainer. A separate C2 constructor and checker now accept a complete
+257,887-octet P1-legal attainer while explicitly making no exactness claim. A
+separate C3 join and independent checker bind the frozen channel/problem
+identities and prove the exact 257,887-octet maximum. The accepted D transition
+now binds four ordered exact-delta seed/manifest/boundary/target authorities,
+changes only effective case 435, and makes independent verifier expansion
+`A4-P6-V` executable. Its frozen implementation design is now realized through
+accepted `A4-P6-V0`: one verifier preserves predecessor case 5, accepts the
+successor delta chain under immutable F0, and rejects tampered authorities
+before candidate access. `A4-P6-V1`, intrinsic cases 24/54, is the next bounded action. The
+six-case fail-first target infrastructure `A4-P6-T` remains accepted;
+producer and runner changes wait for later bounded sub-gates. `A4-V`
+reproduces the exact 29-octet
+maximum, case event-stream digest, and all 18 resource measurements; `A4-P`
+emits its exact 1,333-byte candidate independently. The frozen A4-T module now
+has only the parent-runner missing-path failure. The rejected-V1
+structural bootstrap remains explicitly excluded. The dated
+narrative below remains historical checkpoint evidence and must not be used to
+infer that a later gate passed.
+
+As of 2026-08-02, V4.9F-A1 remains the latest complete accepted transport
+checkpoint, and the A2-M Raw V6 observed-local authoritative-manifest and Raw
+V7 failed-prefix/cancellation sub-gates are locally accepted. Raw V7 passed all
+27 acceptance rows on one post-format tree, including 242 direct cases and the
+frozen 558-case adjacent matrix. A2-M itself remains incomplete and unaccepted.
+Raw V8 Step-2 as a whole has historical acceptance only: its 2026-07-28
+re-audit rejected the lossy 27-record, member-name-inferred external registry.
+The replacement V3 inventory and exact external-schema V2 for 49 concrete
+records plus three finite unions are now accepted narrow component sub-gates.
+Accepted components also cover the exact path and
+52-node graph, scalar/DFA/Unicode authority, value runtime, all 41 generic
+operators, all 33 generic-only rules, and recursive intrinsic-literal closure
+with schema-valid true/false witnesses. The complete 11-operator complex
+runtime and all nine dependent rules are also accepted as a narrow component
+sub-gate, with a 44-case hash-pinned true/business-false/evaluation-failure
+witness. The complete eight-application/two-resolver executor is now also an
+accepted component sub-gate: all 57 independent application cases execute
+without skips, 27 additional hostile-boundary cases pass, and the complete
+current component matrix passes 375 tests. The independently regenerated V3
+inventory is now the canonical golden: all 408 pre-frozen maximum-constraint
+scope profiles pass the 45-case focused inventory/security suite under
+semantic inventory ID
+`128d07a45dc2300c140f333cc3a45e2497aaa4089684f6e44da048ab403bbf9d`.
+The 2026-08-01 bounded-context re-freeze changed only the correction authority,
+its exact invariant mirror, and the resulting inventory identity; all 408
+complete scope profiles and their IDs remained byte-for-byte unchanged.
+The first constructive byte-maximum protocol is now formally rejected: one
+intrinsic row requires 94,905 pre-search coordinates and a minimum
+94,906-node/depth tie-break chain, exceeding three immutable 65,536 seed caps.
+Its pilot and publication paths remain closed. The compact-proof V2 correction
+is now independently accepted as design authority, and its V4 successor
+inventory is accepted with the V3 registry and all 408 profile objects/IDs
+preserved. Raw V8 Step 2 remains NO-GO. The corrected seed V2 proof protocol,
+including its exact per-emission event-metadata amendment, is accepted under a
+108-test focused seed/security matrix. The dependent data-only boundary was
+refrozen under contract ID
+`6609ad7b9abf21432136e49af178e20c17cb7bc27d3b444a4b6f01a17073fc76`;
+the complete seed-plus-boundary matrix passes 121 tests. Preflight A is now
+accepted as a single-implementation candidate after 6 focused tests. The
+independently authored preflight B and the isolated comparator are also
+accepted; all 475 cases and all 18 metrics agree exactly. That closes `S1-A2`.
+The final V2 authority is now frozen by a canonical 18-record/36-limit
+manifest after fresh dual-preflight agreement and a 182-test acceptance
+matrix, closing `S1-A3`. The active P0 is `S1-A4`; a new V2-only independent
+verifier/producer boundary is accepted under contract ID
+`bdc7363ae28dfe9a1c1dc132808cb1bd4a06c409201cd49b31e394893142a7ed`.
+The fail-first verifier/producer target (`A4-T`), bounded case-5 independent
+verifier (`A4-V`), separate case-5 producer (`A4-P`), and independent six-case
+qualification target infrastructure (`A4-P6-T`) are accepted. The later
+case-435 falsification held verifier expansion (`A4-P6-V`) until the accepted D
+transition. The correction
+architecture and full 407-program/474-scope-case census close
+`A4-P6-C435-A`. The dependency closure then accepts `A4-P6-C435-B`;
+exact upper-bound channel `A4-P6-C435-C1` and independent legal-attainer
+channel `A4-P6-C435-C2` each derive 257,887 octets without joining their claims.
+The separate equality join `A4-P6-C435-C3` accepts the exact maximum, and the
+versioned authority transition `A4-P6-C435-D` is accepted. `A4-P6-V` is next;
+its V0 successor resolver/read barrier is accepted, V1 cases 24/54 are the sole active implementation packet,
+and producer/runner expansion remain held.
+The remaining Step-2 gates are 474 legal maximum attainers,
+separate runtime-work accounting/certification, production differential
+adapters, and final Raw V7 compatibility. The corrected Step-3 lifecycle
+follows only after that reacceptance. Physical normalization and
+fixture-level oracles, independent finalization, isolation, atomic publication,
+and only then full matched campaigns follow before calibration, independent
+confirmation, threshold freeze, or A2-E. The public live factory remains
+closed; Stage 1 exit, production/live readiness, predictive edge, trading
+safety, and profitability are not established.
+
+Use the
+[`trading-prediction-system implementation roadmap`](docs/research/trading_prediction_system_diagnosis_and_redesign_2026-07-14.md)
+for program sequencing and the
+[`V4.9F-A2 measurement and enforcement protocol`](docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md)
+for the active transport gate, exact blockers, and nonclaims.
+
+Other high-signal documents:
 
 - [`docs/htf/stage1-logic.md`](docs/htf/stage1-logic.md) - isolated Stage-1 design and leakage constraints
 - [`docs/htf/stage1-artifacts.md`](docs/htf/stage1-artifacts.md) - Stage-1 artifact contract
@@ -1195,6 +1418,42 @@ map. High-signal documents:
 - [`docs/conformal/README.md`](docs/conformal/README.md) - conformal prediction module summary
 - [`docs/conformal/ARCHITECTURE.md`](docs/conformal/ARCHITECTURE.md) - conformal integration details
 - [`docs/validation/validation-testing-research.md`](docs/validation/validation-testing-research.md) - validation research notes
+- [`docs/research/v4_9d_causal_ingress_and_automatic_output_protocol_freeze_2026-07-17.md`](docs/research/v4_9d_causal_ingress_and_automatic_output_protocol_freeze_2026-07-17.md) - accepted bounded Stage-1 causal ingress/automatic-output checkpoint; focused and full-repository verification passed, and its V4.9E actor-ordered ACK/terminal successor is now recorded separately while the public live factory stays closed
+- [`docs/research/v4_9e_actor_ordered_provider_and_terminal_protocol_freeze_2026-07-17.md`](docs/research/v4_9e_actor_ordered_provider_and_terminal_protocol_freeze_2026-07-17.md) - accepted and post-edit revalidated bounded Stage-1 actor-ordered provider/terminal checkpoint covering exact ACK/deadline causality, predecessor-bound shutdown commands, one-socket owner-authorized TLS/TCP evidence, governed recovery clocks, and deterministic replay; the public live factory remains closed, with no production-readiness or profitability claim
+- [`docs/research/v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md`](docs/research/v4_9f_bounded_transport_admission_protocol_freeze_2026-07-18.md) - latest accepted bounded V4.9F-A1 local checkpoint with a signed policy, four singleton FIFO tickets, actual-entry deadlines, exact non-forgeable helper grants, audit-corrected shutdown commitment, and local diagnostics; at that checkpoint the full repository passed 2,361 tests with 32 skipped, while durable overload/parser/actor/cross-session capacity gates and the public live factory remained closed
+- [`docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md`](docs/research/v4_9f_a2_measurement_and_enforcement_protocol_freeze_2026-07-20.md) - current A2 design freeze and incomplete, unaccepted A2-M exploratory implementation boundary; records the evidence-integrity blockers, required falsification tests, frozen campaigns, and exact promotion order before calibration, thresholds, A2-E, or any live authority. The recorded 2026-07-20 implementation-checkpoint run was 2,441 passed with 32 skipped; it is regression evidence, not A2-M acceptance
+- [`docs/research/v4_9f_a2_authoritative_manifest_v6_protocol_freeze_2026-07-21.md`](docs/research/v4_9f_a2_authoritative_manifest_v6_protocol_freeze_2026-07-21.md) - locally accepted observed-local Raw V6 manifest-authority sub-gate: deterministic source and runtime/process/storage observations, one-shot direct Ed25519 binding, independent admitted-deployment verification, strict Raw V5 rejection, and bounded four-member replay. At its 2026-07-21 checkpoint, 228 disjoint tests passed. It is not external attestation, live-path qualification, A2-M completion, or Stage 1 exit
+- [`docs/research/v4_9f_a2_failed_prefix_cancellation_v7_protocol_freeze_2026-07-21.md`](docs/research/v4_9f_a2_failed_prefix_cancellation_v7_protocol_freeze_2026-07-21.md) - locally accepted Raw V7 attempt/terminal, failed-prefix, cancellation/interruption, recovery, runner-bound construction, and explicit unsigned-suffix trust-ceiling contract
+- [`docs/research/v4_9f_a2_raw_v7_acceptance_audit_2026-07-22.md`](docs/research/v4_9f_a2_raw_v7_acceptance_audit_2026-07-22.md) - independent traceability audit closing all 27 Raw V7 acceptance rows with 242 direct and 558 frozen adjacent cases plus final stable-tree static and leftover checks
+- [`docs/research/v4_9f_a2_marker_operation_target_v8_protocol_freeze_2026-07-22.md`](docs/research/v4_9f_a2_marker_operation_target_v8_protocol_freeze_2026-07-22.md) - Raw V8 parent gate for four operations, bounded markers/probes, and the complete typed 185-field target registry; Step-2 target-bound acceptance is reopened
+- [`docs/research/v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md`](docs/research/v4_9f_a2_raw_v8_step2_external_schema_v2_correction_2026-07-28.md) - active exact external-schema V2 correction; structural/value, all 52 operators/42 rules, all eight applications/two resolvers, and the canonical V3 inventory with 408 maximum-constraint scope profiles are accepted components, while constructive byte maxima, work accounting/certification, adapters, and compatibility gates remain
+- [`docs/research/v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md`](docs/research/v4_9f_a2_raw_v8_step2_v3_inventory_acceptance_2026-08-01.md) - narrow acceptance record for the canonical V3 inventory, independent 408-profile reconstruction, 45-case inventory/security suite, migrated 98-case consumer matrix, exact identities, closed promotion defects, and explicit maxima/production nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v1_feasibility_rejection_2026-08-02.md) - accepted deterministic rejection of maximum protocol V1 under its coordinate, proof-node, and proof-depth seed caps
+- [`docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_2026-08-02.md) - accepted compact-proof successor separating exact upper-bound-plus-attainer verification from pinned publication; its V4 migration is accepted while every later proof/artifact gate remains open
+- [`docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_compact_maximum_proof_v2_correction_acceptance_2026-08-02.md) - narrow two-review acceptance record, final physical authority, explicit V4-only authorization, and Raw V8 Step-2/Stage-1 nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_v4_inventory_acceptance_2026-08-02.md`](docs/research/v4_9f_a2_raw_v8_step2_v4_inventory_acceptance_2026-08-02.md) - accepted exact-delta V4 inventory, independent generator/validator, preserved 408-profile/474-row authority, final 134-case predecessor/V4/consumer matrix, and explicit preflight/maxima nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v2_seed_correction_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_maximum_protocol_v2_seed_correction_acceptance_2026-08-09.md) - corrected deterministic V2 seed acceptance: full-case unit/subject/cardinality closure, ordinary/local fixed-byte probes, 108 focused tests, and authorization for the two S1-A2 counting-only preflights
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_boundary_freeze_2026-08-09.md) - frozen data-only S1-A2 input/result/error/resource/import boundary used by both accepted independent preflights and their comparator
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_a_acceptance_2026-08-09.md) - A2-A iterative-counter acceptance: deterministic 475-case candidate, 18 F0-bounded metrics per case, 6 focused tests, exact identities, and explicit B/comparator/nonprofitability nonclaims
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_b_acceptance_2026-08-09.md) - independently authored flat-ledger counter acceptance over the same 475 cases and 18 metrics
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_preflight_comparator_acceptance_2026-08-09.md) - isolated parent-owned resource enforcement and exact A/B comparison acceptance
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_dual_preflight_acceptance_2026-08-09.md) - combined `S1-A2` acceptance after exact agreement on all cases/metrics and fresh regression
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_design_correction_2026-08-09.md) - selected two-component `S1-A3` authority design
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_final_freeze_acceptance_2026-08-09.md) - accepted canonical final manifest, all 36 F2 limits, standalone finalizer, exact rerun, and activation of `S1-A4/A4-B0`
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_constructive_boundary_freeze_2026-08-09.md) - accepted `A4-B0` V2-only verifier/producer/pilot boundary, six-case pilot set, F2 resource authority, hostile boundary checks, and explicit rejected-V1 exclusion; its `A4-T` successor is now accepted
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_implementation_fail_first_acceptance_2026-08-09.md) - accepted `A4-T` independent schema/source/CLI/functional target with 50 passing checks, 11 expected skips, exactly three missing-path failures, and `A4-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_acceptance_2026-08-09.md) - accepted bounded `A4-V` standalone verifier with exact case-5 legality/bound/attainment/identity/resource reconstruction, 12 focused hostile tests, two remaining missing-role failures, and `A4-P` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_separate_producer_acceptance_2026-08-09.md) - accepted bounded `A4-P` standalone producer with exact 1,333-byte case-5 candidate, 20 deterministic/adversarial/interoperability tests, one remaining parent-runner failure, and the then-next `A4-P6` qualification
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_six_case_qualification_fail_first_acceptance_2026-08-09.md) - accepted `A4-P6-T` independent six-case target with case-5 positive control, exact F2/identity/hostile checks, six intended fail-first boundaries, frozen runner convention, and `A4-P6-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_attainability_falsification_2026-08-09.md) - records the later case-435 NO-GO: enlarged-domain upper bound 260,909 is 1,234 octets below frozen P2.U, so P3 equality is infeasible and `A4-P6-C435` is next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_profile_attainability_scope_and_correction_design_2026-08-10.md) - accepts `A4-P6-C435-A`: complete 408-program/475-scope-case strategy census, 407-program/474-case correction surface, fail-closed three-channel exactness contract, and `A4-P6-C435-B` dependency closure next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_dependency_closure_acceptance_2026-08-10.md) - accepts `A4-P6-C435-B`: complete schema/rule/operator graph, nested conditional factorization, and 182 singleton plus one three-field A1 component; its C1 successor is now accepted
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exact_upper_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C1`: proof-carrying finite-domain solver plus separate direct legal-branch verifier derive the exact 257,887-octet upper bound; its non-attainment boundary remains frozen
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_independent_attainer_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C2`: independent constructor and separate full-P1 replay checker prove a 257,887-octet legal retained witness while leaving exactness join `A4-P6-C435-C3` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_exactness_join_acceptance_2026-08-10.md) - accepts `A4-P6-C435-C3`: identity-bound join and independent checker prove the exact 257,887-octet maximum, preserve verifier hold, and make versioned authority transition `A4-P6-C435-D` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_case435_authority_transition_acceptance_2026-08-10.md) - accepts `A4-P6-C435-D`: four ordered exact-delta authorities replace only effective case 435, preserve predecessor evidence and immutable F2 ceilings, reject hostile re-sealed drift, and make independent verifier expansion `A4-P6-V` next
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_design_2026-08-10.md) - freezes the dual-mode successor verifier, exact context/P1/P2/P3/local-minimality/F2 obligations, hostile acceptance matrix, and ordered V0-V4 implementation packets; V0 is now accepted and V1 is next while the formal expansion remains incomplete
+- [`docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md`](docs/research/v4_9f_a2_raw_v8_step2_v2_independent_verifier_expansion_v0_acceptance_2026-08-10.md) - accepts `A4-P6-V0`: exact predecessor/successor authority dispatch, full read-before-candidate barrier, deterministic successor-bound case-5 control, immutable F0 footprint, cross-mode/tamper rejection, and `A4-P6-V1` next
 - [`Archive/README.md`](Archive/README.md) - legacy implementation/archive index
 
 ## Technology Stack

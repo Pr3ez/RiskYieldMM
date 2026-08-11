@@ -1326,3 +1326,188 @@ Current fair comparison report:
 ```text
 docs/research/tb-target-survey-8h-b-btcusdt-comparison-2026-05-27.md
 ```
+
+### 15.4 Distance regression target layer
+
+The next target-research step is not another four-class replacement. It is a
+label-only regression layer that asks a more direct sizing question:
+
+```text
+How far did the next label window travel above and below the entry close,
+measured in units of volatility known at prediction time?
+```
+
+The first implemented variant was:
+
+```text
+distance_vol_v1
+```
+
+It uses the same row authority, prediction-time volatility inputs, and next
+opposite-family first-half `15m` window as `target_4class_tb_atr_wide_v2`.
+For each eligible row:
+
+```text
+volatility_t = max(ATR_pct_14, rolling_std_return_120)
+
+up_extreme      = max(max(future_high - close_t, 0) / close_t) / volatility_t
+up_mean_high    = mean(max(future_high - close_t, 0) / close_t) / volatility_t
+down_mean_low   = mean(max(close_t - future_low, 0) / close_t) / volatility_t
+down_extreme    = max(max(close_t - future_low, 0) / close_t) / volatility_t
+```
+
+Output columns:
+
+```text
+target_reg_distance_up_extreme_vol_v1
+target_reg_distance_up_mean_high_vol_v1
+target_reg_distance_down_mean_low_vol_v1
+target_reg_distance_down_extreme_vol_v1
+```
+
+Invalid rows are `null`, not `-1`, and carry:
+
+```text
+target_reg_distance_valid_v1
+target_reg_distance_reason_v1
+```
+
+The materializer writes a shared root:
+
+```text
+data/htf_multiasset/{asset}/{layout.label_root}_reg_distance_vol_v1/1m/
+```
+
+First validation command:
+
+```bash
+python scripts/analysis/materialize_stage1_regression_targets.py \
+  --assets BTCUSDT \
+  --roots 8h/B \
+  --variant distance_vol_v1 \
+  --write-sanity-report
+```
+
+The main Stage-1 CatBoost runner is still classification-only and must not be
+used directly with these continuous targets. A dedicated sparse-aware
+regression smoke runner is available:
+
+```bash
+/media/przem/linux_data/conda/envs/ml_env/bin/python \
+  scripts/analysis/htf_stage1_regression_walkforward.py \
+  --build-merged-dataset \
+  --target-assets BTCUSDT \
+  --context-assets core-ex-target \
+  --roots 8h/B \
+  --stage1-target-col target_reg_distance_up_extreme_vol_v1 \
+  --merged-batch-min 5800 \
+  --merged-batch-limit 40 \
+  --n-steps 3 \
+  --lookback-batches 20 \
+  --val-batches 5 \
+  --iterations 30 \
+  --depth 4 \
+  --task-type CPU
+```
+
+First smoke result for `target_reg_distance_up_extreme_vol_v1`:
+
+```text
+prediction steps: 3
+held-out rows: 717
+MAE: 4.3016
+RMSE: 5.1354
+R2: 0.1731
+Pearson: 0.4376
+Spearman: 0.5257
+bias: -0.3760
+```
+
+This is only a wiring and signal sanity check. Promotion requires larger runs
+for all four distance targets, stability across later batch ranges, and a
+decision about whether rank quality or absolute-error quality is the main
+objective.
+
+`distance_vol_v1` remains useful as historical evidence, but the later feature
+and target audit found the scale is not appropriate for multi-hour future
+windows: it divides a multi-hour path distance by short-horizon row volatility.
+The corrected first-choice research variant is:
+
+```text
+distance_horizon_vol_v2
+```
+
+It keeps the same row authority, causal volatility input, raw future distance
+calculation, and opposite-family first-half `15m` future window, but changes the
+normalizer:
+
+```text
+horizon_minutes = future_15m_bar_count * 15
+horizon_vol_pct = tb_volatility_pct * sqrt(horizon_minutes)
+target = raw_distance_pct / horizon_vol_pct
+```
+
+Output columns:
+
+```text
+target_reg_distance_up_extreme_hvol_v2
+target_reg_distance_up_mean_high_hvol_v2
+target_reg_distance_down_mean_low_hvol_v2
+target_reg_distance_down_extreme_hvol_v2
+```
+
+The v2 root is:
+
+```text
+data/htf_multiasset/{asset}/{layout.label_root}_reg_distance_horizon_vol_v2/1m/
+```
+
+BTCUSDT `8h/B` validation result:
+
+```text
+docs/research/reg-distance-target-validation-distance_horizon_vol_v2-8h-b-btcusdt-2026-05-28.md
+status: PASS
+rows: 2,810,755
+valid rows: 1,405,427
+bad normalization counters: 0
+horizon metadata mismatch counters: 0
+raw-distance recomputation violations: 0
+```
+
+The v2 sanity report shows materially smaller target magnitudes than v1. For
+example, `target_reg_distance_up_extreme_vol_v1` had `p99=70.2133` and
+`max=213.423` in the feature/target audit, while
+`target_reg_distance_up_extreme_hvol_v2` has `p99=4.27382` and `max=13.7764`.
+
+The regression walk-forward runner now supports a fold-local target-specific
+feature policy:
+
+```text
+--feature-policy target_specific_v1
+```
+
+For each prediction step it uses train rows only to remove raw OHLCV,
+leakage-name, constant, near-constant, nonfinite, extreme, and near-duplicate
+features; rank the survivors against the selected regression target; choose a
+bounded feature set; and compute train-derived clipping bounds. Validation and
+prediction rows only receive the selected feature list and clipping bounds.
+
+Bounded BTCUSDT `8h/B` smoke result for v2 wiring:
+
+```text
+target_reg_distance_up_extreme_hvol_v2:
+  steps=2, held-out rows=480, feature policy selected 120 features/step
+
+target_reg_distance_up_mean_high_hvol_v2:
+  steps=1, held-out rows=240, feature policy selected 80 features/step
+
+target_reg_distance_down_mean_low_hvol_v2:
+  steps=1, held-out rows=240, feature policy selected 80 features/step
+
+target_reg_distance_down_extreme_hvol_v2:
+  steps=1, held-out rows=240, feature policy selected 80 features/step
+```
+
+These runs validate path resolution, v2 merged-label loading, train-only
+feature selection, clipping, and CatBoost regression execution. They are not
+quality evidence because the windows are intentionally tiny.

@@ -1,0 +1,15 @@
+{
+  "stage": "rank_signal_meta_router_simulator",
+  "status": "complete",
+  "written_at": "2026-06-23T21:02:42.908986+00:00",
+  "summary": {
+    "diagnostic_run": "test_output/rpf_ranked_signal_transfer_diagnostic/20260623_183857_rank_signal_transfer_diagnostic",
+    "train_source_block": "older",
+    "test_source_block": "latest",
+    "input_rows": 720,
+    "feature_count": 69,
+    "rule_count": 3,
+    "candidate_acceptance_rows": 720,
+    "side_router_rows": 480
+  }
+}

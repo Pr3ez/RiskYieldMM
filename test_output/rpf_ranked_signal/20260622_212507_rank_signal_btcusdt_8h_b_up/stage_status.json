@@ -1,0 +1,14 @@
+{
+  "stage": "rank_signal",
+  "status": "complete",
+  "written_at": "2026-06-22T21:30:40.125158+00:00",
+  "summary": {
+    "asset": "BTCUSDT",
+    "root": "8h/B",
+    "side": "up",
+    "trial_count": 8,
+    "best_objective_value": -0.9693318332961809,
+    "best_status": "ok",
+    "holdout_status": "ok"
+  }
+}
